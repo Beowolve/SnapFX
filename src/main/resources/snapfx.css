@@ -1,0 +1,140 @@
+/* SnapFX Docking Framework - Native Modena Look */
+
+/* ===== DockNode ===== */
+.dock-node-view {
+    -fx-background-color: -fx-background;
+    -fx-border-color: derive(-fx-background, -10%);
+    -fx-border-width: 1px;
+}
+
+.dock-node-header {
+    -fx-background-color: linear-gradient(to bottom,
+        derive(-fx-background, 5%),
+        derive(-fx-background, -5%));
+    -fx-border-color: derive(-fx-background, -15%);
+    -fx-border-width: 0 0 1px 0;
+    -fx-padding: 4px 8px;
+}
+
+.dock-node-title-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-text-base-color;
+}
+
+.dock-node-close-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: derive(-fx-text-base-color, 20%);
+    -fx-font-size: 18px;
+    -fx-padding: -2px 4px 0 4px;
+    -fx-cursor: hand;
+    -fx-min-height: 22px;
+    -fx-pref-height: 22px;
+    -fx-max-height: 22px;
+    -fx-alignment: center;
+    -fx-content-display: center;
+}
+
+.dock-node-close-button:hover {
+    -fx-background-color: derive(-fx-background, -10%);
+    -fx-text-fill: -fx-text-base-color;
+}
+
+.dock-node-close-button:pressed {
+    -fx-background-color: derive(-fx-background, -20%);
+}
+
+.dock-node-content {
+    -fx-background-color: -fx-background;
+}
+
+/* ===== DockSplitPane ===== */
+.dock-split-pane {
+    -fx-background-color: -fx-background;
+    -fx-padding: 0;
+}
+
+.dock-split-pane > .split-pane-divider {
+    -fx-background-color: derive(-fx-background, -10%);
+    -fx-padding: 0 1 0 1;
+}
+
+.dock-split-pane:horizontal > .split-pane-divider {
+    -fx-background-color: derive(-fx-background, -10%);
+    -fx-padding: 0 1 0 1;
+}
+
+.dock-split-pane:vertical > .split-pane-divider {
+    -fx-background-color: derive(-fx-background, -10%);
+    -fx-padding: 1 0 1 0;
+}
+
+/* ===== DockTabPane ===== */
+.dock-tab-pane {
+    -fx-background-color: -fx-background;
+}
+
+.dock-tab-pane .tab-header-area {
+    -fx-background-color: derive(-fx-background, -5%);
+}
+
+.dock-tab-pane .tab {
+    -fx-background-color: derive(-fx-background, -10%);
+    -fx-background-radius: 3 3 0 0;
+    -fx-padding: 5 10 5 10;
+}
+
+.dock-tab-pane .tab:selected {
+    -fx-background-color: -fx-background;
+}
+
+.dock-tab-pane .tab:hover {
+    -fx-background-color: derive(-fx-background, -5%);
+}
+
+.dock-tab-pane .tab .tab-label {
+    -fx-font-size: 11px;
+}
+
+.dock-tab-pane .tab-close-button {
+    -fx-background-color: transparent;
+}
+
+.dock-tab-pane .tab-close-button:hover {
+    -fx-background-color: derive(-fx-background, -15%);
+}
+
+/* ===== Drag & Drop Overlays ===== */
+.dock-ghost-overlay {
+    -fx-background-color: rgba(173, 216, 230, 0.5);
+    -fx-border-color: rgba(100, 149, 237, 0.8);
+    -fx-border-width: 2px;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+}
+
+.dock-drop-indicator {
+    -fx-background-color: rgba(100, 149, 237, 0.3);
+    -fx-border-color: rgb(100, 149, 237);
+    -fx-border-width: 2px;
+}
+
+/* ===== Locked Mode ===== */
+.dock-node-view.locked .dock-node-close-button {
+    -fx-opacity: 0;
+}
+
+/* Dark Theme Support (optional) */
+.root.dark {
+    -fx-base: rgb(50, 50, 50);
+    -fx-background: rgb(45, 45, 45);
+    -fx-control-inner-background: rgb(40, 40, 40);
+}
+
+.dock-debug-panel {
+    -fx-background-color: -fx-control-inner-background;
+    -fx-border-color: -fx-box-border;
+    -fx-border-width: 1;
+}
+
+/* TreeView highlight is applied inline by the cell to avoid hard dependencies */

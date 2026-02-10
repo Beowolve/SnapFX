@@ -1,0 +1,281 @@
+# SnapFX - Lightweight JavaFX Docking Framework
+
+A high-performance, lightweight JavaFX docking framework that behaves like native professional software (IntelliJ, Visual Studio).
+
+**Note**: SnapFX is a Java Module (JPMS). Make sure your project is configured accordingly.
+
+## Features
+
+### Core Architecture
+- **Tree-Based Model**: Logical structure (DockGraph) decoupled from the visual representation
+- **Minimal Wrapper**: Simple API `SnapFX.dock(myNode, "Title")`
+- **Smart Splitting**: Automatic flattening when orientation matches
+- **Auto-Cleanup**: Empty containers remove themselves automatically
+- **Java Module**: Full support for Java Platform Module System (JPMS)
+
+### Visual Features
+- **Drag & Drop**: Global drag service with visual feedback
+- **Dock Zones**: 5 zones (Top, Bottom, Left, Right, Center)
+- **Floating Windows**: Tabs can be dragged out (planned)
+- **Locked Mode**: Lock the layout; no D&D; no close buttons
+
+### Persistence
+- **Layout Save/Load**: JSON-based serialization
+- **Full Structure**: Including floating windows (planned), positions, split percentages
+
+### Look & Feel
+- **Native Look**: Seamless integration with the JavaFX Modena theme
+- **CSS-based**: Fully customizable
+
+## Quick Start
+
+### Gradle Setup
+
+```kotlin
+plugins {
+    id("java")
+    id("application")
+    id("org.openjfx.javafxplugin") version "0.1.0"
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+    modularity.inferModulePath.set(true)
+}
+
+javafx {
+    version = "21"
+    modules("javafx.controls", "javafx.fxml")
+}
+
+dependencies {
+    implementation("com.google.code.gson:gson:2.10.1")
+}
+
+application {
+    mainModule.set("your.module.name")
+    mainClass.set("your.main.Class")
+}
+```
+
+### Module Configuration
+
+Create a `module-info.java` in your `src/main/java` directory:
+
+```java
+module your.module.name {
+    requires com.github.beowolve.snapfx;
+    requires javafx.controls;
+    
+    exports your.main.package;
+}
+```
+
+### Simple Example
+
+```java
+import com.github.beowolve.snapfx.SnapFX;
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.control.TextArea;
+import javafx.stage.Stage;
+
+public class SimpleDemo extends Application {
+    @Override
+    public void start(Stage stage) {
+        SnapFX snapFX = new SnapFX();
+
+        // Dock nodes
+        snapFX.dock(new TextArea("Editor 1"), "Editor");
+        snapFX.dock(new TextArea("Console"), "Console");
+
+        // Build layout
+        Scene scene = new Scene(snapFX.buildLayout(), 800, 600);
+        scene.getStylesheets().add(getClass().getResource("/snapfx.css").toExternalForm());
+
+        stage.setScene(scene);
+        snapFX.initialize(stage);
+        stage.show();
+    }
+}
+```
+
+### Advanced Usage
+
+```java
+// Create nodes with custom IDs (required for cross-session persistence)
+DockNode editor = new DockNode("mainEditor", new TextArea(), "Editor");
+DockNode console = new DockNode("console", new TextArea(), "Console");
+DockNode sidebar = new DockNode("projectExplorer", new TreeView<>(), "Files");
+
+// Dock nodes at specific positions
+snapFX.getDockGraph().setRoot(editor);
+snapFX.getDockGraph().dock(console, editor, DockPosition.BOTTOM);
+snapFX.getDockGraph().dock(sidebar, editor, DockPosition.LEFT);
+
+// Add as tab
+DockNode tasks = new DockNode("tasks", new ListView<>(), "Tasks");
+snapFX.getDockGraph().dock(tasks, console, DockPosition.CENTER);
+
+// Lock layout
+snapFX.setLocked(true);
+
+// Setup factory for save/load across sessions
+snapFX.setNodeFactory(nodeId -> switch(nodeId) {
+    case "mainEditor" -> new DockNode(nodeId, new TextArea(), "Editor");
+    case "console" -> new DockNode(nodeId, new TextArea(), "Console");
+    case "projectExplorer" -> new DockNode(nodeId, new TreeView<>(), "Files");
+    case "tasks" -> new DockNode(nodeId, new ListView<>(), "Tasks");
+    default -> null;
+});
+
+// Save/load layout (works across application restarts)
+String json = snapFX.saveLayout();
+Files.writeString(Path.of("layout.json"), json);
+
+// Later session:
+String json = Files.readString(Path.of("layout.json"));
+snapFX.loadLayout(json); // Factory recreates nodes from IDs
+```
+
+## Architecture
+
+### Model Layer
+- `DockElement`: Base interface for all dock elements
+- `DockNode`: Wrapper for dockable nodes
+- `DockContainer`: Interface for containers (SplitPane, TabPane)
+- `DockSplitPane`: Split container with smart flattening
+- `DockTabPane`: Tab container with auto-hide
+- `DockGraph`: Central data structure
+
+### View Layer
+- `DockLayoutEngine`: Converts model  scene graph
+- `DockNodeView`: Visual representation of a DockNode
+
+### Drag & Drop
+- `DockDragService`: Central D&D service
+- `DockDragData`: Transfer object for D&D operations
+
+### Persistence
+- `DockLayoutSerializer`: JSON serialization/deserialization
+- `DockNodeFactory`: Factory interface for node recreation (cross-session)
+
+## Testing
+
+The framework includes comprehensive tests:
+
+```bash
+# Run tests
+./gradlew test
+
+# With more output
+./gradlew test --info
+```
+
+Test coverage:
+- Tree manipulation (add/move/remove)
+- Smart flattening
+- Auto-cleanup
+- Serialization/deserialization
+- Layout engine
+
+## Demo Application
+
+A full demo app is included:
+
+```bash
+./gradlew run
+```
+
+The demo shows:
+- Typical IDE layout (sidebar, editor, console)
+- Lock/unlock functionality
+- Save/load layout
+- Multiple tabs
+
+## Example Layouts
+
+### IDE Layout
+```
+┌─────────────┬──────────────────────┬─────────────┐
+│   Project   │       Editor         │ Properties  │
+│   Explorer  │                      │             │
+│             ├──────────────────────┤             │
+│             │   Console | Tasks    │             │
+└─────────────┴──────────────────────┴─────────────┘
+```
+
+### Code with SnapFX
+```java
+DockNode project = snapFX.dock(projectTree, "Project");
+DockNode editor = snapFX.dock(editorArea, "Editor", project, DockPosition.RIGHT);
+DockNode props = snapFX.dock(propsPanel, "Properties", editor, DockPosition.RIGHT);
+DockNode console = snapFX.dock(consoleArea, "Console", editor, DockPosition.BOTTOM);
+DockNode tasks = snapFX.dock(tasksList, "Tasks", console, DockPosition.CENTER);
+```
+
+## Roadmap
+
+- [ ] **Full drag & drop**: Hit-testing and zone detection
+- [ ] **Floating windows**: External stage management
+- [ ] **Drag preview**: Snapshot of the dragged element
+- [ ] **Animations**: Smooth transitions
+- [ ] **Keyboard shortcuts**: Layout navigation
+- [ ] **Context menus**: Right-click options
+- [ ] **Perspectives**: Predefined layouts
+
+## License
+
+This project is a demo framework for educational purposes.
+
+## Contribution
+
+The framework follows SOLID principles and clean code:
+- Strict separation of model and view
+- Interface-based design
+- Comprehensive tests
+- No third-party docking libraries
+
+## Documentation
+
+Each class is documented. See JavaDoc in the source files.
+
+### Key Concepts
+
+**Smart flattening**: Prevents unnecessary nesting
+```java
+// Automatically optimized:
+SplitPane(H) { SplitPane(H) { A, B }, C }
+// Becomes:
+SplitPane(H) { A, B, C }
+```
+
+**Auto-cleanup**: Empty containers remove themselves automatically
+```java
+// After removing the last tab:
+TabPane { Tab1 }  Tab1 (TabPane removed)
+```
+
+**Locked mode**: Prevents layout changes
+```java
+snapFX.setLocked(true);
+// No D&D, no close buttons, tabs only visible when >1
+```
+
+## Technology Stack
+
+- **Java 21** (LTS)
+- **JavaFX 21**
+- **Gson 2.10.1** (JSON)
+- **JUnit 5** (testing)
+- **TestFX 4.0.18** (UI testing)
+- **Gradle** (build)
+
+## Support
+
+If you have questions or issues, open an issue in the repository.
+
+---
+
+**SnapFX** - Making JavaFX Docking Simple and Powerful
