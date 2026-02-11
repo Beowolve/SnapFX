@@ -3,6 +3,7 @@ package com.github.beowolve.snapfx.persistence;
 import com.github.beowolve.snapfx.model.*;
 import com.google.gson.*;
 import javafx.geometry.Orientation;
+import javafx.scene.control.Label;
 
 import java.lang.reflect.Type;
 import java.util.HashMap;
@@ -188,11 +189,11 @@ public class DockLayoutSerializer {
 
         // Last resort: create placeholder node
         // This happens when neither factory nor registry provides the node
-        javafx.scene.control.Label placeholder = new javafx.scene.control.Label("Node: " + data.title);
+        Label placeholder = new Label("Node: " + data.title);
         node = new DockNode(data.id, placeholder, data.title);
         node.setCloseable(data.closeable);
-        System.err.println("Warning: Created placeholder for node '" + data.id + "'. " +
-            "Consider using setNodeFactory() for proper node recreation.");
+
+
         return node;
     }
 

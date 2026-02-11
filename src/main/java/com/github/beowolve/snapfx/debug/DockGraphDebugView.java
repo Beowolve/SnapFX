@@ -27,6 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -125,7 +126,7 @@ public class DockGraphDebugView extends BorderPane {
             return new SimpleStringProperty(formatInfo(el));
         });
 
-        treeTable.getColumns().setAll(java.util.List.of(elementCol, idCol, infoCol));
+        treeTable.getColumns().setAll(List.of(elementCol, idCol, infoCol));
     }
 
     private void onDragDataChanged(DockDragData oldData, DockDragData newData) {

@@ -1,6 +1,7 @@
 package com.github.beowolve.snapfx.model;
 
 import javafx.application.Platform;
+import javafx.geometry.Orientation;
 import javafx.scene.control.Label;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -257,7 +258,7 @@ class DockGraphTest {
         assertInstanceOf(DockSplitPane.class, root);
 
         DockSplitPane rootSplit = (DockSplitPane) root;
-        assertEquals(javafx.geometry.Orientation.HORIZONTAL, rootSplit.getOrientation());
+        assertEquals(Orientation.HORIZONTAL, rootSplit.getOrientation());
         assertEquals(3, rootSplit.getChildren().size());
 
         // Verify all three nodes are direct children
@@ -356,7 +357,7 @@ class DockGraphTest {
 
         // Set divider at 30% (left gets 30%, center gets 70%)
         rootSplit.setDividerPosition(0, 0.3);
-        double originalDividerPos = rootSplit.getDividerPositions().get(0).get();
+        double originalDividerPos = rootSplit.getDividerPositions().getFirst().get();
         assertEquals(0.3, originalDividerPos, 0.001);
 
         // Now dock right to center's right (should trigger optimization)
@@ -368,7 +369,7 @@ class DockGraphTest {
 
         // Verify: first divider position is preserved (or close to it)
         assertEquals(2, rootSplit.getDividerPositions().size());
-        double firstDividerAfter = rootSplit.getDividerPositions().get(0).get();
+        double firstDividerAfter = rootSplit.getDividerPositions().getFirst().get();
 
         // First divider should be unchanged (left boundary)
         assertEquals(0.3, firstDividerAfter, 0.001);
@@ -405,7 +406,7 @@ class DockGraphTest {
 
         // The remaining divider should be somewhere reasonable (not reset to 0.5)
         // Since we removed the middle element, the divider should be around 0.25 or adjusted
-        double remainingDivider = rootSplit.getDividerPositions().get(0).get();
+        double remainingDivider = rootSplit.getDividerPositions().getFirst().get();
         assertTrue(remainingDivider > 0.0 && remainingDivider < 1.0);
     }
 
@@ -707,7 +708,7 @@ class DockGraphTest {
         dockGraph.dock(node2, node1, DockPosition.RIGHT);
 
         // Root should be a SplitPane with 2 children
-        assertTrue(dockGraph.getRoot() instanceof DockSplitPane);
+        assertInstanceOf(DockSplitPane.class, dockGraph.getRoot());
         DockSplitPane split = (DockSplitPane) dockGraph.getRoot();
         assertEquals(2, split.getChildren().size());
 
@@ -740,7 +741,7 @@ class DockGraphTest {
         dockGraph.dock(mainJava, properties, DockPosition.BOTTOM);
 
         // Now we have: DockSplitPane(VERTICAL) { properties, mainJava }
-        assertTrue(dockGraph.getRoot() instanceof DockSplitPane);
+        assertInstanceOf(DockSplitPane.class, dockGraph.getRoot());
         DockSplitPane verticalSplit = (DockSplitPane) dockGraph.getRoot();
         assertEquals(javafx.geometry.Orientation.VERTICAL, verticalSplit.getOrientation());
 
@@ -760,7 +761,7 @@ class DockGraphTest {
         assertTrue(leaves.contains(mainJava), "Main.java should still be in tree");
 
         // Verify: Result is a HORIZONTAL split (LEFT position)
-        assertTrue(dockGraph.getRoot() instanceof DockSplitPane);
+        assertInstanceOf(DockSplitPane.class, dockGraph.getRoot());
         DockSplitPane horizontalSplit = (DockSplitPane) dockGraph.getRoot();
         assertEquals(javafx.geometry.Orientation.HORIZONTAL, horizontalSplit.getOrientation());
     }
@@ -817,7 +818,7 @@ class DockGraphTest {
         dockGraph.dock(tab3, tab1, DockPosition.CENTER);
 
         // Should be a TabPane with 3 tabs
-        assertTrue(dockGraph.getRoot() instanceof DockTabPane);
+        assertInstanceOf(DockTabPane.class, dockGraph.getRoot());
         DockTabPane tabPane = (DockTabPane) dockGraph.getRoot();
         assertEquals(3, tabPane.getChildren().size());
 
@@ -846,7 +847,7 @@ class DockGraphTest {
         dockGraph.dock(node3, node2, DockPosition.RIGHT);
 
         // Should result in single HORIZONTAL SplitPane with 3 children (no nesting)
-        assertTrue(dockGraph.getRoot() instanceof DockSplitPane);
+        assertInstanceOf(DockSplitPane.class, dockGraph.getRoot());
         DockSplitPane split = (DockSplitPane) dockGraph.getRoot();
         assertEquals(javafx.geometry.Orientation.HORIZONTAL, split.getOrientation());
         assertEquals(3, split.getChildren().size(), "Should have 3 children in single SplitPane");

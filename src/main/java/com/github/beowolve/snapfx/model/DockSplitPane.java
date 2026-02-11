@@ -49,6 +49,12 @@ public class DockSplitPane implements DockContainer {
         return children;
     }
 
+    /**
+     * Adds a child element to this split pane.
+     * If the child is another split pane with the same orientation, it flattens the layout by merging the child's children directly into this split pane.
+     * This method also updates the divider positions to maintain a consistent layout as children are added.
+     * @param element The child element to add to this split pane.
+     */
     @Override
     public void addChild(DockElement element) {
         // Smart splitting: flatten if the child has the same orientation
@@ -72,6 +78,12 @@ public class DockSplitPane implements DockContainer {
         updateDividerPositions();
     }
 
+    /**
+     * Removes a child element and attempts to flatten the layout if possible.
+     * If only one child remains after removal, it promotes that child to take this container's place in the hierarchy.
+     * This method ensures that the layout remains clean and avoids unnecessary nesting of containers.
+     * @param element The child element to remove from this container.
+     */
     @Override
     public void removeChild(DockElement element) {
         children.remove(element);
@@ -110,6 +122,9 @@ public class DockSplitPane implements DockContainer {
         }
     }
 
+    /**
+     * Returns the orientation of this split pane.
+     */
     public Orientation getOrientation() {
         return orientation;
     }
@@ -123,16 +138,34 @@ public class DockSplitPane implements DockContainer {
         return child;
     }
 
+    /**
+     * Returns the list of divider positions.
+     * Each position is a value between 0.0 and 1.0 representing the relative position of the divider.
+     */
     public List<DoubleProperty> getDividerPositions() {
         return dividerPositions;
     }
 
+    /**
+     * Sets the position of a specific divider.
+     *
+     * @param index    The index of the divider to set (0-based).
+     * @param position The new position for the divider (between 0.0 and 1.0).
+     */
     public void setDividerPosition(int index, double position) {
         if (index >= 0 && index < dividerPositions.size()) {
             dividerPositions.get(index).set(position);
         }
     }
 
+    /**
+     * Updates the divider positions list to match the number of children.
+     * This method ensures that there is one less divider than the number of children.
+     * It tries to preserve existing divider positions when adding or removing dividers.
+     * When adding dividers, it distributes new dividers in the largest gaps to maintain a balanced layout.
+     * When removing dividers, it simply removes from the end to preserve the positions of remaining dividers.
+     * This method is called whenever children are added or removed to keep the divider positions in sync with the layout.
+     */
     private void updateDividerPositions() {
         int requiredDividers = Math.max(0, children.size() - 1);
         int currentDividers = dividerPositions.size();
@@ -166,7 +199,7 @@ public class DockSplitPane implements DockContainer {
 
                     // Check gap before first divider
                     if (!dividerPositions.isEmpty()) {
-                        double gapBefore = dividerPositions.get(0).get();
+                        double gapBefore = dividerPositions.getFirst().get();
                         if (gapBefore > largestGap) {
                             largestGap = gapBefore;
                             insertIndex = 0;
@@ -184,7 +217,7 @@ public class DockSplitPane implements DockContainer {
 
                     // Check gap after last divider
                     if (!dividerPositions.isEmpty()) {
-                        double gapAfter = 1.0 - dividerPositions.get(dividerPositions.size() - 1).get();
+                        double gapAfter = 1.0 - dividerPositions.getLast().get();
                         if (gapAfter > largestGap) {
                             largestGap = gapAfter;
                             insertIndex = dividerPositions.size();
@@ -197,10 +230,10 @@ public class DockSplitPane implements DockContainer {
                         if (dividerPositions.isEmpty()) {
                             newPosition = 0.5;
                         } else {
-                            newPosition = dividerPositions.get(0).get() / 2.0;
+                            newPosition = dividerPositions.getFirst().get() / 2.0;
                         }
                     } else if (insertIndex == dividerPositions.size()) {
-                        double lastPos = dividerPositions.get(dividerPositions.size() - 1).get();
+                        double lastPos = dividerPositions.getLast().get();
                         newPosition = lastPos + (1.0 - lastPos) / 2.0;
                     } else {
                         double prevPos = dividerPositions.get(insertIndex - 1).get();
