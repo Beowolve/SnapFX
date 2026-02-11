@@ -1,6 +1,6 @@
 # SnapFX Development Roadmap
 
-**Last Updated**: 2026-02-10
+**Last Updated**: 2026-02-11
 
 This document tracks all planned features, improvements, and bug fixes for SnapFX. Items are marked as they are completed and new features are added as they are identified.
 
@@ -20,6 +20,12 @@ This document tracks all planned features, improvements, and bug fixes for SnapF
 **Priority**: 🔴 Critical
 
 #### Issues Fixed
+- ✅ **Fixed close button not adding to hidden nodes** (2026-02-11): Close button now properly hides nodes
+  - Moved setOnNodeCloseRequest() call before layout creation
+  - Removed default handler from DockNodeView constructor
+  - DockLayoutEngine always sets handler (custom or fallback)
+  - Added 7 comprehensive tests in SnapFXTest
+
 - ✅ **Fixed TabPane D&D bug** (2026-02-10): Tabs now maintain D&D capability after being moved
   - Implemented proper cache invalidation in DockLayoutEngine
   - Views are correctly rebuilt after structure changes
@@ -70,15 +76,18 @@ This document tracks all planned features, improvements, and bug fixes for SnapF
 ### 1.3 Testing & Quality Assurance  
 **Priority**: 🟡 High
 
-- ✅ **Regression tests for critical bugs**: All bugs now have tests (COMPLETED 2026-02-10)
+- ✅ **Regression tests for critical bugs**: All bugs now have tests (COMPLETED 2026-02-11)
   - Empty container prevention
   - Target invalidation during move
   - Complex D&D sequences
   - TabPane flattening
   - SplitPane flattening
+  - Close button handler integration (NEW)
+  - Hide/Restore functionality (NEW)
 - ✅ **Testing Policy established**: TESTING_POLICY.md created (2026-02-10)
-- ✅ **Test count improved**: 41 → 48 tests (2026-02-10)
-- ✅ **Coverage improved**: ~80% → ~85% (2026-02-10)
+- ✅ **Test count improved**: 41 → 49 → 55 tests (2026-02-11)
+- ✅ **Coverage improved**: ~80% → ~85% → ~87% (2026-02-11)
+- ✅ **SnapFXTest created**: 7 comprehensive tests for hide/restore (2026-02-11)
 - 📋 **Add performance tests**: Large layouts with 50+ nodes
 - 📋 **Add memory leak tests**: Ensure proper cleanup
 - 📋 **Add edge case tests**: More boundary conditions

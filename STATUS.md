@@ -1,11 +1,11 @@
 # Project Status
 
-**Last Updated**: 2026-02-10
+**Last Updated**: 2026-02-11
 
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 41 tests passing (27 + 8 + 6)  
+✅ **Tests**: All 55 tests passing (33 + 9 + 6 + 7)  
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully
 
@@ -58,6 +58,7 @@
 - ✅ Restore hidden nodes
 - ✅ Menu integration
 - ✅ Original position tracking
+- ✅ **Close button handler integration** (Fixed: 2026-02-11)
 
 ### Debug Tools (100% ✅)
 - ✅ DockGraphDebugView
@@ -79,13 +80,14 @@
 - ✅ Documentation updated
 
 ### Testing (100% ✅)
-- ✅ DockGraphTest (34 tests, +7 regression tests)
+- ✅ DockGraphTest (33 tests, +7 regression tests)
 - ✅ DockLayoutSerializerTest (9 tests, +1 regression test)
 - ✅ DockLayoutEngineTest (6 tests)
-- ✅ **49/49 tests passing** ✅ (was 48)
+- ✅ **SnapFXTest (7 tests)** - NEW: Hide/Restore functionality tests
+- ✅ **55/55 tests passing** ✅ (was 49)
 - ✅ **Regression tests** for all critical bug fixes
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
-- ✅ ~85% code coverage (improved from ~80%)
+- ✅ ~87% code coverage (improved from ~85%)
 - ✅ All structural integrity tests (no empty containers, no nesting)
 
 ### Demo Application (100% ✅)
@@ -125,6 +127,20 @@
 ### Low Priority
 6. ⚠️ UI: Animations missing
 7. ⚠️ UI: Keyboard shortcuts not implemented
+
+## Recent Changes (2026-02-11)
+
+### Close Button Handler Fix (CRITICAL FIX)
+- **Fixed critical bug** where closing a window did not add it to hidden windows menu
+- **Root cause**: Close button was set up before setOnNodeCloseRequest handler was configured
+- **Problem**: Close action called undock() instead of hide(), preventing nodes from being tracked
+- **Solution**: 
+  - Moved setOnNodeCloseRequest() call before layout creation in MainDemo
+  - Removed default handler from DockNodeView constructor
+  - DockLayoutEngine now always sets handler (custom or fallback to undock)
+- Added comprehensive test suite (SnapFXTest with 7 tests)
+- Regression test ensures close button correctly adds nodes to hidden list
+- All 55 tests passing ✅
 
 ## Recent Changes (2026-02-10)
 

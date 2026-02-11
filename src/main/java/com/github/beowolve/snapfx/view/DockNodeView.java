@@ -15,11 +15,10 @@ import javafx.scene.layout.*;
  */
 public class DockNodeView extends VBox {
     private final DockNode dockNode;
-    private final DockGraph dockGraph;
+    private final DockGraph dockGraph;  // NOSONAR - needed for close button action, but not exposed publicly
     private final DockDragService dragService;
     private final HBox header;
     private final StackPane iconPane;
-    private final Label titleLabel;
     private final Button closeButton;
     private final StackPane contentPane;
 
@@ -58,7 +57,7 @@ public class DockNodeView extends VBox {
         iconPane.visibleProperty().bind(dockNode.iconProperty().isNotNull());
         iconPane.managedProperty().bind(iconPane.visibleProperty());
 
-        titleLabel = new Label();
+        Label titleLabel = new Label();
         titleLabel.getStyleClass().add("dock-node-title-label");
         titleLabel.textProperty().bind(dockNode.titleProperty());
 

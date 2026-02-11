@@ -95,7 +95,15 @@ class DockLayoutEngineTest extends ApplicationTest {
         layoutEngine.buildSceneGraph();
         assertNotNull(layoutEngine.getDockNodeView(node));
 
+        // After clearCache, views for nodes still in graph are kept (needed for D&D snapshots)
         layoutEngine.clearCache();
+        assertNotNull(layoutEngine.getDockNodeView(node));
+
+        // Remove node from graph
+        dockGraph.undock(node);
+        layoutEngine.clearCache();
+
+        // Now the view should be removed since node is no longer in graph
         assertNull(layoutEngine.getDockNodeView(node));
     }
 

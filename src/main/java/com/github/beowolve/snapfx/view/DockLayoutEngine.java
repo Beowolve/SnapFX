@@ -2,13 +2,16 @@ package com.github.beowolve.snapfx.view;
 
 import com.github.beowolve.snapfx.dnd.DockDragService;
 import com.github.beowolve.snapfx.model.*;
+import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.StackPane;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -20,7 +23,7 @@ public class DockLayoutEngine {
     private final DockGraph dockGraph;
     private final DockDragService dragService;
     private final Map<String, Node> viewCache;
-    private final Map<String, DockNodeView> dockNodeViews;
+    private final Map<DockNode, DockNodeView> dockNodeViews;  // Use DockNode instance as key, not ID
 
     private Consumer<DockNode> onNodeCloseRequest;
 
@@ -76,12 +79,15 @@ public class DockLayoutEngine {
     private Node createDockNodeView(DockNode dockNode) {
         DockNodeView nodeView = new DockNodeView(dockNode, dockGraph, dragService);
 
-        // Override close button action if callback is set
+        // Set close button action
+        // If custom handler is set, use it; otherwise use default undock behavior
         if (onNodeCloseRequest != null) {
             nodeView.setOnCloseRequest(() -> onNodeCloseRequest.accept(dockNode));
+        } else {
+            nodeView.setOnCloseRequest(() -> dockGraph.undock(dockNode));
         }
 
-        dockNodeViews.put(dockNode.getId(), nodeView);
+        dockNodeViews.put(dockNode, nodeView);  // Use instance as key
         return nodeView;
     }
 
@@ -224,7 +230,7 @@ public class DockLayoutEngine {
 
         viewCache.remove(element.getId());
         if (element instanceof DockNode dockNode) {
-            dockNodeViews.remove(dockNode.getId());
+            dockNodeViews.remove(dockNode);  // Use instance as key
         }
 
         if (element instanceof DockContainer container) {
@@ -298,9 +304,7 @@ public class DockLayoutEngine {
             );
 
             // OnClosed Handler
-            tab.setOnClosed(event -> {
-                dockGraph.undock(dockNode);
-            });
+            tab.setOnClosed(event -> dockGraph.undock(dockNode));
         } else {
             // For containers (DockSplitPane, DockTabPane), use a generic label
             tab.setText(element.getClass().getSimpleName());
@@ -323,7 +327,7 @@ public class DockLayoutEngine {
      * Returns the view for a DockNode (used for drag & drop).
      */
     public DockNodeView getDockNodeView(DockNode dockNode) {
-        return dockNodeViews.get(dockNode.getId());
+        return dockNodeViews.get(dockNode);  // Use instance as key
     }
 
     /**
@@ -331,7 +335,37 @@ public class DockLayoutEngine {
      */
     public void clearCache() {
         viewCache.clear();
-        dockNodeViews.clear();
+        // Clean up dockNodeViews: remove views for nodes that are no longer in the graph
+        // Keep views for nodes still in graph (needed for drag & drop snapshots)
+        dockNodeViews.entrySet().removeIf(entry -> {
+            DockNode node = entry.getKey();
+            // Check if this node is still in the graph by searching for it
+            return !isNodeInGraph(node);
+        });
+    }
+
+    /**
+     * Check if a DockNode is still in the graph.
+     */
+    private boolean isNodeInGraph(DockNode node) {
+        return findNodeInGraph(dockGraph.getRoot(), node);
+    }
+
+    private boolean findNodeInGraph(DockElement current, DockNode target) {
+        if (current == null) {
+            return false;
+        }
+        if (current == target) {
+            return true;
+        }
+        if (current instanceof DockContainer container) {
+            for (DockElement child : container.getChildren()) {
+                if (findNodeInGraph(child, target)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -341,12 +375,13 @@ public class DockLayoutEngine {
      */
     public DockElement findElementAt(double sceneX, double sceneY) {
         // Collect all potential targets (all elements containing the point)
-        java.util.List<TargetCandidate> candidates = new java.util.ArrayList<>();
+        List<TargetCandidate> candidates = new ArrayList<>();
 
         for (var entry : viewCache.entrySet()) {
             Node n = entry.getValue();
             if (n != null && n.getScene() != null) {
-                javafx.geometry.Bounds b = n.localToScene(n.getBoundsInLocal());
+
+                Bounds b = n.localToScene(n.getBoundsInLocal());
                 if (b.contains(sceneX, sceneY)) {
                     DockElement element = findElementById(entry.getKey());
                     if (element != null) {
