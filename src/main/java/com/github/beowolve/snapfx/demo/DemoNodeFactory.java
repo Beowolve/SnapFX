@@ -7,28 +7,36 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
+import java.util.Optional;
 
 /**
  * Demo implementation of DockNodeFactory that creates nodes for the MainDemo application.
  * This class demonstrates how to properly implement the factory pattern for cross-session persistence.
  * All node definitions are managed centrally via the DockNodeType enum.
  */
-public class DemoNodeFactory implements DockNodeFactory {
+public final class DemoNodeFactory implements DockNodeFactory {
+
+    private static final String MAIN_JAVA = "Main.java";
+    private static final String PROPERTIES = "Properties";
 
     /**
      * Creates a new DemoNodeFactory.
      */
     public DemoNodeFactory() {
+        // No initialization required
     }
 
     /**
-     * Creates a DockNode based on the given DockNode-ID (typbasiert).
-     * Das Framework sorgt für die eindeutige Layout-ID und ruft die Factory mit der DockNode-ID auf.
+     * Creates a DockNode based on the given DockNode-ID (type-based).
+     * The framework ensures unique layout IDs and calls the factory with the DockNode-ID.
+     * @param dockNodeId the DockNode type ID
+     * @return DockNode instance or null if not found
      */
     @Override
     public DockNode createNode(String dockNodeId) {
-        DockNodeType type = DockNodeType.fromId(dockNodeId);
-        if (type == null) return null;
+        Optional<DockNodeType> typeOpt = fromIdOptional(dockNodeId);
+        if (typeOpt.isEmpty()) return null;
+        DockNodeType type = typeOpt.get();
         return switch (type) {
             case PROJECT_EXPLORER -> createProjectExplorerNode();
             case MAIN_EDITOR -> createMainEditorNode();
@@ -43,8 +51,25 @@ public class DemoNodeFactory implements DockNodeFactory {
     }
 
     /**
+     * Returns an Optional of DockNodeType for the given id.
+     * @param id DockNodeType id
+     * @return Optional of DockNodeType
+     */
+    private Optional<DockNodeType> fromIdOptional(String id) {
+        for (DockNodeType type : DockNodeType.values()) {
+            if (type.getId().equals(id)) {
+                return Optional.of(type);
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
      * Helper method to create a DockNode with the given type and content.
      * This centralizes the creation logic and ensures consistent properties.
+     * @param type DockNodeType
+     * @param content JavaFX Node content
+     * @return DockNode instance
      */
     private DockNode createDockNode(DockNodeType type, Node content) {
         DockNode node = new DockNode(type.getId(), content, type.getDefaultTitle());
@@ -54,6 +79,7 @@ public class DemoNodeFactory implements DockNodeFactory {
 
     /**
      * Creates the Project Explorer node with fixed ID from enum.
+     * @return DockNode instance
      */
     public DockNode createProjectExplorerNode() {
         TreeView<String> projectTree = new TreeView<>();
@@ -66,7 +92,7 @@ public class DemoNodeFactory implements DockNodeFactory {
 
         src.getChildren().addAll(
             java.util.List.of(
-                new TreeItem<>("Main.java"),
+                new TreeItem<>(MAIN_JAVA),
                 new TreeItem<>("Utils.java")
             )
         );
@@ -80,9 +106,11 @@ public class DemoNodeFactory implements DockNodeFactory {
     /**
      * Creates the Main Editor node with fixed ID "mainEditor".
      * Uses SerializableEditor to demonstrate content persistence.
+     * @return DockNode instance
      */
     public DockNode createMainEditorNode() {
-        SerializableEditor editor = new SerializableEditor("""
+        SerializableEditor editor = new SerializableEditor(
+            """
             public class Main {
                 public static void main(String[] args) {
                     System.out.println("SnapFX Demo");
@@ -91,19 +119,21 @@ public class DemoNodeFactory implements DockNodeFactory {
                     // Simple API for docking!
                 }
             }
-            """);
+            """
+        );
 
         return createDockNode(DockNodeType.MAIN_EDITOR, editor);
     }
 
     /**
      * Creates the Properties node with fixed ID "properties".
+     * @return DockNode instance
      */
     public DockNode createPropertiesNode() {
         VBox propertiesContent = new VBox(10);
         propertiesContent.setPadding(new Insets(10));
 
-        Label propLabel = new Label("Properties");
+        Label propLabel = new Label(PROPERTIES);
         propLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
 
         GridPane propsGrid = new GridPane();
@@ -111,7 +141,7 @@ public class DemoNodeFactory implements DockNodeFactory {
         propsGrid.setVgap(5);
 
         propsGrid.add(new Label("Name:"), 0, 0);
-        propsGrid.add(new TextField("Main.java"), 1, 0);
+        propsGrid.add(new TextField(MAIN_JAVA), 1, 0);
 
         propsGrid.add(new Label("Type:"), 0, 1);
         propsGrid.add(new Label("Java file"), 1, 1);
@@ -126,11 +156,13 @@ public class DemoNodeFactory implements DockNodeFactory {
 
     /**
      * Creates the Console node with fixed ID "console".
+     * @return DockNode instance
      */
     public DockNode createConsoleNode() {
         TextArea console = new TextArea();
         console.setEditable(false);
-        console.setText("""
+        console.setText(
+            """
             SnapFX Framework v1.0
             ====================================
             [INFO] Docking system initialized
@@ -139,7 +171,8 @@ public class DemoNodeFactory implements DockNodeFactory {
 
             Drag & drop is fully functional.
             Save/Load works across sessions using fixed node IDs.
-            """);
+            """
+        );
         console.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px;");
 
         return createDockNode(DockNodeType.CONSOLE, console);
@@ -147,6 +180,7 @@ public class DemoNodeFactory implements DockNodeFactory {
 
     /**
      * Creates the Tasks node with fixed ID "tasks".
+     * @return DockNode instance
      */
     public DockNode createTasksNode() {
         ListView<String> tasksList = new ListView<>();
@@ -162,7 +196,7 @@ public class DemoNodeFactory implements DockNodeFactory {
         return createDockNode(DockNodeType.TASKS, tasksList);
     }
 
-    // Methoden für dynamische Nodes (Toolbar)
+    // Methods for dynamic nodes (Toolbar)
     public DockNode createEditorNode(String title) {
         SerializableEditor editor = new SerializableEditor(title);
         DockNode node = new DockNode(DockNodeType.EDITOR.getId(), editor, title);
@@ -173,19 +207,19 @@ public class DemoNodeFactory implements DockNodeFactory {
     public DockNode createPropertiesPanelNode() {
         VBox propertiesContent = new VBox(10);
         propertiesContent.setPadding(new Insets(10));
-        Label propLabel = new Label("Properties");
+        Label propLabel = new Label(PROPERTIES);
         propLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
         GridPane propsGrid = new GridPane();
         propsGrid.setHgap(10);
         propsGrid.setVgap(5);
         propsGrid.add(new Label("Name:"), 0, 0);
-        propsGrid.add(new TextField("Main.java"), 1, 0);
+        propsGrid.add(new TextField(MAIN_JAVA), 1, 0);
         propsGrid.add(new Label("Type:"), 0, 1);
         propsGrid.add(new Label("Java file"), 1, 1);
         propsGrid.add(new Label("Size:"), 0, 2);
         propsGrid.add(new Label("1.2 KB"), 1, 2);
         propertiesContent.getChildren().addAll(propLabel, new Separator(), propsGrid);
-        DockNode node = new DockNode(DockNodeType.PROPERTIES_PANEL.getId(), propertiesContent, "Properties");
+        DockNode node = new DockNode(DockNodeType.PROPERTIES_PANEL.getId(), propertiesContent, PROPERTIES);
         node.setIcon(IconUtil.loadIcon(DockNodeType.PROPERTIES_PANEL.getIconName()));
         return node;
     }
@@ -193,13 +227,15 @@ public class DemoNodeFactory implements DockNodeFactory {
     public DockNode createConsolePanelNode() {
         TextArea console = new TextArea();
         console.setEditable(false);
-        console.setText("""
+        console.setText(
+            """
             SnapFX Framework v1.0
             ====================================
             [INFO] Docking system initialized
             [INFO] Layout loaded
             [INFO] Ready for drag & drop
-            """);
+            """
+        );
         console.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px;");
         DockNode node = new DockNode(DockNodeType.CONSOLE_PANEL.getId(), console, "Console");
         node.setIcon(IconUtil.loadIcon(DockNodeType.CONSOLE_PANEL.getIconName()));
