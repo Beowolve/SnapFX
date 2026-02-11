@@ -270,7 +270,6 @@ public class DockGraph {
                 // Now adjust the new divider based on where we inserted
                 // The updateDividerPositions() method adds a divider in the largest gap
                 // But we want to insert it at a specific position to minimize layout changes
-
                 int newDividerCount = parentSplit.getDividerPositions().size();
                 if (newDividerCount == savedPositions.size() + 1) {
                     // A new divider was added - adjust positions to minimize change
@@ -380,13 +379,11 @@ public class DockGraph {
         if (getRoot() instanceof DockContainer container) {
             if (container.getChildren().isEmpty()) {
                 // Check if TabPane/SplitPane stored a flattened child
-                if (container instanceof DockTabPane tabPane) {
-                    newRoot = tabPane.getFlattenedChild();
-                } else if (container instanceof DockSplitPane splitPane) {
-                    newRoot = splitPane.getFlattenedChild();
-                } else {
-                    newRoot = null;
-                }
+                newRoot = switch (container) {
+                    case DockTabPane tabPane -> tabPane.getFlattenedChild();
+                    case DockSplitPane splitPane -> splitPane.getFlattenedChild();
+                    default -> null;
+                };
             } else if (container.getChildren().size() == 1) {
                 newRoot = container.getChildren().getFirst();
             }
@@ -396,22 +393,6 @@ public class DockGraph {
             setRoot(newRoot);
         } else {
             bumpRevision();
-        }
-    }
-
-    /**
-     * After each tree manipulation: check the root and update it if needed.
-     *
-     * @deprecated Prefer relying on explicit operations (dock/undock/move) which already keep the root consistent.
-     */
-    @Deprecated
-    public void checkAndUpdateRoot() {
-        if (root instanceof DockContainer container) {
-            if (container.getChildren().isEmpty()) {
-                setRoot(null);
-            } else if (container.getChildren().size() == 1) {
-                setRoot(container.getChildren().getFirst());
-            }
         }
     }
 
