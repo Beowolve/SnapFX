@@ -38,6 +38,7 @@ import java.util.Objects;
 public class DockGraphDebugView extends BorderPane {
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
     private static final int MAX_LOG_ENTRIES = 500;
+    public static final String NONE = "<none>";
 
     private final DockGraph dockGraph;
     private final DockDragService dragService;
@@ -128,50 +129,58 @@ public class DockGraphDebugView extends BorderPane {
     }
 
     private void onDragDataChanged(DockDragData oldData, DockDragData newData) {
-        // Detect drag start
-        if (oldData == null && newData != null) {
+        boolean dragStarted = oldData == null && newData != null;
+        boolean dragEnded = oldData != null && newData == null;
+        boolean dragChanged = newData != null && oldData != null && newData.getDraggedNode() != oldData.getDraggedNode();
+        boolean targetChanged = newData != null && (oldData == null || !Objects.equals(oldData.getDropTarget(), newData.getDropTarget()));
+        boolean positionChanged = newData != null && (oldData == null || !Objects.equals(oldData.getDropPosition(), newData.getDropPosition()));
+
+        if (dragStarted) {
             dragSequenceNumber++;
             logEntry(DragLogType.DRAG_START,
                 "Started dragging '" + safeTitle(newData.getDraggedNode()) + "' (seq#" + dragSequenceNumber + ")");
         }
-
-        // Detect target change
-        if (newData != null && (oldData == null || !Objects.equals(oldData.getDropTarget(), newData.getDropTarget()))) {
-            String targetDesc = newData.getDropTarget() == null
-                ? "none"
-                : newData.getDropTarget().getClass().getSimpleName() +
-                  (newData.getDropTarget() instanceof DockNode dn ? " '" + safeTitle(dn) + "'" : "");
-            logEntry(DragLogType.TARGET_CHANGE, "Target changed to " + targetDesc);
+        if (targetChanged) {
+            logEntry(DragLogType.TARGET_CHANGE, "Target changed to " + describeTarget(newData));
         }
-
-        // Detect position change
-        if (newData != null && (oldData == null || !Objects.equals(oldData.getDropPosition(), newData.getDropPosition()))) {
-            String posDesc = newData.getDropPosition() == null ? "none" : newData.getDropPosition().name();
-            logEntry(DragLogType.POSITION_CHANGE, "Drop position changed to " + posDesc);
+        if (positionChanged) {
+            logEntry(DragLogType.POSITION_CHANGE, "Drop position changed to " + describePosition(newData));
         }
-
-        // Detect drop (drag -> null)
-        if (oldData != null && newData == null) {
-            String summary = String.format("Dropped '%s' on %s at position %s",
-                safeTitle(oldData.getDraggedNode()),
-                oldData.getDropTarget() == null ? "none" : oldData.getDropTarget().getClass().getSimpleName(),
-                oldData.getDropPosition() == null ? "none" : oldData.getDropPosition().name()
-            );
-            logEntry(DragLogType.DROP, summary + " (seq#" + dragSequenceNumber + ")");
-
-            // Auto-export if enabled (don't log this action)
+        if (dragEnded) {
+            logEntry(DragLogType.DROP, buildDropSummary(oldData) + " (seq#" + dragSequenceNumber + ")");
             if (autoExportOnDrop.get()) {
                 copySnapshotToClipboard(buildSnapshot());
             }
         }
-
-        // Detect drag cancel (still dragging but something went wrong)
-        if (newData != null && oldData != null &&
-            newData.getDraggedNode() != oldData.getDraggedNode()) {
+        if (dragChanged) {
             logEntry(DragLogType.DRAG_CANCEL, "Drag changed unexpectedly");
         }
+        updateDragProperties(newData);
+        treeTable.refresh();
+    }
 
+    private String describeTarget(DockDragData data) {
+        if (data.getDropTarget() == null) return "none";
+        String base = data.getDropTarget().getClass().getSimpleName();
+        if (data.getDropTarget() instanceof DockNode dn) {
+            base += " '" + safeTitle(dn) + "'";
+        }
+        return base;
+    }
 
+    private String describePosition(DockDragData data) {
+        return data.getDropPosition() == null ? "none" : data.getDropPosition().name();
+    }
+
+    private String buildDropSummary(DockDragData oldData) {
+        return String.format("Dropped '%s' on %s at position %s",
+                safeTitle(oldData.getDraggedNode()),
+                oldData.getDropTarget() == null ? "none" : oldData.getDropTarget().getClass().getSimpleName(),
+                oldData.getDropPosition() == null ? "none" : oldData.getDropPosition().name()
+        );
+    }
+
+    private void updateDragProperties(DockDragData newData) {
         if (newData == null) {
             draggedElement.set(null);
             dropTarget.set(null);
@@ -181,7 +190,6 @@ public class DockGraphDebugView extends BorderPane {
             dropTarget.set(newData.getDropTarget());
             dropPosition.set(newData.getDropPosition());
         }
-        treeTable.refresh();
     }
 
     private BorderPane createLogPanel() {
@@ -329,36 +337,46 @@ public class DockGraphDebugView extends BorderPane {
 
     private String buildSnapshot() {
         StringBuilder sb = new StringBuilder();
+        appendSnapshotHeader(sb);
+        appendDragInfo(sb);
+        sb.append('\n');
+        sb.append("Tree:\n");
+        appendElement(sb, dockGraph.getRoot(), 0);
+        appendActivityLog(sb);
+        return sb.toString();
+    }
+
+    private void appendSnapshotHeader(StringBuilder sb) {
         sb.append("SnapFX DockGraph Snapshot\n");
         sb.append("locked=").append(dockGraph.isLocked()).append('\n');
         sb.append("revision=").append(dockGraph.getRevision()).append('\n');
+    }
 
+    private void appendDragInfo(StringBuilder sb) {
         DockDragData drag = dragService.currentDragProperty().get();
         if (drag == null) {
             sb.append("drag=<none>\n");
         } else {
-            DockNode dragged = drag.getDraggedNode();
-            DockElement target = drag.getDropTarget();
-
-            sb.append("drag.title=").append(safeTitle(dragged)).append('\n');
-            sb.append("drag.nodeId=").append(nullToEmpty(dragged != null ? dragged.getId() : null)).append('\n');
-            sb.append("drag.path=").append(pathOf(dragged)).append('\n');
-
-            sb.append("drag.dropTarget=").append(target == null ? "<none>" : target.getClass().getSimpleName()).append('\n');
-            sb.append("drag.dropTargetId=").append(nullToEmpty(target != null ? target.getId() : null)).append('\n');
-            sb.append("drag.dropTargetPath=").append(pathOf(target)).append('\n');
-            sb.append("drag.dropTargetTitle=").append(target instanceof DockNode tn ? safeTitle(tn) : "").append('\n');
-
-            sb.append("drag.dropPosition=").append(drag.getDropPosition() == null ? "<none>" : drag.getDropPosition().name()).append('\n');
-            sb.append("drag.mouseX=").append(drag.getMouseX()).append('\n');
-            sb.append("drag.mouseY=").append(drag.getMouseY()).append('\n');
+            appendDragDetails(sb, drag);
         }
+    }
 
-        sb.append('\n');
-        sb.append("Tree:\n");
-        appendElement(sb, dockGraph.getRoot(), 0);
+    private void appendDragDetails(StringBuilder sb, DockDragData drag) {
+        DockNode dragged = drag.getDraggedNode();
+        DockElement target = drag.getDropTarget();
+        sb.append("drag.title=").append(safeTitle(dragged)).append('\n');
+        sb.append("drag.nodeId=").append(nullToEmpty(dragged != null ? dragged.getId() : null)).append('\n');
+        sb.append("drag.path=").append(pathOf(dragged)).append('\n');
+        sb.append("drag.dropTarget=").append(target == null ? NONE : target.getClass().getSimpleName()).append('\n');
+        sb.append("drag.dropTargetId=").append(nullToEmpty(target != null ? target.getId() : null)).append('\n');
+        sb.append("drag.dropTargetPath=").append(pathOf(target)).append('\n');
+        sb.append("drag.dropTargetTitle=").append(target instanceof DockNode tn ? safeTitle(tn) : "").append('\n');
+        sb.append("drag.dropPosition=").append(drag.getDropPosition() == null ? NONE : drag.getDropPosition().name()).append('\n');
+        sb.append("drag.mouseX=").append(drag.getMouseX()).append('\n');
+        sb.append("drag.mouseY=").append(drag.getMouseY()).append('\n');
+    }
 
-        // Add activity log
+    private void appendActivityLog(StringBuilder sb) {
         sb.append("\n\nD&D Activity Log (").append(logEntries.size()).append(" entries):\n");
         sb.append("─".repeat(80)).append('\n');
         if (logEntries.isEmpty()) {
@@ -372,13 +390,11 @@ public class DockGraphDebugView extends BorderPane {
                   .append('\n');
             }
         }
-
-        return sb.toString();
     }
 
     private String pathOf(DockElement el) {
         if (el == null) {
-            return "<none>";
+            return NONE;
         }
         StringBuilder sb = new StringBuilder();
         DockElement current = el;
