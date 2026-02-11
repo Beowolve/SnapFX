@@ -7,6 +7,8 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
+
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -91,13 +93,13 @@ public final class DemoNodeFactory implements DockNodeFactory {
         TreeItem<String> resources = new TreeItem<>("resources");
 
         src.getChildren().addAll(
-            java.util.List.of(
+            List.of(
                 new TreeItem<>(MAIN_JAVA),
                 new TreeItem<>("Utils.java")
             )
         );
 
-        root.getChildren().addAll(java.util.List.of(src, test, resources));
+        root.getChildren().addAll(List.of(src, test, resources));
         projectTree.setRoot(root);
 
         return createDockNode(DockNodeType.PROJECT_EXPLORER, projectTree);
