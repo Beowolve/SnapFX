@@ -110,7 +110,7 @@ class DockLayoutSerializerTest {
         assertInstanceOf(DockNode.class, newGraph.getRoot());
         DockNode deserializedNode = (DockNode) newGraph.getRoot();
         assertEquals("Test Node", deserializedNode.getTitle());
-        assertEquals("testNode1", deserializedNode.getId());
+        assertEquals("testNode1", deserializedNode.getDockNodeId());
     }
 
     @Test
