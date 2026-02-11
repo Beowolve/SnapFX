@@ -5,6 +5,8 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -49,7 +51,7 @@ public class DockTabPane implements DockContainer {
         // Smart flattening: if the element is also a TabPane, merge its children into this TabPane
         if (element instanceof DockTabPane otherTabPane) {
             // Add all children of the other TabPane directly to this TabPane
-            java.util.List<DockElement> childElements = new java.util.ArrayList<>(otherTabPane.getChildren());
+            List<DockElement> childElements = new ArrayList<>(otherTabPane.getChildren());
             for (DockElement child : childElements) {
                 otherTabPane.removeChild(child);
                 children.add(child);

@@ -12,6 +12,8 @@ import javafx.scene.control.TreeView;
 import javafx.scene.control.TreeItem;
 import javafx.stage.Stage;
 
+import java.util.List;
+
 /**
  * Simple example showing how to use SnapFX.
  * Demonstrates the minimum amount of code required for a working docking setup.
@@ -63,7 +65,7 @@ public class SimpleExample extends Application {
 
         TreeItem<String> src = new TreeItem<>("src");
         src.getChildren().addAll(
-            java.util.List.of(
+            List.of(
                 new TreeItem<>("Main.java"),
                 new TreeItem<>("App.java")
             )
