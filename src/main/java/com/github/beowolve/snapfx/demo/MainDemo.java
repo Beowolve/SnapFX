@@ -24,6 +24,7 @@ import java.nio.file.Files;
  * Shows a typical IDE-like layout with sidebar, editor, and console.
  */
 public class MainDemo extends Application {
+    public static final String FX_FONT_WEIGHT_BOLD = "-fx-font-weight: bold;";
     private SnapFX snapFX;
     private Stage primaryStage;
     private BorderPane mainLayout;
@@ -54,10 +55,19 @@ public class MainDemo extends Application {
         topContainer.getChildren().addAll(menuBar, toolbar);
         mainLayout.setTop(topContainer);
 
+        stage.setTitle("SnapFX Demo - Docking Framework");
+        stage.setScene(new Scene(mainLayout, 1200, 800));
+
         // Create demo node factory
         demoNodeFactory = new DemoNodeFactory();
 
-        // Create dock layout
+        // Setup node factory for proper save/load across sessions
+        setupNodeFactory();
+
+        // Set close handler to hide instead of remove (BEFORE creating layout)
+        snapFX.setOnNodeCloseRequest(node -> snapFX.hide(node));
+
+        // Create dock layout (after handler is set)
         createDemoLayout();
 
         // Put dock layout into the center
@@ -66,23 +76,14 @@ public class MainDemo extends Application {
         // Install debug panel (right side)
         installDebugPanel();
 
-        stage.setTitle("SnapFX Demo - Docking Framework");
-        stage.setScene(new Scene(mainLayout, 1200, 800));
-
         // Load CSS
         var cssResource = getClass().getResource("/snapfx.css");
         if (cssResource != null) {
             stage.getScene().getStylesheets().add(cssResource.toExternalForm());
         }
 
-        // Initialize SnapFX
+        // Initialize SnapFX AFTER scene is set (needed for ghost overlay)
         snapFX.initialize(stage);
-
-        // Setup node factory for proper save/load across sessions
-        setupNodeFactory();
-
-        // Set close handler to hide instead of remove
-        snapFX.setOnNodeCloseRequest(node -> snapFX.hide(node));
 
         // Listen to lock state changes
         lockLayoutProperty.addListener((obs, oldVal, newVal) -> snapFX.setLocked(newVal));
@@ -130,7 +131,7 @@ public class MainDemo extends Application {
         lockItem.setGraphic(IconUtil.loadIcon("lock.png"));
         lockItem.selectedProperty().bindBidirectional(lockLayoutProperty);
         lockItem.selectedProperty().addListener((obs, oldVal, newVal) ->
-            lockItem.setGraphic(IconUtil.loadIcon(newVal ? "lock.png" : "lock-unlock.png"))
+            lockItem.setGraphic(IconUtil.loadIcon(Boolean.TRUE.equals(newVal) ? "lock.png" : "lock-unlock.png"))
         );
         lockItem.selectedProperty().bindBidirectional(lockLayoutProperty);
 
@@ -173,7 +174,7 @@ public class MainDemo extends Application {
         content.setPadding(new Insets(10));
 
         Label versionLabel = new Label("Version 1.0-SNAPSHOT");
-        versionLabel.setStyle("-fx-font-weight: bold;");
+        versionLabel.setStyle(FX_FONT_WEIGHT_BOLD);
 
         Label descriptionLabel = new Label(
             "A high-performance, lightweight JavaFX docking framework\n" +
@@ -184,7 +185,7 @@ public class MainDemo extends Application {
         Separator separator = new Separator();
 
         Label licenseTitle = new Label("Icon Credits:");
-        licenseTitle.setStyle("-fx-font-weight: bold;");
+        licenseTitle.setStyle(FX_FONT_WEIGHT_BOLD);
 
         // Create clickable hyperlinks for license information
         javafx.scene.layout.HBox licenseBox = new javafx.scene.layout.HBox(5);
@@ -247,7 +248,7 @@ public class MainDemo extends Application {
         Separator sep1 = new Separator();
 
         Label addLabel = new Label("Add:");
-        addLabel.setStyle("-fx-font-weight: bold;");
+        addLabel.setStyle(FX_FONT_WEIGHT_BOLD);
 
         Button addEditorBtn = new Button("+ Editor");
         addEditorBtn.setGraphic(IconUtil.loadIcon("document--pencil.png"));
@@ -445,13 +446,6 @@ public class MainDemo extends Application {
         }
     }
 
-    private void showInfo(String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Information");
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
 
     private void showError(String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
