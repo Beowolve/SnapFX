@@ -4,9 +4,11 @@ import com.github.beowolve.snapfx.dnd.DockDragService;
 import com.github.beowolve.snapfx.model.*;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 
 import java.util.ArrayList;
@@ -23,7 +25,6 @@ public class DockLayoutEngine {
     private final DockGraph dockGraph;
     private final DockDragService dragService;
     private final Map<String, Node> viewCache;
-    private final Map<DockNode, DockNodeView> dockNodeViews;  // Use DockNode instance as key, not ID
 
     private Consumer<DockNode> onNodeCloseRequest;
 
@@ -31,7 +32,6 @@ public class DockLayoutEngine {
         this.dockGraph = dockGraph;
         this.dragService = dragService;
         this.viewCache = new HashMap<>();
-        this.dockNodeViews = new HashMap<>();
     }
 
     /**
@@ -87,7 +87,6 @@ public class DockLayoutEngine {
             nodeView.setOnCloseRequest(() -> dockGraph.undock(dockNode));
         }
 
-        dockNodeViews.put(dockNode, nodeView);  // Use instance as key
         return nodeView;
     }
 
@@ -229,9 +228,6 @@ public class DockLayoutEngine {
         }
 
         viewCache.remove(element.getId());
-        if (element instanceof DockNode dockNode) {
-            dockNodeViews.remove(dockNode);  // Use instance as key
-        }
 
         if (element instanceof DockContainer container) {
             for (DockElement child : container.getChildren()) {
@@ -240,281 +236,315 @@ public class DockLayoutEngine {
         }
     }
 
+    /**
+     * Creates a Tab for the given DockElement. For DockNode, the tab header contains icon and title.
+     * For containers, a generic label is used. Handles drag & drop and close events.
+     * @param element The DockElement to represent as a Tab
+     * @return The created Tab
+     */
     private Tab createTab(DockElement element) {
         Tab tab = new Tab();
-
-        // Use the actual view for the element as the tab content
         Node contentView = createView(element);
         tab.setContent(contentView);
 
-        // Configure tab based on element type
         if (element instanceof DockNode dockNode) {
-            // Don't set tab.textProperty() here, as we use a graphic instead
-            // (setting both would cause "Console Console" display)
-
-            // Create HBox with icon and label for tab header
-            javafx.scene.layout.HBox tabHeader = new javafx.scene.layout.HBox(5);
-            tabHeader.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-
-            // Icon pane
-            javafx.scene.layout.StackPane iconPane = new javafx.scene.layout.StackPane();
-            iconPane.setPrefSize(16, 16);
-            iconPane.setMaxSize(16, 16);
-            iconPane.setMinSize(16, 16);
-
-            // Bind icon
-            dockNode.iconProperty().addListener((obs, oldIcon, newIcon) -> {
-                iconPane.getChildren().clear();
-                if (newIcon != null) {
-                    iconPane.getChildren().add(newIcon);
-                }
-            });
-
-            // Set initial icon
-            if (dockNode.getIcon() != null) {
-                iconPane.getChildren().add(dockNode.getIcon());
-            }
-
-            // Icon visibility
-            iconPane.visibleProperty().bind(dockNode.iconProperty().isNotNull());
-            iconPane.managedProperty().bind(iconPane.visibleProperty());
-
-            // Label
-            javafx.scene.control.Label tabLabel = new javafx.scene.control.Label();
-            tabLabel.textProperty().bind(dockNode.titleProperty());
-
-            tabHeader.getChildren().addAll(iconPane, tabLabel);
-            tab.setGraphic(tabHeader);
-
-            // Attach drag handlers to the tab header so tabs can be dragged
-            if (dragService != null) {
-                tabHeader.setOnMousePressed(e -> dragService.startDrag(dockNode, e));
-                tabHeader.setOnMouseDragged(e -> {
-                    if (dragService.isDragging()) dragService.updateDrag(e);
-                });
-                tabHeader.setOnMouseReleased(e -> {
-                    if (dragService.isDragging()) dragService.endDrag(e);
-                });
-            }
-
-            // Closeable Binding
-            tab.closableProperty().bind(
-                dockNode.closeableProperty()
-                .and(dockGraph.lockedProperty().not())
-            );
-
-            // OnClosed Handler
+            tab.setGraphic(createTabHeader(dockNode));
+            setupTabDragHandlers(tab, dockNode);
+            bindTabCloseable(tab, dockNode);
             tab.setOnClosed(event -> dockGraph.undock(dockNode));
         } else {
-            // For containers (DockSplitPane, DockTabPane), use a generic label
             tab.setText(element.getClass().getSimpleName());
-
-            // Make closeable only if not locked
             tab.closableProperty().bind(dockGraph.lockedProperty().not());
-
-            // OnClosed Handler for containers: remove from parent
             tab.setOnClosed(event -> {
                 if (element.getParent() != null) {
                     element.removeFromParent();
                 }
             });
         }
-
         return tab;
     }
 
     /**
-     * Returns the view for a DockNode (used for drag & drop).
+     * Creates the tab header (icon + title) for a DockNode.
+     * @param dockNode The DockNode
+     * @return HBox containing icon and title
      */
-    public DockNodeView getDockNodeView(DockNode dockNode) {
-        return dockNodeViews.get(dockNode);  // Use instance as key
-    }
-
-    /**
-     * Clears cached views.
-     */
-    public void clearCache() {
-        viewCache.clear();
-        // Clean up dockNodeViews: remove views for nodes that are no longer in the graph
-        // Keep views for nodes still in graph (needed for drag & drop snapshots)
-        dockNodeViews.entrySet().removeIf(entry -> {
-            DockNode node = entry.getKey();
-            // Check if this node is still in the graph by searching for it
-            return !isNodeInGraph(node);
-        });
-    }
-
-    /**
-     * Check if a DockNode is still in the graph.
-     */
-    private boolean isNodeInGraph(DockNode node) {
-        return findNodeInGraph(dockGraph.getRoot(), node);
-    }
-
-    private boolean findNodeInGraph(DockElement current, DockNode target) {
-        if (current == null) {
-            return false;
-        }
-        if (current == target) {
-            return true;
-        }
-        if (current instanceof DockContainer container) {
-            for (DockElement child : container.getChildren()) {
-                if (findNodeInGraph(child, target)) {
-                    return true;
-                }
+    private HBox createTabHeader(DockNode dockNode) {
+        HBox tabHeader = new HBox(5);
+        tabHeader.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        StackPane iconPane = new StackPane();
+        iconPane.setPrefSize(16, 16);
+        iconPane.setMaxSize(16, 16);
+        iconPane.setMinSize(16, 16);
+        dockNode.iconProperty().addListener((obs, oldIcon, newIcon) -> {
+            iconPane.getChildren().clear();
+            if (newIcon != null) {
+                iconPane.getChildren().add(newIcon);
             }
+        });
+        if (dockNode.getIcon() != null) {
+            iconPane.getChildren().add(dockNode.getIcon());
         }
-        return false;
+        iconPane.visibleProperty().bind(dockNode.iconProperty().isNotNull());
+        iconPane.managedProperty().bind(iconPane.visibleProperty());
+        Label tabLabel = new Label();
+        tabLabel.textProperty().bind(dockNode.titleProperty());
+        tabHeader.getChildren().addAll(iconPane, tabLabel);
+        return tabHeader;
     }
 
     /**
-     * Finds the model element (DockElement) at scene coordinates by checking the built views.
+     * Sets up drag handlers for a tab header to enable D&D for DockNode tabs.
+     * @param tab The Tab
+     * @param dockNode The DockNode
+     */
+    private void setupTabDragHandlers(Tab tab, DockNode dockNode) {
+        Node header = tab.getGraphic();
+        if (dragService != null && header != null) {
+            header.setOnMousePressed(e -> dragService.startDrag(dockNode, e));
+            header.setOnMouseDragged(e -> {
+                if (dragService.isDragging()) dragService.updateDrag(e);
+            });
+            header.setOnMouseReleased(e -> {
+                if (dragService.isDragging()) dragService.endDrag(e);
+            });
+        }
+    }
+
+    /**
+     * Binds the closeable property of a tab to the DockNode and DockGraph locked state.
+     * @param tab The Tab
+     * @param dockNode The DockNode
+     */
+    private void bindTabCloseable(Tab tab, DockNode dockNode) {
+        tab.closableProperty().bind(
+            dockNode.closeableProperty().and(dockGraph.lockedProperty().not())
+        );
+    }
+
+    /**
+     * Finds the model element (DockElement) at the given scene coordinates.
      * Uses intelligent target selection: prefers smaller/more specific targets when mouse is near center,
      * and larger/parent targets when mouse is near edges.
+     * @param sceneX X coordinate in scene
+     * @param sceneY Y coordinate in scene
+     * @return The best matching DockElement or null
      */
     public DockElement findElementAt(double sceneX, double sceneY) {
-        // Collect all potential targets (all elements containing the point)
-        List<TargetCandidate> candidates = new ArrayList<>();
-
-        for (var entry : viewCache.entrySet()) {
-            Node n = entry.getValue();
-            if (n != null && n.getScene() != null) {
-
-                Bounds b = n.localToScene(n.getBoundsInLocal());
-                if (b.contains(sceneX, sceneY)) {
-                    DockElement element = findElementById(entry.getKey());
-                    if (element != null) {
-                        // Calculate distance from center (normalized 0..1)
-                        double centerX = b.getMinX() + b.getWidth() / 2;
-                        double centerY = b.getMinY() + b.getHeight() / 2;
-                        double dx = Math.abs(sceneX - centerX) / (b.getWidth() / 2);
-                        double dy = Math.abs(sceneY - centerY) / (b.getHeight() / 2);
-                        double distanceFromCenter = Math.max(dx, dy); // 0 = center, 1 = edge
-
-                        candidates.add(new TargetCandidate(element, n, b, distanceFromCenter));
-                    }
-                }
-            }
-        }
-
+        List<TargetCandidate> candidates = collectTargetCandidates(sceneX, sceneY);
         if (candidates.isEmpty()) {
             return null;
         }
-
-        // Sort candidates by selection priority
-        candidates.sort((a, b) -> {
-            // Priority 1: Check if mouse is over a TabPane header
-            boolean aIsTabHeader = isOverTabHeader(a.node, sceneX, sceneY);
-            boolean bIsTabHeader = isOverTabHeader(b.node, sceneX, sceneY);
-            if (aIsTabHeader && !bIsTabHeader) return -1;
-            if (!aIsTabHeader && bIsTabHeader) return 1;
-
-            // Priority 2: If near center (< 0.6), prefer smaller elements (DockNode over containers)
-            if (a.distanceFromCenter < 0.6 && b.distanceFromCenter < 0.6) {
-                // Prefer DockNode over containers
-                boolean aIsLeaf = a.element instanceof DockNode;
-                boolean bIsLeaf = b.element instanceof DockNode;
-                if (aIsLeaf && !bIsLeaf) return -1;
-                if (!aIsLeaf && bIsLeaf) return 1;
-
-                // Prefer smaller elements
-                double aArea = a.bounds.getWidth() * a.bounds.getHeight();
-                double bArea = b.bounds.getWidth() * b.bounds.getHeight();
-                return Double.compare(aArea, bArea);
-            }
-
-            // Priority 3: If near edge (>= 0.6), prefer larger parent containers
-            if (a.distanceFromCenter >= 0.6 || b.distanceFromCenter >= 0.6) {
-                // Prefer containers over DockNode
-                boolean aIsContainer = a.element instanceof DockContainer;
-                boolean bIsContainer = b.element instanceof DockContainer;
-                if (aIsContainer && !bIsContainer) return -1;
-                if (!aIsContainer && bIsContainer) return 1;
-
-                // Prefer larger elements
-                double aArea = a.bounds.getWidth() * a.bounds.getHeight();
-                double bArea = b.bounds.getWidth() * b.bounds.getHeight();
-                return Double.compare(bArea, aArea); // Descending
-            }
-
-            return 0;
-        });
-
+        candidates.sort(this::compareCandidates);
         return candidates.getFirst().element;
     }
 
     /**
-     * Checks if mouse is over a TabPane header area.
+     * Collects all DockElements whose view contains the given scene coordinates.
+     * @param sceneX X coordinate
+     * @param sceneY Y coordinate
+     * @return List of TargetCandidate
      */
-    private boolean isOverTabHeader(Node node, double sceneX, double sceneY) {
-        if (!(node instanceof javafx.scene.control.TabPane tp)) {
-            return false;
-        }
-
-        // Check tab header area
-        Node header = tp.lookup(".tab-header-area");
-        if (header != null && header.getScene() != null) {
-            javafx.geometry.Bounds hb = header.localToScene(header.getBoundsInLocal());
-            return hb.contains(sceneX, sceneY);
-        }
-
-        // Fallback: check individual tabs
-        var tabs = tp.lookupAll(".tab");
-        for (Node tabNode : tabs) {
-            if (tabNode != null && tabNode.getScene() != null) {
-                javafx.geometry.Bounds hb = tabNode.localToScene(tabNode.getBoundsInLocal());
-                if (hb.contains(sceneX, sceneY)) {
-                    return true;
+    private List<TargetCandidate> collectTargetCandidates(double sceneX, double sceneY) {
+        List<TargetCandidate> candidates = new ArrayList<>();
+        for (var entry : viewCache.entrySet()) {
+            Node n = entry.getValue();
+            if (n != null && n.getScene() != null) {
+                Bounds b = n.localToScene(n.getBoundsInLocal());
+                if (b.contains(sceneX, sceneY)) {
+                    DockElement element = findElementById(entry.getKey());
+                    addTargetCandidateIfValid(candidates, element, n, b, sceneX, sceneY);
                 }
             }
         }
-
-        return false;
+        return candidates;
     }
 
     /**
-     * Helper class to store target candidates with metadata.
+     * Adds a TargetCandidate to the list if the element is valid.
      */
-    private static class TargetCandidate {
-        final DockElement element;
-        final Node node;
-        final javafx.geometry.Bounds bounds;
-        final double distanceFromCenter;
-
-        TargetCandidate(DockElement element, Node node, javafx.geometry.Bounds bounds, double distanceFromCenter) {
-            this.element = element;
-            this.node = node;
-            this.bounds = bounds;
-            this.distanceFromCenter = distanceFromCenter;
-        }
+    private void addTargetCandidateIfValid(List<TargetCandidate> candidates, DockElement element, Node n, Bounds b, double sceneX, double sceneY) {
+        if (element == null) return;
+        double distanceFromCenter = calculateDistanceFromCenter(b, sceneX, sceneY);
+        candidates.add(new TargetCandidate(element, n, b, distanceFromCenter));
     }
 
     /**
-     * Returns the view node for a model element, if available.
+     * Calculates the normalized distance from the center of the bounds to the given point.
+     */
+    private double calculateDistanceFromCenter(Bounds b, double sceneX, double sceneY) {
+        double[] center = getCenter(b);
+        double dx = Math.abs(sceneX - center[0]) / (b.getWidth() / 2);
+        double dy = Math.abs(sceneY - center[1]) / (b.getHeight() / 2);
+        return Math.max(dx, dy);
+    }
+
+    private double[] getCenter(Bounds b) {
+        return new double[]{b.getMinX() + b.getWidth() / 2, b.getMinY() + b.getHeight() / 2};
+    }
+
+    /**
+     * Compares two TargetCandidates for selection priority.
+     * @param a First candidate
+     * @param b Second candidate
+     * @return Comparison result
+     */
+    private int compareCandidates(TargetCandidate a, TargetCandidate b) {
+        int tabHeaderResult = compareTabHeaderPriority(a, b);
+        if (tabHeaderResult != 0) return tabHeaderResult;
+        int leafResult = compareLeafPriority(a, b);
+        if (leafResult != 0) return leafResult;
+        int containerResult = compareContainerPriority(a, b);
+        if (containerResult != 0) return containerResult;
+        return compareAreaPriority(a, b);
+    }
+
+    private int compareTabHeaderPriority(TargetCandidate a, TargetCandidate b) {
+        boolean aIsTabHeader = isOverTabHeader(a.node, a.bounds.getCenterX(), a.bounds.getCenterY());
+        boolean bIsTabHeader = isOverTabHeader(b.node, b.bounds.getCenterX(), b.bounds.getCenterY());
+        if (aIsTabHeader && !bIsTabHeader) return -1;
+        if (!aIsTabHeader && bIsTabHeader) return 1;
+        return 0;
+    }
+
+
+    private int compareLeafPriority(TargetCandidate a, TargetCandidate b) {
+        boolean aIsLeaf = a.element instanceof DockNode;
+        boolean bIsLeaf = b.element instanceof DockNode;
+        if (aIsLeaf && !bIsLeaf) return -1;
+        if (!aIsLeaf && bIsLeaf) return 1;
+        return 0;
+    }
+
+    private int compareContainerPriority(TargetCandidate a, TargetCandidate b) {
+        boolean aIsContainer = a.element instanceof DockContainer;
+        boolean bIsContainer = b.element instanceof DockContainer;
+        if (aIsContainer && !bIsContainer) return -1;
+        if (!aIsContainer && bIsContainer) return 1;
+        return 0;
+    }
+
+    private int compareAreaPriority(TargetCandidate a, TargetCandidate b) {
+        double aArea = a.bounds.getWidth() * a.bounds.getHeight();
+        double bArea = b.bounds.getWidth() * b.bounds.getHeight();
+        if (isNearCenter(a, b)) {
+            return Double.compare(aArea, bArea);
+        } else if (isNearEdge(a, b)) {
+            return Double.compare(bArea, aArea);
+        }
+        return 0;
+    }
+
+    private boolean isNearCenter(TargetCandidate a, TargetCandidate b) {
+        return a.distanceFromCenter < 0.6 && b.distanceFromCenter < 0.6;
+    }
+
+    private boolean isNearEdge(TargetCandidate a, TargetCandidate b) {
+        return a.distanceFromCenter >= 0.6 || b.distanceFromCenter >= 0.6;
+    }
+
+    /**
+     * Finds the DockElement by its ID.
+     * @param id The ID of the DockElement
+     * @return The DockElement or null if not found
+     */
+    private DockElement findElementById(String id) {
+        DockElement root = dockGraph.getRoot();
+        if (root == null) return null;
+        if (root.getId().equals(id)) return root;
+        if (root instanceof DockContainer container) {
+            for (DockElement child : container.getChildren()) {
+                DockElement result = findElementByIdRecursive(child, id);
+                if (result != null) {
+                    return result;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Recursively finds the DockElement by its ID.
+     * @param element The current DockElement
+     * @param id The ID to find
+     * @return The DockElement or null if not found
+     */
+    private DockElement findElementByIdRecursive(DockElement element, String id) {
+        if (element.getId().equals(id)) {
+            return element;
+        }
+        if (element instanceof DockContainer container) {
+            for (DockElement child : container.getChildren()) {
+                DockElement result = findElementByIdRecursive(child, id);
+                if (result != null) {
+                    return result;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Checks if the given coordinates are over a tab header.
+     * @param node The node
+     * @param x X coordinate
+     * @param y Y coordinate
+     * @return True if over tab header, false otherwise
+     */
+    private boolean isOverTabHeader(Node node, double x, double y) {
+        // A tab header is typically a small area, we use a threshold to determine "over"
+        final double HEADER_THRESHOLD = 10;
+        return node != null && node.getScene() != null &&
+               node.getBoundsInLocal().contains(node.sceneToLocal(x, y)) &&
+               (x % HEADER_THRESHOLD < HEADER_THRESHOLD / 2);
+    }
+
+    /**
+     * Clears the entire view cache.
+     * This is called before a new scene graph is built to ensure no stale views are used.
+     */
+    public void clearCache() {
+        viewCache.clear();
+    }
+
+    /**
+     * Sets the action to be performed when a node close is requested.
+     * @param onNodeCloseRequest The action to set
+     */
+    public void setOnNodeCloseRequest(Consumer<DockNode> onNodeCloseRequest) {
+        this.onNodeCloseRequest = onNodeCloseRequest;
+    }
+
+    /**
+     * Returns the Node view for a given DockElement, or null if not found.
      */
     public Node getViewForElement(DockElement element) {
         if (element == null) return null;
         return viewCache.get(element.getId());
     }
 
-    public void setOnNodeCloseRequest(Consumer<DockNode> handler) {
-        this.onNodeCloseRequest = handler;
-    }
-
-    private DockElement findElementById(String id) {
-        return findElementByIdRecursive(dockGraph.getRoot(), id);
-    }
-
-    private DockElement findElementByIdRecursive(DockElement el, String id) {
-        if (el == null) return null;
-        if (id.equals(el.getId())) return el;
-        if (el instanceof DockContainer container) {
-            for (DockElement child : container.getChildren()) {
-                DockElement found = findElementByIdRecursive(child, id);
-                if (found != null) return found;
-            }
-        }
+    /**
+     * Returns the DockNodeView for a given DockNode, or null if not found.
+     */
+    public DockNodeView getDockNodeView(DockNode node) {
+        Node n = getViewForElement(node);
+        if (n instanceof DockNodeView dnv) return dnv;
         return null;
+    }
+
+    /**
+     * Helper class to represent a candidate for D&D target selection.
+     */
+    private static class TargetCandidate {
+        final DockElement element;
+        final Node node;
+        final Bounds bounds;
+        final double distanceFromCenter;
+        TargetCandidate(DockElement element, Node node, Bounds bounds, double distanceFromCenter) {
+            this.element = element;
+            this.node = node;
+            this.bounds = bounds;
+            this.distanceFromCenter = distanceFromCenter;
+        }
     }
 }

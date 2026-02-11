@@ -10,18 +10,11 @@ import javafx.application.Platform;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 
@@ -57,67 +50,98 @@ public class DockDragService {
     public void initialize(Stage stage) {
         this.mainStage = stage;
         Scene scene = stage.getScene();
-
         if (scene != null) {
-            // Create overlay layers; if the root is not a Pane, wrap it in a StackPane
-            Node originalRoot = scene.getRoot();
-            Pane targetPane;
-            if (originalRoot instanceof Pane pane) {
-                targetPane = pane;
-            } else {
-                // Wrap existing root in a StackPane so we can place overlays on top
-                StackPane stack = new StackPane();
-                // Removing references from the original parent isn't necessary here
-                stack.getChildren().add(originalRoot);
-                scene.setRoot(stack);
-                targetPane = stack;
-            }
+            Pane targetPane = ensureSceneRootIsPane(scene);
+            createAndSetupOverlays(scene, targetPane);
+            attachRootChangeListener(scene);
+        }
+    }
 
-            ghostOverlay = new DockGhostOverlay();
-            dropIndicator = new DockDropIndicator();
+    /**
+     * Ensures the scene root is a Pane, wrapping it in a StackPane if necessary.
+     */
+    private Pane ensureSceneRootIsPane(Scene scene) {
+        Node originalRoot = scene.getRoot();
+        if (originalRoot instanceof Pane pane) {
+            return pane;
+        }
+        StackPane stack = new StackPane();
+        stack.getChildren().add(originalRoot);
+        scene.setRoot(stack);
+        return stack;
+    }
 
-            // Overlays shouldn't affect layout
-            ghostOverlay.setMouseTransparent(true);
-            ghostOverlay.setManaged(false);
-            dropIndicator.setMouseTransparent(true);
-            dropIndicator.setManaged(false);
+    /**
+     * Creates overlay components and adds them to the target pane.
+     */
+    private void createAndSetupOverlays(Scene scene, Pane targetPane) {
+        ghostOverlay = new DockGhostOverlay();
+        dropIndicator = new DockDropIndicator();
+        configureOverlayProperties();
+        targetPane.getChildren().addAll(ghostOverlay, dropIndicator);
+        bindOverlaysToSceneSize(scene);
+    }
 
-            // Add overlays to the root (StackPane). Added last => top-most layer.
-            targetPane.getChildren().addAll(ghostOverlay, dropIndicator);
+    /**
+     * Configures overlay properties (mouse transparency, layout management).
+     */
+    private void configureOverlayProperties() {
+        ghostOverlay.setMouseTransparent(true);
+        ghostOverlay.setManaged(false);
+        dropIndicator.setMouseTransparent(true);
+        dropIndicator.setManaged(false);
+    }
 
-            // Bind overlays to the scene size so they cover the entire window
-            ghostOverlay.prefWidthProperty().bind(scene.widthProperty());
-            ghostOverlay.prefHeightProperty().bind(scene.heightProperty());
-            dropIndicator.prefWidthProperty().bind(scene.widthProperty());
-            dropIndicator.prefHeightProperty().bind(scene.heightProperty());
+    /**
+     * Binds overlay dimensions to scene dimensions.
+     */
+    private void bindOverlaysToSceneSize(Scene scene) {
+        ghostOverlay.prefWidthProperty().bind(scene.widthProperty());
+        ghostOverlay.prefHeightProperty().bind(scene.heightProperty());
+        dropIndicator.prefWidthProperty().bind(scene.widthProperty());
+        dropIndicator.prefHeightProperty().bind(scene.heightProperty());
+    }
 
-            // If the scene root gets replaced later, re-attach the overlays
-            final Scene finalScene = scene;
-            finalScene.rootProperty().addListener((obs, oldRoot, newRoot) -> {
-                // Reattach overlays on the new root
-                Platform.runLater(() -> {
-                    if (newRoot == null) {
-                        return;
-                    }
-                    Pane target;
-                    if (newRoot instanceof Pane p) {
-                        target = p;
-                    } else {
-                        StackPane sp = new StackPane();
-                        sp.getChildren().add(newRoot);
-                        finalScene.setRoot(sp);
-                        target = sp;
-                    }
-                    if (ghostOverlay != null && dropIndicator != null) {
-                        if (!target.getChildren().contains(ghostOverlay)) {
-                            target.getChildren().add(ghostOverlay);
-                        }
-                        if (!target.getChildren().contains(dropIndicator)) {
-                            target.getChildren().add(dropIndicator);
-                        }
-                    }
-                });
-            });
+    /**
+     * Attaches a listener to re-attach overlays when the scene root changes.
+     */
+    private void attachRootChangeListener(Scene scene) {
+        scene.rootProperty().addListener((obs, oldRoot, newRoot) ->
+            Platform.runLater(() -> reattachOverlaysToNewRoot(scene, newRoot))
+        );
+    }
+
+    /**
+     * Re-attaches overlays to a new scene root.
+     */
+    private void reattachOverlaysToNewRoot(Scene scene, Node newRoot) {
+        if (newRoot == null) return;
+        Pane target = ensureNodeIsPane(scene, newRoot);
+        addOverlaysToPane(target);
+    }
+
+    /**
+     * Ensures a node is a Pane, wrapping it if necessary.
+     */
+    private Pane ensureNodeIsPane(Scene scene, Node node) {
+        if (node instanceof Pane p) {
+            return p;
+        }
+        StackPane sp = new StackPane();
+        sp.getChildren().add(node);
+        scene.setRoot(sp);
+        return sp;
+    }
+
+    /**
+     * Adds overlays to the target pane if they are not already present.
+     */
+    private void addOverlaysToPane(Pane target) {
+        if (ghostOverlay != null && !target.getChildren().contains(ghostOverlay)) {
+            target.getChildren().add(ghostOverlay);
+        }
+        if (dropIndicator != null && !target.getChildren().contains(dropIndicator)) {
+            target.getChildren().add(dropIndicator);
         }
     }
 
@@ -200,128 +224,167 @@ public class DockDragService {
      * Activates drag only after threshold is exceeded.
      */
     public void updateDrag(MouseEvent event) {
-        if (currentDrag == null) {
-            return;
+        if (currentDrag == null) return;
+        if (!checkDragThreshold(event)) return;
+
+        updateDragPosition(event);
+        Point2D scenePoint = toMainScenePoint(event.getScreenX(), event.getScreenY());
+        updateGhostOverlay(scenePoint.getX(), scenePoint.getY());
+
+        if (layoutEngine != null) {
+            updateDropTarget(scenePoint.getX(), scenePoint.getY());
+        } else {
+            clearDropTarget();
         }
+    }
 
-        // Check if threshold is exceeded
-        if (!dragThresholdExceeded) {
-            double deltaX = event.getScreenX() - dragStartX;
-            double deltaY = event.getScreenY() - dragStartY;
-            double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    /**
+     * Checks if drag threshold is exceeded and activates drag if needed.
+     */
+    private boolean checkDragThreshold(MouseEvent event) {
+        if (dragThresholdExceeded) return true;
 
-            if (distance < DRAG_THRESHOLD) {
-                return; // Threshold not yet exceeded, don't start dragging
-            }
+        double deltaX = event.getScreenX() - dragStartX;
+        double deltaY = event.getScreenY() - dragStartY;
+        double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
-            // Threshold exceeded - activate drag now
-            dragThresholdExceeded = true;
-            activateDrag();
-        }
+        if (distance < DRAG_THRESHOLD) return false;
 
+        dragThresholdExceeded = true;
+        activateDrag();
+        return true;
+    }
+
+    /**
+     * Updates the current drag position.
+     */
+    private void updateDragPosition(MouseEvent event) {
         currentDrag.setMouseX(event.getScreenX());
         currentDrag.setMouseY(event.getScreenY());
+    }
 
-        // convert to main scene coords
-        javafx.geometry.Point2D sceneP = toMainScenePoint(event.getScreenX(), event.getScreenY());
-        double sceneX = sceneP.getX();
-        double sceneY = sceneP.getY();
-
-        // Update ghost position
+    /**
+     * Updates the ghost overlay position.
+     */
+    private void updateGhostOverlay(double sceneX, double sceneY) {
         if (ghostOverlay != null) {
             ghostOverlay.updatePosition(sceneX, sceneY);
         }
+    }
 
-        // Hit-testing: find the DockElement under the mouse via the layout engine
-        if (layoutEngine != null) {
-            DockElement targetElement = layoutEngine.findElementAt(sceneX, sceneY);
-            if (targetElement != null) {
-                Node targetViewNode = layoutEngine.getViewForElement(targetElement);
-                if (targetViewNode != null && targetViewNode.getScene() != null) {
-                    javafx.geometry.Bounds b = targetViewNode.localToScene(targetViewNode.getBoundsInLocal());
-
-                    // Calculate zone thresholds
-                    // Use 30% for edge zones (larger than before for easier targeting)
-                    // But also consider minimum pixel sizes for small elements
-                    double zoneRatio = 0.30;
-                    double minZonePixels = 40; // Minimum zone size in pixels
-
-                    double horizontalZone = Math.max(minZonePixels, b.getWidth() * zoneRatio);
-                    double verticalZone = Math.max(minZonePixels, b.getHeight() * zoneRatio);
-
-                    // Limit zone size so center zone doesn't disappear on small elements
-                    horizontalZone = Math.min(horizontalZone, b.getWidth() * 0.4);
-                    verticalZone = Math.min(verticalZone, b.getHeight() * 0.4);
-
-                    double leftZone = b.getMinX() + horizontalZone;
-                    double rightZone = b.getMaxX() - horizontalZone;
-                    double topZone = b.getMinY() + verticalZone;
-                    double bottomZone = b.getMaxY() - verticalZone;
-
-                    // Determine position based on mouse location
-                    // Prioritize horizontal/vertical based on which dimension the mouse is more extreme in
-                    double horizontalDistance = Math.min(sceneX - b.getMinX(), b.getMaxX() - sceneX);
-                    double verticalDistance = Math.min(sceneY - b.getMinY(), b.getMaxY() - sceneY);
-
-                    // Normalize distances by element size
-                    double normalizedHDist = horizontalDistance / b.getWidth();
-                    double normalizedVDist = verticalDistance / b.getHeight();
-
-                    DockPosition pos;
-
-                    // If mouse is in outer zones, determine which edge
-                    if (normalizedHDist < zoneRatio || normalizedVDist < zoneRatio) {
-                        // Mouse is near an edge - determine which edge is closest
-                        if (normalizedHDist < normalizedVDist) {
-                            // Horizontal edge is closer
-                            pos = (sceneX < (b.getMinX() + b.getMaxX()) / 2) ? DockPosition.LEFT : DockPosition.RIGHT;
-                        } else {
-                            // Vertical edge is closer
-                            pos = (sceneY < (b.getMinY() + b.getMaxY()) / 2) ? DockPosition.TOP : DockPosition.BOTTOM;
-                        }
-                    } else {
-                        // Mouse is in center zone
-                        pos = DockPosition.CENTER;
-                    }
-
-                    currentDrag.setDropTarget(targetElement);
-                    currentDrag.setDropPosition(pos);
-                    currentDragProperty.set(currentDrag);
-
-                    // Show indicator
-                    if (dropIndicator != null) {
-                        javafx.geometry.Point2D topLeft = dropIndicator.sceneToLocal(b.getMinX(), b.getMinY());
-                        javafx.geometry.Point2D bottomRight = dropIndicator.sceneToLocal(b.getMaxX(), b.getMaxY());
-                        double lx = topLeft.getX();
-                        double ly = topLeft.getY();
-                        double lw = Math.max(1, bottomRight.getX() - topLeft.getX());
-                        double lh = Math.max(1, bottomRight.getY() - topLeft.getY());
-
-                        // Calculate zone sizes for visualization (reuse horizontalZone/verticalZone from above)
-                        double horizontalZoneSize = Math.max(minZonePixels, lw * zoneRatio);
-                        double verticalZoneSize = Math.max(minZonePixels, lh * zoneRatio);
-                        horizontalZoneSize = Math.min(horizontalZoneSize, lw * 0.4);
-                        verticalZoneSize = Math.min(verticalZoneSize, lh * 0.4);
-
-                        switch (pos) {
-                            case LEFT -> dropIndicator.show(lx, ly, horizontalZoneSize, lh);
-                            case RIGHT -> dropIndicator.show(lx + lw - horizontalZoneSize, ly, horizontalZoneSize, lh);
-                            case TOP -> dropIndicator.show(lx, ly, lw, verticalZoneSize);
-                            case BOTTOM -> dropIndicator.show(lx, ly + lh - verticalZoneSize, lw, verticalZoneSize);
-                            case CENTER -> dropIndicator.show(lx, ly, lw, lh);
-                        }
-                        if (ghostOverlay != null) {
-                            ghostOverlay.toFront();
-                        }
-
-                    }
-                    return;
-                }
-            }
+    /**
+     * Updates the drop target and indicator based on mouse position.
+     */
+    private void updateDropTarget(double sceneX, double sceneY) {
+        DockElement targetElement = layoutEngine.findElementAt(sceneX, sceneY);
+        if (targetElement == null) {
+            clearDropTarget();
+            return;
         }
 
-        // No target
-        if (dropIndicator != null) dropIndicator.hide();
+        Node targetViewNode = layoutEngine.getViewForElement(targetElement);
+        if (targetViewNode == null || targetViewNode.getScene() == null) {
+            clearDropTarget();
+            return;
+        }
+
+        javafx.geometry.Bounds bounds = targetViewNode.localToScene(targetViewNode.getBoundsInLocal());
+        DockPosition position = calculateDropPosition(bounds, sceneX, sceneY);
+
+        setDropTarget(targetElement, position);
+        showDropIndicator(bounds, position);
+    }
+
+    /**
+     * Calculates the drop position based on mouse location within bounds.
+     */
+    private DockPosition calculateDropPosition(javafx.geometry.Bounds bounds, double sceneX, double sceneY) {
+        double zoneRatio = 0.30;
+        double minZonePixels = 40;
+
+        double horizontalZone = Math.clamp(bounds.getWidth() * zoneRatio, minZonePixels, bounds.getWidth() * 0.4);
+        double verticalZone = Math.clamp(bounds.getHeight() * zoneRatio, minZonePixels, bounds.getHeight() * 0.4);
+
+        double horizontalDistance = Math.min(sceneX - bounds.getMinX(), bounds.getMaxX() - sceneX);
+        double verticalDistance = Math.min(sceneY - bounds.getMinY(), bounds.getMaxY() - sceneY);
+
+        double normalizedHDist = horizontalDistance / bounds.getWidth();
+        double normalizedVDist = verticalDistance / bounds.getHeight();
+
+        if (normalizedHDist < zoneRatio || normalizedVDist < zoneRatio) {
+            return determineEdgePosition(bounds, sceneX, sceneY, normalizedHDist, normalizedVDist);
+        }
+        return DockPosition.CENTER;
+    }
+
+    /**
+     * Determines which edge position (LEFT, RIGHT, TOP, BOTTOM) the mouse is closest to.
+     */
+    private DockPosition determineEdgePosition(javafx.geometry.Bounds bounds, double sceneX, double sceneY,
+                                               double normalizedHDist, double normalizedVDist) {
+        if (normalizedHDist < normalizedVDist) {
+            return (sceneX < (bounds.getMinX() + bounds.getMaxX()) / 2) ? DockPosition.LEFT : DockPosition.RIGHT;
+        } else {
+            return (sceneY < (bounds.getMinY() + bounds.getMaxY()) / 2) ? DockPosition.TOP : DockPosition.BOTTOM;
+        }
+    }
+
+    /**
+     * Sets the drop target and position in the current drag data.
+     */
+    private void setDropTarget(DockElement target, DockPosition position) {
+        currentDrag.setDropTarget(target);
+        currentDrag.setDropPosition(position);
+        currentDragProperty.set(currentDrag);
+    }
+
+    /**
+     * Shows the drop indicator at the specified position.
+     */
+    private void showDropIndicator(javafx.geometry.Bounds bounds, DockPosition position) {
+        if (dropIndicator == null) return;
+
+        Point2D topLeft = dropIndicator.sceneToLocal(bounds.getMinX(), bounds.getMinY());
+        Point2D bottomRight = dropIndicator.sceneToLocal(bounds.getMaxX(), bounds.getMaxY());
+
+        double lx = topLeft.getX();
+        double ly = topLeft.getY();
+        double lw = Math.max(1, bottomRight.getX() - topLeft.getX());
+        double lh = Math.max(1, bottomRight.getY() - topLeft.getY());
+
+        showIndicatorForPosition(position, lx, ly, lw, lh);
+
+        if (ghostOverlay != null) {
+            ghostOverlay.toFront();
+        }
+    }
+
+    /**
+     * Shows the indicator rectangle for the specific drop position.
+     */
+    private void showIndicatorForPosition(DockPosition position, double x, double y, double width, double height) {
+        double zoneRatio = 0.30;
+        double minZonePixels = 40;
+
+        double hZone = Math.clamp(width * zoneRatio, minZonePixels, width * 0.4);
+        double vZone = Math.clamp(height * zoneRatio, minZonePixels, height * 0.4);
+
+        switch (position) {
+            case LEFT -> dropIndicator.show(x, y, hZone, height);
+            case RIGHT -> dropIndicator.show(x + width - hZone, y, hZone, height);
+            case TOP -> dropIndicator.show(x, y, width, vZone);
+            case BOTTOM -> dropIndicator.show(x, y + height - vZone, width, vZone);
+            case CENTER -> dropIndicator.show(x, y, width, height);
+        }
+    }
+
+    /**
+     * Clears the current drop target.
+     */
+    private void clearDropTarget() {
+        if (dropIndicator != null) {
+            dropIndicator.hide();
+        }
         currentDrag.setDropTarget(null);
         currentDrag.setDropPosition(null);
         currentDragProperty.set(currentDrag);
@@ -407,10 +470,30 @@ public class DockDragService {
         return currentDragProperty;
     }
 
+    // Fallback placeholder image generator
+    private javafx.scene.image.WritableImage createPlaceholderImage(String title) {
+        int w = 220;
+        int h = 36;
+        javafx.scene.canvas.Canvas canvas = new javafx.scene.canvas.Canvas(w, h);
+        javafx.scene.canvas.GraphicsContext gc = canvas.getGraphicsContext2D();
+        gc.setFill(javafx.scene.paint.Color.web("#f5f5f5"));
+        gc.fillRoundRect(0, 0, w, h, 6, 6);
+        gc.setStroke(javafx.scene.paint.Color.web("#bdbdbd"));
+        gc.strokeRoundRect(0.5, 0.5, w - 1.0, h - 1.0, 6, 6);
+        gc.setFill(javafx.scene.paint.Color.web("#222"));
+        gc.setFont(javafx.scene.text.Font.font("System", javafx.scene.text.FontWeight.BOLD, 12));
+        double textX = 12;
+        double textY = h / 2.0 + 4;
+        gc.fillText(title != null ? title : "Untitled", textX, textY);
+        javafx.scene.image.WritableImage img = new javafx.scene.image.WritableImage(w, h);
+        canvas.snapshot(null, img);
+        return img;
+    }
+
     /**
      * Ghost overlay that shows a semi-transparent image of the dragged element.
      */
-    private static class DockGhostOverlay extends Pane {
+    private static class DockGhostOverlay extends javafx.scene.layout.Pane {
         private final javafx.scene.image.ImageView ghostView;
 
         public DockGhostOverlay() {
@@ -480,17 +563,17 @@ public class DockDragService {
     /**
      * Drop indicator that visualizes the drop zones.
      */
-    private static class DockDropIndicator extends Pane {
-        private final Rectangle indicator;
+    private static class DockDropIndicator extends javafx.scene.layout.Pane {
+        private final javafx.scene.shape.Rectangle indicator;
 
         public DockDropIndicator() {
             setMouseTransparent(true);
             setVisible(false);
 
-            indicator = new Rectangle();
-            indicator.setFill(Color.DODGERBLUE);
+            indicator = new javafx.scene.shape.Rectangle();
+            indicator.setFill(javafx.scene.paint.Color.DODGERBLUE);
             indicator.setOpacity(0.3);
-            indicator.setStroke(Color.BLUE);
+            indicator.setStroke(javafx.scene.paint.Color.BLUE);
             indicator.setStrokeWidth(2);
 
             getChildren().add(indicator);
@@ -508,28 +591,5 @@ public class DockDragService {
         public void hide() {
             setVisible(false);
         }
-    }
-
-    // Fallback placeholder image generator
-    private WritableImage createPlaceholderImage(String title) {
-        int w = 220;
-        int h = 36;
-        Canvas canvas = new Canvas(w, h);
-        GraphicsContext gc = canvas.getGraphicsContext2D();
-
-        gc.setFill(Color.web("#f5f5f5"));
-        gc.fillRoundRect(0, 0, w, h, 6, 6);
-        gc.setStroke(Color.web("#bdbdbd"));
-        gc.strokeRoundRect(0.5, 0.5, w - 1.0, h - 1.0, 6, 6);
-
-        gc.setFill(Color.web("#222"));
-        gc.setFont(Font.font("System", FontWeight.BOLD, 12));
-        double textX = 12;
-        double textY = h / 2.0 + 4;
-        gc.fillText(title != null ? title : "Untitled", textX, textY);
-
-        WritableImage img = new WritableImage(w, h);
-        canvas.snapshot(null, img);
-        return img;
     }
 }
