@@ -10,6 +10,9 @@ import javafx.scene.control.TextArea;
  */
 public class SerializableEditor extends TextArea implements DockNodeContentSerializer {
 
+    public static final String CARET_POSITION = "caretPosition";
+    public static final String TEXT = "text";
+
     /**
      * Creates a new serializable editor with default content.
      */
@@ -28,18 +31,18 @@ public class SerializableEditor extends TextArea implements DockNodeContentSeria
     @Override
     public JsonObject serializeContent() {
         JsonObject data = new JsonObject();
-        data.addProperty("text", getText());
-        data.addProperty("caretPosition", getCaretPosition());
+        data.addProperty(TEXT, getText());
+        data.addProperty(CARET_POSITION, getCaretPosition());
         return data;
     }
 
     @Override
     public void deserializeContent(JsonObject data) {
-        if (data.has("text")) {
-            setText(data.get("text").getAsString());
+        if (data.has(TEXT)) {
+            setText(data.get(TEXT).getAsString());
         }
-        if (data.has("caretPosition")) {
-            int caretPos = data.get("caretPosition").getAsInt();
+        if (data.has(CARET_POSITION)) {
+            int caretPos = data.get(CARET_POSITION).getAsInt();
             // Ensure caret position is valid
             if (caretPos >= 0 && caretPos <= getText().length()) {
                 positionCaret(caretPos);
