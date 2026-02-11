@@ -6,12 +6,15 @@ import com.github.beowolve.snapfx.model.DockNode;
 import com.github.beowolve.snapfx.view.DockLayoutEngine;
 import com.github.beowolve.snapfx.view.DockNodeView;
 import com.github.beowolve.snapfx.model.DockPosition;
+import javafx.application.Platform;
+import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
@@ -58,12 +61,12 @@ public class DockDragService {
         if (scene != null) {
             // Create overlay layers; if the root is not a Pane, wrap it in a StackPane
             Node originalRoot = scene.getRoot();
-            javafx.scene.layout.Pane targetPane;
-            if (originalRoot instanceof javafx.scene.layout.Pane pane) {
+            Pane targetPane;
+            if (originalRoot instanceof Pane pane) {
                 targetPane = pane;
             } else {
                 // Wrap existing root in a StackPane so we can place overlays on top
-                javafx.scene.layout.StackPane stack = new javafx.scene.layout.StackPane();
+                StackPane stack = new StackPane();
                 // Removing references from the original parent isn't necessary here
                 stack.getChildren().add(originalRoot);
                 scene.setRoot(stack);
@@ -92,15 +95,15 @@ public class DockDragService {
             final Scene finalScene = scene;
             finalScene.rootProperty().addListener((obs, oldRoot, newRoot) -> {
                 // Reattach overlays on the new root
-                javafx.application.Platform.runLater(() -> {
+                Platform.runLater(() -> {
                     if (newRoot == null) {
                         return;
                     }
-                    javafx.scene.layout.Pane target;
-                    if (newRoot instanceof javafx.scene.layout.Pane p) {
+                    Pane target;
+                    if (newRoot instanceof Pane p) {
                         target = p;
                     } else {
-                        javafx.scene.layout.StackPane sp = new javafx.scene.layout.StackPane();
+                        StackPane sp = new StackPane();
                         sp.getChildren().add(newRoot);
                         finalScene.setRoot(sp);
                         target = sp;
@@ -118,12 +121,12 @@ public class DockDragService {
         }
     }
 
-    private javafx.geometry.Point2D toMainScenePoint(double screenX, double screenY) {
+    private Point2D toMainScenePoint(double screenX, double screenY) {
         if (mainStage == null || mainStage.getScene() == null) {
-            return new javafx.geometry.Point2D(screenX, screenY);
+            return new Point2D(screenX, screenY);
         }
         Node root = mainStage.getScene().getRoot();
-        if (root == null) return new javafx.geometry.Point2D(screenX, screenY);
+        if (root == null) return new Point2D(screenX, screenY);
         return root.screenToLocal(screenX, screenY);
     }
 
@@ -517,7 +520,7 @@ public class DockDragService {
         gc.setFill(Color.web("#f5f5f5"));
         gc.fillRoundRect(0, 0, w, h, 6, 6);
         gc.setStroke(Color.web("#bdbdbd"));
-        gc.strokeRoundRect(0.5, 0.5, w - 1, h - 1, 6, 6);
+        gc.strokeRoundRect(0.5, 0.5, w - 1.0, h - 1.0, 6, 6);
 
         gc.setFill(Color.web("#222"));
         gc.setFont(Font.font("System", FontWeight.BOLD, 12));
