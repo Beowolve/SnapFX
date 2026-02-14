@@ -57,3 +57,14 @@ tasks.test {
     )
 }
 
+tasks.register<JavaExec>("captureMainDemoScreenshot") {
+    group = "documentation"
+    description = "Launches MainDemo and updates docs/images/main-demo.png"
+
+    mainClass.set("com.github.beowolve.snapfx.demo.MainDemoScreenshotGenerator")
+    classpath = sourceSets.main.get().runtimeClasspath
+
+    val outputPath = (project.findProperty("snapfxScreenshotOutput") as String?)
+        ?: "docs/images/main-demo.png"
+    args(layout.projectDirectory.file(outputPath).asFile.absolutePath)
+}

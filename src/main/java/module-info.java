@@ -8,6 +8,7 @@ module com.github.beowolve.snapfx {
     requires javafx.controls;
     requires javafx.graphics;
     requires javafx.base;
+    requires java.desktop;
 
     // JSON serialization
     requires com.google.gson;

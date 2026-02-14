@@ -211,6 +211,19 @@ The demo shows:
 - Multiple tabs
 - Floating/attach workflows from menu, title bars, and tab headers
 
+### Update Preview Screenshot
+
+```bash
+# Regenerate README preview image from the current MainDemo UI
+./scripts/update-main-demo-preview.ps1
+```
+
+Optional output path:
+
+```bash
+./scripts/update-main-demo-preview.ps1 -OutputPath "docs/images/main-demo.png"
+```
+
 ## Example Layouts
 
 ### IDE Layout
