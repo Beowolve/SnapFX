@@ -3,6 +3,7 @@ package com.github.beowolve.snapfx.model;
 import javafx.application.Platform;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Label;
+import javafx.scene.layout.Region;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -457,6 +458,59 @@ class DockGraphTest {
         // Second divider should be between 0.3 and 1.0 (splitting center/right space)
         double secondDivider = rootSplit.getDividerPositions().get(1).get();
         assertTrue(secondDivider > 0.3 && secondDivider < 1.0);
+    }
+
+    @Test
+    void testInitialDividerPositionUsesPreferredWidthRatio() {
+        Region widePane = new Region();
+        widePane.setPrefWidth(300);
+        Region narrowPane = new Region();
+        narrowPane.setPrefWidth(100);
+
+        DockNode wide = new DockNode(widePane, "Wide");
+        DockNode narrow = new DockNode(narrowPane, "Narrow");
+
+        dockGraph.dock(wide, null, DockPosition.CENTER);
+        dockGraph.dock(narrow, wide, DockPosition.RIGHT);
+
+        DockSplitPane split = assertInstanceOf(DockSplitPane.class, dockGraph.getRoot());
+        assertEquals(1, split.getDividerPositions().size());
+        assertEquals(0.75, split.getDividerPositions().get(0).get(), 0.0001);
+    }
+
+    @Test
+    void testInitialDividerPositionUsesPreferredHeightRatio() {
+        Region topPane = new Region();
+        topPane.setPrefHeight(120);
+        Region bottomPane = new Region();
+        bottomPane.setPrefHeight(360);
+
+        DockNode top = new DockNode(topPane, "Top");
+        DockNode bottom = new DockNode(bottomPane, "Bottom");
+
+        dockGraph.dock(top, null, DockPosition.CENTER);
+        dockGraph.dock(bottom, top, DockPosition.BOTTOM);
+
+        DockSplitPane split = assertInstanceOf(DockSplitPane.class, dockGraph.getRoot());
+        assertEquals(1, split.getDividerPositions().size());
+        assertEquals(0.25, split.getDividerPositions().get(0).get(), 0.0001);
+    }
+
+    @Test
+    void testInitialDividerPositionIsClampedToReasonableRange() {
+        Region hugePane = new Region();
+        hugePane.setPrefWidth(5000);
+        Region tinyPane = new Region();
+        tinyPane.setPrefWidth(50);
+
+        DockNode huge = new DockNode(hugePane, "Huge");
+        DockNode tiny = new DockNode(tinyPane, "Tiny");
+
+        dockGraph.dock(huge, null, DockPosition.CENTER);
+        dockGraph.dock(tiny, huge, DockPosition.RIGHT);
+
+        DockSplitPane split = assertInstanceOf(DockSplitPane.class, dockGraph.getRoot());
+        assertEquals(0.8, split.getDividerPositions().get(0).get(), 0.0001);
     }
 
     /**

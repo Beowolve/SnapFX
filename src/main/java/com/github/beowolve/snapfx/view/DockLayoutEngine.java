@@ -30,6 +30,7 @@ public class DockLayoutEngine {
     private final DockGraph dockGraph;
     private final DockDragService dragService;
     private final Map<String, Node> viewCache;
+    private final StackPane emptyLayoutView;
     private static final String CLEANUP_TASKS_KEY = "snapfx.cleanupTasks";
     private static final String TAB_CLEANUP_KEY = "snapfx.tabCleanup";
     private static final double DROP_ZONE_RATIO = 0.30;
@@ -48,6 +49,8 @@ public class DockLayoutEngine {
         this.dockGraph = dockGraph;
         this.dragService = dragService;
         this.viewCache = new HashMap<>();
+        this.emptyLayoutView = new StackPane();
+        this.emptyLayoutView.getStyleClass().add("dock-empty-layout");
     }
 
     /**
@@ -59,12 +62,31 @@ public class DockLayoutEngine {
         clearCache();
 
         DockElement root = dockGraph.getRoot();
+        DockElement optimizedRoot = unwrapSingleContainerRoot(root);
 
-        if (root == null) {
-            return new StackPane(); // Empty container
+        if (optimizedRoot == null) {
+            return emptyLayoutView; // Empty layout
         }
 
-        return createView(root);
+        return createView(optimizedRoot);
+    }
+
+    private DockElement unwrapSingleContainerRoot(DockElement root) {
+        DockElement current = root;
+        while (current instanceof DockContainer container) {
+            if (container.getChildren().isEmpty()) {
+                return null;
+            }
+            if (container.getChildren().size() != 1) {
+                return current;
+            }
+            DockElement child = container.getChildren().getFirst();
+            if (child == current) {
+                return current;
+            }
+            current = child;
+        }
+        return current;
     }
 
     /**

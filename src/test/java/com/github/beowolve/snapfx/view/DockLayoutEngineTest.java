@@ -3,9 +3,11 @@ package com.github.beowolve.snapfx.view;
 import com.github.beowolve.snapfx.model.*;
 import javafx.application.Platform;
 import javafx.event.Event;
+import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import org.junit.jupiter.api.BeforeAll;
@@ -48,6 +50,15 @@ class DockLayoutEngineTest extends ApplicationTest {
     void testBuildEmptyGraph() {
         Node view = layoutEngine.buildSceneGraph();
         assertNotNull(view);
+    }
+
+    @Test
+    void testBuildEmptyGraphReusesStableEmptyLayout() {
+        Node first = layoutEngine.buildSceneGraph();
+        Node second = layoutEngine.buildSceneGraph();
+
+        assertInstanceOf(StackPane.class, first);
+        assertSame(first, second);
     }
 
     @Test
@@ -185,6 +196,37 @@ class DockLayoutEngineTest extends ApplicationTest {
 
         SplitPane splitPane = (SplitPane) view;
         assertEquals(2, splitPane.getItems().size());
+    }
+
+    @Test
+    void testSingleChildSplitRootIsOptimizedToNodeView() {
+        DockNode node = new DockNode(new Label("Test"), "Node 1");
+        DockSplitPane split = new DockSplitPane(Orientation.HORIZONTAL);
+        split.addChild(node);
+        dockGraph.setRoot(split);
+
+        Node view = layoutEngine.buildSceneGraph();
+        assertInstanceOf(DockNodeView.class, view);
+    }
+
+    @Test
+    void testSingleChildTabRootIsOptimizedToNodeView() {
+        DockNode node = new DockNode(new Label("Test"), "Node 1");
+        DockTabPane tabPane = new DockTabPane();
+        tabPane.addChild(node);
+        dockGraph.setRoot(tabPane);
+
+        Node view = layoutEngine.buildSceneGraph();
+        assertInstanceOf(DockNodeView.class, view);
+    }
+
+    @Test
+    void testEmptyContainerRootFallsBackToEmptyLayout() {
+        DockSplitPane split = new DockSplitPane(Orientation.VERTICAL);
+        dockGraph.setRoot(split);
+
+        Node view = layoutEngine.buildSceneGraph();
+        assertInstanceOf(StackPane.class, view);
     }
 
     @Test

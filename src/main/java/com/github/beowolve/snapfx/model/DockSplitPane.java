@@ -5,6 +5,8 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
+import javafx.scene.Node;
+import javafx.scene.layout.Region;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -185,10 +187,15 @@ public class DockSplitPane implements DockContainer {
             // Strategy: Distribute new dividers in the remaining space
             // If we have existing dividers, insert new ones proportionally
             if (currentDividers == 0 && requiredDividers > 0) {
-                // No existing dividers: distribute evenly
-                for (int i = 0; i < requiredDividers; i++) {
-                    double position = (i + 1.0) / (requiredDividers + 1.0);
-                    dividerPositions.add(new SimpleDoubleProperty(position));
+                if (requiredDividers == 1) {
+                    // For a two-pane split, derive an initial divider from preferred sizes.
+                    dividerPositions.add(new SimpleDoubleProperty(calculateInitialSingleDividerPosition()));
+                } else {
+                    // No existing dividers: distribute evenly
+                    for (int i = 0; i < requiredDividers; i++) {
+                        double position = (i + 1.0) / (requiredDividers + 1.0);
+                        dividerPositions.add(new SimpleDoubleProperty(position));
+                    }
                 }
             } else {
                 // We have existing dividers: add new ones without changing existing positions
@@ -246,6 +253,52 @@ public class DockSplitPane implements DockContainer {
                 }
             }
         }
+    }
+
+    private double calculateInitialSingleDividerPosition() {
+        if (children.size() < 2) {
+            return 0.5;
+        }
+        double firstSize = resolvePreferredSize(children.getFirst());
+        double secondSize = resolvePreferredSize(children.get(1));
+
+        if (firstSize <= 0 || secondSize <= 0) {
+            return 0.5;
+        }
+
+        double ratio = firstSize / (firstSize + secondSize);
+        return Math.clamp(ratio, 0.2, 0.8);
+    }
+
+    private double resolvePreferredSize(DockElement element) {
+        if (!(element instanceof DockNode node)) {
+            return -1;
+        }
+        return resolveNodePreferredSize(node.getContent());
+    }
+
+    private double resolveNodePreferredSize(Node node) {
+        if (node == null) {
+            return -1;
+        }
+
+        double pref = orientation == Orientation.HORIZONTAL
+            ? node.prefWidth(-1)
+            : node.prefHeight(-1);
+        if (Double.isFinite(pref) && pref > 0) {
+            return pref;
+        }
+
+        if (node instanceof Region region) {
+            double regionPref = orientation == Orientation.HORIZONTAL
+                ? region.getPrefWidth()
+                : region.getPrefHeight();
+            if (Double.isFinite(regionPref) && regionPref > 0) {
+                return regionPref;
+            }
+        }
+
+        return -1;
     }
 
     @Override
