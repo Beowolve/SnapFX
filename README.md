@@ -18,6 +18,7 @@ A high-performance, lightweight JavaFX docking framework that behaves like nativ
 - **Dock Zones**: 5 zones (Top, Bottom, Left, Right, Center)
 - **Floating Windows**: Tabs can be dragged out (planned)
 - **Locked Mode**: Lock the layout; no D&D; no close buttons
+- **Title Bar Modes**: ALWAYS/NEVER/AUTO; AUTO hides title bars for tabbed nodes to save space, so those nodes are moved via tabs only (pairs well with compact/locked layouts)
 
 ### Persistence
 - **Layout Save/Load**: JSON-based serialization

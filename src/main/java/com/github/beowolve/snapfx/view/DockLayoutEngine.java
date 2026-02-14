@@ -38,7 +38,7 @@ public class DockLayoutEngine {
     private static final double LEAF_DROP_ZONE_INSET_PX = 12.0;
 
     private DockCloseButtonMode closeButtonMode = DockCloseButtonMode.BOTH;
-    private DockTitleBarMode titleBarMode = DockTitleBarMode.ALWAYS;
+    private DockTitleBarMode titleBarMode = DockTitleBarMode.AUTO;
     private Consumer<DockNode> onNodeCloseRequest;
 
     public DockLayoutEngine(DockGraph dockGraph, DockDragService dragService) {

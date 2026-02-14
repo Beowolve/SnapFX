@@ -46,13 +46,14 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `MainDemo` - Full IDE-like layout with all features
 - ✅ `SimpleExample` - Minimal usage example
 - ✅ `DockNodeFactory` - Helper for creating demo nodes
+- ✅ `Settings tab` - Live layout options in the debug panel
 
 ### Module System
 - ✅ `module-info.java` - Java Platform Module System descriptor
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (4 test classes, 69 tests)
+### Testing (4 test classes, 70 tests)
 - ✅ `DockGraphTest` (42 tests) - Tree manipulation and algorithms
   - **+10 regression tests** for critical bug fixes (2026-02-10)
   - Tests for empty container prevention
@@ -61,7 +62,7 @@ SnapFX has been fully implemented with core functionality and is production-read
   - Tests for flattening logic
 - ✅ `DockLayoutSerializerTest` (9 tests) - Persistence functionality
   - **+1 regression test** for locked state synchronization (2026-02-10)
-- ✅ `DockLayoutEngineTest` (11 tests) - View creation with TestFX
+- ✅ `DockLayoutEngineTest` (12 tests) - View creation with TestFX
 - ✅ `SnapFXTest` (7 tests) - Hide/Restore functionality
 - ✅ All tests passing ✅
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
@@ -75,6 +76,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `ROADMAP.md` - Future development plans
 - ✅ `DONE.md` - Completed features (this file)
 - ✅ `TESTING_POLICY.md` - Testing standards and requirements (NEW 2026-02-10)
+- ✅ README clarifies TitleBarMode.AUTO behavior and tab-only drag handling
 
 ### Resources
 - ✅ `snapfx.css` - Native Modena theme styling
@@ -200,7 +202,7 @@ In IntelliJ IDEA:
 - **Total Java Files**: 31
 - **Production Classes**: 26
 - **Test Classes**: 4
-- **Test Cases**: 69 (all passing ✅) - +12 regression tests
+- **Test Cases**: 70 (all passing ✅) - +12 regression tests
 - **Lines of Code**: ~3,500+ (estimated)
 - **Documentation**: 7 Core Markdown files
 - **Test Coverage**: ~87% (estimated, improved from ~80%)

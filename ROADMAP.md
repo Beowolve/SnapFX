@@ -78,6 +78,7 @@ This document tracks all planned features, improvements, and bug fixes for SnapF
 - ✅ **D&D Activity Logging**: Complete logging system with color-coded entries (COMPLETED 2026-02-10)
 - ✅ **Log Export**: Activity log included in clipboard export (COMPLETED 2026-02-10)
 - ✅ **Real-time tracking**: Track all D&D state changes (COMPLETED 2026-02-10)
+- ✅ **Settings panel**: Live layout options tab in the debug view (2026-02-14)
 
 ### 1.3 Testing & Quality Assurance  
 **Priority**: 🟡 High
@@ -91,7 +92,7 @@ This document tracks all planned features, improvements, and bug fixes for SnapF
   - Close button handler integration (NEW)
   - Hide/Restore functionality (NEW)
 - ✅ **Testing Policy established**: TESTING_POLICY.md created (2026-02-10)
-- ✅ **Test count improved**: 41 → 49 → 55 → 61 → 62 → 63 → 65 → 69 tests (2026-02-14)
+- ✅ **Test count improved**: 41 → 49 → 55 → 61 → 62 → 63 → 65 → 69 → 70 tests (2026-02-14)
 - ✅ **Coverage improved**: ~80% → ~85% → ~87% (2026-02-14)
 - ✅ **SnapFXTest created**: 7 comprehensive tests for hide/restore (2026-02-11)
 - 📋 **Add performance tests**: Large layouts with 50+ nodes
@@ -322,6 +323,7 @@ This document tracks all planned features, improvements, and bug fixes for SnapF
 ### 7.2 Documentation
 **Priority**: 🟡 High
 
+- ✅ **Title bar modes documented**: Clarify AUTO behavior and tab-only drag handle (2026-02-14)
 - 📋 **API documentation**: Complete JavaDoc
 - 📋 **User guide**: Comprehensive usage guide
 - 📋 **Tutorial series**: Step-by-step tutorials

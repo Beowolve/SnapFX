@@ -47,6 +47,11 @@ class DockLayoutEngineTest extends ApplicationTest {
     }
 
     @Test
+    void testDefaultTitleBarModeIsAuto() {
+        assertEquals(DockTitleBarMode.AUTO, layoutEngine.getTitleBarMode());
+    }
+
+    @Test
     void testBuildSingleNode() {
         DockNode node = new DockNode(new Label("Test"), "Test Node");
         dockGraph.setRoot(node);

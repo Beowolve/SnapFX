@@ -7,6 +7,7 @@ import com.github.beowolve.snapfx.dnd.DockDropVisualizationMode;
 import com.github.beowolve.snapfx.model.DockNode;
 import com.github.beowolve.snapfx.model.DockPosition;
 import com.github.beowolve.snapfx.view.DockCloseButtonMode;
+import com.github.beowolve.snapfx.view.DockTitleBarMode;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -78,6 +79,9 @@ public class MainDemo extends Application {
 
         // Set close button mode to show only on active tab for cleaner look
         snapFX.setCloseButtonMode(DockCloseButtonMode.BOTH);
+
+        // Set title bar mode to auto (show only when needed)
+        snapFX.setTitleBarMode(DockTitleBarMode.NEVER);
 
         // Create dock layout (after handler is set)
         createDemoLayout();
@@ -358,9 +362,17 @@ public class MainDemo extends Application {
         // Enable auto-export by default
         debugView.setAutoExportOnDrop(true);
 
+        TabPane debugTabs = new TabPane();
+        debugTabs.setPrefWidth(420);
+        debugTabs.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
+
+        Tab debugTab = new Tab("Debug", debugView);
+        Tab settingsTab = new Tab("Settings", createSettingsPanel());
+        debugTabs.getTabs().addAll(debugTab, settingsTab);
+
         // Create split pane with dock layout on left and debug view on right
         mainSplit = new SplitPane();
-        mainSplit.getItems().addAll(dockLayout, debugView);
+        mainSplit.getItems().addAll(dockLayout, debugTabs);
         mainSplit.setDividerPositions(0.72);
 
         // Add a small HUD overlay that shows current D&D state
@@ -377,6 +389,63 @@ public class MainDemo extends Application {
 
         // Expand debug tree by default
         debugView.expandAll();
+    }
+
+    private Parent createSettingsPanel() {
+        Label header = new Label("Layout Settings");
+        header.setStyle(FX_FONT_WEIGHT_BOLD);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(8);
+        ColumnConstraints labelColumn = new ColumnConstraints();
+        ColumnConstraints controlColumn = new ColumnConstraints();
+        controlColumn.setHgrow(Priority.ALWAYS);
+        grid.getColumnConstraints().addAll(labelColumn, controlColumn);
+
+        // Add future demo settings here as new options become available.
+        ComboBox<DockTitleBarMode> titleBarMode = new ComboBox<>();
+        titleBarMode.getItems().setAll(DockTitleBarMode.values());
+        titleBarMode.setMaxWidth(Double.MAX_VALUE);
+        titleBarMode.setValue(snapFX.getTitleBarMode());
+        titleBarMode.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                snapFX.setTitleBarMode(newVal);
+            }
+        });
+        grid.addRow(0, new Label("Title Bar Mode"), titleBarMode);
+
+        ComboBox<DockCloseButtonMode> closeButtonMode = new ComboBox<>();
+        closeButtonMode.getItems().setAll(DockCloseButtonMode.values());
+        closeButtonMode.setMaxWidth(Double.MAX_VALUE);
+        closeButtonMode.setValue(snapFX.getCloseButtonMode());
+        closeButtonMode.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                snapFX.setCloseButtonMode(newVal);
+            }
+        });
+        grid.addRow(1, new Label("Close Button Mode"), closeButtonMode);
+
+        ComboBox<DockDropVisualizationMode> dropMode = new ComboBox<>();
+        dropMode.getItems().setAll(DockDropVisualizationMode.values());
+        dropMode.setMaxWidth(Double.MAX_VALUE);
+        dropMode.setValue(snapFX.getDropVisualizationMode());
+        dropMode.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                snapFX.setDropVisualizationMode(newVal);
+            }
+        });
+        grid.addRow(2, new Label("Drop Visualization"), dropMode);
+
+        CheckBox lockCheckBox = new CheckBox("Locked");
+        lockCheckBox.selectedProperty().bindBidirectional(lockLayoutProperty);
+        grid.addRow(3, new Label("Layout Lock"), lockCheckBox);
+
+        Label hint = new Label("Changes apply immediately.");
+
+        VBox panel = new VBox(12, header, grid, hint);
+        panel.setPadding(new Insets(10));
+        return panel;
     }
 
     private void updateDockLayout() {

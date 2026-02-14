@@ -112,6 +112,7 @@ Use these checks when behavior cannot be reliably automated:
 - Drag a DockNode: the ghost overlay appears offset bottom-right of the cursor and does not cover the drop target.
 - Shrink a TabPane until the overflow dropdown appears; open it and confirm the entries show tab titles.
 - Confirm the tab close button is visible without hover and the tab/title close buttons share the same hover color change.
+- Open the Settings tab in the debug panel; change title bar mode, close button mode, drop visualization, and lock state to confirm immediate updates.
 
 ---
 
@@ -287,7 +288,7 @@ void testSomething() {
 
 **As of 2026-02-14:**
 
-- **Total Tests**: 69 (was 49)
+- **Total Tests**: 70 (was 49)
 - **Test Classes**: 4
 - **Test Coverage**: ~87% (estimated)
 - **All Tests**: ✅ PASSING
@@ -297,7 +298,7 @@ void testSomething() {
   - 10 new regression tests added
 - `DockLayoutSerializerTest`: 9 tests (was 8)
   - 1 new regression test added
-- `DockLayoutEngineTest`: 11 tests
+- `DockLayoutEngineTest`: 12 tests
 - `SnapFXTest`: 7 tests
 
 ### Regression Test Coverage
