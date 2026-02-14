@@ -138,6 +138,7 @@
 - Added depth-first drop target selection with validation against invalid targets
 - Added configurable drop-zone visualization modes (ALL/SUBTREE/DEFAULT/ACTIVE/OFF)
 - Added per-tab insert targeting with visible insert line
+- Moved the drag ghost overlay to the bottom-right of the cursor to keep targets visible
 - Expanded tab insert/reorder tests including index clamping (DockGraphTest: 39 tests, total: 62)
 
 ### UI Fixes

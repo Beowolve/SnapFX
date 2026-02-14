@@ -62,7 +62,7 @@ This document tracks all planned features, improvements, and bug fixes for SnapF
 - ✅ **Drop validation**: Prevent invalid drop operations with depth-first selection (2026-02-14)
 - ✅ **Per-tab insert targeting**: Drop at specific tab index (2026-02-14)
 - ✅ **Drop-zone visualization modes**: ALL/SUBTREE/DEFAULT/ACTIVE/OFF (2026-02-14)
-- 📋 **Drag preview image**: Show snapshot of dragged content
+- ✅ **Drag preview image**: Show snapshot of dragged content (2026-02-14)
 
 **Estimated Time**: 2-3 days
 

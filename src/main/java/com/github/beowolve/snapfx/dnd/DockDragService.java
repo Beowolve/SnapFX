@@ -12,13 +12,25 @@ import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Line;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -205,7 +217,7 @@ public class DockDragService {
 
         // Create snapshot of the dragged element
         if (ghostOverlay != null) {
-            javafx.scene.image.WritableImage img = null;
+            WritableImage img = null;
             try {
                 if (layoutEngine != null) {
                     DockNodeView nodeView = layoutEngine.getDockNodeView(currentDrag.getDraggedNode());
@@ -226,8 +238,9 @@ public class DockDragService {
             }
 
             ghostOverlay.setImage(img);
+
             // Convert to main scene coordinates
-            javafx.geometry.Point2D sceneP = toMainScenePoint(dragStartX, dragStartY);
+            Point2D sceneP = toMainScenePoint(dragStartX, dragStartY);
             ghostOverlay.show(sceneP.getX(), sceneP.getY());
         }
     }
@@ -453,21 +466,21 @@ public class DockDragService {
     }
 
     // Fallback placeholder image generator
-    private javafx.scene.image.WritableImage createPlaceholderImage(String title) {
+    private WritableImage createPlaceholderImage(String title) {
         int w = 220;
         int h = 36;
-        javafx.scene.canvas.Canvas canvas = new javafx.scene.canvas.Canvas(w, h);
-        javafx.scene.canvas.GraphicsContext gc = canvas.getGraphicsContext2D();
-        gc.setFill(javafx.scene.paint.Color.web("#f5f5f5"));
+        Canvas canvas = new Canvas(w, h);
+        GraphicsContext gc = canvas.getGraphicsContext2D();
+        gc.setFill(Color.web("#f5f5f5"));
         gc.fillRoundRect(0, 0, w, h, 6, 6);
-        gc.setStroke(javafx.scene.paint.Color.web("#bdbdbd"));
+        gc.setStroke(Color.web("#bdbdbd"));
         gc.strokeRoundRect(0.5, 0.5, w - 1.0, h - 1.0, 6, 6);
-        gc.setFill(javafx.scene.paint.Color.web("#222"));
-        gc.setFont(javafx.scene.text.Font.font("System", javafx.scene.text.FontWeight.BOLD, 12));
+        gc.setFill(Color.web("#222"));
+        gc.setFont(Font.font("System", FontWeight.BOLD, 12));
         double textX = 12;
         double textY = h / 2.0 + 4;
         gc.fillText(title != null ? title : "Untitled", textX, textY);
-        javafx.scene.image.WritableImage img = new javafx.scene.image.WritableImage(w, h);
+        WritableImage img = new WritableImage(w, h);
         canvas.snapshot(null, img);
         return img;
     }
@@ -475,14 +488,14 @@ public class DockDragService {
     /**
      * Ghost overlay that shows a semi-transparent image of the dragged element.
      */
-    private static class DockGhostOverlay extends javafx.scene.layout.Pane {
-        private final javafx.scene.image.ImageView ghostView;
+    private static class DockGhostOverlay extends Pane {
+        private final ImageView ghostView;
 
         public DockGhostOverlay() {
             setMouseTransparent(true);
             setVisible(false);
 
-            ghostView = new javafx.scene.image.ImageView();
+            ghostView = new ImageView();
             ghostView.setOpacity(0.85);
             ghostView.setSmooth(true);
             ghostView.setPreserveRatio(true);
@@ -490,7 +503,7 @@ public class DockDragService {
             getChildren().add(ghostView);
         }
 
-        public void setImage(javafx.scene.image.Image img) {
+        public void setImage(Image img) {
             if (img != null) {
                 ghostView.setImage(img);
                 ghostView.setFitWidth(Math.min(300, img.getWidth()));
@@ -508,7 +521,7 @@ public class DockDragService {
             setVisible(true);
             toFront();
             // ensure it's front-most
-            javafx.application.Platform.runLater(() -> {
+            Platform.runLater(() -> {
                 toFront();
                 updatePosition(x, y);
             });
@@ -516,12 +529,12 @@ public class DockDragService {
 
         public void updatePosition(double x, double y) {
             // convert scene coords to overlay-local coords
-            javafx.geometry.Point2D local = sceneToLocal(x, y);
+            Point2D local = sceneToLocal(x, y);
             double w = ghostView.getBoundsInLocal().getWidth();
             double h = ghostView.getBoundsInLocal().getHeight();
             if (w <= 0 || h <= 0) {
                 // fallback to image dimensions / fit sizes
-                javafx.scene.image.Image img = ghostView.getImage();
+                Image img = ghostView.getImage();
                 if (img != null) {
                     double fw = ghostView.getFitWidth() > 0 ? ghostView.getFitWidth() : img.getWidth();
                     double fh = ghostView.getFitHeight() > 0 ? ghostView.getFitHeight() : img.getHeight();
@@ -531,8 +544,8 @@ public class DockDragService {
                     w = 100; h = 30;
                 }
             }
-            ghostView.setLayoutX(Math.max(0, local.getX() - w / 2));
-            ghostView.setLayoutY(Math.max(0, local.getY() - h / 2));
+            ghostView.setLayoutX(Math.max(0, local.getX()));
+            ghostView.setLayoutY(Math.max(0, local.getY()));
             toFront();
         }
 
@@ -545,22 +558,22 @@ public class DockDragService {
     /**
      * Drop indicator that visualizes the drop zones.
      */
-    private static class DockDropIndicator extends javafx.scene.layout.Pane {
-        private final javafx.scene.shape.Rectangle indicator;
-        private final javafx.scene.shape.Line insertLine;
+    private static class DockDropIndicator extends Pane {
+        private final Rectangle indicator;
+        private final Line insertLine;
 
         public DockDropIndicator() {
             setMouseTransparent(true);
             setVisible(false);
 
-            indicator = new javafx.scene.shape.Rectangle();
-            indicator.setFill(javafx.scene.paint.Color.DODGERBLUE);
+            indicator = new Rectangle();
+            indicator.setFill(Color.DODGERBLUE);
             indicator.setOpacity(0.3);
-            indicator.setStroke(javafx.scene.paint.Color.BLUE);
+            indicator.setStroke(Color.BLUE);
             indicator.setStrokeWidth(2);
 
-            insertLine = new javafx.scene.shape.Line();
-            insertLine.setStroke(javafx.scene.paint.Color.web("#ff8a00"));
+            insertLine = new Line();
+            insertLine.setStroke(Color.web("#ff8a00"));
             insertLine.setStrokeWidth(3);
             insertLine.setVisible(false);
 
@@ -605,8 +618,8 @@ public class DockDragService {
     /**
      * Overlay that renders all available drop zones.
      */
-    private static class DockDropZonesOverlay extends javafx.scene.layout.Pane {
-        private final java.util.List<javafx.scene.shape.Rectangle> rectangles = new java.util.ArrayList<>();
+    private static class DockDropZonesOverlay extends Pane {
+        private final List<Rectangle> rectangles = new java.util.ArrayList<>();
 
         public DockDropZonesOverlay() {
             setMouseTransparent(true);
@@ -630,9 +643,9 @@ public class DockDragService {
                 double w = Math.max(1, bottomRight.getX() - topLeft.getX());
                 double h = Math.max(1, bottomRight.getY() - topLeft.getY());
 
-                javafx.scene.shape.Rectangle rect = new javafx.scene.shape.Rectangle(x, y, w, h);
-                rect.setFill(javafx.scene.paint.Color.web("#3a7bd5", 0.10));
-                rect.setStroke(javafx.scene.paint.Color.web("#3a7bd5", 0.25));
+                Rectangle rect = new Rectangle(x, y, w, h);
+                rect.setFill(Color.web("#3a7bd5", 0.10));
+                rect.setStroke(Color.web("#3a7bd5", 0.25));
                 rect.setStrokeWidth(1);
                 rectangles.add(rect);
             }
@@ -649,7 +662,7 @@ public class DockDragService {
     }
 
     private List<DockDropZone> filterZonesForDrag(List<DockDropZone> zones, DockNode draggedNode) {
-        List<DockDropZone> result = new java.util.ArrayList<>();
+        List<DockDropZone> result = new ArrayList<>();
         for (DockDropZone zone : zones) {
             if (isZoneValidForDrag(zone, draggedNode)) {
                 result.add(zone);

@@ -108,6 +108,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 ### Drag & Drop (Baseline + Critical Bug Fixes)
 
 - ✅ **Ghost Overlay**: Visual feedback during drag
+- ✅ **Ghost Overlay Offset**: Positioned away from cursor to keep drop targets visible
 - ✅ **Drop Zones**: Detection for SplitPane areas
 - ✅ **Drop zone visualization modes (ALL/SUBTREE/DEFAULT/ACTIVE/OFF)**
 - ✅ **Per-tab insert targeting with visible insert line**

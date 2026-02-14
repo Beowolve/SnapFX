@@ -105,6 +105,13 @@ Test visual components and user interactions:
 - ✅ `DockLayoutEngineTest` - Uses TestFX
 - ⚠️ More UI tests needed
 
+### Manual UI Checks
+
+Use these checks when behavior cannot be reliably automated:
+
+- Drag a DockNode: the ghost overlay appears offset bottom-right of the cursor and does not cover the drop target.
+- Shrink a TabPane until the overflow dropdown appears; open it and confirm the entries show tab titles.
+
 ---
 
 ## Critical Bug Regression Tests
