@@ -4,7 +4,11 @@
 - Focus on model/view logic (`DockGraph`, `DockSplitPane`, `DockLayoutEngine`)
 - Validation of functional correctness for docking and hit-testing behavior
 
-## Findings
+## Open Findings
+
+None.
+
+## Resolved Findings (2026-02-14)
 
 ### 1) Fragile tab-header detection in hit-testing (high)
 **File:** `src/main/java/com/github/beowolve/snapfx/view/DockLayoutEngine.java`

@@ -11,6 +11,7 @@ public class DockDragData {
     private final DockNode draggedNode;
     private DockElement dropTarget;
     private DockPosition dropPosition;
+    private Integer dropTabIndex;
     private double mouseX;
     private double mouseY;
 
@@ -36,6 +37,14 @@ public class DockDragData {
 
     public void setDropPosition(DockPosition dropPosition) {
         this.dropPosition = dropPosition;
+    }
+
+    public Integer getDropTabIndex() {
+        return dropTabIndex;
+    }
+
+    public void setDropTabIndex(Integer dropTabIndex) {
+        this.dropTabIndex = dropTabIndex;
     }
 
     public double getMouseX() {

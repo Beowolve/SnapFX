@@ -3,6 +3,7 @@ package com.github.beowolve.snapfx.demo;
 import com.github.beowolve.snapfx.SnapFX;
 import com.github.beowolve.snapfx.debug.DockDebugOverlay;
 import com.github.beowolve.snapfx.debug.DockGraphDebugView;
+import com.github.beowolve.snapfx.dnd.DockDropVisualizationMode;
 import com.github.beowolve.snapfx.model.DockNode;
 import com.github.beowolve.snapfx.model.DockPosition;
 import javafx.application.Application;
@@ -66,6 +67,9 @@ public class MainDemo extends Application {
 
         // Set close handler to hide instead of remove (BEFORE creating layout)
         snapFX.setOnNodeCloseRequest(node -> snapFX.hide(node));
+
+        // Set drop visualization mode
+        snapFX.setDropVisualizationMode(DockDropVisualizationMode.DEFAULT);
 
         // Create dock layout (after handler is set)
         createDemoLayout();

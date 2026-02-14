@@ -5,8 +5,10 @@ import com.github.beowolve.snapfx.model.DockGraph;
 import com.github.beowolve.snapfx.model.DockNode;
 import com.github.beowolve.snapfx.view.DockLayoutEngine;
 import com.github.beowolve.snapfx.view.DockNodeView;
+import com.github.beowolve.snapfx.view.DockDropZone;
 import com.github.beowolve.snapfx.model.DockPosition;
 import javafx.application.Platform;
+import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -17,6 +19,7 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import java.util.List;
 
 /**
  * Central service for drag & drop operations.
@@ -26,6 +29,7 @@ import javafx.beans.property.SimpleObjectProperty;
 public class DockDragService {
     private final DockGraph dockGraph;
     private DockDragData currentDrag;
+    private DockDropVisualizationMode dropVisualizationMode = DockDropVisualizationMode.DEFAULT;
 
     // Drag threshold: minimum distance before drag starts
     private static final double DRAG_THRESHOLD = 5.0;
@@ -37,6 +41,7 @@ public class DockDragService {
 
     private DockGhostOverlay ghostOverlay;
     private DockDropIndicator dropIndicator;
+    private DockDropZonesOverlay dropZonesOverlay;
     private Stage mainStage;
     private DockLayoutEngine layoutEngine;
 
@@ -76,9 +81,10 @@ public class DockDragService {
      */
     private void createAndSetupOverlays(Scene scene, Pane targetPane) {
         ghostOverlay = new DockGhostOverlay();
+        dropZonesOverlay = new DockDropZonesOverlay();
         dropIndicator = new DockDropIndicator();
         configureOverlayProperties();
-        targetPane.getChildren().addAll(ghostOverlay, dropIndicator);
+        targetPane.getChildren().addAll(ghostOverlay, dropZonesOverlay, dropIndicator);
         bindOverlaysToSceneSize(scene);
     }
 
@@ -88,6 +94,8 @@ public class DockDragService {
     private void configureOverlayProperties() {
         ghostOverlay.setMouseTransparent(true);
         ghostOverlay.setManaged(false);
+        dropZonesOverlay.setMouseTransparent(true);
+        dropZonesOverlay.setManaged(false);
         dropIndicator.setMouseTransparent(true);
         dropIndicator.setManaged(false);
     }
@@ -98,6 +106,8 @@ public class DockDragService {
     private void bindOverlaysToSceneSize(Scene scene) {
         ghostOverlay.prefWidthProperty().bind(scene.widthProperty());
         ghostOverlay.prefHeightProperty().bind(scene.heightProperty());
+        dropZonesOverlay.prefWidthProperty().bind(scene.widthProperty());
+        dropZonesOverlay.prefHeightProperty().bind(scene.heightProperty());
         dropIndicator.prefWidthProperty().bind(scene.widthProperty());
         dropIndicator.prefHeightProperty().bind(scene.heightProperty());
     }
@@ -139,6 +149,9 @@ public class DockDragService {
     private void addOverlaysToPane(Pane target) {
         if (ghostOverlay != null && !target.getChildren().contains(ghostOverlay)) {
             target.getChildren().add(ghostOverlay);
+        }
+        if (dropZonesOverlay != null && !target.getChildren().contains(dropZonesOverlay)) {
+            target.getChildren().add(dropZonesOverlay);
         }
         if (dropIndicator != null && !target.getChildren().contains(dropIndicator)) {
             target.getChildren().add(dropIndicator);
@@ -276,83 +289,56 @@ public class DockDragService {
      * Updates the drop target and indicator based on mouse position.
      */
     private void updateDropTarget(double sceneX, double sceneY) {
-        DockElement targetElement = layoutEngine.findElementAt(sceneX, sceneY);
-        if (targetElement == null) {
-            clearDropTarget();
+        List<DockDropZone> zones = layoutEngine.collectDropZones();
+        List<DockDropZone> validZones = filterZonesForDrag(zones, currentDrag.getDraggedNode());
+        DockDropZone activeZone = layoutEngine.findBestDropZone(validZones, sceneX, sceneY);
+
+        if (dropZonesOverlay != null) {
+            List<DockDropZone> zonesToShow = getZonesForVisualization(validZones, activeZone);
+            if (zonesToShow.isEmpty()) {
+                dropZonesOverlay.hide();
+            } else {
+                dropZonesOverlay.showZones(zonesToShow);
+            }
+        }
+
+        if (activeZone == null) {
+            clearDropTarget(false);
             return;
         }
 
-        Node targetViewNode = layoutEngine.getViewForElement(targetElement);
-        if (targetViewNode == null || targetViewNode.getScene() == null) {
-            clearDropTarget();
+        setDropTarget(activeZone.getTarget(), activeZone.getPosition(), activeZone.getTabIndex());
+        if (dropVisualizationMode == DockDropVisualizationMode.OFF) {
+            if (dropIndicator != null) {
+                dropIndicator.hide();
+            }
             return;
         }
-
-        javafx.geometry.Bounds bounds = targetViewNode.localToScene(targetViewNode.getBoundsInLocal());
-        DockPosition position = calculateDropPosition(bounds, sceneX, sceneY);
-
-        setDropTarget(targetElement, position);
-        showDropIndicator(bounds, position);
-    }
-
-    /**
-     * Calculates the drop position based on mouse location within bounds.
-     */
-    private DockPosition calculateDropPosition(javafx.geometry.Bounds bounds, double sceneX, double sceneY) {
-        double zoneRatio = 0.30;
-        double minZonePixels = 40;
-
-        double horizontalZone = Math.clamp(bounds.getWidth() * zoneRatio, minZonePixels, bounds.getWidth() * 0.4);
-        double verticalZone = Math.clamp(bounds.getHeight() * zoneRatio, minZonePixels, bounds.getHeight() * 0.4);
-
-        double horizontalDistance = Math.min(sceneX - bounds.getMinX(), bounds.getMaxX() - sceneX);
-        double verticalDistance = Math.min(sceneY - bounds.getMinY(), bounds.getMaxY() - sceneY);
-
-        double normalizedHDist = horizontalDistance / bounds.getWidth();
-        double normalizedVDist = verticalDistance / bounds.getHeight();
-
-        if (normalizedHDist < zoneRatio || normalizedVDist < zoneRatio) {
-            return determineEdgePosition(bounds, sceneX, sceneY, normalizedHDist, normalizedVDist);
-        }
-        return DockPosition.CENTER;
-    }
-
-    /**
-     * Determines which edge position (LEFT, RIGHT, TOP, BOTTOM) the mouse is closest to.
-     */
-    private DockPosition determineEdgePosition(javafx.geometry.Bounds bounds, double sceneX, double sceneY,
-                                               double normalizedHDist, double normalizedVDist) {
-        if (normalizedHDist < normalizedVDist) {
-            return (sceneX < (bounds.getMinX() + bounds.getMaxX()) / 2) ? DockPosition.LEFT : DockPosition.RIGHT;
-        } else {
-            return (sceneY < (bounds.getMinY() + bounds.getMaxY()) / 2) ? DockPosition.TOP : DockPosition.BOTTOM;
-        }
+        showDropIndicator(activeZone);
     }
 
     /**
      * Sets the drop target and position in the current drag data.
      */
     private void setDropTarget(DockElement target, DockPosition position) {
+        setDropTarget(target, position, null);
+    }
+
+    private void setDropTarget(DockElement target, DockPosition position, Integer tabIndex) {
         currentDrag.setDropTarget(target);
         currentDrag.setDropPosition(position);
+        currentDrag.setDropTabIndex(tabIndex);
         currentDragProperty.set(currentDrag);
     }
 
     /**
      * Shows the drop indicator at the specified position.
      */
-    private void showDropIndicator(javafx.geometry.Bounds bounds, DockPosition position) {
+    private void showDropIndicator(DockDropZone zone) {
         if (dropIndicator == null) return;
 
-        Point2D topLeft = dropIndicator.sceneToLocal(bounds.getMinX(), bounds.getMinY());
-        Point2D bottomRight = dropIndicator.sceneToLocal(bounds.getMaxX(), bounds.getMaxY());
-
-        double lx = topLeft.getX();
-        double ly = topLeft.getY();
-        double lw = Math.max(1, bottomRight.getX() - topLeft.getX());
-        double lh = Math.max(1, bottomRight.getY() - topLeft.getY());
-
-        showIndicatorForPosition(position, lx, ly, lw, lh);
+        Bounds bounds = zone.getBounds();
+        dropIndicator.show(bounds, zone.getInsertLineX());
 
         if (ghostOverlay != null) {
             ghostOverlay.toFront();
@@ -360,33 +346,22 @@ public class DockDragService {
     }
 
     /**
-     * Shows the indicator rectangle for the specific drop position.
-     */
-    private void showIndicatorForPosition(DockPosition position, double x, double y, double width, double height) {
-        double zoneRatio = 0.30;
-        double minZonePixels = 40;
-
-        double hZone = Math.clamp(width * zoneRatio, minZonePixels, width * 0.4);
-        double vZone = Math.clamp(height * zoneRatio, minZonePixels, height * 0.4);
-
-        switch (position) {
-            case LEFT -> dropIndicator.show(x, y, hZone, height);
-            case RIGHT -> dropIndicator.show(x + width - hZone, y, hZone, height);
-            case TOP -> dropIndicator.show(x, y, width, vZone);
-            case BOTTOM -> dropIndicator.show(x, y + height - vZone, width, vZone);
-            case CENTER -> dropIndicator.show(x, y, width, height);
-        }
-    }
-
-    /**
      * Clears the current drop target.
      */
     private void clearDropTarget() {
+        clearDropTarget(true);
+    }
+
+    private void clearDropTarget(boolean hideZones) {
         if (dropIndicator != null) {
             dropIndicator.hide();
         }
+        if (hideZones && dropZonesOverlay != null) {
+            dropZonesOverlay.hide();
+        }
         currentDrag.setDropTarget(null);
         currentDrag.setDropPosition(null);
+        currentDrag.setDropTabIndex(null);
         currentDragProperty.set(currentDrag);
     }
 
@@ -415,15 +390,19 @@ public class DockDragService {
         if (dropIndicator != null) {
             dropIndicator.hide();
         }
+        if (dropZonesOverlay != null) {
+            dropZonesOverlay.hide();
+        }
 
         DockNode dragged = currentDrag.getDraggedNode();
         DockElement target = currentDrag.getDropTarget();
         DockPosition pos = currentDrag.getDropPosition();
+        Integer tabIndex = currentDrag.getDropTabIndex();
 
         // Perform dock operation only when we have a valid target.
         // This avoids destroying the layout when the hover target becomes null during release.
         if (dragged != null && target != null && pos != null) {
-            dockGraph.move(dragged, target, pos);
+            dockGraph.move(dragged, target, pos, tabIndex);
         }
 
         currentDrag = null;
@@ -446,6 +425,9 @@ public class DockDragService {
         }
         if (dropIndicator != null) {
             dropIndicator.hide();
+        }
+        if (dropZonesOverlay != null) {
+            dropZonesOverlay.hide();
         }
 
         currentDrag = null;
@@ -565,6 +547,7 @@ public class DockDragService {
      */
     private static class DockDropIndicator extends javafx.scene.layout.Pane {
         private final javafx.scene.shape.Rectangle indicator;
+        private final javafx.scene.shape.Line insertLine;
 
         public DockDropIndicator() {
             setMouseTransparent(true);
@@ -576,20 +559,179 @@ public class DockDragService {
             indicator.setStroke(javafx.scene.paint.Color.BLUE);
             indicator.setStrokeWidth(2);
 
-            getChildren().add(indicator);
+            insertLine = new javafx.scene.shape.Line();
+            insertLine.setStroke(javafx.scene.paint.Color.web("#ff8a00"));
+            insertLine.setStrokeWidth(3);
+            insertLine.setVisible(false);
+
+            getChildren().addAll(indicator, insertLine);
         }
 
-        public void show(double x, double y, double width, double height) {
+        public void show(Bounds bounds, Double insertLineX) {
+            Point2D topLeft = sceneToLocal(bounds.getMinX(), bounds.getMinY());
+            Point2D bottomRight = sceneToLocal(bounds.getMaxX(), bounds.getMaxY());
+
+            double x = topLeft.getX();
+            double y = topLeft.getY();
+            double width = Math.max(1, bottomRight.getX() - topLeft.getX());
+            double height = Math.max(1, bottomRight.getY() - topLeft.getY());
+
             indicator.setX(x);
             indicator.setY(y);
             indicator.setWidth(width);
             indicator.setHeight(height);
             setVisible(true);
             toFront();
+
+            if (insertLineX != null) {
+                Point2D lineTop = sceneToLocal(insertLineX, bounds.getMinY());
+                Point2D lineBottom = sceneToLocal(insertLineX, bounds.getMaxY());
+                insertLine.setStartX(lineTop.getX());
+                insertLine.setStartY(lineTop.getY());
+                insertLine.setEndX(lineBottom.getX());
+                insertLine.setEndY(lineBottom.getY());
+                insertLine.setVisible(true);
+            } else {
+                insertLine.setVisible(false);
+            }
         }
 
         public void hide() {
             setVisible(false);
+            insertLine.setVisible(false);
+        }
+    }
+
+    /**
+     * Overlay that renders all available drop zones.
+     */
+    private static class DockDropZonesOverlay extends javafx.scene.layout.Pane {
+        private final java.util.List<javafx.scene.shape.Rectangle> rectangles = new java.util.ArrayList<>();
+
+        public DockDropZonesOverlay() {
+            setMouseTransparent(true);
+            setVisible(false);
+        }
+
+        public void showZones(List<DockDropZone> zones) {
+            getChildren().clear();
+            rectangles.clear();
+
+            for (DockDropZone zone : zones) {
+                Bounds b = zone.getBounds();
+                if (b == null || b.getWidth() <= 0 || b.getHeight() <= 0) {
+                    continue;
+                }
+                Point2D topLeft = sceneToLocal(b.getMinX(), b.getMinY());
+                Point2D bottomRight = sceneToLocal(b.getMaxX(), b.getMaxY());
+
+                double x = topLeft.getX();
+                double y = topLeft.getY();
+                double w = Math.max(1, bottomRight.getX() - topLeft.getX());
+                double h = Math.max(1, bottomRight.getY() - topLeft.getY());
+
+                javafx.scene.shape.Rectangle rect = new javafx.scene.shape.Rectangle(x, y, w, h);
+                rect.setFill(javafx.scene.paint.Color.web("#3a7bd5", 0.10));
+                rect.setStroke(javafx.scene.paint.Color.web("#3a7bd5", 0.25));
+                rect.setStrokeWidth(1);
+                rectangles.add(rect);
+            }
+
+            getChildren().addAll(rectangles);
+            setVisible(true);
+        }
+
+        public void hide() {
+            setVisible(false);
+            getChildren().clear();
+            rectangles.clear();
+        }
+    }
+
+    private List<DockDropZone> filterZonesForDrag(List<DockDropZone> zones, DockNode draggedNode) {
+        List<DockDropZone> result = new java.util.ArrayList<>();
+        for (DockDropZone zone : zones) {
+            if (isZoneValidForDrag(zone, draggedNode)) {
+                result.add(zone);
+            }
+        }
+        return result;
+    }
+
+    private List<DockDropZone> getZonesForVisualization(List<DockDropZone> validZones, DockDropZone activeZone) {
+        if (dropVisualizationMode == DockDropVisualizationMode.OFF) {
+            return java.util.List.of();
+        }
+        if (dropVisualizationMode == DockDropVisualizationMode.ACTIVE_ONLY) {
+            return java.util.List.of();
+        }
+        if (dropVisualizationMode == DockDropVisualizationMode.ALL_ZONES) {
+            return validZones;
+        }
+        if (activeZone == null) {
+            return java.util.List.of();
+        }
+        if (dropVisualizationMode == DockDropVisualizationMode.SUBTREE) {
+            return filterZonesBySubtree(validZones, activeZone.getTarget());
+        }
+        if (dropVisualizationMode == DockDropVisualizationMode.DEFAULT) {
+            return filterZonesByTarget(validZones, activeZone.getTarget());
+        }
+        return java.util.List.of();
+    }
+
+    private List<DockDropZone> filterZonesBySubtree(List<DockDropZone> zones, DockElement subtreeRoot) {
+        List<DockDropZone> result = new java.util.ArrayList<>();
+        for (DockDropZone zone : zones) {
+            if (zone.getTarget() != null && isDescendantOf(zone.getTarget(), subtreeRoot)) {
+                result.add(zone);
+            }
+        }
+        return result;
+    }
+
+    private List<DockDropZone> filterZonesByTarget(List<DockDropZone> zones, DockElement target) {
+        List<DockDropZone> result = new java.util.ArrayList<>();
+        for (DockDropZone zone : zones) {
+            if (zone.getTarget() == target) {
+                result.add(zone);
+            }
+        }
+        return result;
+    }
+
+    private boolean isZoneValidForDrag(DockDropZone zone, DockNode draggedNode) {
+        if (zone == null || draggedNode == null) {
+            return false;
+        }
+        DockElement target = zone.getTarget();
+        if (target == null) {
+            return false;
+        }
+        if (target == draggedNode) {
+            return false;
+        }
+        return !isDescendantOf(target, draggedNode);
+    }
+
+    private boolean isDescendantOf(DockElement element, DockElement ancestor) {
+        DockElement current = element;
+        while (current != null) {
+            if (current == ancestor) {
+                return true;
+            }
+            current = current.getParent();
+        }
+        return false;
+    }
+
+    public DockDropVisualizationMode getDropVisualizationMode() {
+        return dropVisualizationMode;
+    }
+
+    public void setDropVisualizationMode(DockDropVisualizationMode mode) {
+        if (mode != null) {
+            this.dropVisualizationMode = mode;
         }
     }
 }

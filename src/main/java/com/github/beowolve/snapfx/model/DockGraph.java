@@ -110,6 +110,13 @@ public class DockGraph {
      * Docks a node at a specific position relative to a target element.
      */
     public void dock(DockNode node, DockElement target, DockPosition position) {
+        dock(node, target, position, null);
+    }
+
+    /**
+     * Docks a node at a specific position relative to a target element with optional tab index.
+     */
+    public void dock(DockNode node, DockElement target, DockPosition position, Integer tabIndex) {
         if (node == null) {
             return;
         }
@@ -134,7 +141,7 @@ public class DockGraph {
         }
 
         if (position == DockPosition.CENTER) {
-            dockAsTab(node, target);
+            dockAsTab(node, target, tabIndex);
         } else {
             dockAsSplit(node, target, position);
         }
@@ -142,21 +149,25 @@ public class DockGraph {
         bumpRevision();
     }
 
-    private void dockAsTab(DockNode node, DockElement target) {
+    private void dockAsTab(DockNode node, DockElement target, Integer tabIndex) {
         DockContainer parent = target.getParent();
 
         // Optimization: If target is already in a TabPane, add node directly to that TabPane
         if (parent instanceof DockTabPane existingTabPane) {
-            // Find the index of the target
-            int targetIndex = existingTabPane.getChildren().indexOf(target);
-
-            // Add the new node right after the target
-            if (targetIndex >= 0 && targetIndex < existingTabPane.getChildren().size() - 1) {
-                existingTabPane.getChildren().add(targetIndex + 1, node);
-                node.setParent(existingTabPane);
+            if (tabIndex != null) {
+                existingTabPane.addChild(node, tabIndex);
             } else {
-                // Add at the end
-                existingTabPane.addChild(node);
+                // Find the index of the target
+                int targetIndex = existingTabPane.getChildren().indexOf(target);
+
+                // Add the new node right after the target
+                if (targetIndex >= 0 && targetIndex < existingTabPane.getChildren().size() - 1) {
+                    existingTabPane.getChildren().add(targetIndex + 1, node);
+                    node.setParent(existingTabPane);
+                } else {
+                    // Add at the end
+                    existingTabPane.addChild(node);
+                }
             }
 
             // Select the newly added tab
@@ -190,18 +201,27 @@ public class DockGraph {
                 setRoot(tabPane);
             }
 
-            tabPane.addChild(target);
-            tabPane.addChild(node);
+            if (tabIndex != null && tabIndex <= 0) {
+                tabPane.addChild(node);
+                tabPane.addChild(target);
+            } else {
+                tabPane.addChild(target);
+                tabPane.addChild(node);
+            }
 
             // Select the newly added tab (index 1, since we added target first)
-            tabPane.setSelectedIndex(1);
+            tabPane.setSelectedIndex(tabPane.getChildren().indexOf(node));
 
         } else if (target instanceof DockTabPane tabPane) {
             // Add directly to the TabPane
-            tabPane.addChild(node);
+            if (tabIndex != null) {
+                tabPane.addChild(node, tabIndex);
+            } else {
+                tabPane.addChild(node);
+            }
 
             // Select the newly added tab (last index)
-            tabPane.setSelectedIndex(tabPane.getChildren().size() - 1);
+            tabPane.setSelectedIndex(tabPane.getChildren().indexOf(node));
         } else if (target instanceof DockSplitPane) {
             // If target is a SplitPane, we can't add as tab directly
             // This should not happen in normal usage, but handle gracefully
@@ -225,9 +245,14 @@ public class DockGraph {
                 setRoot(tabPane);
             }
 
-            tabPane.addChild(target);
-            tabPane.addChild(node);
-            tabPane.setSelectedIndex(1);
+            if (tabIndex != null && tabIndex <= 0) {
+                tabPane.addChild(node);
+                tabPane.addChild(target);
+            } else {
+                tabPane.addChild(target);
+                tabPane.addChild(node);
+            }
+            tabPane.setSelectedIndex(tabPane.getChildren().indexOf(node));
         }
     }
 
@@ -400,11 +425,21 @@ public class DockGraph {
      * Moves a DockNode from one position to another.
      */
     public void move(DockNode node, DockElement target, DockPosition position) {
+        move(node, target, position, null);
+    }
+
+    /**
+     * Moves a DockNode from one position to another with optional tab index.
+     */
+    public void move(DockNode node, DockElement target, DockPosition position, Integer tabIndex) {
         if (node == null) {
             return;
         }
         if (target == null || position == null) {
             return;
+        }
+        if (position != DockPosition.CENTER) {
+            tabIndex = null;
         }
 
         if (target == node) {
@@ -523,7 +558,7 @@ public class DockGraph {
             }
         }
 
-        dock(node, currentTarget, position);
+        dock(node, currentTarget, position, tabIndex);
     }
 
     /**

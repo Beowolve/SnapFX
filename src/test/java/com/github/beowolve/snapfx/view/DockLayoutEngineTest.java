@@ -72,6 +72,22 @@ class DockLayoutEngineTest extends ApplicationTest {
     }
 
     @Test
+    void testDockNodeTabTextUsesTitle() {
+        DockNode node1 = new DockNode(new Label("Test1"), "Node 1");
+        DockNode node2 = new DockNode(new Label("Test2"), "Node 2");
+
+        dockGraph.dock(node1, null, DockPosition.CENTER);
+        dockGraph.dock(node2, node1, DockPosition.CENTER);
+
+        TabPane tabPane = (TabPane) layoutEngine.buildSceneGraph();
+        assertEquals("Node 1", tabPane.getTabs().get(0).getText());
+        assertTrue(tabPane.getTabs().get(0).getStyleClass().contains("dock-tab-graphic"));
+
+        node1.setTitle("Renamed");
+        assertEquals("Renamed", tabPane.getTabs().get(0).getText());
+    }
+
+    @Test
     void testBuildSplitPane() {
         DockNode node1 = new DockNode(new Label("Test1"), "Node 1");
         DockNode node2 = new DockNode(new Label("Test2"), "Node 2");
@@ -95,8 +111,12 @@ class DockLayoutEngineTest extends ApplicationTest {
         layoutEngine.buildSceneGraph();
         assertNotNull(layoutEngine.getDockNodeView(node));
 
-        // After clearCache, views for nodes still in graph are kept (needed for D&D snapshots)
+        // clearCache should remove cached views
         layoutEngine.clearCache();
+        assertNull(layoutEngine.getDockNodeView(node));
+
+        // Rebuild repopulates the cache
+        layoutEngine.buildSceneGraph();
         assertNotNull(layoutEngine.getDockNodeView(node));
 
         // Remove node from graph

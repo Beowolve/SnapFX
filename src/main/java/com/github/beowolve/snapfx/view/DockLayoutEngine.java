@@ -2,6 +2,7 @@ package com.github.beowolve.snapfx.view;
 
 import com.github.beowolve.snapfx.dnd.DockDragService;
 import com.github.beowolve.snapfx.model.*;
+import javafx.geometry.BoundingBox;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -25,6 +26,13 @@ public class DockLayoutEngine {
     private final DockGraph dockGraph;
     private final DockDragService dragService;
     private final Map<String, Node> viewCache;
+    private static final double DROP_ZONE_RATIO = 0.30;
+    private static final double DROP_ZONE_MIN_PX = 40.0;
+    private static final double DROP_ZONE_MAX_RATIO = 0.45;
+    private static final double LEAF_DROP_ZONE_RATIO = 0.18;
+    private static final double LEAF_DROP_ZONE_MIN_PX = 18.0;
+    private static final double LEAF_DROP_ZONE_MAX_RATIO = 0.30;
+    private static final double LEAF_DROP_ZONE_INSET_PX = 12.0;
 
     private Consumer<DockNode> onNodeCloseRequest;
 
@@ -249,6 +257,8 @@ public class DockLayoutEngine {
 
         if (element instanceof DockNode dockNode) {
             tab.setGraphic(createTabHeader(dockNode));
+            tab.textProperty().bind(dockNode.titleProperty());
+            tab.getStyleClass().add("dock-tab-graphic");
             setupTabDragHandlers(tab, dockNode);
             bindTabCloseable(tab, dockNode);
             tab.setOnClosed(event -> dockGraph.undock(dockNode));
@@ -340,6 +350,58 @@ public class DockLayoutEngine {
     }
 
     /**
+     * Collects drop zones for all elements in the current graph.
+     */
+    public List<DockDropZone> collectDropZones() {
+        List<DockDropZone> zones = new ArrayList<>();
+        DockElement root = dockGraph.getRoot();
+        if (root == null) {
+            return zones;
+        }
+        collectDropZonesRecursive(root, 0, zones);
+        return zones;
+    }
+
+    /**
+     * Selects the best drop zone for the given scene coordinates.
+     */
+    public DockDropZone findBestDropZone(List<DockDropZone> zones, double sceneX, double sceneY) {
+        DockDropZone best = null;
+        int bestPriority = Integer.MIN_VALUE;
+        double bestArea = Double.MAX_VALUE;
+        double bestDistance = Double.MAX_VALUE;
+
+        for (DockDropZone zone : zones) {
+            if (!zone.contains(sceneX, sceneY)) {
+                continue;
+            }
+            int priority = getZonePriority(zone);
+            double area = zone.area();
+            double distance = calculateDistanceFromCenter(zone.getBounds(), sceneX, sceneY);
+
+            if (priority > bestPriority
+                || (priority == bestPriority && area < bestArea)
+                || (priority == bestPriority && area == bestArea && distance < bestDistance)) {
+                best = zone;
+                bestPriority = priority;
+                bestArea = area;
+                bestDistance = distance;
+            }
+        }
+
+        if (best != null && best.getType() == DockDropZoneType.TAB_HEADER) {
+            Integer tabIndex = resolveTabInsertIndex(best, sceneX);
+            if (tabIndex != null) {
+                Double insertLineX = resolveTabInsertLineX(best, tabIndex);
+                best = new DockDropZone(best.getTarget(), best.getPosition(), best.getType(),
+                    best.getBounds(), best.getDepth(), tabIndex, insertLineX);
+            }
+        }
+
+        return best;
+    }
+
+    /**
      * Collects all DockElements whose view contains the given scene coordinates.
      * @param sceneX X coordinate
      * @param sceneY Y coordinate
@@ -366,7 +428,165 @@ public class DockLayoutEngine {
     private void addTargetCandidateIfValid(List<TargetCandidate> candidates, DockElement element, Node n, Bounds b, double sceneX, double sceneY) {
         if (element == null) return;
         double distanceFromCenter = calculateDistanceFromCenter(b, sceneX, sceneY);
-        candidates.add(new TargetCandidate(element, n, b, distanceFromCenter));
+        boolean isTabHeader = isOverTabHeader(n, sceneX, sceneY);
+        candidates.add(new TargetCandidate(element, n, b, distanceFromCenter, isTabHeader));
+    }
+
+    private void collectDropZonesRecursive(DockElement element, int depth, List<DockDropZone> zones) {
+        Node view = viewCache.get(element.getId());
+        if (view != null && view.getScene() != null) {
+            Bounds bounds = view.localToScene(view.getBoundsInLocal());
+            addElementZones(element, view, bounds, depth, zones);
+        }
+
+        if (element instanceof DockContainer container) {
+            for (DockElement child : container.getChildren()) {
+                collectDropZonesRecursive(child, depth + 1, zones);
+            }
+        }
+    }
+
+    private void addElementZones(DockElement element, Node view, Bounds bounds, int depth, List<DockDropZone> zones) {
+        if (bounds == null || bounds.getWidth() <= 0 || bounds.getHeight() <= 0) {
+            return;
+        }
+
+        boolean isLeaf = !(element instanceof DockContainer);
+        Bounds zoneBounds = (isLeaf && element.getParent() != null)
+            ? insetBounds(bounds, LEAF_DROP_ZONE_INSET_PX)
+            : bounds;
+        if (zoneBounds.getWidth() <= 0 || zoneBounds.getHeight() <= 0) {
+            zoneBounds = bounds;
+        }
+
+        double zoneRatio = isLeaf ? LEAF_DROP_ZONE_RATIO : DROP_ZONE_RATIO;
+        double zoneMin = isLeaf ? LEAF_DROP_ZONE_MIN_PX : DROP_ZONE_MIN_PX;
+        double zoneMaxRatio = isLeaf ? LEAF_DROP_ZONE_MAX_RATIO : DROP_ZONE_MAX_RATIO;
+
+        double edgeW = clampZoneSize(zoneBounds.getWidth() * zoneRatio,
+            zoneMin, zoneBounds.getWidth() * zoneMaxRatio);
+        double edgeH = clampZoneSize(zoneBounds.getHeight() * zoneRatio,
+            zoneMin, zoneBounds.getHeight() * zoneMaxRatio);
+
+        Bounds left = new BoundingBox(zoneBounds.getMinX(), zoneBounds.getMinY(), edgeW, zoneBounds.getHeight());
+        Bounds right = new BoundingBox(zoneBounds.getMaxX() - edgeW, zoneBounds.getMinY(), edgeW, zoneBounds.getHeight());
+        Bounds top = new BoundingBox(zoneBounds.getMinX(), zoneBounds.getMinY(), zoneBounds.getWidth(), edgeH);
+        Bounds bottom = new BoundingBox(zoneBounds.getMinX(), zoneBounds.getMaxY() - edgeH, zoneBounds.getWidth(), edgeH);
+
+        Bounds center = buildCenterBounds(zoneBounds, edgeW, edgeH);
+
+        zones.add(new DockDropZone(element, DockPosition.LEFT, DockDropZoneType.EDGE, left, depth, null, null));
+        zones.add(new DockDropZone(element, DockPosition.RIGHT, DockDropZoneType.EDGE, right, depth, null, null));
+        zones.add(new DockDropZone(element, DockPosition.TOP, DockDropZoneType.EDGE, top, depth, null, null));
+        zones.add(new DockDropZone(element, DockPosition.BOTTOM, DockDropZoneType.EDGE, bottom, depth, null, null));
+        zones.add(new DockDropZone(element, DockPosition.CENTER, DockDropZoneType.CENTER, center, depth, null, null));
+
+        if (view instanceof TabPane tabPane) {
+            addTabHeaderZone(element, tabPane, depth, zones);
+        }
+    }
+
+    private Bounds buildCenterBounds(Bounds bounds, double edgeW, double edgeH) {
+        double innerW = bounds.getWidth() - (edgeW * 2);
+        double innerH = bounds.getHeight() - (edgeH * 2);
+        if (innerW <= 1 || innerH <= 1) {
+            return bounds;
+        }
+        double innerX = bounds.getMinX() + edgeW;
+        double innerY = bounds.getMinY() + edgeH;
+        return new BoundingBox(innerX, innerY, innerW, innerH);
+    }
+
+    private void addTabHeaderZone(DockElement element, TabPane tabPane, int depth, List<DockDropZone> zones) {
+        tabPane.applyCss();
+        Node headerArea = tabPane.lookup(".tab-header-area");
+        if (headerArea == null) {
+            return;
+        }
+        Bounds headerBounds = headerArea.localToScene(headerArea.getBoundsInLocal());
+        if (headerBounds.getWidth() <= 0 || headerBounds.getHeight() <= 0) {
+            return;
+        }
+        zones.add(new DockDropZone(element, DockPosition.CENTER, DockDropZoneType.TAB_HEADER,
+            headerBounds, depth, null, null));
+    }
+
+    private Integer resolveTabInsertIndex(DockDropZone zone, double sceneX) {
+        Node view = viewCache.get(zone.getTarget().getId());
+        if (!(view instanceof TabPane tabPane)) {
+            return null;
+        }
+        List<Bounds> headerBounds = collectTabHeaderBounds(tabPane);
+        if (headerBounds.isEmpty()) {
+            return null;
+        }
+        for (int i = 0; i < headerBounds.size(); i++) {
+            Bounds b = headerBounds.get(i);
+            double centerX = b.getMinX() + (b.getWidth() / 2.0);
+            if (sceneX < centerX) {
+                return i;
+            }
+        }
+        return headerBounds.size();
+    }
+
+    private Double resolveTabInsertLineX(DockDropZone zone, int tabIndex) {
+        Node view = viewCache.get(zone.getTarget().getId());
+        if (!(view instanceof TabPane tabPane)) {
+            return null;
+        }
+        List<Bounds> headerBounds = collectTabHeaderBounds(tabPane);
+        if (headerBounds.isEmpty()) {
+            return null;
+        }
+        if (tabIndex <= 0) {
+            return headerBounds.getFirst().getMinX();
+        }
+        if (tabIndex >= headerBounds.size()) {
+            return headerBounds.getLast().getMaxX();
+        }
+        Bounds left = headerBounds.get(tabIndex - 1);
+        Bounds right = headerBounds.get(tabIndex);
+        return (left.getMaxX() + right.getMinX()) / 2.0;
+    }
+
+    private List<Bounds> collectTabHeaderBounds(TabPane tabPane) {
+        tabPane.applyCss();
+        List<Bounds> bounds = new ArrayList<>();
+        for (Node header : tabPane.lookupAll(".tab")) {
+            if (!header.isVisible()) {
+                continue;
+            }
+            Bounds b = header.localToScene(header.getBoundsInLocal());
+            if (b.getWidth() > 0 && b.getHeight() > 0) {
+                bounds.add(b);
+            }
+        }
+        bounds.sort((a, b) -> Double.compare(a.getMinX(), b.getMinX()));
+        return bounds;
+    }
+
+    private double clampZoneSize(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
+    private int getZonePriority(DockDropZone zone) {
+        int typePriority = switch (zone.getType()) {
+            case TAB_INSERT -> 400;
+            case TAB_HEADER -> 350;
+            case EDGE -> 200;
+            case CENTER -> 100;
+        };
+        return (zone.getDepth() * 1000) + typePriority;
+    }
+
+    private Bounds insetBounds(Bounds bounds, double inset) {
+        double w = bounds.getWidth() - (inset * 2);
+        double h = bounds.getHeight() - (inset * 2);
+        if (w <= 0 || h <= 0) {
+            return bounds;
+        }
+        return new BoundingBox(bounds.getMinX() + inset, bounds.getMinY() + inset, w, h);
     }
 
     /**
@@ -400,8 +620,8 @@ public class DockLayoutEngine {
     }
 
     private int compareTabHeaderPriority(TargetCandidate a, TargetCandidate b) {
-        boolean aIsTabHeader = isOverTabHeader(a.node, a.bounds.getCenterX(), a.bounds.getCenterY());
-        boolean bIsTabHeader = isOverTabHeader(b.node, b.bounds.getCenterX(), b.bounds.getCenterY());
+        boolean aIsTabHeader = a.isTabHeader;
+        boolean bIsTabHeader = b.isTabHeader;
         if (aIsTabHeader && !bIsTabHeader) return -1;
         if (!aIsTabHeader && bIsTabHeader) return 1;
         return 0;
@@ -492,11 +712,15 @@ public class DockLayoutEngine {
      * @return True if over tab header, false otherwise
      */
     private boolean isOverTabHeader(Node node, double x, double y) {
-        // A tab header is typically a small area, we use a threshold to determine "over"
-        final double HEADER_THRESHOLD = 10;
-        return node != null && node.getScene() != null &&
-               node.getBoundsInLocal().contains(node.sceneToLocal(x, y)) &&
-               (x % HEADER_THRESHOLD < HEADER_THRESHOLD / 2);
+        if (!(node instanceof TabPane tabPane) || tabPane.getScene() == null) {
+            return false;
+        }
+        Node headerArea = tabPane.lookup(".tab-header-area");
+        if (headerArea == null) {
+            return false;
+        }
+        Bounds headerBounds = headerArea.localToScene(headerArea.getBoundsInLocal());
+        return headerBounds.contains(x, y);
     }
 
     /**
@@ -540,11 +764,13 @@ public class DockLayoutEngine {
         final Node node;
         final Bounds bounds;
         final double distanceFromCenter;
-        TargetCandidate(DockElement element, Node node, Bounds bounds, double distanceFromCenter) {
+        final boolean isTabHeader;
+        TargetCandidate(DockElement element, Node node, Bounds bounds, double distanceFromCenter, boolean isTabHeader) {
             this.element = element;
             this.node = node;
             this.bounds = bounds;
             this.distanceFromCenter = distanceFromCenter;
+            this.isTabHeader = isTabHeader;
         }
     }
 }

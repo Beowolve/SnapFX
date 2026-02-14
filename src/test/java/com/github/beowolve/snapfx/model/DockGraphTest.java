@@ -610,6 +610,133 @@ class DockGraphTest {
     }
 
     @Test
+    void testDockToTabPaneWithInsertIndex() {
+        DockNode tab1 = new DockNode(new Label("Tab1"), "Tab1");
+        DockNode tab2 = new DockNode(new Label("Tab2"), "Tab2");
+        DockNode tab3 = new DockNode(new Label("Tab3"), "Tab3");
+
+        dockGraph.dock(tab1, null, DockPosition.CENTER);
+        dockGraph.dock(tab2, tab1, DockPosition.CENTER);
+
+        DockTabPane rootTabPane = (DockTabPane) dockGraph.getRoot();
+        dockGraph.dock(tab3, rootTabPane, DockPosition.CENTER, 1);
+
+        assertSame(rootTabPane, dockGraph.getRoot());
+        assertEquals(3, rootTabPane.getChildren().size());
+        assertEquals(tab1, rootTabPane.getChildren().get(0));
+        assertEquals(tab3, rootTabPane.getChildren().get(1));
+        assertEquals(tab2, rootTabPane.getChildren().get(2));
+        assertEquals(1, rootTabPane.getSelectedIndex());
+    }
+
+    @Test
+    void testDockToTabPaneClampsInsertIndex() {
+        DockNode tab1 = new DockNode(new Label("Tab1"), "Tab1");
+        DockNode tab2 = new DockNode(new Label("Tab2"), "Tab2");
+        DockNode tab3 = new DockNode(new Label("Tab3"), "Tab3");
+        DockNode tab4 = new DockNode(new Label("Tab4"), "Tab4");
+
+        dockGraph.dock(tab1, null, DockPosition.CENTER);
+        dockGraph.dock(tab2, tab1, DockPosition.CENTER);
+
+        DockTabPane rootTabPane = (DockTabPane) dockGraph.getRoot();
+        dockGraph.dock(tab3, rootTabPane, DockPosition.CENTER, -10);
+
+        assertEquals(tab3, rootTabPane.getChildren().get(0));
+        assertEquals(0, rootTabPane.getSelectedIndex());
+
+        dockGraph.dock(tab4, rootTabPane, DockPosition.CENTER, 99);
+        int lastIndex = rootTabPane.getChildren().size() - 1;
+        assertEquals(tab4, rootTabPane.getChildren().get(lastIndex));
+        assertEquals(lastIndex, rootTabPane.getSelectedIndex());
+    }
+
+    @Test
+    void testMoveTabWithInsertIndex() {
+        DockNode tab1 = new DockNode(new Label("Tab1"), "Tab1");
+        DockNode tab2 = new DockNode(new Label("Tab2"), "Tab2");
+        DockNode tab3 = new DockNode(new Label("Tab3"), "Tab3");
+
+        dockGraph.dock(tab1, null, DockPosition.CENTER);
+        dockGraph.dock(tab2, tab1, DockPosition.CENTER);
+        dockGraph.dock(tab3, tab2, DockPosition.CENTER);
+
+        DockTabPane rootTabPane = (DockTabPane) dockGraph.getRoot();
+        dockGraph.move(tab3, rootTabPane, DockPosition.CENTER, 0);
+
+        assertSame(rootTabPane, dockGraph.getRoot());
+        assertEquals(3, rootTabPane.getChildren().size());
+        assertEquals(tab3, rootTabPane.getChildren().get(0));
+        assertEquals(tab1, rootTabPane.getChildren().get(1));
+        assertEquals(tab2, rootTabPane.getChildren().get(2));
+        assertEquals(0, rootTabPane.getSelectedIndex());
+    }
+
+    @Test
+    void testMoveTabToTabPaneClampsInsertIndex() {
+        DockNode tab1 = new DockNode(new Label("Tab1"), "Tab1");
+        DockNode tab2 = new DockNode(new Label("Tab2"), "Tab2");
+        DockNode tab3 = new DockNode(new Label("Tab3"), "Tab3");
+
+        dockGraph.dock(tab1, null, DockPosition.CENTER);
+        dockGraph.dock(tab2, tab1, DockPosition.CENTER);
+        dockGraph.dock(tab3, tab2, DockPosition.CENTER);
+
+        DockTabPane rootTabPane = (DockTabPane) dockGraph.getRoot();
+        dockGraph.move(tab1, rootTabPane, DockPosition.CENTER, 99);
+
+        assertEquals(tab2, rootTabPane.getChildren().get(0));
+        assertEquals(tab3, rootTabPane.getChildren().get(1));
+        assertEquals(tab1, rootTabPane.getChildren().get(2));
+        assertEquals(2, rootTabPane.getSelectedIndex());
+
+        dockGraph.move(tab1, rootTabPane, DockPosition.CENTER, -5);
+        assertEquals(tab1, rootTabPane.getChildren().get(0));
+        assertEquals(0, rootTabPane.getSelectedIndex());
+    }
+
+    @Test
+    void testDockToTabTargetWithInsertIndex() {
+        DockNode tab1 = new DockNode(new Label("Tab1"), "Tab1");
+        DockNode tab2 = new DockNode(new Label("Tab2"), "Tab2");
+        DockNode tab3 = new DockNode(new Label("Tab3"), "Tab3");
+
+        dockGraph.dock(tab1, null, DockPosition.CENTER);
+        dockGraph.dock(tab2, tab1, DockPosition.CENTER);
+
+        DockTabPane rootTabPane = (DockTabPane) dockGraph.getRoot();
+        dockGraph.dock(tab3, tab2, DockPosition.CENTER, 0);
+
+        assertSame(rootTabPane, dockGraph.getRoot());
+        assertEquals(3, rootTabPane.getChildren().size());
+        assertEquals(tab3, rootTabPane.getChildren().get(0));
+        assertEquals(tab1, rootTabPane.getChildren().get(1));
+        assertEquals(tab2, rootTabPane.getChildren().get(2));
+        assertEquals(0, rootTabPane.getSelectedIndex());
+    }
+
+    @Test
+    void testMoveTabToEndWithInsertIndexWhenTargetIsTab() {
+        DockNode tab1 = new DockNode(new Label("Tab1"), "Tab1");
+        DockNode tab2 = new DockNode(new Label("Tab2"), "Tab2");
+        DockNode tab3 = new DockNode(new Label("Tab3"), "Tab3");
+
+        dockGraph.dock(tab1, null, DockPosition.CENTER);
+        dockGraph.dock(tab2, tab1, DockPosition.CENTER);
+        dockGraph.dock(tab3, tab2, DockPosition.CENTER);
+
+        DockTabPane rootTabPane = (DockTabPane) dockGraph.getRoot();
+        dockGraph.move(tab1, tab2, DockPosition.CENTER, 2);
+
+        assertSame(rootTabPane, dockGraph.getRoot());
+        assertEquals(3, rootTabPane.getChildren().size());
+        assertEquals(tab2, rootTabPane.getChildren().get(0));
+        assertEquals(tab3, rootTabPane.getChildren().get(1));
+        assertEquals(tab1, rootTabPane.getChildren().get(2));
+        assertEquals(2, rootTabPane.getSelectedIndex());
+    }
+
+    @Test
     void testDockSplitPaneToTabPaneCreatesTab() {
         // Edge case: docking a SplitPane to CENTER of something should create a tab
         DockNode left = new DockNode(new Label("Left"), "Left");

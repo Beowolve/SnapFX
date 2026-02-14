@@ -258,19 +258,20 @@ void testSomething() {
 
 ## Current Test Statistics
 
-**As of 2026-02-10:**
+**As of 2026-02-14:**
 
-- **Total Tests**: 49 (was 41)
-- **Test Classes**: 3
-- **Test Coverage**: ~85% (estimated)
+- **Total Tests**: 62 (was 49)
+- **Test Classes**: 4
+- **Test Coverage**: ~87% (estimated)
 - **All Tests**: ✅ PASSING
 
 ### Test Distribution
-- `DockGraphTest`: 34 tests (was 27)
+- `DockGraphTest`: 39 tests (was 27)
   - 7 new regression tests added
 - `DockLayoutSerializerTest`: 9 tests (was 8)
   - 1 new regression test added
-- `DockLayoutEngineTest`: 6 tests
+- `DockLayoutEngineTest`: 7 tests
+- `SnapFXTest`: 7 tests
 
 ### Regression Test Coverage
 - ✅ Empty container prevention
@@ -376,6 +377,6 @@ If you're unsure:
 **Remember**: Tests are not optional. They are part of the implementation.
 
 **Version**: 1.0  
-**Last Updated**: 2026-02-10  
+**Last Updated**: 2026-02-14  
 **Status**: Active and Enforced
 

@@ -1,6 +1,6 @@
 # SnapFX Development Roadmap
 
-**Last Updated**: 2026-02-11
+**Last Updated**: 2026-02-14
 
 This document tracks all planned features, improvements, and bug fixes for SnapFX. Items are marked as they are completed and new features are added as they are identified.
 
@@ -57,10 +57,12 @@ This document tracks all planned features, improvements, and bug fixes for SnapF
   - Already implemented but needs verification
 
 #### Enhancements
-- 📋 **Improve hit-testing accuracy**: Precise element detection under cursor
-- 📋 **Visual drop indicators**: Clear rectangles showing where node will be dropped
+- ✅ **Improve hit-testing accuracy**: Precise element detection under cursor (2026-02-14)
+- ✅ **Visual drop indicators**: Clear drop zones and insert line (2026-02-14)
+- ✅ **Drop validation**: Prevent invalid drop operations with depth-first selection (2026-02-14)
+- ✅ **Per-tab insert targeting**: Drop at specific tab index (2026-02-14)
+- ✅ **Drop-zone visualization modes**: ALL/SUBTREE/DEFAULT/ACTIVE/OFF (2026-02-14)
 - 📋 **Drag preview image**: Show snapshot of dragged content
-- 📋 **Drop validation**: Prevent invalid drop operations
 
 **Estimated Time**: 2-3 days
 
@@ -85,8 +87,8 @@ This document tracks all planned features, improvements, and bug fixes for SnapF
   - Close button handler integration (NEW)
   - Hide/Restore functionality (NEW)
 - ✅ **Testing Policy established**: TESTING_POLICY.md created (2026-02-10)
-- ✅ **Test count improved**: 41 → 49 → 55 tests (2026-02-11)
-- ✅ **Coverage improved**: ~80% → ~85% → ~87% (2026-02-11)
+- ✅ **Test count improved**: 41 → 49 → 55 → 61 → 62 tests (2026-02-14)
+- ✅ **Coverage improved**: ~80% → ~85% → ~87% (2026-02-14)
 - ✅ **SnapFXTest created**: 7 comprehensive tests for hide/restore (2026-02-11)
 - 📋 **Add performance tests**: Large layouts with 50+ nodes
 - 📋 **Add memory leak tests**: Ensure proper cleanup
@@ -104,6 +106,13 @@ This document tracks all planned features, improvements, and bug fixes for SnapF
 - 📋 **Single node optimization**: Skip unnecessary containers
 
 **Estimated Time**: 1 day
+
+### 1.4 UI Bug Fixes
+**Priority**: 🟡 High
+
+- ✅ **Fix tab overflow dropdown entries**: Menu shows empty items when tabs use custom graphics (2026-02-14)
+
+**Estimated Time**: 0.5 days
 
 ---
 
@@ -147,8 +156,6 @@ This document tracks all planned features, improvements, and bug fixes for SnapF
 - 📋 **Escape**: Cancel drag operation
 
 **Estimated Time**: 1 day
-
----
 
 ### 3.2 Context Menus
 **Priority**: 🟢 Medium

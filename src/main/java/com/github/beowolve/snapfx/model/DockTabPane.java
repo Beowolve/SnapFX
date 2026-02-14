@@ -48,19 +48,34 @@ public class DockTabPane implements DockContainer {
 
     @Override
     public void addChild(DockElement element) {
+        addChild(element, children.size());
+    }
+
+    public void addChild(DockElement element, int index) {
+        int insertIndex = Math.max(0, Math.min(index, children.size()));
+
         // Smart flattening: if the element is also a TabPane, merge its children into this TabPane
         if (element instanceof DockTabPane otherTabPane) {
             // Add all children of the other TabPane directly to this TabPane
             List<DockElement> childElements = new ArrayList<>(otherTabPane.getChildren());
             for (DockElement child : childElements) {
                 otherTabPane.removeChild(child);
-                children.add(child);
+                children.add(insertIndex, child);
                 child.setParent(this);
+                insertIndex++;
             }
             return;
         }
 
-        children.add(element);
+        if (children.isEmpty()) {
+            children.add(element);
+        } else {
+            // Keep current selection stable when inserting before it
+            if (insertIndex <= selectedIndex.get()) {
+                selectedIndex.set(selectedIndex.get() + 1);
+            }
+            children.add(insertIndex, element);
+        }
         element.setParent(this);
 
         // Auto-select the first tab

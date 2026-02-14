@@ -1,12 +1,12 @@
 # SnapFX Framework - Completed Features
 
-**Last Updated**: 2026-02-10
+**Last Updated**: 2026-02-14
 
 SnapFX has been fully implemented with core functionality and is production-ready for basic use cases.
 
 ## ✅ What Has Been Completed
 
-### Core Framework (15 classes)
+### Core Framework (20 classes)
 
 #### Model Layer (7 classes)
 - ✅ `DockGraph` - Central data structure for the docking system
@@ -17,22 +17,27 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `DockTabPane` - Tab container with auto-hide
 - ✅ `DockPosition` - Enum for dock zones (5 positions)
 
-#### View Layer (2 classes)
+#### View Layer (4 classes)
+
 - ✅ `DockLayoutEngine` - Converts model to JavaFX SceneGraph
 - ✅ `DockNodeView` - Visual representation with header and content
+- ✅ `DockDropZone` - Drop-zone definition (bounds, target, depth)
+- ✅ `DockDropZoneType` - Drop-zone category enum
 
-#### Drag & Drop (2 classes)
+#### Drag & Drop (3 classes)
+
 - ✅ `DockDragService` - Central D&D management with overlays
 - ✅ `DockDragData` - Transfer object for drag operations
+- ✅ `DockDropVisualizationMode` - Drop-zone visualization modes
 
 #### Persistence (1 class)
 - ✅ `DockLayoutSerializer` - JSON-based serialization with Gson
 
 #### Debug Tools (1 class)
 - ✅ `DockGraphDebugView` - Tree visualization and export
-- ✅ **D&D Activity Log** - Comprehensive logging of all drag & drop operations
-- ✅ **Color-coded entries** - Visual differentiation of event types
-- ✅ **Export integration** - Log included in snapshot export
+- ✅ `D&D Activity Log` - Comprehensive logging of all drag & drop operations
+- ✅ `Color-coded entries` - Visual differentiation of event types
+- ✅ `Export integration` - Log included in snapshot export
 
 #### API (1 class)
 - ✅ `SnapFX` - Main facade providing simple, fluent API
@@ -47,8 +52,8 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (3 test classes, 49 tests)
-- ✅ `DockGraphTest` (34 tests) - Tree manipulation and algorithms
+### Testing (4 test classes, 62 tests)
+- ✅ `DockGraphTest` (39 tests) - Tree manipulation and algorithms
   - **+7 regression tests** for critical bug fixes (2026-02-10)
   - Tests for empty container prevention
   - Tests for target invalidation during move
@@ -56,7 +61,8 @@ SnapFX has been fully implemented with core functionality and is production-read
   - Tests for flattening logic
 - ✅ `DockLayoutSerializerTest` (9 tests) - Persistence functionality
   - **+1 regression test** for locked state synchronization (2026-02-10)
-- ✅ `DockLayoutEngineTest` (6 tests) - View creation with TestFX
+- ✅ `DockLayoutEngineTest` (7 tests) - View creation with TestFX
+- ✅ `SnapFXTest` (7 tests) - Hide/Restore functionality
 - ✅ All tests passing ✅
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
 - ✅ Mandatory regression tests for all bug fixes
@@ -95,12 +101,17 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **DockNodeView**: Header with title and close button
 - ✅ **Property Bindings**: Reactive UI updates via JavaFX properties
 - ✅ **CSS Styling**: Native Modena theme integration
+- ✅ **Tab Overflow Dropdown**: Menu shows titles when using custom tab graphics
 - ✅ **Tab Auto-Hide**: In locked mode, tabs only visible when >1
 - ✅ **View Caching**: Performance optimization through view reuse
 
 ### Drag & Drop (Baseline + Critical Bug Fixes)
+
 - ✅ **Ghost Overlay**: Visual feedback during drag
 - ✅ **Drop Zones**: Detection for SplitPane areas
+- ✅ **Drop zone visualization modes (ALL/SUBTREE/DEFAULT/ACTIVE/OFF)**
+- ✅ **Per-tab insert targeting with visible insert line**
+- ✅ **Depth-first drop target selection and zone validation**
 - ✅ **Mouse Tracking**: Cursor position tracking
 - ✅ **Drag Initiation**: From tab headers and node headers
 - ✅ **TabPane D&D Fixed**: Tabs maintain D&D capability after being moved (Critical bug fix 2026-02-10)
@@ -183,13 +194,13 @@ In IntelliJ IDEA:
 
 ## 📊 Statistics
 
-- **Total Java Files**: 20
-- **Production Classes**: 15
-- **Test Classes**: 3
-- **Test Cases**: 49 (all passing ✅) - +8 regression tests
+- **Total Java Files**: 31
+- **Production Classes**: 26
+- **Test Classes**: 4
+- **Test Cases**: 62 (all passing ✅) - +8 regression tests
 - **Lines of Code**: ~3,500+ (estimated)
 - **Documentation**: 7 Core Markdown files
-- **Test Coverage**: ~85% (estimated, improved from ~80%)
+- **Test Coverage**: ~87% (estimated, improved from ~80%)
 
 ## 🎓 Key Achievements
 
@@ -218,7 +229,7 @@ In IntelliJ IDEA:
 
 See [ROADMAP.md](ROADMAP.md) for planned features and improvements.
 
-**Current Priority**: Fix Drag & Drop issues in Phase 1.
+**Current Priority**: Fix remaining Drag & Drop issues and the tab overflow dropdown bug in Phase 1.
 
 ---
 
@@ -226,5 +237,5 @@ See [ROADMAP.md](ROADMAP.md) for planned features and improvements.
 **Status**: Production-ready for basic use cases  
 **License**: Educational/Demo Purpose  
 **Developed**: 2026-02  
-**Last Update**: 2026-02-10
+**Last Update**: 2026-02-14
 

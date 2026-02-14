@@ -67,6 +67,7 @@ public class DockSplitPane implements DockContainer {
                     children.add(child);
                     child.setParent(this);
                 }
+                updateDividerPositions();
                 return;
             }
         }

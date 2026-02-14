@@ -1,6 +1,7 @@
 package com.github.beowolve.snapfx;
 
 import com.github.beowolve.snapfx.dnd.DockDragService;
+import com.github.beowolve.snapfx.dnd.DockDropVisualizationMode;
 import com.github.beowolve.snapfx.model.*;
 import com.github.beowolve.snapfx.persistence.DockLayoutSerializer;
 import com.github.beowolve.snapfx.persistence.DockNodeFactory;
@@ -293,6 +294,14 @@ public class SnapFX {
 
     public DockDragService getDragService() {
         return dragService;
+    }
+
+    public void setDropVisualizationMode(DockDropVisualizationMode mode) {
+        dragService.setDropVisualizationMode(mode);
+    }
+
+    public DockDropVisualizationMode getDropVisualizationMode() {
+        return dragService.getDropVisualizationMode();
     }
 
     @SuppressWarnings("unused")

@@ -1,11 +1,11 @@
 # Project Status
 
-**Last Updated**: 2026-02-11
+**Last Updated**: 2026-02-14
 
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 55 tests passing (33 + 9 + 6 + 7)  
+✅ **Tests**: All 62 tests passing (39 + 9 + 7 + 7)  
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully
 
@@ -26,7 +26,7 @@
 - ✅ View caching
 - ✅ CSS styling (Modena theme)
 
-### Drag & Drop (92% ✅)
+### Drag & Drop (96% ✅)
 - ✅ DockDragService implementation
 - ✅ Ghost overlay during drag
 - ✅ Drop zone detection for SplitPanes
@@ -34,6 +34,9 @@
 - ✅ TabPane D&D bug fixed (cache invalidation)
 - ✅ Auto-rebuild after D&D operations (critical fix)
 - ✅ Consistent D&D behavior across all operations
+- ✅ Drop zone visualization modes (ALL/SUBTREE/DEFAULT/ACTIVE/OFF)
+- ✅ Per-tab insert targeting with visual insert line
+- ✅ Depth-first drop target selection and zone validation
 - ✅ Nested TabPanes work correctly (verified)
 - ✅ Target invalidation handling (prevents empty containers)
 - ⚠️ Splitter position preservation needs improvement
@@ -80,11 +83,11 @@
 - ✅ Documentation updated
 
 ### Testing (100% ✅)
-- ✅ DockGraphTest (33 tests, +7 regression tests)
+- ✅ DockGraphTest (39 tests, +7 regression tests)
 - ✅ DockLayoutSerializerTest (9 tests, +1 regression test)
-- ✅ DockLayoutEngineTest (6 tests)
+- ✅ DockLayoutEngineTest (7 tests)
 - ✅ **SnapFXTest (7 tests)** - NEW: Hide/Restore functionality tests
-- ✅ **55/55 tests passing** ✅ (was 49)
+- ✅ **62/62 tests passing** ✅ (was 49)
 - ✅ **Regression tests** for all critical bug fixes
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
 - ✅ ~87% code coverage (improved from ~85%)
@@ -123,11 +126,22 @@
 ### Medium Priority
 7. ⚠️ Performance: Large layouts not tested
 8. ⚠️ Memory: View caching strategy could be improved
+9. ~~⚠️ UI: Tab overflow dropdown shows empty entries when tab graphics are custom~~ ✅ **FIXED** (2026-02-14)
 
 ### Low Priority
-6. ⚠️ UI: Animations missing
-7. ⚠️ UI: Keyboard shortcuts not implemented
+10. ⚠️ UI: Animations missing
+11. ⚠️ UI: Keyboard shortcuts not implemented
 
+## Recent Changes (2026-02-14)
+
+### Drag & Drop Drop-Zone Overhaul
+- Added depth-first drop target selection with validation against invalid targets
+- Added configurable drop-zone visualization modes (ALL/SUBTREE/DEFAULT/ACTIVE/OFF)
+- Added per-tab insert targeting with visible insert line
+- Expanded tab insert/reorder tests including index clamping (DockGraphTest: 39 tests, total: 62)
+
+### UI Fixes
+- Fixed tab overflow dropdown entries for custom tab graphics by binding tab text to the node title
 ## Recent Changes (2026-02-11)
 
 ### Close Button Handler Fix (CRITICAL FIX)

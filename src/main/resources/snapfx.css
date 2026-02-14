@@ -96,6 +96,10 @@
     -fx-font-size: 11px;
 }
 
+.dock-tab-pane .tab.dock-tab-graphic .tab-label {
+    -fx-content-display: graphic-only;
+}
+
 .dock-tab-pane .tab-close-button {
     -fx-background-color: transparent;
 }
