@@ -157,6 +157,13 @@ These tests ensure fixed critical bugs never return:
 **Bug**: Dropping on the parent split edge still adjusted dividers when no layout change occurred  
 **Fix**: Detect no-op edge drops on the parent SplitPane and skip the move
 
+### 2026-02-14: TabPane In-Place Reordering
+- `testMoveWithinSameTabPaneDoesNotFlatten()`
+- `testMoveWithinSameTabPaneAdjustsInsertIndex()`
+
+**Bug**: Moving a tab within the same TabPane could flatten the TabPane or misplace the insert index  
+**Fix**: Reorder within the TabPane without undocking and adjust forward insert indices
+
 ### Structural Integrity Tests
 - `assertNoEmptyContainers()` - No empty containers anywhere
 - `assertNoNestedTabPanes()` - No TabPane in TabPane
@@ -273,14 +280,14 @@ void testSomething() {
 
 **As of 2026-02-14:**
 
-- **Total Tests**: 63 (was 49)
+- **Total Tests**: 65 (was 49)
 - **Test Classes**: 4
 - **Test Coverage**: ~87% (estimated)
 - **All Tests**: ✅ PASSING
 
 ### Test Distribution
-- `DockGraphTest`: 40 tests (was 27)
-  - 8 new regression tests added
+- `DockGraphTest`: 42 tests (was 27)
+  - 10 new regression tests added
 - `DockLayoutSerializerTest`: 9 tests (was 8)
   - 1 new regression test added
 - `DockLayoutEngineTest`: 7 tests
@@ -296,6 +303,7 @@ void testSomething() {
 - ✅ Auto-rebuild
 - ✅ Locked state synchronization
 - ✅ No-op drop divider preservation
+- ✅ TabPane in-place reordering
 
 ---
 

@@ -716,7 +716,7 @@ class DockGraphTest {
     }
 
     @Test
-    void testMoveTabToEndWithInsertIndexWhenTargetIsTab() {
+    void testMoveTabWithInsertIndexWhenTargetIsTab() {
         DockNode tab1 = new DockNode(new Label("Tab1"), "Tab1");
         DockNode tab2 = new DockNode(new Label("Tab2"), "Tab2");
         DockNode tab3 = new DockNode(new Label("Tab3"), "Tab3");
@@ -731,9 +731,9 @@ class DockGraphTest {
         assertSame(rootTabPane, dockGraph.getRoot());
         assertEquals(3, rootTabPane.getChildren().size());
         assertEquals(tab2, rootTabPane.getChildren().get(0));
-        assertEquals(tab3, rootTabPane.getChildren().get(1));
-        assertEquals(tab1, rootTabPane.getChildren().get(2));
-        assertEquals(2, rootTabPane.getSelectedIndex());
+        assertEquals(tab1, rootTabPane.getChildren().get(1));
+        assertEquals(tab3, rootTabPane.getChildren().get(2));
+        assertEquals(1, rootTabPane.getSelectedIndex());
     }
 
     @Test
@@ -787,6 +787,56 @@ class DockGraphTest {
 
         // Revision should have changed (operation was performed)
         assertTrue(dockGraph.getRevision() > revisionBefore);
+    }
+
+    /**
+     * Regression test: Moving a tab within the same TabPane must not flatten the TabPane.
+     * Bug: move() undocked the tab, causing the TabPane to flatten when only two tabs existed.
+     * Fix: Reorder within the TabPane without undocking.
+     * Date: 2026-02-14
+     */
+    @Test
+    void testMoveWithinSameTabPaneDoesNotFlatten() {
+        DockNode tab1 = new DockNode(new Label("Tab1"), "Tab1");
+        DockNode tab2 = new DockNode(new Label("Tab2"), "Tab2");
+
+        dockGraph.dock(tab1, null, DockPosition.CENTER);
+        dockGraph.dock(tab2, tab1, DockPosition.CENTER);
+
+        DockTabPane rootTabPane = (DockTabPane) dockGraph.getRoot();
+        assertEquals(2, rootTabPane.getChildren().size());
+
+        dockGraph.move(tab1, rootTabPane, DockPosition.CENTER, 2);
+
+        assertSame(rootTabPane, dockGraph.getRoot());
+        assertEquals(2, rootTabPane.getChildren().size());
+        assertEquals(tab2, rootTabPane.getChildren().get(0));
+        assertEquals(tab1, rootTabPane.getChildren().get(1));
+    }
+
+    /**
+     * Regression test: Adjust tab insert index when moving forward within the same TabPane.
+     * Bug: Insert index was not adjusted after removal, so tabs landed one position too far.
+     * Fix: Decrement insert index when the source index is before the desired index.
+     * Date: 2026-02-14
+     */
+    @Test
+    void testMoveWithinSameTabPaneAdjustsInsertIndex() {
+        DockNode tab1 = new DockNode(new Label("Tab1"), "Tab1");
+        DockNode tab2 = new DockNode(new Label("Tab2"), "Tab2");
+        DockNode tab3 = new DockNode(new Label("Tab3"), "Tab3");
+
+        dockGraph.dock(tab1, null, DockPosition.CENTER);
+        dockGraph.dock(tab2, tab1, DockPosition.CENTER);
+        dockGraph.dock(tab3, tab2, DockPosition.CENTER);
+
+        DockTabPane rootTabPane = (DockTabPane) dockGraph.getRoot();
+        dockGraph.move(tab1, rootTabPane, DockPosition.CENTER, 2);
+
+        assertEquals(tab2, rootTabPane.getChildren().get(0));
+        assertEquals(tab1, rootTabPane.getChildren().get(1));
+        assertEquals(tab3, rootTabPane.getChildren().get(2));
+        assertEquals(1, rootTabPane.getSelectedIndex());
     }
 
     @Test

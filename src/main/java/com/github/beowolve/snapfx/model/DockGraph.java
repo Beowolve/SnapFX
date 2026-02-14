@@ -453,6 +453,17 @@ public class DockGraph {
         DockContainer sourceParent = node.getParent();
         DockContainer targetParent = target.getParent();
 
+        if (position == DockPosition.CENTER) {
+            DockTabPane sourceTabPane = (sourceParent instanceof DockTabPane tabPane) ? tabPane : null;
+            DockTabPane targetTabPane = resolveTargetTabPane(target);
+            if (sourceTabPane != null && targetTabPane == sourceTabPane) {
+                if (moveWithinTabPane(sourceTabPane, node, target, tabIndex)) {
+                    bumpRevision();
+                }
+                return;
+            }
+        }
+
         if (isNoOpDropToParentSplitEdge(node, target, position)) {
             return;
         }
@@ -637,6 +648,48 @@ public class DockGraph {
 
         int lastIndex = splitPane.getChildren().size() - 1;
         return nodeIndex == lastIndex;
+    }
+
+    private DockTabPane resolveTargetTabPane(DockElement target) {
+        if (target instanceof DockTabPane tabPane) {
+            return tabPane;
+        }
+        DockContainer parent = target.getParent();
+        if (parent instanceof DockTabPane tabPane) {
+            return tabPane;
+        }
+        return null;
+    }
+
+    private boolean moveWithinTabPane(DockTabPane tabPane, DockNode node, DockElement target, Integer tabIndex) {
+        int sourceIndex = tabPane.getChildren().indexOf(node);
+        if (sourceIndex < 0) {
+            return false;
+        }
+
+        int desiredIndex;
+        if (tabIndex != null) {
+            desiredIndex = tabIndex;
+        } else if (target instanceof DockNode) {
+            int targetIndex = tabPane.getChildren().indexOf(target);
+            desiredIndex = targetIndex >= 0 ? targetIndex + 1 : tabPane.getChildren().size();
+        } else {
+            desiredIndex = tabPane.getChildren().size();
+        }
+
+        int size = tabPane.getChildren().size();
+        int insertIndex = Math.max(0, Math.min(desiredIndex, size));
+        if (sourceIndex < insertIndex) {
+            insertIndex--;
+        }
+        if (sourceIndex == insertIndex) {
+            return false;
+        }
+
+        tabPane.getChildren().remove(sourceIndex);
+        tabPane.getChildren().add(insertIndex, node);
+        tabPane.setSelectedIndex(insertIndex);
+        return true;
     }
 
     public int getDockNodeCount(String dockNodeId) {

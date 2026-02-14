@@ -5,7 +5,7 @@
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 63 tests passing (40 + 9 + 7 + 7)  
+✅ **Tests**: All 65 tests passing (42 + 9 + 7 + 7)  
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully
 
@@ -36,6 +36,7 @@
 - ✅ Consistent D&D behavior across all operations
 - ✅ Drop zone visualization modes (ALL/SUBTREE/DEFAULT/ACTIVE/OFF)
 - ✅ Per-tab insert targeting with visual insert line
+- ✅ In-place TabPane reordering to avoid flattening and missed drops
 - ✅ Depth-first drop target selection and zone validation
 - ✅ Nested TabPanes work correctly (verified)
 - ✅ Target invalidation handling (prevents empty containers)
@@ -83,11 +84,11 @@
 - ✅ Documentation updated
 
 ### Testing (100% ✅)
-- ✅ DockGraphTest (40 tests, +8 regression tests)
+- ✅ DockGraphTest (42 tests, +10 regression tests)
 - ✅ DockLayoutSerializerTest (9 tests, +1 regression test)
 - ✅ DockLayoutEngineTest (7 tests)
 - ✅ **SnapFXTest (7 tests)** - NEW: Hide/Restore functionality tests
-- ✅ **63/63 tests passing** ✅ (was 49)
+- ✅ **65/65 tests passing** ✅ (was 49)
 - ✅ **Regression tests** for all critical bug fixes
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
 - ✅ ~87% code coverage (improved from ~85%)
@@ -122,15 +123,16 @@
 4. ~~❌ Layout: Nested TabPanes can occur (should be optimized)~~ ✅ **VERIFIED OK** (2026-02-10)
 5. ~~❌ Drag & Drop: Empty containers remain after complex D&D operations~~ ✅ **FIXED** (2026-02-10)
 6. ~~❌ Drag & Drop: Dropping on same position changes splitter positions~~ ✅ **FIXED** (2026-02-14)
+7. ~~❌ Drag & Drop: Tab reordering can miss drops despite insert indicator~~ ✅ **FIXED** (2026-02-14)
 
 ### Medium Priority
-7. ⚠️ Performance: Large layouts not tested
-8. ⚠️ Memory: View caching strategy could be improved
-9. ~~⚠️ UI: Tab overflow dropdown shows empty entries when tab graphics are custom~~ ✅ **FIXED** (2026-02-14)
+8. ⚠️ Performance: Large layouts not tested
+9. ⚠️ Memory: View caching strategy could be improved
+10. ~~⚠️ UI: Tab overflow dropdown shows empty entries when tab graphics are custom~~ ✅ **FIXED** (2026-02-14)
 
 ### Low Priority
-10. ⚠️ UI: Animations missing
-11. ⚠️ UI: Keyboard shortcuts not implemented
+11. ⚠️ UI: Animations missing
+12. ⚠️ UI: Keyboard shortcuts not implemented
 
 ## Recent Changes (2026-02-14)
 
@@ -138,9 +140,10 @@
 - Added depth-first drop target selection with validation against invalid targets
 - Added configurable drop-zone visualization modes (ALL/SUBTREE/DEFAULT/ACTIVE/OFF)
 - Added per-tab insert targeting with visible insert line
+- Fixed in-place tab reordering to prevent TabPane flattening and missed drops
 - Moved the drag ghost overlay to the bottom-right of the cursor to keep targets visible
 - Preserved divider positions on no-op edge drops and added regression coverage
-- Expanded tab insert/reorder tests including index clamping (DockGraphTest: 40 tests, total: 63)
+- Expanded tab insert/reorder tests including index clamping (DockGraphTest: 42 tests, total: 65)
 
 ### UI Fixes
 - Fixed tab overflow dropdown entries for custom tab graphics by binding tab text to the node title

@@ -52,9 +52,9 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (4 test classes, 63 tests)
-- ✅ `DockGraphTest` (40 tests) - Tree manipulation and algorithms
-  - **+8 regression tests** for critical bug fixes (2026-02-10)
+### Testing (4 test classes, 65 tests)
+- ✅ `DockGraphTest` (42 tests) - Tree manipulation and algorithms
+  - **+10 regression tests** for critical bug fixes (2026-02-10)
   - Tests for empty container prevention
   - Tests for target invalidation during move
   - Tests for complex D&D sequences
@@ -113,6 +113,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **Drop zone visualization modes (ALL/SUBTREE/DEFAULT/ACTIVE/OFF)**
 - ✅ **Per-tab insert targeting with visible insert line**
 - ✅ **Depth-first drop target selection and zone validation**
+- ✅ **In-place TabPane reordering**: Prevents flattening and missed drops (2026-02-14)
 - ✅ **Mouse Tracking**: Cursor position tracking
 - ✅ **Drag Initiation**: From tab headers and node headers
 - ✅ **TabPane D&D Fixed**: Tabs maintain D&D capability after being moved (Critical bug fix 2026-02-10)
@@ -198,7 +199,7 @@ In IntelliJ IDEA:
 - **Total Java Files**: 31
 - **Production Classes**: 26
 - **Test Classes**: 4
-- **Test Cases**: 63 (all passing ✅) - +9 regression tests
+- **Test Cases**: 65 (all passing ✅) - +11 regression tests
 - **Lines of Code**: ~3,500+ (estimated)
 - **Documentation**: 7 Core Markdown files
 - **Test Coverage**: ~87% (estimated, improved from ~80%)
