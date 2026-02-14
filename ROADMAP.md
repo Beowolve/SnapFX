@@ -52,12 +52,13 @@ This document tracks all planned features, improvements, and bug fixes for SnapF
 - ✅ **Fixed TabPane reordering drops** (2026-02-14): In-place tab moves keep the TabPane intact
   - Avoids flattening when only two tabs are present
   - Keeps insert index stable when moving forward
-  
-#### Issues to Fix
-- ❌ **Fix nested SplitPane optimization**: Prevent SplitPane within SplitPane of same orientation
+- ✅ **Fixed nested SplitPane optimization** (2026-02-14): Prevent SplitPane within SplitPane of same orientation
   - Detect when adding SplitPane to SplitPane with matching orientation
   - Flatten to single SplitPane with all children
-  - Already implemented but needs verification
+  - Verified with vertical and horizontal coverage
+  
+#### Issues to Fix
+None currently identified.
 
 #### Enhancements
 - ✅ **Improve hit-testing accuracy**: Precise element detection under cursor (2026-02-14)
@@ -92,7 +93,7 @@ This document tracks all planned features, improvements, and bug fixes for SnapF
   - Close button handler integration (NEW)
   - Hide/Restore functionality (NEW)
 - ✅ **Testing Policy established**: TESTING_POLICY.md created (2026-02-10)
-- ✅ **Test count improved**: 41 → 49 → 55 → 61 → 62 → 63 → 65 → 69 → 70 tests (2026-02-14)
+- ✅ **Test count improved**: 41 → 49 → 55 → 61 → 62 → 63 → 65 → 69 → 70 → 71 tests (2026-02-14)
 - ✅ **Coverage improved**: ~80% → ~85% → ~87% (2026-02-14)
 - ✅ **SnapFXTest created**: 7 comprehensive tests for hide/restore (2026-02-11)
 - 📋 **Add performance tests**: Large layouts with 50+ nodes

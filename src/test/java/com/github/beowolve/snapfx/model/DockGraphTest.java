@@ -1033,6 +1033,24 @@ class DockGraphTest {
         assertNoNestedSplitPanesWithSameOrientation(dockGraph.getRoot());
     }
 
+    @Test
+    void testSplitPaneFlatteningWithSameOrientationVertical() {
+        DockNode top = new DockNode(new Label("Top"), "Top");
+        DockNode middle = new DockNode(new Label("Middle"), "Middle");
+        DockNode bottom = new DockNode(new Label("Bottom"), "Bottom");
+
+        dockGraph.dock(top, null, DockPosition.CENTER);
+        dockGraph.dock(middle, top, DockPosition.BOTTOM);
+        dockGraph.dock(bottom, middle, DockPosition.BOTTOM);
+
+        assertInstanceOf(DockSplitPane.class, dockGraph.getRoot());
+        DockSplitPane split = (DockSplitPane) dockGraph.getRoot();
+        assertEquals(Orientation.VERTICAL, split.getOrientation());
+        assertEquals(3, split.getChildren().size(), "Should have 3 children in single SplitPane");
+
+        assertNoNestedSplitPanesWithSameOrientation(dockGraph.getRoot());
+    }
+
     /**
      * Test for move within same SplitPane preserving divider positions.
      * Ensures dividers don't change when moving within same container.

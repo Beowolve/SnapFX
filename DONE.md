@@ -53,8 +53,8 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (4 test classes, 70 tests)
-- ✅ `DockGraphTest` (42 tests) - Tree manipulation and algorithms
+### Testing (4 test classes, 71 tests)
+- ✅ `DockGraphTest` (43 tests) - Tree manipulation and algorithms
   - **+10 regression tests** for critical bug fixes (2026-02-10)
   - Tests for empty container prevention
   - Tests for target invalidation during move
@@ -96,6 +96,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **Undock**: Remove nodes from the layout
 - ✅ **Move**: Reposition nodes within the layout
 - ✅ **Smart Flattening**: Automatic optimization to prevent nested containers with same orientation
+- ✅ **SplitPane optimization verified**: No nested same-orientation SplitPanes (horizontal + vertical coverage)
 - ✅ **Auto-Cleanup**: Empty containers automatically remove themselves
 - ✅ **Hidden Nodes**: Close without deletion, restore later
 
@@ -202,7 +203,7 @@ In IntelliJ IDEA:
 - **Total Java Files**: 31
 - **Production Classes**: 26
 - **Test Classes**: 4
-- **Test Cases**: 70 (all passing ✅) - +12 regression tests
+- **Test Cases**: 71 (all passing ✅) - +12 regression tests
 - **Lines of Code**: ~3,500+ (estimated)
 - **Documentation**: 7 Core Markdown files
 - **Test Coverage**: ~87% (estimated, improved from ~80%)

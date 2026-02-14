@@ -5,7 +5,7 @@
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 70 tests passing (42 + 9 + 12 + 7)  
+✅ **Tests**: All 71 tests passing (43 + 9 + 12 + 7)  
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully
 
@@ -84,11 +84,11 @@
 - ✅ Documentation updated
 
 ### Testing (100% ✅)
-- ✅ DockGraphTest (42 tests, +10 regression tests)
+- ✅ DockGraphTest (43 tests, +10 regression tests)
 - ✅ DockLayoutSerializerTest (9 tests, +1 regression test)
 - ✅ DockLayoutEngineTest (12 tests)
 - ✅ **SnapFXTest (7 tests)** - NEW: Hide/Restore functionality tests
-- ✅ **70/70 tests passing** ✅ (was 49)
+- ✅ **71/71 tests passing** ✅ (was 49)
 - ✅ **Regression tests** for all critical bug fixes
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
 - ✅ ~87% code coverage (improved from ~85%)
@@ -145,7 +145,7 @@
 - Fixed in-place tab reordering to prevent TabPane flattening and missed drops
 - Moved the drag ghost overlay to the bottom-right of the cursor to keep targets visible
 - Preserved divider positions on no-op edge drops and added regression coverage
-- Expanded tab insert/reorder tests including index clamping (DockGraphTest: 42 tests, total: 70)
+- Expanded tab insert/reorder tests including index clamping (DockGraphTest: 43 tests, total: 71)
 
 ### UI Fixes
 - Fixed tab overflow dropdown entries for custom tab graphics by binding tab text to the node title
@@ -158,6 +158,9 @@
 
 ### Documentation
 - Clarified TitleBarMode.AUTO behavior and tab-only drag handling in README
+
+### Layout Optimization
+- Verified SplitPane optimization prevents nested same-orientation splits (added vertical regression coverage)
 ## Recent Changes (2026-02-11)
 
 ### Close Button Handler Fix (CRITICAL FIX)

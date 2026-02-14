@@ -288,13 +288,13 @@ void testSomething() {
 
 **As of 2026-02-14:**
 
-- **Total Tests**: 70 (was 49)
+- **Total Tests**: 71 (was 49)
 - **Test Classes**: 4
 - **Test Coverage**: ~87% (estimated)
 - **All Tests**: ✅ PASSING
 
 ### Test Distribution
-- `DockGraphTest`: 42 tests (was 27)
+- `DockGraphTest`: 43 tests (was 27)
   - 10 new regression tests added
 - `DockLayoutSerializerTest`: 9 tests (was 8)
   - 1 new regression test added
