@@ -37,6 +37,8 @@ public class DockLayoutEngine {
     private static final double LEAF_DROP_ZONE_MAX_RATIO = 0.30;
     private static final double LEAF_DROP_ZONE_INSET_PX = 12.0;
 
+    private DockCloseButtonMode closeButtonMode = DockCloseButtonMode.BOTH;
+    private DockTitleBarMode titleBarMode = DockTitleBarMode.ALWAYS;
     private Consumer<DockNode> onNodeCloseRequest;
 
     public DockLayoutEngine(DockGraph dockGraph, DockDragService dragService) {
@@ -91,12 +93,9 @@ public class DockLayoutEngine {
         DockNodeView nodeView = new DockNodeView(dockNode, dockGraph, dragService);
 
         // Set close button action
-        // If custom handler is set, use it; otherwise use default undock behavior
-        if (onNodeCloseRequest != null) {
-            nodeView.setOnCloseRequest(() -> onNodeCloseRequest.accept(dockNode));
-        } else {
-            nodeView.setOnCloseRequest(() -> dockGraph.undock(dockNode));
-        }
+        nodeView.setOnCloseRequest(() -> handleCloseRequest(dockNode));
+        applyTitleBarVisibility(nodeView, dockNode);
+        applyTitleCloseVisibility(nodeView, dockNode);
 
         return nodeView;
     }
@@ -264,10 +263,17 @@ public class DockLayoutEngine {
             tab.getStyleClass().add("dock-tab-graphic");
             setupTabDragHandlers(tab, dockNode);
             bindTabCloseable(tab, dockNode);
-            tab.setOnClosed(event -> dockGraph.undock(dockNode));
+            tab.setOnCloseRequest(event -> {
+                handleCloseRequest(dockNode);
+                event.consume();
+            });
         } else {
             tab.setText(element.getClass().getSimpleName());
-            tab.closableProperty().bind(dockGraph.lockedProperty().not());
+            if (!shouldShowTabCloseButton()) {
+                tab.setClosable(false);
+            } else {
+                tab.closableProperty().bind(dockGraph.lockedProperty().not());
+            }
             tab.setOnClosed(event -> {
                 if (element.getParent() != null) {
                     element.removeFromParent();
@@ -330,9 +336,51 @@ public class DockLayoutEngine {
      * @param dockNode The DockNode
      */
     private void bindTabCloseable(Tab tab, DockNode dockNode) {
+        if (!shouldShowTabCloseButton()) {
+            tab.setClosable(false);
+            return;
+        }
         tab.closableProperty().bind(
             dockNode.closeableProperty().and(dockGraph.lockedProperty().not())
         );
+    }
+
+    private void applyTitleBarVisibility(DockNodeView nodeView, DockNode dockNode) {
+        nodeView.setHeaderVisible(shouldShowTitleBar(dockNode));
+    }
+
+    private void applyTitleCloseVisibility(DockNodeView nodeView, DockNode dockNode) {
+        if (shouldShowTitleCloseButton()) {
+            nodeView.bindCloseButtonVisible(
+                dockNode.closeableProperty().and(dockGraph.lockedProperty().not())
+            );
+        } else {
+            nodeView.setCloseButtonVisible(false);
+        }
+    }
+
+    private boolean shouldShowTabCloseButton() {
+        return closeButtonMode.showTabClose();
+    }
+
+    private boolean shouldShowTitleCloseButton() {
+        return closeButtonMode.showTitleClose();
+    }
+
+    private boolean shouldShowTitleBar(DockNode dockNode) {
+        return switch (titleBarMode) {
+            case ALWAYS -> true;
+            case NEVER -> false;
+            case AUTO -> !(dockNode.getParent() instanceof DockTabPane);
+        };
+    }
+
+    private void handleCloseRequest(DockNode dockNode) {
+        if (onNodeCloseRequest != null) {
+            onNodeCloseRequest.accept(dockNode);
+        } else {
+            dockGraph.undock(dockNode);
+        }
     }
 
     /**
@@ -740,6 +788,26 @@ public class DockLayoutEngine {
      */
     public void setOnNodeCloseRequest(Consumer<DockNode> onNodeCloseRequest) {
         this.onNodeCloseRequest = onNodeCloseRequest;
+    }
+
+    public DockCloseButtonMode getCloseButtonMode() {
+        return closeButtonMode;
+    }
+
+    public void setCloseButtonMode(DockCloseButtonMode closeButtonMode) {
+        if (closeButtonMode != null) {
+            this.closeButtonMode = closeButtonMode;
+        }
+    }
+
+    public DockTitleBarMode getTitleBarMode() {
+        return titleBarMode;
+    }
+
+    public void setTitleBarMode(DockTitleBarMode titleBarMode) {
+        if (titleBarMode != null) {
+            this.titleBarMode = titleBarMode;
+        }
     }
 
     /**

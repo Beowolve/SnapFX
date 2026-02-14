@@ -111,6 +111,7 @@ Use these checks when behavior cannot be reliably automated:
 
 - Drag a DockNode: the ghost overlay appears offset bottom-right of the cursor and does not cover the drop target.
 - Shrink a TabPane until the overflow dropdown appears; open it and confirm the entries show tab titles.
+- Confirm the tab close button is visible without hover and the tab/title close buttons share the same hover color change.
 
 ---
 
@@ -163,6 +164,12 @@ These tests ensure fixed critical bugs never return:
 
 **Bug**: Moving a tab within the same TabPane could flatten the TabPane or misplace the insert index  
 **Fix**: Reorder within the TabPane without undocking and adjust forward insert indices
+
+### 2026-02-14: Tab Close Handler Consistency
+- `testTabCloseRequestUsesCloseHandler()`
+
+**Bug**: Tab close bypassed onNodeCloseRequest, so hidden nodes were not tracked  
+**Fix**: Route tab close requests through the shared close handler
 
 ### Structural Integrity Tests
 - `assertNoEmptyContainers()` - No empty containers anywhere
@@ -280,7 +287,7 @@ void testSomething() {
 
 **As of 2026-02-14:**
 
-- **Total Tests**: 65 (was 49)
+- **Total Tests**: 69 (was 49)
 - **Test Classes**: 4
 - **Test Coverage**: ~87% (estimated)
 - **All Tests**: ✅ PASSING
@@ -290,7 +297,7 @@ void testSomething() {
   - 10 new regression tests added
 - `DockLayoutSerializerTest`: 9 tests (was 8)
   - 1 new regression test added
-- `DockLayoutEngineTest`: 7 tests
+- `DockLayoutEngineTest`: 11 tests
 - `SnapFXTest`: 7 tests
 
 ### Regression Test Coverage
@@ -304,6 +311,7 @@ void testSomething() {
 - ✅ Locked state synchronization
 - ✅ No-op drop divider preservation
 - ✅ TabPane in-place reordering
+- ✅ Tab close handler consistency
 
 ---
 

@@ -52,7 +52,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (4 test classes, 65 tests)
+### Testing (4 test classes, 69 tests)
 - ✅ `DockGraphTest` (42 tests) - Tree manipulation and algorithms
   - **+10 regression tests** for critical bug fixes (2026-02-10)
   - Tests for empty container prevention
@@ -61,7 +61,7 @@ SnapFX has been fully implemented with core functionality and is production-read
   - Tests for flattening logic
 - ✅ `DockLayoutSerializerTest` (9 tests) - Persistence functionality
   - **+1 regression test** for locked state synchronization (2026-02-10)
-- ✅ `DockLayoutEngineTest` (7 tests) - View creation with TestFX
+- ✅ `DockLayoutEngineTest` (11 tests) - View creation with TestFX
 - ✅ `SnapFXTest` (7 tests) - Hide/Restore functionality
 - ✅ All tests passing ✅
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
@@ -103,6 +103,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **CSS Styling**: Native Modena theme integration
 - ✅ **Tab Overflow Dropdown**: Menu shows titles when using custom tab graphics
 - ✅ **Tab Auto-Hide**: In locked mode, tabs only visible when >1
+- ✅ **Close Button Options**: Toggle tab/title close buttons, keep tab close always visible, align styling, and hide the title bar when desired
 - ✅ **View Caching**: Performance optimization through view reuse
 
 ### Drag & Drop (Baseline + Critical Bug Fixes)
@@ -199,7 +200,7 @@ In IntelliJ IDEA:
 - **Total Java Files**: 31
 - **Production Classes**: 26
 - **Test Classes**: 4
-- **Test Cases**: 65 (all passing ✅) - +11 regression tests
+- **Test Cases**: 69 (all passing ✅) - +12 regression tests
 - **Lines of Code**: ~3,500+ (estimated)
 - **Documentation**: 7 Core Markdown files
 - **Test Coverage**: ~87% (estimated, improved from ~80%)

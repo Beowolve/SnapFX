@@ -5,7 +5,9 @@ import com.github.beowolve.snapfx.dnd.DockDropVisualizationMode;
 import com.github.beowolve.snapfx.model.*;
 import com.github.beowolve.snapfx.persistence.DockLayoutSerializer;
 import com.github.beowolve.snapfx.persistence.DockNodeFactory;
+import com.github.beowolve.snapfx.view.DockCloseButtonMode;
 import com.github.beowolve.snapfx.view.DockLayoutEngine;
+import com.github.beowolve.snapfx.view.DockTitleBarMode;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -136,6 +138,12 @@ public class SnapFX {
         rootContainer.getChildren().clear();
         if (layout != null) {
             rootContainer.getChildren().add(layout);
+        }
+    }
+
+    private void requestRebuild() {
+        if (rootContainer != null) {
+            Platform.runLater(this::rebuildRootView);
         }
     }
 
@@ -304,6 +312,24 @@ public class SnapFX {
 
     public DockDropVisualizationMode getDropVisualizationMode() {
         return dragService.getDropVisualizationMode();
+    }
+
+    public void setCloseButtonMode(DockCloseButtonMode mode) {
+        layoutEngine.setCloseButtonMode(mode);
+        requestRebuild();
+    }
+
+    public DockCloseButtonMode getCloseButtonMode() {
+        return layoutEngine.getCloseButtonMode();
+    }
+
+    public void setTitleBarMode(DockTitleBarMode mode) {
+        layoutEngine.setTitleBarMode(mode);
+        requestRebuild();
+    }
+
+    public DockTitleBarMode getTitleBarMode() {
+        return layoutEngine.getTitleBarMode();
     }
 
     @SuppressWarnings("unused")

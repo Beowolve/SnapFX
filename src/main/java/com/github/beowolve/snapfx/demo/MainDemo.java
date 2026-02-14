@@ -6,6 +6,7 @@ import com.github.beowolve.snapfx.debug.DockGraphDebugView;
 import com.github.beowolve.snapfx.dnd.DockDropVisualizationMode;
 import com.github.beowolve.snapfx.model.DockNode;
 import com.github.beowolve.snapfx.model.DockPosition;
+import com.github.beowolve.snapfx.view.DockCloseButtonMode;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -74,6 +75,9 @@ public class MainDemo extends Application {
 
         // Set drop visualization mode
         snapFX.setDropVisualizationMode(DockDropVisualizationMode.DEFAULT);
+
+        // Set close button mode to show only on active tab for cleaner look
+        snapFX.setCloseButtonMode(DockCloseButtonMode.BOTH);
 
         // Create dock layout (after handler is set)
         createDemoLayout();

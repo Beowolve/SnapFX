@@ -91,7 +91,7 @@ This document tracks all planned features, improvements, and bug fixes for SnapF
   - Close button handler integration (NEW)
   - Hide/Restore functionality (NEW)
 - ✅ **Testing Policy established**: TESTING_POLICY.md created (2026-02-10)
-- ✅ **Test count improved**: 41 → 49 → 55 → 61 → 62 → 63 → 65 tests (2026-02-14)
+- ✅ **Test count improved**: 41 → 49 → 55 → 61 → 62 → 63 → 65 → 69 tests (2026-02-14)
 - ✅ **Coverage improved**: ~80% → ~85% → ~87% (2026-02-14)
 - ✅ **SnapFXTest created**: 7 comprehensive tests for hide/restore (2026-02-11)
 - 📋 **Add performance tests**: Large layouts with 50+ nodes
@@ -115,6 +115,7 @@ This document tracks all planned features, improvements, and bug fixes for SnapF
 **Priority**: 🟡 High
 
 - ✅ **Fix tab overflow dropdown entries**: Menu shows empty items when tabs use custom graphics (2026-02-14)
+- ✅ **Unify tab/title close handling**: Close buttons route to the same handler, tab close stays visible, styling is aligned, and visibility is configurable (2026-02-14)
 
 **Estimated Time**: 0.5 days
 

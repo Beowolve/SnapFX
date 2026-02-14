@@ -3,6 +3,7 @@ package com.github.beowolve.snapfx.view;
 import com.github.beowolve.snapfx.dnd.DockDragService;
 import com.github.beowolve.snapfx.model.DockGraph;
 import com.github.beowolve.snapfx.model.DockNode;
+import javafx.beans.binding.BooleanExpression;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -131,11 +132,35 @@ public class DockNodeView extends VBox {
         });
     }
 
+    public void bindCloseButtonVisible(BooleanExpression expression) {
+        if (expression == null) {
+            return;
+        }
+        closeButton.visibleProperty().unbind();
+        closeButton.visibleProperty().bind(expression);
+        closeButton.setManaged(true);
+    }
+
+    public void setCloseButtonVisible(boolean visible) {
+        closeButton.visibleProperty().unbind();
+        closeButton.setVisible(visible);
+        closeButton.setManaged(true);
+    }
+
+    public boolean isCloseButtonVisible() {
+        return closeButton.isVisible();
+    }
+
     public DockNode getDockNode() {
         return dockNode;
     }
 
     public HBox getHeader() {
         return header;
+    }
+
+    public void setHeaderVisible(boolean visible) {
+        header.setVisible(visible);
+        header.setManaged(visible);
     }
 }

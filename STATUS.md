@@ -5,7 +5,7 @@
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 65 tests passing (42 + 9 + 7 + 7)  
+✅ **Tests**: All 69 tests passing (42 + 9 + 11 + 7)  
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully
 
@@ -86,9 +86,9 @@
 ### Testing (100% ✅)
 - ✅ DockGraphTest (42 tests, +10 regression tests)
 - ✅ DockLayoutSerializerTest (9 tests, +1 regression test)
-- ✅ DockLayoutEngineTest (7 tests)
+- ✅ DockLayoutEngineTest (11 tests)
 - ✅ **SnapFXTest (7 tests)** - NEW: Hide/Restore functionality tests
-- ✅ **65/65 tests passing** ✅ (was 49)
+- ✅ **69/69 tests passing** ✅ (was 49)
 - ✅ **Regression tests** for all critical bug fixes
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
 - ✅ ~87% code coverage (improved from ~85%)
@@ -124,15 +124,16 @@
 5. ~~❌ Drag & Drop: Empty containers remain after complex D&D operations~~ ✅ **FIXED** (2026-02-10)
 6. ~~❌ Drag & Drop: Dropping on same position changes splitter positions~~ ✅ **FIXED** (2026-02-14)
 7. ~~❌ Drag & Drop: Tab reordering can miss drops despite insert indicator~~ ✅ **FIXED** (2026-02-14)
+8. ~~❌ UI: Tab close bypasses hidden nodes menu~~ ✅ **FIXED** (2026-02-14)
 
 ### Medium Priority
-8. ⚠️ Performance: Large layouts not tested
-9. ⚠️ Memory: View caching strategy could be improved
-10. ~~⚠️ UI: Tab overflow dropdown shows empty entries when tab graphics are custom~~ ✅ **FIXED** (2026-02-14)
+9. ⚠️ Performance: Large layouts not tested
+10. ⚠️ Memory: View caching strategy could be improved
+11. ~~⚠️ UI: Tab overflow dropdown shows empty entries when tab graphics are custom~~ ✅ **FIXED** (2026-02-14)
 
 ### Low Priority
-11. ⚠️ UI: Animations missing
-12. ⚠️ UI: Keyboard shortcuts not implemented
+12. ⚠️ UI: Animations missing
+13. ⚠️ UI: Keyboard shortcuts not implemented
 
 ## Recent Changes (2026-02-14)
 
@@ -143,10 +144,12 @@
 - Fixed in-place tab reordering to prevent TabPane flattening and missed drops
 - Moved the drag ghost overlay to the bottom-right of the cursor to keep targets visible
 - Preserved divider positions on no-op edge drops and added regression coverage
-- Expanded tab insert/reorder tests including index clamping (DockGraphTest: 42 tests, total: 65)
+- Expanded tab insert/reorder tests including index clamping (DockGraphTest: 42 tests, total: 69)
 
 ### UI Fixes
 - Fixed tab overflow dropdown entries for custom tab graphics by binding tab text to the node title
+- Unified tab/title close handling and added close button + title bar visibility modes
+- Ensured tab close button stays visible and aligns styling/hover with the title close button
 
 ### Code Quality
 - Normalized JavaFX imports and list accessors (`getFirst`/`getLast`/`isEmpty`) in production code; tests may use index access for clarity
