@@ -20,7 +20,7 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 | Phase | Status | Completion |
 |-------|--------|------------|
 | Phase 1: Core Stability | ✅ Completed | 100% |
-| Phase 2: Floating Windows | 📋 Planned | 0% |
+| Phase 2: Floating Windows | 🚧 In Progress | 40% |
 | Phase 3: User Experience | 📋 Planned | 0% |
 | Phase 4: Advanced Features | 📋 Planned | 0% |
 | Phase 5: Themes & Customization | 📋 Planned | 0% |
@@ -28,7 +28,7 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 | Phase 7: Developer Experience | 📋 Planned | 32% |
 | Phase 8: Production Readiness | 📋 Planned | 20% |
 
-**Total Project Completion**: ~51%
+**Total Project Completion**: ~53%
 
 ---
 
@@ -77,13 +77,13 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 ### 2.1 Floating Window Core
 **Priority**: 🟢 Medium
 
-- 📋 **DockFloatingWindow class**: Manage external stages
-- 📋 **Detach from main window**: Drag tab to create floating window
-- 📋 **Attach to main window**: Drag floating window back
-- 📋 **Multi-monitor support**: Position on any screen
+- ✅ **DockFloatingWindow class**: Manage external stages
+- ✅ **Detach from main window**: Drag node outside main window to create floating window
+- 🚧 **Attach to main window**: Attach button and API done; drag-attach pending
+- ✅ **Multi-monitor support**: Position by explicit screen coordinates (`floatNode(node, x, y)`)
 - 📋 **Window state persistence**: Save/load floating window positions
 
-**Estimated Time**: 3-4 days
+**Estimated Time**: In progress
 
 ---
 
@@ -186,6 +186,18 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 - 💡 **Nested layouts**: Combine with split/tab containers
 
 **Estimated Time**: 5-7 days
+
+---
+
+### 4.5 Floating Window Snapping
+**Priority**: ðŸŸ¢ Medium
+
+- ðŸ“‹ **Window-to-window snapping**: Snap floating windows to each other while moving
+- ðŸ“‹ **Snap to main docking area**: Magnetic alignment at main layout borders
+- ðŸ“‹ **Configurable snap distance**: API/property to tune sensitivity
+- ðŸ“‹ **Visual snap guides**: Alignment indicator lines while dragging
+
+**Estimated Time**: 2-3 days
 
 ---
 
