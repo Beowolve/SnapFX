@@ -53,8 +53,8 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (4 test classes, 82 tests)
-- ✅ `DockGraphTest` (51 tests) - Tree manipulation and algorithms
+### Testing (6 test classes, 93 tests)
+- ✅ `DockGraphTest` (54 tests) - Tree manipulation and algorithms
   - **+11 regression tests** for critical bug fixes
   - Tests for empty container prevention
   - Tests for target invalidation during move
@@ -64,9 +64,12 @@ SnapFX has been fully implemented with core functionality and is production-read
   - Edge case tests for null/no-op/detached-target handling
 - ✅ `DockLayoutSerializerTest` (9 tests) - Persistence functionality
   - **+1 regression test** for locked state synchronization (2026-02-10)
-- ✅ `DockLayoutEngineTest` (15 tests) - View creation with TestFX
+- ✅ `DockLayoutEngineTest` (19 tests) - View creation with TestFX
   - Memory cleanup tests for cache boundedness and undock/rebuild cycles
+  - Layout optimization tests for empty/single-child roots
 - ✅ `SnapFXTest` (7 tests) - Hide/Restore functionality
+- ✅ `DockGraphSplitTargetDockingTest` (1 test) - Split-target docking regression coverage
+- ✅ `DockDragServiceTest` (3 tests) - D&D visibility and tab-hover activation behavior
 - ✅ All tests passing ✅
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
 - ✅ Mandatory regression tests for all bug fixes
@@ -208,8 +211,8 @@ In IntelliJ IDEA:
 
 - **Total Java Files**: 31
 - **Production Classes**: 26
-- **Test Classes**: 4
-- **Test Cases**: 82 (all passing ✅) - +13 regression tests
+- **Test Classes**: 6
+- **Test Cases**: 93 (all passing ✅) - +13 regression tests
 - **Lines of Code**: ~3,500+ (estimated)
 - **Documentation**: 7 Core Markdown files
 - **Test Coverage**: ~87% (estimated, improved from ~80%)
@@ -242,7 +245,7 @@ In IntelliJ IDEA:
 
 See [ROADMAP.md](ROADMAP.md) for planned features and improvements.
 
-**Current Priority**: Complete remaining Phase 1 layout optimization tasks.
+**Current Priority**: Start Phase 2 (Floating Window Core).
 
 ---
 

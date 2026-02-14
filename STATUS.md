@@ -5,7 +5,7 @@
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 82 tests passing (51 + 9 + 15 + 7)  
+✅ **Tests**: All 93 tests passing (54 + 9 + 19 + 7 + 1 + 3)  
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully
 
@@ -84,11 +84,13 @@
 - ✅ Documentation updated
 
 ### Testing (100% ✅)
-- ✅ DockGraphTest (51 tests, +11 regression tests)
+- ✅ DockGraphTest (54 tests, +11 regression tests)
 - ✅ DockLayoutSerializerTest (9 tests, +1 regression test)
-- ✅ DockLayoutEngineTest (15 tests)
+- ✅ DockLayoutEngineTest (19 tests)
 - ✅ **SnapFXTest (7 tests)** - NEW: Hide/Restore functionality tests
-- ✅ **82/82 tests passing** ✅ (was 49)
+- ✅ DockGraphSplitTargetDockingTest (1 test)
+- ✅ DockDragServiceTest (3 tests)
+- ✅ **93/93 tests passing** ✅ (was 49)
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Edge case tests** (null inputs, detached nodes, invalid move targets, no-op revision checks)
@@ -165,6 +167,8 @@
 ### Layout Optimization
 - Verified SplitPane optimization prevents nested same-orientation splits (added vertical regression coverage)
 - Preserved divider positions on middle inserts to minimize layout shifts
+- Added preferred-size-aware initial divider positioning (with bounds clamping) for two-pane splits
+- Added empty-layout fallback and single-child root unwrapping in the layout engine
 
 ### Testing
 - Added large-layout performance coverage in `DockGraphTest` (50+ nodes)
@@ -172,6 +176,7 @@
 - Added memory cleanup coverage in `DockLayoutEngineTest` (cache boundedness and undock cleanup)
 - Added listener/binding cleanup on view cache resets to prevent stale view retention
 - Added edge-case coverage for null/no-op operations and external-target move fallback
+- Added layout-optimization coverage for divider sizing and single-node/empty-root rendering paths
 ## Recent Changes (2026-02-11)
 
 ### Close Button Handler Fix (CRITICAL FIX)

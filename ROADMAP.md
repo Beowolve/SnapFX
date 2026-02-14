@@ -19,7 +19,7 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 
 | Phase | Status | Completion |
 |-------|--------|------------|
-| Phase 1: Core Stability | 🚧 In Progress | 99% |
+| Phase 1: Core Stability | ✅ Completed | 100% |
 | Phase 2: Floating Windows | 📋 Planned | 0% |
 | Phase 3: User Experience | 📋 Planned | 0% |
 | Phase 4: Advanced Features | 📋 Planned | 0% |
@@ -28,11 +28,11 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 | Phase 7: Developer Experience | 📋 Planned | 32% |
 | Phase 8: Production Readiness | 📋 Planned | 20% |
 
-**Total Project Completion**: ~50%
+**Total Project Completion**: ~51%
 
 ---
 
-## Phase 1: Core Stability (Current)
+## Phase 1: Core Stability
 
 ### 1.1 Drag & Drop Improvements
 **Priority**: 🔴 Critical
@@ -59,11 +59,11 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 ### 1.4 Layout Optimization
 **Priority**: 🟡 High
 
-- 📋 **Smart divider positioning**: Better initial divider positions
-- 📋 **Empty layout handling**: Proper behavior when graph is empty
-- 📋 **Single node optimization**: Skip unnecessary containers
+- ✅ **Smart divider positioning**: Better initial divider positions
+- ✅ **Empty layout handling**: Proper behavior when graph is empty
+- ✅ **Single node optimization**: Skip unnecessary containers
 
-**Estimated Time**: 1 day
+**Estimated Time**: Completed
 
 ### 1.5 UI Bug Fixes
 **Priority**: 🟡 High
