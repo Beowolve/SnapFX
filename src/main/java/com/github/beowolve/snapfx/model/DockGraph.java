@@ -453,6 +453,10 @@ public class DockGraph {
         DockContainer sourceParent = node.getParent();
         DockContainer targetParent = target.getParent();
 
+        if (isNoOpDropToParentSplitEdge(node, target, position)) {
+            return;
+        }
+
         // Special case: Moving within the same SplitPane with the same orientation
         // Check if we're trying to dock in a way that would keep it in the same parent
         if (position != DockPosition.CENTER && sourceParent instanceof DockSplitPane sourceSplit) {
@@ -599,6 +603,40 @@ public class DockGraph {
             current = parent;
         }
         return false;
+    }
+
+    private boolean isNoOpDropToParentSplitEdge(DockNode node, DockElement target, DockPosition position) {
+        if (node == null || target == null || position == null) {
+            return false;
+        }
+        if (position == DockPosition.CENTER) {
+            return false;
+        }
+        if (!(target instanceof DockSplitPane splitPane)) {
+            return false;
+        }
+        if (node.getParent() != splitPane) {
+            return false;
+        }
+        Orientation requiredOrientation =
+            (position == DockPosition.LEFT || position == DockPosition.RIGHT)
+                ? Orientation.HORIZONTAL
+                : Orientation.VERTICAL;
+        if (splitPane.getOrientation() != requiredOrientation) {
+            return false;
+        }
+
+        int nodeIndex = splitPane.getChildren().indexOf(node);
+        if (nodeIndex < 0) {
+            return false;
+        }
+
+        if (position == DockPosition.LEFT || position == DockPosition.TOP) {
+            return nodeIndex == 0;
+        }
+
+        int lastIndex = splitPane.getChildren().size() - 1;
+        return nodeIndex == lastIndex;
     }
 
     public int getDockNodeCount(String dockNodeId) {

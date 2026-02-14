@@ -1015,6 +1015,48 @@ class DockGraphTest {
     }
 
     /**
+     * Regression test: Dropping on a parent SplitPane edge when the node already sits there is a no-op.
+     * Bug: No-op drops still adjusted divider positions even though layout did not change.
+     * Fix: Detect no-op edge drops on the parent SplitPane and skip the move.
+     * Date: 2026-02-14
+     */
+    @Test
+    void testMoveToParentSplitEdgeIsNoOp() {
+        DockNode left = new DockNode(new Label("Left"), "Left");
+        DockNode center = new DockNode(new Label("Center"), "Center");
+        DockNode right = new DockNode(new Label("Right"), "Right");
+
+        dockGraph.dock(left, null, DockPosition.CENTER);
+        dockGraph.dock(center, left, DockPosition.RIGHT);
+        dockGraph.dock(right, center, DockPosition.RIGHT);
+
+        DockSplitPane split = (DockSplitPane) dockGraph.getRoot();
+        split.setDividerPosition(0, 0.25);
+        split.setDividerPosition(1, 0.6);
+
+        double div0 = split.getDividerPositions().get(0).get();
+        double div1 = split.getDividerPositions().get(1).get();
+        long revBefore = dockGraph.getRevision();
+
+        dockGraph.move(left, split, DockPosition.LEFT);
+
+        assertEquals(revBefore, dockGraph.getRevision());
+        assertSame(split, dockGraph.getRoot());
+        assertEquals(left, split.getChildren().get(0));
+        assertEquals(div0, split.getDividerPositions().get(0).get(), 0.0001);
+        assertEquals(div1, split.getDividerPositions().get(1).get(), 0.0001);
+
+        long revBeforeRight = dockGraph.getRevision();
+
+        dockGraph.move(right, split, DockPosition.RIGHT);
+
+        assertEquals(revBeforeRight, dockGraph.getRevision());
+        assertEquals(right, split.getChildren().get(2));
+        assertEquals(div0, split.getDividerPositions().get(0).get(), 0.0001);
+        assertEquals(div1, split.getDividerPositions().get(1).get(), 0.0001);
+    }
+
+    /**
      * Helper method to verify no empty containers exist in the tree.
      * This is the key regression test for the auto-cleanup bug fix.
      */

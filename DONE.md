@@ -52,9 +52,9 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (4 test classes, 62 tests)
-- ✅ `DockGraphTest` (39 tests) - Tree manipulation and algorithms
-  - **+7 regression tests** for critical bug fixes (2026-02-10)
+### Testing (4 test classes, 63 tests)
+- ✅ `DockGraphTest` (40 tests) - Tree manipulation and algorithms
+  - **+8 regression tests** for critical bug fixes (2026-02-10)
   - Tests for empty container prevention
   - Tests for target invalidation during move
   - Tests for complex D&D sequences
@@ -130,7 +130,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **Nested TabPanes**: Verified to work correctly (2026-02-10)
   - TabPanes can be nested when needed
   - Current behavior is acceptable
-- ⚠️ **Splitter Preservation**: Still needs improvement (see ROADMAP.md)
+- ✅ **Splitter Preservation**: No-op edge drops preserve dividers (2026-02-14)
 
 ### Persistence
 - ✅ **JSON Serialization**: Save complete layout structure
@@ -198,7 +198,7 @@ In IntelliJ IDEA:
 - **Total Java Files**: 31
 - **Production Classes**: 26
 - **Test Classes**: 4
-- **Test Cases**: 62 (all passing ✅) - +8 regression tests
+- **Test Cases**: 63 (all passing ✅) - +9 regression tests
 - **Lines of Code**: ~3,500+ (estimated)
 - **Documentation**: 7 Core Markdown files
 - **Test Coverage**: ~87% (estimated, improved from ~80%)
@@ -231,7 +231,7 @@ In IntelliJ IDEA:
 
 See [ROADMAP.md](ROADMAP.md) for planned features and improvements.
 
-**Current Priority**: Fix remaining Drag & Drop issues and the tab overflow dropdown bug in Phase 1.
+**Current Priority**: Fix remaining Drag & Drop issues and layout optimization tasks in Phase 1.
 
 ---
 

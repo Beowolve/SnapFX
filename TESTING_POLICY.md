@@ -151,6 +151,12 @@ These tests ensure fixed critical bugs never return:
 **Bug**: UI locked property not synchronized after loading layout  
 **Fix**: Sync lockLayoutProperty with DockGraph.isLocked() after load
 
+### 2026-02-14: No-Op Drop Preserves Divider Positions
+- `testMoveToParentSplitEdgeIsNoOp()`
+
+**Bug**: Dropping on the parent split edge still adjusted dividers when no layout change occurred  
+**Fix**: Detect no-op edge drops on the parent SplitPane and skip the move
+
 ### Structural Integrity Tests
 - `assertNoEmptyContainers()` - No empty containers anywhere
 - `assertNoNestedTabPanes()` - No TabPane in TabPane
@@ -267,14 +273,14 @@ void testSomething() {
 
 **As of 2026-02-14:**
 
-- **Total Tests**: 62 (was 49)
+- **Total Tests**: 63 (was 49)
 - **Test Classes**: 4
 - **Test Coverage**: ~87% (estimated)
 - **All Tests**: ✅ PASSING
 
 ### Test Distribution
-- `DockGraphTest`: 39 tests (was 27)
-  - 7 new regression tests added
+- `DockGraphTest`: 40 tests (was 27)
+  - 8 new regression tests added
 - `DockLayoutSerializerTest`: 9 tests (was 8)
   - 1 new regression test added
 - `DockLayoutEngineTest`: 7 tests
@@ -289,6 +295,7 @@ void testSomething() {
 - ✅ Cache invalidation
 - ✅ Auto-rebuild
 - ✅ Locked state synchronization
+- ✅ No-op drop divider preservation
 
 ---
 

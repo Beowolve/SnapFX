@@ -44,13 +44,12 @@ This document tracks all planned features, improvements, and bug fixes for SnapF
 - ✅ **Verified nested TabPanes work correctly** (2026-02-10): Current behavior is acceptable
   - TabPanes can be nested when needed
   - No optimization required
+
+- ✅ **Fixed splitter position preservation** (2026-02-14): No-op edge drops preserve divider positions
+  - Skips moves that would not change layout
+  - Divider positions remain unchanged on no-op drops
   
 #### Issues to Fix
-- ❌ **Fix splitter position preservation**: Dropping on same position changes splitters
-  - Current positions should be preserved when layout doesn't change
-  - Only adjust dividers when absolutely necessary
-  - Respect existing positions during insertion
-
 - ❌ **Fix nested SplitPane optimization**: Prevent SplitPane within SplitPane of same orientation
   - Detect when adding SplitPane to SplitPane with matching orientation
   - Flatten to single SplitPane with all children
@@ -88,7 +87,7 @@ This document tracks all planned features, improvements, and bug fixes for SnapF
   - Close button handler integration (NEW)
   - Hide/Restore functionality (NEW)
 - ✅ **Testing Policy established**: TESTING_POLICY.md created (2026-02-10)
-- ✅ **Test count improved**: 41 → 49 → 55 → 61 → 62 tests (2026-02-14)
+- ✅ **Test count improved**: 41 → 49 → 55 → 61 → 62 → 63 tests (2026-02-14)
 - ✅ **Coverage improved**: ~80% → ~85% → ~87% (2026-02-14)
 - ✅ **SnapFXTest created**: 7 comprehensive tests for hide/restore (2026-02-11)
 - 📋 **Add performance tests**: Large layouts with 50+ nodes

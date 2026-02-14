@@ -5,7 +5,7 @@
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 62 tests passing (39 + 9 + 7 + 7)  
+✅ **Tests**: All 63 tests passing (40 + 9 + 7 + 7)  
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully
 
@@ -39,7 +39,7 @@
 - ✅ Depth-first drop target selection and zone validation
 - ✅ Nested TabPanes work correctly (verified)
 - ✅ Target invalidation handling (prevents empty containers)
-- ⚠️ Splitter position preservation needs improvement
+- ✅ Splitter positions preserved on no-op edge drops
 
 ### Persistence (100% ✅)
 - ✅ JSON serialization (Gson)
@@ -83,11 +83,11 @@
 - ✅ Documentation updated
 
 ### Testing (100% ✅)
-- ✅ DockGraphTest (39 tests, +7 regression tests)
+- ✅ DockGraphTest (40 tests, +8 regression tests)
 - ✅ DockLayoutSerializerTest (9 tests, +1 regression test)
 - ✅ DockLayoutEngineTest (7 tests)
 - ✅ **SnapFXTest (7 tests)** - NEW: Hide/Restore functionality tests
-- ✅ **62/62 tests passing** ✅ (was 49)
+- ✅ **63/63 tests passing** ✅ (was 49)
 - ✅ **Regression tests** for all critical bug fixes
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
 - ✅ ~87% code coverage (improved from ~85%)
@@ -121,7 +121,7 @@
 3. ~~❌ Drag & Drop: D&D stops working completely after first drop~~ ✅ **FIXED** (2026-02-10)
 4. ~~❌ Layout: Nested TabPanes can occur (should be optimized)~~ ✅ **VERIFIED OK** (2026-02-10)
 5. ~~❌ Drag & Drop: Empty containers remain after complex D&D operations~~ ✅ **FIXED** (2026-02-10)
-6. ❌ Drag & Drop: Dropping on same position changes splitter positions
+6. ~~❌ Drag & Drop: Dropping on same position changes splitter positions~~ ✅ **FIXED** (2026-02-14)
 
 ### Medium Priority
 7. ⚠️ Performance: Large layouts not tested
@@ -139,7 +139,8 @@
 - Added configurable drop-zone visualization modes (ALL/SUBTREE/DEFAULT/ACTIVE/OFF)
 - Added per-tab insert targeting with visible insert line
 - Moved the drag ghost overlay to the bottom-right of the cursor to keep targets visible
-- Expanded tab insert/reorder tests including index clamping (DockGraphTest: 39 tests, total: 62)
+- Preserved divider positions on no-op edge drops and added regression coverage
+- Expanded tab insert/reorder tests including index clamping (DockGraphTest: 40 tests, total: 63)
 
 ### UI Fixes
 - Fixed tab overflow dropdown entries for custom tab graphics by binding tab text to the node title
