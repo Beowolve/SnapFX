@@ -263,12 +263,13 @@ public class DockGraph {
                 ? Orientation.HORIZONTAL
                 : Orientation.VERTICAL;
 
-        DockContainer parent = target.getParent();
+        DockElement effectiveTarget = resolveSplitDockTarget(target, position, orientation);
+        DockContainer parent = effectiveTarget.getParent();
 
         // Optimization: If parent is already a SplitPane with the same orientation,
         // add the node directly to the parent instead of creating a nested SplitPane
         if (parent instanceof DockSplitPane parentSplit && parentSplit.getOrientation() == orientation) {
-            int targetIndex = parent.getChildren().indexOf(target);
+            int targetIndex = parent.getChildren().indexOf(effectiveTarget);
 
             // Store existing divider positions before modification
             List<Double> savedPositions = new ArrayList<>();
@@ -325,11 +326,11 @@ public class DockGraph {
 
         if (parent != null) {
             // Compute index before removal
-            int index = parent.getChildren().indexOf(target);
+            int index = parent.getChildren().indexOf(effectiveTarget);
             // Remove target directly from the children list without triggering cleanup
             if (index >= 0) {
                 parent.getChildren().remove(index);
-                target.setParent(null);
+                effectiveTarget.setParent(null);
             }
             // Insert SplitPane at the correct position
             if (index >= 0 && index <= parent.getChildren().size()) {
@@ -346,11 +347,24 @@ public class DockGraph {
         // Add children in the correct order
         if (position == DockPosition.LEFT || position == DockPosition.TOP) {
             splitPane.addChild(node);
-            splitPane.addChild(target);
+            splitPane.addChild(effectiveTarget);
         } else {
-            splitPane.addChild(target);
+            splitPane.addChild(effectiveTarget);
             splitPane.addChild(node);
         }
+    }
+
+    private DockElement resolveSplitDockTarget(DockElement target, DockPosition position, Orientation orientation) {
+        if (!(target instanceof DockSplitPane splitPane)) {
+            return target;
+        }
+        if (splitPane.getOrientation() != orientation || splitPane.getChildren().isEmpty()) {
+            return target;
+        }
+        if (position == DockPosition.LEFT || position == DockPosition.TOP) {
+            return splitPane.getChildren().getFirst();
+        }
+        return splitPane.getChildren().getLast();
     }
 
     /**
