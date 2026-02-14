@@ -287,13 +287,13 @@ void testSomething() {
 
 **As of 2026-02-14:**
 
-- **Total Tests**: 72 (was 49)
+- **Total Tests**: 74 (was 49)
 - **Test Classes**: 4
 - **Test Coverage**: ~87% (estimated)
 - **All Tests**: ✅ PASSING
 
 ### Test Distribution
-- `DockGraphTest`: 44 tests (was 27)
+- `DockGraphTest`: 46 tests (was 27)
   - 11 new regression tests added
 - `DockLayoutSerializerTest`: 9 tests (was 8)
   - 1 new regression test added
@@ -366,7 +366,7 @@ Before merging any PR:
 - 📋 Automated mutation testing
 - 📋 Property-based testing for model
 - 📋 Performance benchmarks
-- 📋 Stress tests for large layouts
+- 📋 Performance trend tracking for large-layout stress tests
 - 📋 Memory leak detection tests
 - 📋 Multi-threaded operation tests
 

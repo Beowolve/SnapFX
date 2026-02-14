@@ -53,13 +53,14 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (4 test classes, 72 tests)
-- ✅ `DockGraphTest` (44 tests) - Tree manipulation and algorithms
+### Testing (4 test classes, 74 tests)
+- ✅ `DockGraphTest` (46 tests) - Tree manipulation and algorithms
   - **+11 regression tests** for critical bug fixes
   - Tests for empty container prevention
   - Tests for target invalidation during move
   - Tests for complex D&D sequences
   - Tests for flattening logic
+  - Performance stress tests for large layouts (50+ nodes)
 - ✅ `DockLayoutSerializerTest` (9 tests) - Persistence functionality
   - **+1 regression test** for locked state synchronization (2026-02-10)
 - ✅ `DockLayoutEngineTest` (12 tests) - View creation with TestFX
@@ -205,7 +206,7 @@ In IntelliJ IDEA:
 - **Total Java Files**: 31
 - **Production Classes**: 26
 - **Test Classes**: 4
-- **Test Cases**: 72 (all passing ✅) - +13 regression tests
+- **Test Cases**: 74 (all passing ✅) - +13 regression tests
 - **Lines of Code**: ~3,500+ (estimated)
 - **Documentation**: 7 Core Markdown files
 - **Test Coverage**: ~87% (estimated, improved from ~80%)
@@ -238,7 +239,7 @@ In IntelliJ IDEA:
 
 See [ROADMAP.md](ROADMAP.md) for planned features and improvements.
 
-**Current Priority**: Fix remaining Drag & Drop issues and layout optimization tasks in Phase 1.
+**Current Priority**: Complete remaining Phase 1 quality tasks (memory leak tests, edge-case tests, layout optimization).
 
 ---
 

@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -1163,6 +1164,98 @@ class DockGraphTest {
         assertEquals(right, split.getChildren().get(2));
         assertEquals(div0, split.getDividerPositions().get(0).get(), 0.0001);
         assertEquals(div1, split.getDividerPositions().get(1).get(), 0.0001);
+    }
+
+    /**
+     * Performance test for large layouts (Roadmap Phase 1.3).
+     * Ensures docking 50+ nodes remains fast and structurally valid.
+     * Date: 2026-02-14
+     */
+    @Test
+    void testLargeLayoutDockPerformance50PlusNodes() {
+        assertTimeout(Duration.ofSeconds(2), () -> {
+            List<DockNode> nodes = buildLargeLayout(60);
+
+            assertEquals(60, nodes.size());
+            assertNotNull(dockGraph.getRoot());
+            assertEquals(60, collectLeafNodes(dockGraph.getRoot()).size());
+            assertNoEmptyContainers(dockGraph.getRoot());
+            assertNoNestedSplitPanesWithSameOrientation(dockGraph.getRoot());
+        });
+    }
+
+    /**
+     * Performance test for heavy move/cleanup operations on large layouts (Roadmap Phase 1.3).
+     * Ensures many operations on 50+ nodes keep the graph responsive and valid.
+     * Date: 2026-02-14
+     */
+    @Test
+    void testLargeLayoutMoveAndCleanupPerformance50PlusNodes() {
+        assertTimeout(Duration.ofSeconds(3), () -> {
+            List<DockNode> nodes = buildLargeLayout(70);
+            DockPosition[] positions = {
+                DockPosition.LEFT,
+                DockPosition.RIGHT,
+                DockPosition.TOP,
+                DockPosition.BOTTOM,
+                DockPosition.CENTER
+            };
+
+            for (int i = 0; i < 140; i++) {
+                DockNode source = nodes.get(i % nodes.size());
+                DockNode target = nodes.get((i * 11 + 7) % nodes.size());
+                if (source == target) {
+                    target = nodes.get((i * 11 + 8) % nodes.size());
+                }
+
+                DockPosition position = positions[i % positions.length];
+                dockGraph.move(source, target, position);
+            }
+
+            for (int i = 0; i < nodes.size(); i += 3) {
+                dockGraph.undock(nodes.get(i));
+            }
+
+            int removedCount = (nodes.size() + 2) / 3;
+            int expectedRemaining = nodes.size() - removedCount;
+
+            assertNotNull(dockGraph.getRoot());
+            assertEquals(expectedRemaining, collectLeafNodes(dockGraph.getRoot()).size());
+            assertNoEmptyContainers(dockGraph.getRoot());
+        });
+    }
+
+    private List<DockNode> buildLargeLayout(int nodeCount) {
+        List<DockNode> nodes = new ArrayList<>(nodeCount);
+        if (nodeCount <= 0) {
+            return nodes;
+        }
+
+        DockNode rootNode = createNode(0);
+        dockGraph.dock(rootNode, null, DockPosition.CENTER);
+        nodes.add(rootNode);
+
+        DockPosition[] positions = {
+            DockPosition.RIGHT,
+            DockPosition.BOTTOM,
+            DockPosition.CENTER,
+            DockPosition.LEFT,
+            DockPosition.TOP
+        };
+
+        for (int i = 1; i < nodeCount; i++) {
+            DockNode node = createNode(i);
+            DockNode target = nodes.get((i * 17 + 3) % nodes.size());
+            DockPosition position = positions[i % positions.length];
+            dockGraph.dock(node, target, position);
+            nodes.add(node);
+        }
+
+        return nodes;
+    }
+
+    private DockNode createNode(int index) {
+        return new DockNode(new Label("Node" + index), "Node " + index);
     }
 
     /**

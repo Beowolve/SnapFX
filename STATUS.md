@@ -5,7 +5,7 @@
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 72 tests passing (44 + 9 + 12 + 7)  
+✅ **Tests**: All 74 tests passing (46 + 9 + 12 + 7)  
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully
 
@@ -84,11 +84,12 @@
 - ✅ Documentation updated
 
 ### Testing (100% ✅)
-- ✅ DockGraphTest (44 tests, +11 regression tests)
+- ✅ DockGraphTest (46 tests, +11 regression tests)
 - ✅ DockLayoutSerializerTest (9 tests, +1 regression test)
 - ✅ DockLayoutEngineTest (12 tests)
 - ✅ **SnapFXTest (7 tests)** - NEW: Hide/Restore functionality tests
-- ✅ **72/72 tests passing** ✅ (was 49)
+- ✅ **74/74 tests passing** ✅ (was 49)
+- ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Regression tests** for all critical bug fixes
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
 - ✅ ~87% code coverage (improved from ~85%)
@@ -118,7 +119,7 @@
 ## Issues
 
 ### Open
-- ⚠️ Performance: Large layouts not tested
+- ⚠️ Performance: Benchmark trend tracking for large layouts not implemented
 - ⚠️ Memory: View caching strategy could be improved
 - ⚠️ UI: Animations missing
 - ⚠️ UI: Keyboard shortcuts not implemented
@@ -143,7 +144,7 @@
 - Fixed in-place tab reordering to prevent TabPane flattening and missed drops
 - Moved the drag ghost overlay to the bottom-right of the cursor to keep targets visible
 - Preserved divider positions on no-op edge drops and added regression coverage
-- Expanded tab insert/reorder tests including index clamping (DockGraphTest: 44 tests, total: 72)
+- Expanded tab insert/reorder tests including index clamping (DockGraphTest: 46 tests, total: 74)
 
 ### UI Fixes
 - Fixed tab overflow dropdown entries for custom tab graphics by binding tab text to the node title
@@ -161,6 +162,10 @@
 ### Layout Optimization
 - Verified SplitPane optimization prevents nested same-orientation splits (added vertical regression coverage)
 - Preserved divider positions on middle inserts to minimize layout shifts
+
+### Testing
+- Added large-layout performance coverage in `DockGraphTest` (50+ nodes)
+- Added stress scenario for repeated move/cleanup cycles on large graphs
 ## Recent Changes (2026-02-11)
 
 ### Close Button Handler Fix (CRITICAL FIX)
