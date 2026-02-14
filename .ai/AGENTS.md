@@ -10,6 +10,8 @@ These instructions are shared for all AI agents working on this workspace.
 - Keep changes scoped and avoid unrelated edits.
 - After successful changes, prepare a small, focused commit (stage relevant files and propose a commit message).
 - Always `git add` new files when preparing a commit.
+- Before creating a commit, always show the proposed commit message to the user and get confirmation.
+- Keep commits minimally mixed: one logical topic/fix per commit; avoid bundling unrelated changes.
 
 ## DnD-Specific Rules
 - Any drag-and-drop change must include model-level tests for the affected behavior.
@@ -24,3 +26,4 @@ These instructions are shared for all AI agents working on this workspace.
 - Write all code and documentation in English.
 - Prefer explicit imports over fully-qualified JavaFX class names; use fully-qualified names only when unavoidable.
 - Prefer `getFirst()`, `getLast()`, and `isEmpty()` over direct index access in production code when available; tests may use index access for clarity.
+- Keep function complexity at a reasonable level, aligned with SonarQube guidance (target low cognitive complexity; refactor methods approaching high complexity, e.g. around 15+ cognitive complexity).
