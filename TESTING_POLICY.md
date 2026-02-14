@@ -287,13 +287,13 @@ void testSomething() {
 
 **As of 2026-02-14:**
 
-- **Total Tests**: 77 (was 49)
+- **Total Tests**: 82 (was 49)
 - **Test Classes**: 4
 - **Test Coverage**: ~87% (estimated)
 - **All Tests**: ✅ PASSING
 
 ### Test Distribution
-- `DockGraphTest`: 46 tests (was 27)
+- `DockGraphTest`: 51 tests (was 27)
   - 11 new regression tests added
 - `DockLayoutSerializerTest`: 9 tests (was 8)
   - 1 new regression test added
@@ -314,6 +314,7 @@ void testSomething() {
 - ✅ Tab close handler consistency
 - ✅ SplitPane middle insert divider preservation
 - ✅ View cache cleanup and boundedness across rebuild cycles
+- ✅ Null/no-op/detached-target edge case handling
 
 ---
 

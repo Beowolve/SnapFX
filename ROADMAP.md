@@ -19,7 +19,7 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 
 | Phase | Status | Completion |
 |-------|--------|------------|
-| Phase 1: Core Stability | 🚧 In Progress | 97% |
+| Phase 1: Core Stability | 🚧 In Progress | 99% |
 | Phase 2: Floating Windows | 📋 Planned | 0% |
 | Phase 3: User Experience | 📋 Planned | 0% |
 | Phase 4: Advanced Features | 📋 Planned | 0% |
@@ -28,7 +28,7 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 | Phase 7: Developer Experience | 📋 Planned | 32% |
 | Phase 8: Production Readiness | 📋 Planned | 20% |
 
-**Total Project Completion**: ~49%
+**Total Project Completion**: ~50%
 
 ---
 
@@ -51,9 +51,9 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 
 - ✅ **Add performance tests**: Large layouts with 50+ nodes
 - ✅ **Add memory leak tests**: Ensure proper cleanup
-- 📋 **Add edge case tests**: More boundary conditions
+- ✅ **Add edge case tests**: More boundary conditions
 
-**Estimated Time**: 0.5 day remaining
+**Estimated Time**: Completed
 
 
 ### 1.4 Layout Optimization
