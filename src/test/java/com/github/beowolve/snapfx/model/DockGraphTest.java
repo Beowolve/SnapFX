@@ -114,6 +114,85 @@ class DockGraphTest {
     }
 
     @Test
+    void testDockNullNodeIsNoOp() {
+        long revBefore = dockGraph.getRevision();
+
+        dockGraph.dock(null, null, DockPosition.CENTER);
+
+        assertNull(dockGraph.getRoot());
+        assertEquals(revBefore, dockGraph.getRevision());
+    }
+
+    @Test
+    void testUndockNullNodeIsNoOp() {
+        DockNode node = new DockNode(new Label("A"), "A");
+        dockGraph.dock(node, null, DockPosition.CENTER);
+
+        DockElement rootBefore = dockGraph.getRoot();
+        long revBefore = dockGraph.getRevision();
+
+        assertDoesNotThrow(() -> dockGraph.undock(null));
+        assertSame(rootBefore, dockGraph.getRoot());
+        assertEquals(revBefore, dockGraph.getRevision());
+    }
+
+    @Test
+    void testUndockNodeNotInGraphIsNoOp() {
+        DockNode node1 = new DockNode(new Label("A"), "A");
+        DockNode detached = new DockNode(new Label("Detached"), "Detached");
+        dockGraph.dock(node1, null, DockPosition.CENTER);
+
+        DockElement rootBefore = dockGraph.getRoot();
+        long revBefore = dockGraph.getRevision();
+
+        dockGraph.undock(detached);
+
+        assertSame(rootBefore, dockGraph.getRoot());
+        assertEquals(revBefore, dockGraph.getRevision());
+        assertNull(detached.getParent());
+    }
+
+    @Test
+    void testMoveWithNullTargetOrPositionIsNoOp() {
+        DockNode left = new DockNode(new Label("Left"), "Left");
+        DockNode right = new DockNode(new Label("Right"), "Right");
+        dockGraph.dock(left, null, DockPosition.CENTER);
+        dockGraph.dock(right, left, DockPosition.RIGHT);
+
+        DockElement rootBefore = dockGraph.getRoot();
+        long revBefore = dockGraph.getRevision();
+
+        dockGraph.move(left, null, DockPosition.LEFT);
+        dockGraph.move(left, right, null);
+        dockGraph.move(null, right, DockPosition.RIGHT);
+
+        assertSame(rootBefore, dockGraph.getRoot());
+        assertEquals(revBefore, dockGraph.getRevision());
+        List<DockNode> leaves = collectLeafNodes(dockGraph.getRoot());
+        assertTrue(leaves.contains(left));
+        assertTrue(leaves.contains(right));
+    }
+
+    @Test
+    void testMoveWithTargetOutsideGraphFallsBackToRoot() {
+        DockNode left = new DockNode(new Label("Left"), "Left");
+        DockNode right = new DockNode(new Label("Right"), "Right");
+        DockNode externalTarget = new DockNode(new Label("External"), "External");
+
+        dockGraph.dock(left, null, DockPosition.CENTER);
+        dockGraph.dock(right, left, DockPosition.RIGHT);
+
+        assertDoesNotThrow(() -> dockGraph.move(left, externalTarget, DockPosition.BOTTOM));
+
+        assertNotNull(dockGraph.getRoot());
+        List<DockNode> leaves = collectLeafNodes(dockGraph.getRoot());
+        assertTrue(leaves.contains(left));
+        assertTrue(leaves.contains(right));
+        assertFalse(leaves.contains(externalTarget));
+        assertNoEmptyContainers(dockGraph.getRoot());
+    }
+
+    @Test
     void testMove() {
         DockNode node1 = new DockNode(new Label("Test1"), "Node 1");
         DockNode node2 = new DockNode(new Label("Test2"), "Node 2");

@@ -357,6 +357,9 @@ public class DockGraph {
      * Removes a DockNode from the graph.
      */
     public void undock(DockNode node) {
+        if (node == null) {
+            return;
+        }
         if (node == getRoot()) {
             setRoot(null);
             return;
