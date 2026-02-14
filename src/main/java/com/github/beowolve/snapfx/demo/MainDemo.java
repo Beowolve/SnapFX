@@ -81,7 +81,7 @@ public class MainDemo extends Application {
         snapFX.setCloseButtonMode(DockCloseButtonMode.BOTH);
 
         // Set title bar mode to auto (show only when needed)
-        snapFX.setTitleBarMode(DockTitleBarMode.NEVER);
+        snapFX.setTitleBarMode(DockTitleBarMode.AUTO);
 
         // Create dock layout (after handler is set)
         createDemoLayout();
