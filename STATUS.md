@@ -143,6 +143,9 @@
 
 ### UI Fixes
 - Fixed tab overflow dropdown entries for custom tab graphics by binding tab text to the node title
+
+### Code Quality
+- Normalized JavaFX imports and list accessors (`getFirst`/`getLast`/`isEmpty`) across Java sources
 ## Recent Changes (2026-02-11)
 
 ### Close Button Handler Fix (CRITICAL FIX)

@@ -240,7 +240,7 @@ public class DockGraphDebugView extends BorderPane {
         title.setStyle("-fx-font-weight: bold;");
 
         Separator sep = new Separator();
-        sep.setOrientation(javafx.geometry.Orientation.VERTICAL);
+        sep.setOrientation(Orientation.VERTICAL);
 
         Label locked = new Label();
         locked.textProperty().bind(Bindings.createStringBinding(

@@ -2,8 +2,11 @@ package com.github.beowolve.snapfx.view;
 
 import com.github.beowolve.snapfx.dnd.DockDragService;
 import com.github.beowolve.snapfx.model.*;
+import javafx.beans.binding.Bindings;
+import javafx.collections.ListChangeListener;
 import javafx.geometry.BoundingBox;
 import javafx.geometry.Bounds;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
@@ -113,7 +116,7 @@ public class DockLayoutEngine {
         bindDividerPositions(splitPane, model);
 
         // Listener for changes to children
-        model.getChildren().addListener((javafx.collections.ListChangeListener<DockElement>) change -> {
+        model.getChildren().addListener((ListChangeListener<DockElement>) change -> {
             while (change.next()) {
                 if (change.wasAdded() || change.wasRemoved()) {
                     rebuildSplitPane(splitPane, model);
@@ -190,7 +193,7 @@ public class DockLayoutEngine {
         }
 
         // Listener for changes
-        model.getChildren().addListener((javafx.collections.ListChangeListener<DockElement>) change -> {
+        model.getChildren().addListener((ListChangeListener<DockElement>) change -> {
             while (change.next()) {
                 if (change.wasAdded() || change.wasRemoved()) {
                     rebuildTabPane(tabPane, model);
@@ -201,7 +204,7 @@ public class DockLayoutEngine {
         // Auto-hide in locked mode
         tabPane.visibleProperty().bind(
             dockGraph.lockedProperty().not()
-            .or(javafx.beans.binding.Bindings.size(tabPane.getTabs()).greaterThan(1))
+            .or(Bindings.size(tabPane.getTabs()).greaterThan(1))
         );
 
         return tabPane;
@@ -281,7 +284,7 @@ public class DockLayoutEngine {
      */
     private HBox createTabHeader(DockNode dockNode) {
         HBox tabHeader = new HBox(5);
-        tabHeader.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        tabHeader.setAlignment(Pos.CENTER_LEFT);
         StackPane iconPane = new StackPane();
         iconPane.setPrefSize(16, 16);
         iconPane.setMaxSize(16, 16);

@@ -8,7 +8,12 @@ import com.github.beowolve.snapfx.model.DockNode;
 import com.github.beowolve.snapfx.model.DockPosition;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -35,8 +40,7 @@ public class MainDemo extends Application {
     private Menu hiddenWindowsMenu;
 
     // Shared lock state property
-    private final javafx.beans.property.BooleanProperty lockLayoutProperty =
-        new javafx.beans.property.SimpleBooleanProperty(false);
+    private final BooleanProperty lockLayoutProperty = new SimpleBooleanProperty(false);
 
     // Node factory for creating demo nodes
     private DemoNodeFactory demoNodeFactory;
@@ -145,7 +149,7 @@ public class MainDemo extends Application {
         updateHiddenWindowsMenu();
 
         // Listen to hidden nodes changes
-        snapFX.getHiddenNodes().addListener((javafx.collections.ListChangeListener<DockNode>) c ->
+        snapFX.getHiddenNodes().addListener((ListChangeListener<DockNode>) c ->
             updateHiddenWindowsMenu()
         );
 
@@ -192,8 +196,8 @@ public class MainDemo extends Application {
         licenseTitle.setStyle(FX_FONT_WEIGHT_BOLD);
 
         // Create clickable hyperlinks for license information
-        javafx.scene.layout.HBox licenseBox = new javafx.scene.layout.HBox(5);
-        licenseBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        HBox licenseBox = new HBox(5);
+        licenseBox.setAlignment(Pos.CENTER_LEFT);
 
         Label licenseText1 = new Label("Some icons by ");
 
@@ -207,7 +211,7 @@ public class MainDemo extends Application {
 
         Label licenseText3 = new Label(".");
 
-        javafx.scene.layout.FlowPane flowPane = new javafx.scene.layout.FlowPane(5, 5);
+        FlowPane flowPane = new FlowPane(5, 5);
         flowPane.getChildren().addAll(
             licenseText1, authorLink, licenseText2, licenseLink, licenseText3
         );
@@ -342,7 +346,7 @@ public class MainDemo extends Application {
 
     private void installDebugPanel() {
         // Get the current dock layout from mainLayout
-        javafx.scene.Node dockLayout = mainLayout.getCenter();
+        Node dockLayout = mainLayout.getCenter();
 
         DockGraphDebugView debugView = new DockGraphDebugView(snapFX.getDockGraph(), snapFX.getDragService());
         debugView.setPrefWidth(420);
@@ -358,7 +362,7 @@ public class MainDemo extends Application {
         // Add a small HUD overlay that shows current D&D state
         DockDebugOverlay hud = new DockDebugOverlay(snapFX.getDockGraph(), snapFX.getDragService());
         StackPane stack = new StackPane(mainSplit, hud);
-        StackPane.setAlignment(hud, javafx.geometry.Pos.TOP_LEFT);
+        StackPane.setAlignment(hud, Pos.TOP_LEFT);
         StackPane.setMargin(hud, new Insets(10));
 
         // Replace center with the new stack containing split + HUD
@@ -384,7 +388,7 @@ public class MainDemo extends Application {
 
             // Restore divider position
             if (dividerPositions.length > 0) {
-                javafx.application.Platform.runLater(() -> mainSplit.setDividerPositions(dividerPositions));
+                Platform.runLater(() -> mainSplit.setDividerPositions(dividerPositions));
             }
         } else {
             // No debug panel, just set dock layout directly

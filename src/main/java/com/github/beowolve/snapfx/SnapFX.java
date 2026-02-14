@@ -6,11 +6,13 @@ import com.github.beowolve.snapfx.model.*;
 import com.github.beowolve.snapfx.persistence.DockLayoutSerializer;
 import com.github.beowolve.snapfx.persistence.DockNodeFactory;
 import com.github.beowolve.snapfx.view.DockLayoutEngine;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 import java.util.function.Consumer;
@@ -42,7 +44,7 @@ public class SnapFX {
         this.dockGraph.revisionProperty().addListener((obs, o, n) -> {
             if (rootContainer != null) {
                 // Rebuild on next frame to ensure all model changes are complete
-                javafx.application.Platform.runLater(this::rebuildRootView);
+                Platform.runLater(this::rebuildRootView);
             }
         });
 
@@ -50,7 +52,7 @@ public class SnapFX {
         this.dockGraph.rootProperty().addListener((obs, oldRoot, newRoot) -> {
             if (oldRoot != newRoot && rootContainer != null) {
                 // Root element changed, rebuild the view
-                javafx.application.Platform.runLater(this::rebuildRootView);
+                Platform.runLater(this::rebuildRootView);
             }
         });
     }
@@ -114,7 +116,7 @@ public class SnapFX {
 
         // Wrap in a container that we can update
         if (rootContainer == null) {
-            rootContainer = new javafx.scene.layout.StackPane();
+            rootContainer = new StackPane();
         }
 
         rootContainer.getChildren().clear();

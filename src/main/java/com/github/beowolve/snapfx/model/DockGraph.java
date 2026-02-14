@@ -6,6 +6,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.geometry.Orientation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -257,10 +258,10 @@ public class DockGraph {
     }
 
     private void dockAsSplit(DockNode node, DockElement target, DockPosition position) {
-        javafx.geometry.Orientation orientation =
+        Orientation orientation =
             (position == DockPosition.LEFT || position == DockPosition.RIGHT)
-                ? javafx.geometry.Orientation.HORIZONTAL
-                : javafx.geometry.Orientation.VERTICAL;
+                ? Orientation.HORIZONTAL
+                : Orientation.VERTICAL;
 
         DockContainer parent = target.getParent();
 
@@ -455,10 +456,10 @@ public class DockGraph {
         // Special case: Moving within the same SplitPane with the same orientation
         // Check if we're trying to dock in a way that would keep it in the same parent
         if (position != DockPosition.CENTER && sourceParent instanceof DockSplitPane sourceSplit) {
-            javafx.geometry.Orientation requiredOrientation =
+            Orientation requiredOrientation =
                 (position == DockPosition.LEFT || position == DockPosition.RIGHT)
-                    ? javafx.geometry.Orientation.HORIZONTAL
-                    : javafx.geometry.Orientation.VERTICAL;
+                    ? Orientation.HORIZONTAL
+                    : Orientation.VERTICAL;
 
             // Check if target's parent is the same SplitPane with matching orientation
             if (targetParent == sourceParent && sourceSplit.getOrientation() == requiredOrientation) {
@@ -514,10 +515,10 @@ public class DockGraph {
             int nodeIndex = sourceParent.getChildren().indexOf(node);
             int targetIndex = sourceParent.getChildren().indexOf(target);
 
-            javafx.geometry.Orientation requiredOrientation =
+            Orientation requiredOrientation =
                 (position == DockPosition.LEFT || position == DockPosition.RIGHT)
-                    ? javafx.geometry.Orientation.HORIZONTAL
-                    : javafx.geometry.Orientation.VERTICAL;
+                    ? Orientation.HORIZONTAL
+                    : Orientation.VERTICAL;
 
             if (sourceParent instanceof DockSplitPane split && split.getOrientation() == requiredOrientation) {
                 int expectedIndex = (position == DockPosition.LEFT || position == DockPosition.TOP) ? targetIndex : targetIndex + 1;

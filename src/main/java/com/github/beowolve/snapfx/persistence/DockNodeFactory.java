@@ -1,6 +1,7 @@
 package com.github.beowolve.snapfx.persistence;
 
 import com.github.beowolve.snapfx.model.DockNode;
+import javafx.scene.Node;
 
 /**
  * Factory interface for creating DockNode instances during deserialization.
@@ -26,7 +27,7 @@ import com.github.beowolve.snapfx.model.DockNode;
  * }</pre>
  *
  * <p><b>Important:</b> The factory must create DockNodes with the same ID that
- * was used when the layout was saved. Use the {@link DockNode#DockNode(String, javafx.scene.Node, String)}
+ * was used when the layout was saved. Use the {@link DockNode#DockNode(String, Node, String)}
  * constructor with the provided nodeId.</p>
  */
 @FunctionalInterface

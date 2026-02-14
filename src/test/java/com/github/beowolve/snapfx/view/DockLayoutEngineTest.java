@@ -80,11 +80,11 @@ class DockLayoutEngineTest extends ApplicationTest {
         dockGraph.dock(node2, node1, DockPosition.CENTER);
 
         TabPane tabPane = (TabPane) layoutEngine.buildSceneGraph();
-        assertEquals("Node 1", tabPane.getTabs().get(0).getText());
-        assertTrue(tabPane.getTabs().get(0).getStyleClass().contains("dock-tab-graphic"));
+        assertEquals("Node 1", tabPane.getTabs().getFirst().getText());
+        assertTrue(tabPane.getTabs().getFirst().getStyleClass().contains("dock-tab-graphic"));
 
         node1.setTitle("Renamed");
-        assertEquals("Renamed", tabPane.getTabs().get(0).getText());
+        assertEquals("Renamed", tabPane.getTabs().getFirst().getText());
     }
 
     @Test
