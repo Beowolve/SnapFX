@@ -6,7 +6,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 
 ## ✅ What Has Been Completed
 
-### Core Framework (20 classes)
+### Core Framework (22 classes)
 
 #### Model Layer (7 classes)
 - ✅ `DockGraph` - Central data structure for the docking system
@@ -17,12 +17,13 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `DockTabPane` - Tab container with auto-hide
 - ✅ `DockPosition` - Enum for dock zones (5 positions)
 
-#### View Layer (4 classes)
+#### View Layer (5 classes)
 
 - ✅ `DockLayoutEngine` - Converts model to JavaFX SceneGraph
-- ✅ `DockNodeView` - Visual representation with header and content
+- ✅ `DockNodeView` - Visual representation with header and float/close controls
 - ✅ `DockDropZone` - Drop-zone definition (bounds, target, depth)
 - ✅ `DockDropZoneType` - Drop-zone category enum
+- ✅ `DockControlIcons` - Shared vector icons for dock/floating controls
 
 #### Drag & Drop (3 classes)
 
@@ -39,8 +40,9 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `Color-coded entries` - Visual differentiation of event types
 - ✅ `Export integration` - Log included in snapshot export
 
-#### API (1 class)
+#### API (2 classes)
 - ✅ `SnapFX` - Main facade providing simple, fluent API
+- ✅ `DockFloatingWindow` - Floating dock host with custom title bar, resize handling, and subtree support
 
 #### Demo (3 classes)
 - ✅ `MainDemo` - Full IDE-like layout with all features
@@ -53,7 +55,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (6 test classes, 93 tests)
+### Testing (6 test classes, 101 tests)
 - ✅ `DockGraphTest` (54 tests) - Tree manipulation and algorithms
   - **+11 regression tests** for critical bug fixes
   - Tests for empty container prevention
@@ -67,9 +69,9 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `DockLayoutEngineTest` (19 tests) - View creation with TestFX
   - Memory cleanup tests for cache boundedness and undock/rebuild cycles
   - Layout optimization tests for empty/single-child roots
-- ✅ `SnapFXTest` (7 tests) - Hide/Restore functionality
+- ✅ `SnapFXTest` (13 tests) - Hide/Restore + Floating Window API behavior
 - ✅ `DockGraphSplitTargetDockingTest` (1 test) - Split-target docking regression coverage
-- ✅ `DockDragServiceTest` (3 tests) - D&D visibility and tab-hover activation behavior
+- ✅ `DockDragServiceTest` (5 tests) - D&D visibility, tab-hover activation, and float-detach callback behavior
 - ✅ All tests passing ✅
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
 - ✅ Mandatory regression tests for all bug fixes
@@ -109,7 +111,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **Hidden Nodes**: Close without deletion, restore later
 
 ### Visual Features
-- ✅ **DockNodeView**: Header with title and close button
+- ✅ **DockNodeView**: Header with title plus float/close controls
 - ✅ **Property Bindings**: Reactive UI updates via JavaFX properties
 - ✅ **CSS Styling**: Native Modena theme integration
 - ✅ **Tab Overflow Dropdown**: Menu shows titles when using custom tab graphics
@@ -120,7 +122,10 @@ SnapFX has been fully implemented with core functionality and is production-read
 ### Drag & Drop (Baseline + Critical Bug Fixes)
 
 - ✅ **Ghost Overlay**: Visual feedback during drag
+- ✅ **Global Ghost Overlay**: Visible across window boundaries via transparent utility stage
 - ✅ **Ghost Overlay Offset**: Positioned away from cursor to keep drop targets visible
+- ✅ **Unresolved Drop Fallback**: Non-drop-zone releases trigger floating behavior
+- ✅ **Cross-Window D&D**: Dock between main layout and floating windows
 - ✅ **Drop Zones**: Detection for SplitPane areas
 - ✅ **Drop zone visualization modes (ALL/SUBTREE/DEFAULT/ACTIVE/OFF)**
 - ✅ **Per-tab insert targeting with visible insert line**
@@ -209,10 +214,10 @@ In IntelliJ IDEA:
 
 ## 📊 Statistics
 
-- **Total Java Files**: 31
-- **Production Classes**: 26
+- **Total Java Files**: 36
+- **Production Classes**: 30
 - **Test Classes**: 6
-- **Test Cases**: 93 (all passing ✅) - +13 regression tests
+- **Test Cases**: 101 (all passing ✅) - +13 regression tests
 - **Lines of Code**: ~3,500+ (estimated)
 - **Documentation**: 7 Core Markdown files
 - **Test Coverage**: ~87% (estimated, improved from ~80%)
@@ -245,7 +250,7 @@ In IntelliJ IDEA:
 
 See [ROADMAP.md](ROADMAP.md) for planned features and improvements.
 
-**Current Priority**: Start Phase 2 (Floating Window Core).
+**Current Priority**: Complete Phase 2 save/load persistence for floating windows and prepare snapping.
 
 ---
 

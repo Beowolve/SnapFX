@@ -20,13 +20,17 @@ A high-performance, lightweight JavaFX docking framework that behaves like nativ
 ### Visual Features
 - **Drag & Drop**: Global drag service with visual feedback
 - **Dock Zones**: 5 zones (Top, Bottom, Left, Right, Center)
-- **Floating Windows**: Tabs can be dragged out (planned)
+- **Floating Windows**: Custom undecorated floating windows with attach/maximize/restore/close controls
+- **Cross-Window D&D**: Dock nodes between main layout and floating windows, including split/tab targets
+- **Quick Float Actions**: Float buttons in title bars and tab headers
+- **Resizable Floating Windows**: Resize from edges and corners (undecorated behavior)
 - **Locked Mode**: Lock the layout; no D&D; no close buttons
 - **Title Bar Modes**: ALWAYS/NEVER/AUTO; AUTO hides title bars for tabbed nodes to save space, so those nodes are moved via tabs only (pairs well with compact/locked layouts)
 
 ### Persistence
 - **Layout Save/Load**: JSON-based serialization
-- **Full Structure**: Including floating windows (planned), positions, split percentages
+- **Full Structure**: Positions and split percentages
+- **Runtime Floating Memory**: Float/attach toggles preserve last floating bounds per node in-session
 
 ### Look & Feel
 - **Native Look**: Seamless integration with the JavaFX Modena theme
@@ -126,6 +130,10 @@ snapFX.getDockGraph().dock(tasks, console, DockPosition.CENTER);
 // Lock layout
 snapFX.setLocked(true);
 
+// Move a node to a floating window and attach it back later
+DockFloatingWindow floating = snapFX.floatNode(console);
+snapFX.attachFloatingWindow(floating);
+
 // Setup factory for save/load across sessions
 snapFX.setNodeFactory(nodeId -> switch(nodeId) {
     case "mainEditor" -> new DockNode(nodeId, new TextArea(), "Editor");
@@ -155,7 +163,7 @@ snapFX.loadLayout(json); // Factory recreates nodes from IDs
 - `DockGraph`: Central data structure
 
 ### View Layer
-- `DockLayoutEngine`: Converts model  scene graph
+- `DockLayoutEngine`: Converts model -> scene graph
 - `DockNodeView`: Visual representation of a DockNode
 
 ### Drag & Drop
@@ -184,6 +192,9 @@ Test coverage:
 - Auto-cleanup
 - Serialization/deserialization
 - Layout engine
+- Floating window lifecycle and restore behavior
+- Cross-window drag/drop routing
+- Current test status: **101/101 passing**
 
 ## Demo Application
 
@@ -198,6 +209,7 @@ The demo shows:
 - Lock/unlock functionality
 - Save/load layout
 - Multiple tabs
+- Floating/attach workflows from menu, title bars, and tab headers
 
 ## Example Layouts
 
@@ -222,9 +234,10 @@ DockNode tasks = snapFX.dock(tasksList, "Tasks", console, DockPosition.CENTER);
 
 ## Roadmap
 
-- [ ] **Full drag & drop**: Hit-testing and zone detection
-- [ ] **Floating windows**: External stage management
-- [ ] **Drag preview**: Snapshot of the dragged element
+- [x] **Core drag & drop**: Hit-testing, zone detection, and tab insert targeting
+- [x] **Floating windows (core)**: External stage lifecycle + custom controls
+- [x] **Floating windows (D&D)**: Main <-> floating docking and multi-node floating layouts
+- [x] **Drag preview**: Snapshot ghost overlay
 - [ ] **Animations**: Smooth transitions
 - [ ] **Keyboard shortcuts**: Layout navigation
 - [ ] **Context menus**: Right-click options
@@ -259,7 +272,7 @@ SplitPane(H) { A, B, C }
 **Auto-cleanup**: Empty containers remove themselves automatically
 ```java
 // After removing the last tab:
-TabPane { Tab1 }  Tab1 (TabPane removed)
+TabPane { Tab1 } -> Tab1 (TabPane removed)
 ```
 
 **Locked mode**: Prevents layout changes

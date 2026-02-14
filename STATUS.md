@@ -5,7 +5,7 @@
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 93 tests passing (54 + 9 + 19 + 7 + 1 + 3)  
+✅ **Tests**: All 101 tests passing (54 + 9 + 19 + 13 + 1 + 5)  
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully
 
@@ -26,7 +26,7 @@
 - ✅ View caching
 - ✅ CSS styling (Modena theme)
 
-### Drag & Drop (96% ✅)
+### Drag & Drop (100% ✅)
 - ✅ DockDragService implementation
 - ✅ Ghost overlay during drag
 - ✅ Drop zone detection for SplitPanes
@@ -41,6 +41,9 @@
 - ✅ Nested TabPanes work correctly (verified)
 - ✅ Target invalidation handling (prevents empty containers)
 - ✅ Splitter positions preserved on no-op edge drops
+- ✅ Ghost overlay stays visible outside the main window (transparent utility stage)
+- ✅ Unresolved drops always trigger floating fallback (not only outside main scene)
+- ✅ Main layout drops accept drags originating from floating windows
 
 ### Persistence (100% ✅)
 - ✅ JSON serialization (Gson)
@@ -63,6 +66,21 @@
 - ✅ Menu integration
 - ✅ Original position tracking
 - ✅ **Close button handler integration** (Fixed: 2026-02-11)
+
+### Floating Windows (Core 85% 🚧)
+- ✅ `DockFloatingWindow` as external dock host with its own `DockGraph`/`DockLayoutEngine`
+- ✅ Programmatic floating API: `SnapFX.floatNode(...)`
+- ✅ Drag-out detach: unresolved drop positions open/update floating windows
+- ✅ Programmatic attach API: `SnapFX.attachFloatingWindow(...)`
+- ✅ Attach action directly from floating window title bar
+- ✅ Demo menu integration for floating/attach workflows
+- ✅ Screen-coordinate positioning for multi-monitor usage
+- ✅ Floating windows are valid D&D drop targets (split/tab), including floating-to-floating
+- ✅ Tab headers include a Float button for tabbed nodes
+- ✅ Runtime floating bounds memory per node (float/attach toggle keeps position/size)
+- ✅ Undecorated resize handling via edges/corners
+- ✅ Re-attach after floating from tabs restores as tab (not forced split)
+- 🚧 Save/load persistence for floating windows is pending
 
 ### Debug Tools (100% ✅)
 - ✅ DockGraphDebugView
@@ -87,10 +105,10 @@
 - ✅ DockGraphTest (54 tests, +11 regression tests)
 - ✅ DockLayoutSerializerTest (9 tests, +1 regression test)
 - ✅ DockLayoutEngineTest (19 tests)
-- ✅ **SnapFXTest (7 tests)** - NEW: Hide/Restore functionality tests
+- ✅ **SnapFXTest (13 tests)** - Hide/Restore + Floating Window API tests
 - ✅ DockGraphSplitTargetDockingTest (1 test)
-- ✅ DockDragServiceTest (3 tests)
-- ✅ **93/93 tests passing** ✅ (was 49)
+- ✅ DockDragServiceTest (5 tests)
+- ✅ **101/101 tests passing** ✅ (was 49)
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Edge case tests** (null inputs, detached nodes, invalid move targets, no-op revision checks)
@@ -140,6 +158,15 @@
 - ✅ 2026-02-10: Layout - Nested TabPanes can occur (verified OK)
 
 ## Recent Changes (2026-02-14)
+
+### Floating Window Expansion (Phase 2)
+- Upgraded `DockFloatingWindow` to host full dock subtrees (multi-node split/tab layouts)
+- Added custom floating title bar controls: attach, maximize/restore, close
+- Added undecorated edge/corner resizing for floating windows
+- Added floating runtime bounds memory per node for stable float/attach toggles
+- Added cross-window D&D routing (main <-> floating and floating <-> floating)
+- Added tab header float actions for nodes without visible title bars
+- Fixed restore-after-float-from-tab to dock back as tab
 
 ### Drag & Drop Drop-Zone Overhaul
 - Added depth-first drop target selection with validation against invalid targets
@@ -286,7 +313,7 @@
 
 See [ROADMAP.md](ROADMAP.md) for detailed future development plans.
 
-**Priority**: Fix Drag & Drop issues, then implement Floating Windows.
+**Priority**: Finish Phase 2 floating persistence (save/load) and start snapping behavior.
 
 ---
 
