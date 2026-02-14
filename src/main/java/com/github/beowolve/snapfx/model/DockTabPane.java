@@ -52,7 +52,7 @@ public class DockTabPane implements DockContainer {
     }
 
     public void addChild(DockElement element, int index) {
-        int insertIndex = Math.max(0, Math.min(index, children.size()));
+        int insertIndex = Math.clamp(index, 0, children.size());
 
         // Smart flattening: if the element is also a TabPane, merge its children into this TabPane
         if (element instanceof DockTabPane otherTabPane) {

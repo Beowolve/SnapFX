@@ -514,9 +514,9 @@ public class DockLayoutEngine {
         double zoneMin = isLeaf ? LEAF_DROP_ZONE_MIN_PX : DROP_ZONE_MIN_PX;
         double zoneMaxRatio = isLeaf ? LEAF_DROP_ZONE_MAX_RATIO : DROP_ZONE_MAX_RATIO;
 
-        double edgeW = clampZoneSize(zoneBounds.getWidth() * zoneRatio,
+        double edgeW = Math.clamp(zoneBounds.getWidth() * zoneRatio,
             zoneMin, zoneBounds.getWidth() * zoneMaxRatio);
-        double edgeH = clampZoneSize(zoneBounds.getHeight() * zoneRatio,
+        double edgeH = Math.clamp(zoneBounds.getHeight() * zoneRatio,
             zoneMin, zoneBounds.getHeight() * zoneMaxRatio);
 
         Bounds left = new BoundingBox(zoneBounds.getMinX(), zoneBounds.getMinY(), edgeW, zoneBounds.getHeight());
@@ -615,10 +615,6 @@ public class DockLayoutEngine {
         }
         bounds.sort((a, b) -> Double.compare(a.getMinX(), b.getMinX()));
         return bounds;
-    }
-
-    private double clampZoneSize(double value, double min, double max) {
-        return Math.max(min, Math.min(max, value));
     }
 
     private int getZonePriority(DockDropZone zone) {

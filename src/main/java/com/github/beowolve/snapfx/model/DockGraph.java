@@ -647,7 +647,7 @@ public class DockGraph {
         }
 
         int size = tabPane.getChildren().size();
-        int insertIndex = Math.max(0, Math.min(desiredIndex, size));
+        int insertIndex = Math.clamp(desiredIndex, 0, size);
         if (sourceIndex < insertIndex) {
             insertIndex--;
         }
