@@ -3,9 +3,11 @@ package com.github.beowolve.snapfx.dnd;
 import com.github.beowolve.snapfx.model.DockElement;
 import com.github.beowolve.snapfx.model.DockGraph;
 import com.github.beowolve.snapfx.model.DockNode;
+import com.github.beowolve.snapfx.model.DockTabPane;
 import com.github.beowolve.snapfx.view.DockLayoutEngine;
 import com.github.beowolve.snapfx.view.DockNodeView;
 import com.github.beowolve.snapfx.view.DockDropZone;
+import com.github.beowolve.snapfx.view.DockDropZoneType;
 import com.github.beowolve.snapfx.model.DockPosition;
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
@@ -305,6 +307,12 @@ public class DockDragService {
         List<DockDropZone> zones = layoutEngine.collectDropZones();
         List<DockDropZone> validZones = filterZonesForDrag(zones, currentDrag.getDraggedNode());
         DockDropZone activeZone = layoutEngine.findBestDropZone(validZones, sceneX, sceneY);
+
+        if (activateTabHoverIfNeeded(activeZone)) {
+            zones = layoutEngine.collectDropZones();
+            validZones = filterZonesForDrag(zones, currentDrag.getDraggedNode());
+            activeZone = layoutEngine.findBestDropZone(validZones, sceneX, sceneY);
+        }
 
         if (dropZonesOverlay != null) {
             List<DockDropZone> zonesToShow = getZonesForVisualization(validZones, activeZone);
@@ -713,7 +721,7 @@ public class DockDragService {
         return result;
     }
 
-    private boolean isZoneValidForDrag(DockDropZone zone, DockNode draggedNode) {
+    boolean isZoneValidForDrag(DockDropZone zone, DockNode draggedNode) {
         if (zone == null || draggedNode == null) {
             return false;
         }
@@ -721,10 +729,50 @@ public class DockDragService {
         if (target == null) {
             return false;
         }
+        if (!isElementVisibleForInteraction(target)) {
+            return false;
+        }
         if (target == draggedNode) {
             return false;
         }
         return !isDescendantOf(target, draggedNode);
+    }
+
+    boolean activateTabHoverIfNeeded(DockDropZone activeZone) {
+        if (activeZone == null || activeZone.getType() != DockDropZoneType.TAB_HEADER) {
+            return false;
+        }
+        if (!(activeZone.getTarget() instanceof DockTabPane targetTabPane)) {
+            return false;
+        }
+        if (targetTabPane.getChildren().isEmpty()) {
+            return false;
+        }
+        Integer tabIndex = activeZone.getTabIndex();
+        if (tabIndex == null) {
+            return false;
+        }
+        int hoveredTabIndex = Math.clamp(tabIndex, 0, targetTabPane.getChildren().size() - 1);
+        if (targetTabPane.getSelectedIndex() == hoveredTabIndex) {
+            return false;
+        }
+        targetTabPane.setSelectedIndex(hoveredTabIndex);
+        return true;
+    }
+
+    boolean isElementVisibleForInteraction(DockElement element) {
+        DockElement current = element;
+        while (current != null) {
+            if (current.getParent() instanceof DockTabPane parentTabPane) {
+                int selectedIndex = parentTabPane.getSelectedIndex();
+                int childIndex = parentTabPane.getChildren().indexOf(current);
+                if (childIndex < 0 || childIndex != selectedIndex) {
+                    return false;
+                }
+            }
+            current = current.getParent();
+        }
+        return true;
     }
 
     private boolean isDescendantOf(DockElement element, DockElement ancestor) {

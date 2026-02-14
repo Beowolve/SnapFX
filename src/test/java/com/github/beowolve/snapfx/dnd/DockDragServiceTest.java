@@ -1,0 +1,122 @@
+package com.github.beowolve.snapfx.dnd;
+
+import com.github.beowolve.snapfx.model.DockGraph;
+import com.github.beowolve.snapfx.model.DockNode;
+import com.github.beowolve.snapfx.model.DockPosition;
+import com.github.beowolve.snapfx.model.DockSplitPane;
+import com.github.beowolve.snapfx.model.DockTabPane;
+import com.github.beowolve.snapfx.view.DockDropZone;
+import com.github.beowolve.snapfx.view.DockDropZoneType;
+import javafx.application.Platform;
+import javafx.geometry.BoundingBox;
+import javafx.geometry.Orientation;
+import javafx.scene.control.Label;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+class DockDragServiceTest {
+
+    private DockGraph dockGraph;
+    private DockDragService dragService;
+
+    @BeforeAll
+    static void initJavaFx() {
+        try {
+            Platform.startup(() -> { });
+        } catch (IllegalStateException ignored) {
+            // JavaFX toolkit already started by another test class.
+        }
+    }
+
+    @BeforeEach
+    void setUp() {
+        dockGraph = new DockGraph();
+        dragService = new DockDragService(dockGraph);
+    }
+
+    @Test
+    void testZoneInInactiveTabIsRejectedForDrag() {
+        DockNode activeNode = new DockNode(new Label("Active"), "Active");
+        DockNode hiddenLeft = new DockNode(new Label("HiddenLeft"), "HiddenLeft");
+        DockNode hiddenRight = new DockNode(new Label("HiddenRight"), "HiddenRight");
+        DockSplitPane hiddenSplit = new DockSplitPane(Orientation.HORIZONTAL);
+        hiddenSplit.addChild(hiddenLeft);
+        hiddenSplit.addChild(hiddenRight);
+
+        DockTabPane rootTabs = new DockTabPane();
+        rootTabs.addChild(activeNode);
+        rootTabs.addChild(hiddenSplit);
+        rootTabs.setSelectedIndex(0);
+        dockGraph.setRoot(rootTabs);
+
+        DockNode draggedNode = new DockNode(new Label("Dragged"), "Dragged");
+        DockDropZone hiddenZone = new DockDropZone(
+            hiddenSplit,
+            DockPosition.CENTER,
+            DockDropZoneType.CENTER,
+            new BoundingBox(0, 0, 10, 10),
+            0,
+            null,
+            null
+        );
+
+        assertFalse(dragService.isZoneValidForDrag(hiddenZone, draggedNode));
+        assertFalse(dragService.isElementVisibleForInteraction(hiddenSplit));
+        assertTrue(dragService.isElementVisibleForInteraction(activeNode));
+    }
+
+    @Test
+    void testActivateTabHoverSelectsHoveredTabByTabIndex() {
+        DockNode first = new DockNode(new Label("First"), "First");
+        DockNode second = new DockNode(new Label("Second"), "Second");
+        DockNode third = new DockNode(new Label("Third"), "Third");
+
+        DockTabPane rootTabs = new DockTabPane();
+        rootTabs.addChild(first);
+        rootTabs.addChild(second);
+        rootTabs.addChild(third);
+        rootTabs.setSelectedIndex(0);
+
+        DockDropZone tabHeaderZone = new DockDropZone(
+            rootTabs,
+            DockPosition.CENTER,
+            DockDropZoneType.TAB_HEADER,
+            new BoundingBox(0, 0, 100, 20),
+            0,
+            2,
+            null
+        );
+
+        assertTrue(dragService.activateTabHoverIfNeeded(tabHeaderZone));
+        assertEquals(2, rootTabs.getSelectedIndex());
+    }
+
+    @Test
+    void testActivateTabHoverClampsTabIndexToExistingTabs() {
+        DockNode first = new DockNode(new Label("First"), "First");
+        DockNode second = new DockNode(new Label("Second"), "Second");
+
+        DockTabPane rootTabs = new DockTabPane();
+        rootTabs.addChild(first);
+        rootTabs.addChild(second);
+        rootTabs.setSelectedIndex(0);
+
+        DockDropZone tabHeaderZone = new DockDropZone(
+            rootTabs,
+            DockPosition.CENTER,
+            DockDropZoneType.TAB_HEADER,
+            new BoundingBox(0, 0, 100, 20),
+            0,
+            99,
+            null
+        );
+
+        assertTrue(dragService.activateTabHoverIfNeeded(tabHeaderZone));
+        assertEquals(1, rootTabs.getSelectedIndex());
+    }
+}
