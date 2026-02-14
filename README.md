@@ -4,6 +4,10 @@ A high-performance, lightweight JavaFX docking framework that behaves like nativ
 
 **Note**: SnapFX is a Java Module (JPMS). Make sure your project is configured accordingly.
 
+## MainDemo Preview
+
+![MainDemo App Screenshot](docs/images/main-demo.png)
+
 ## Features
 
 ### Core Architecture

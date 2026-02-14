@@ -158,6 +158,7 @@
 ### Documentation
 - Clarified TitleBarMode.AUTO behavior and tab-only drag handling in README
 - Roadmap now focuses on planned work with the progress table at the top; issue tracking lives in STATUS
+- Added a MainDemo screenshot preview near the top of README for faster project overview
 
 ### Layout Optimization
 - Verified SplitPane optimization prevents nested same-orientation splits (added vertical regression coverage)

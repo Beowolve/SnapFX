@@ -78,6 +78,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `DONE.md` - Completed features (this file)
 - ✅ `TESTING_POLICY.md` - Testing standards and requirements (NEW 2026-02-10)
 - ✅ README clarifies TitleBarMode.AUTO behavior and tab-only drag handling
+- ✅ README includes a MainDemo screenshot preview near the top
 - ✅ Issue tracking consolidated into STATUS.md; ROADMAP lists planned work only
 
 ### Resources

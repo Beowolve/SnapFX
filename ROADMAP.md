@@ -25,10 +25,10 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 | Phase 4: Advanced Features | 📋 Planned | 0% |
 | Phase 5: Themes & Customization | 📋 Planned | 0% |
 | Phase 6: Performance & Polish | 📋 Planned | 0% |
-| Phase 7: Developer Experience | 📋 Planned | 30% |
+| Phase 7: Developer Experience | 📋 Planned | 32% |
 | Phase 8: Production Readiness | 📋 Planned | 20% |
 
-**Total Project Completion**: ~47%
+**Total Project Completion**: ~48%
 
 ---
 
