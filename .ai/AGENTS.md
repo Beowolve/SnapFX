@@ -26,4 +26,5 @@ These instructions are shared for all AI agents working on this workspace.
 - Write all code and documentation in English.
 - Prefer explicit imports over fully-qualified JavaFX class names; use fully-qualified names only when unavoidable.
 - Prefer `getFirst()`, `getLast()`, and `isEmpty()` over direct index access in production code when available; tests may use index access for clarity.
+- Use `Math.clamp(...)` for range clamping instead of nested `Math.min(...)` and `Math.max(...)`.
 - Keep function complexity at a reasonable level, aligned with SonarQube guidance (target low cognitive complexity; refactor methods approaching high complexity, e.g. around 15+ cognitive complexity).
