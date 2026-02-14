@@ -3,6 +3,7 @@ package com.github.beowolve.snapfx.view;
 import com.github.beowolve.snapfx.dnd.DockDragService;
 import com.github.beowolve.snapfx.model.*;
 import javafx.beans.binding.Bindings;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.BoundingBox;
 import javafx.geometry.Bounds;
@@ -29,6 +30,8 @@ public class DockLayoutEngine {
     private final DockGraph dockGraph;
     private final DockDragService dragService;
     private final Map<String, Node> viewCache;
+    private static final String CLEANUP_TASKS_KEY = "snapfx.cleanupTasks";
+    private static final String TAB_CLEANUP_KEY = "snapfx.tabCleanup";
     private static final double DROP_ZONE_RATIO = 0.30;
     private static final double DROP_ZONE_MIN_PX = 40.0;
     private static final double DROP_ZONE_MAX_RATIO = 0.45;
@@ -115,13 +118,15 @@ public class DockLayoutEngine {
         bindDividerPositions(splitPane, model);
 
         // Listener for changes to children
-        model.getChildren().addListener((ListChangeListener<DockElement>) change -> {
+        ListChangeListener<DockElement> childrenListener = change -> {
             while (change.next()) {
                 if (change.wasAdded() || change.wasRemoved()) {
                     rebuildSplitPane(splitPane, model);
                 }
             }
-        });
+        };
+        model.getChildren().addListener(childrenListener);
+        registerCleanupTask(splitPane, () -> model.getChildren().removeListener(childrenListener));
 
         return splitPane;
     }
@@ -180,11 +185,12 @@ public class DockLayoutEngine {
             }
         });
 
-        model.selectedIndexProperty().addListener((obs, old, newVal) -> {
+        ChangeListener<Number> modelSelectionListener = (obs, old, newVal) -> {
             if (newVal != null && newVal.intValue() >= 0 && newVal.intValue() < tabPane.getTabs().size()) {
                 tabPane.getSelectionModel().select(newVal.intValue());
             }
-        });
+        };
+        model.selectedIndexProperty().addListener(modelSelectionListener);
 
         // Set initial selection
         if (model.getSelectedIndex() >= 0 && model.getSelectedIndex() < tabPane.getTabs().size()) {
@@ -192,19 +198,29 @@ public class DockLayoutEngine {
         }
 
         // Listener for changes
-        model.getChildren().addListener((ListChangeListener<DockElement>) change -> {
+        ListChangeListener<DockElement> childrenListener = change -> {
             while (change.next()) {
                 if (change.wasAdded() || change.wasRemoved()) {
                     rebuildTabPane(tabPane, model);
                 }
             }
-        });
+        };
+        model.getChildren().addListener(childrenListener);
 
         // Auto-hide in locked mode
         tabPane.visibleProperty().bind(
             dockGraph.lockedProperty().not()
             .or(Bindings.size(tabPane.getTabs()).greaterThan(1))
         );
+
+        registerCleanupTask(tabPane, () -> model.selectedIndexProperty().removeListener(modelSelectionListener));
+        registerCleanupTask(tabPane, () -> model.getChildren().removeListener(childrenListener));
+        registerCleanupTask(tabPane, () -> {
+            if (tabPane.visibleProperty().isBound()) {
+                tabPane.visibleProperty().unbind();
+            }
+            disposeTabs(tabPane);
+        });
 
         return tabPane;
     }
@@ -217,6 +233,7 @@ public class DockLayoutEngine {
             clearCacheForElement(child);
         }
 
+        disposeTabs(tabPane);
         tabPane.getTabs().clear();
         for (DockElement child : model.getChildren()) {
             Tab tab = createTab(child);
@@ -258,7 +275,9 @@ public class DockLayoutEngine {
         tab.setContent(contentView);
 
         if (element instanceof DockNode dockNode) {
-            tab.setGraphic(createTabHeader(dockNode));
+            TabHeader tabHeader = createTabHeader(dockNode);
+            tab.setGraphic(tabHeader.node());
+            tab.getProperties().put(TAB_CLEANUP_KEY, tabHeader.cleanup());
             tab.textProperty().bind(dockNode.titleProperty());
             tab.getStyleClass().add("dock-tab-graphic");
             setupTabDragHandlers(tab, dockNode);
@@ -288,28 +307,40 @@ public class DockLayoutEngine {
      * @param dockNode The DockNode
      * @return HBox containing icon and title
      */
-    private HBox createTabHeader(DockNode dockNode) {
+    private TabHeader createTabHeader(DockNode dockNode) {
         HBox tabHeader = new HBox(5);
         tabHeader.setAlignment(Pos.CENTER_LEFT);
         StackPane iconPane = new StackPane();
         iconPane.setPrefSize(16, 16);
         iconPane.setMaxSize(16, 16);
         iconPane.setMinSize(16, 16);
-        dockNode.iconProperty().addListener((obs, oldIcon, newIcon) -> {
+
+        ChangeListener<Node> iconListener = (obs, oldIcon, newIcon) -> {
             iconPane.getChildren().clear();
             if (newIcon != null) {
                 iconPane.getChildren().add(newIcon);
             }
-        });
+        };
+        dockNode.iconProperty().addListener(iconListener);
+
         if (dockNode.getIcon() != null) {
             iconPane.getChildren().add(dockNode.getIcon());
         }
         iconPane.visibleProperty().bind(dockNode.iconProperty().isNotNull());
         iconPane.managedProperty().bind(iconPane.visibleProperty());
+
         Label tabLabel = new Label();
         tabLabel.textProperty().bind(dockNode.titleProperty());
         tabHeader.getChildren().addAll(iconPane, tabLabel);
-        return tabHeader;
+
+        Runnable cleanup = () -> {
+            dockNode.iconProperty().removeListener(iconListener);
+            tabLabel.textProperty().unbind();
+            iconPane.visibleProperty().unbind();
+            iconPane.managedProperty().unbind();
+            iconPane.getChildren().clear();
+        };
+        return new TabHeader(tabHeader, cleanup);
     }
 
     /**
@@ -770,11 +801,73 @@ public class DockLayoutEngine {
         return headerBounds.contains(x, y);
     }
 
+    private void disposeTabs(TabPane tabPane) {
+        for (Tab tab : tabPane.getTabs()) {
+            Object cleanup = tab.getProperties().remove(TAB_CLEANUP_KEY);
+            if (cleanup instanceof Runnable runnable) {
+                runnable.run();
+            }
+            if (tab.textProperty().isBound()) {
+                tab.textProperty().unbind();
+            }
+            if (tab.closableProperty().isBound()) {
+                tab.closableProperty().unbind();
+            }
+            tab.setOnCloseRequest(null);
+            tab.setOnClosed(null);
+            tab.setGraphic(null);
+            tab.setContent(null);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void registerCleanupTask(Node view, Runnable cleanupTask) {
+        if (view == null || cleanupTask == null) {
+            return;
+        }
+        Object existing = view.getProperties().get(CLEANUP_TASKS_KEY);
+        List<Runnable> cleanupTasks;
+        if (existing instanceof List<?> list) {
+            cleanupTasks = (List<Runnable>) list;
+        } else {
+            cleanupTasks = new ArrayList<>();
+            view.getProperties().put(CLEANUP_TASKS_KEY, cleanupTasks);
+        }
+        cleanupTasks.add(cleanupTask);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void runCleanupTasks(Node view) {
+        if (view == null) {
+            return;
+        }
+        Object existing = view.getProperties().remove(CLEANUP_TASKS_KEY);
+        if (!(existing instanceof List<?> list)) {
+            if (view instanceof DockNodeView dockNodeView) {
+                dockNodeView.dispose();
+            }
+            return;
+        }
+
+        for (Object task : list) {
+            if (task instanceof Runnable runnable) {
+                runnable.run();
+            }
+        }
+
+        if (view instanceof DockNodeView dockNodeView) {
+            dockNodeView.dispose();
+        }
+    }
+
     /**
      * Clears the entire view cache.
      * This is called before a new scene graph is built to ensure no stale views are used.
      */
     public void clearCache() {
+        for (Node view : new ArrayList<>(viewCache.values())) {
+            runCleanupTasks(view);
+        }
         viewCache.clear();
     }
 
@@ -839,5 +932,8 @@ public class DockLayoutEngine {
             this.distanceFromCenter = distanceFromCenter;
             this.isTabHeader = isTabHeader;
         }
+    }
+
+    private record TabHeader(HBox node, Runnable cleanup) {
     }
 }

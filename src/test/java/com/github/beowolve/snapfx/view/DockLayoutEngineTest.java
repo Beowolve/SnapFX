@@ -13,6 +13,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.testfx.framework.junit5.ApplicationTest;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -221,5 +225,131 @@ class DockLayoutEngineTest extends ApplicationTest {
 
         Node view2 = layoutEngine.buildSceneGraph();
         assertInstanceOf(TabPane.class, view2);
+    }
+
+    /**
+     * Memory cleanup test: repeated rebuilds must not grow the internal view cache.
+     * Ensures cache size remains bounded to the current graph size.
+     */
+    @Test
+    void testViewCacheDoesNotGrowAcrossRepeatedRebuilds() {
+        DockNode node1 = new DockNode(new Label("A"), "A");
+        DockNode node2 = new DockNode(new Label("B"), "B");
+        DockNode node3 = new DockNode(new Label("C"), "C");
+
+        dockGraph.dock(node1, null, DockPosition.CENTER);
+        dockGraph.dock(node2, node1, DockPosition.RIGHT);
+        dockGraph.dock(node3, node2, DockPosition.BOTTOM);
+
+        int expectedElementCount = countElements(dockGraph.getRoot());
+        assertTrue(expectedElementCount > 0);
+
+        for (int i = 0; i < 120; i++) {
+            layoutEngine.buildSceneGraph();
+            assertEquals(expectedElementCount, getViewCache().size());
+        }
+    }
+
+    /**
+     * Memory cleanup test: views for removed nodes must be cleared from cache after rebuild.
+     * This prevents stale references after undock operations.
+     */
+    @Test
+    void testUndockedNodeViewIsRemovedFromCacheAfterRebuild() {
+        DockNode node1 = new DockNode(new Label("A"), "A");
+        DockNode node2 = new DockNode(new Label("B"), "B");
+        DockNode node3 = new DockNode(new Label("C"), "C");
+
+        dockGraph.dock(node1, null, DockPosition.CENTER);
+        dockGraph.dock(node2, node1, DockPosition.RIGHT);
+        dockGraph.dock(node3, node2, DockPosition.CENTER);
+
+        layoutEngine.buildSceneGraph();
+        assertNotNull(layoutEngine.getDockNodeView(node2));
+
+        dockGraph.undock(node2);
+        layoutEngine.buildSceneGraph();
+
+        assertNull(layoutEngine.getDockNodeView(node2));
+        assertEquals(countElements(dockGraph.getRoot()), getViewCache().size());
+    }
+
+    /**
+     * Memory cleanup stress test on a large layout: cache must stay bounded across rebuilds
+     * and detach/attach cycles.
+     * Uses 50+ nodes to match roadmap cleanup goals for larger layouts.
+     */
+    @Test
+    void testLargeLayoutCacheCleanupDuringDetachAttachCycles() {
+        List<DockNode> nodes = buildLargeLayout(55);
+        DockNode transientNode = nodes.getLast();
+        int expectedElementCount = countElements(dockGraph.getRoot());
+
+        for (int i = 0; i < 40; i++) {
+            layoutEngine.buildSceneGraph();
+            assertEquals(expectedElementCount, getViewCache().size());
+
+            if (i > 0 && i % 10 == 0) {
+                dockGraph.undock(transientNode);
+                layoutEngine.buildSceneGraph();
+                assertNull(layoutEngine.getDockNodeView(transientNode));
+                assertEquals(countElements(dockGraph.getRoot()), getViewCache().size());
+
+                dockGraph.dock(transientNode, dockGraph.getRoot(), DockPosition.RIGHT);
+                expectedElementCount = countElements(dockGraph.getRoot());
+                layoutEngine.buildSceneGraph();
+                assertNotNull(layoutEngine.getDockNodeView(transientNode));
+                assertEquals(expectedElementCount, getViewCache().size());
+            }
+        }
+    }
+
+    private List<DockNode> buildLargeLayout(int nodeCount) {
+        List<DockNode> nodes = new ArrayList<>(nodeCount);
+        DockPosition[] positions = {
+            DockPosition.RIGHT,
+            DockPosition.BOTTOM,
+            DockPosition.CENTER,
+            DockPosition.LEFT,
+            DockPosition.TOP
+        };
+
+        for (int i = 0; i < nodeCount; i++) {
+            DockNode node = new DockNode(new Label("Node" + i), "Node " + i);
+            if (nodes.isEmpty()) {
+                dockGraph.dock(node, null, DockPosition.CENTER);
+            } else {
+                DockNode target = nodes.get((i * 13 + 7) % nodes.size());
+                dockGraph.dock(node, target, positions[i % positions.length]);
+            }
+            nodes.add(node);
+        }
+
+        return nodes;
+    }
+
+    private int countElements(DockElement element) {
+        if (element == null) {
+            return 0;
+        }
+        if (element instanceof DockContainer container) {
+            int count = 1;
+            for (DockElement child : container.getChildren()) {
+                count += countElements(child);
+            }
+            return count;
+        }
+        return 1;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Node> getViewCache() {
+        try {
+            Field field = DockLayoutEngine.class.getDeclaredField("viewCache");
+            field.setAccessible(true);
+            return (Map<String, Node>) field.get(layoutEngine);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Unable to inspect DockLayoutEngine view cache", e);
+        }
     }
 }

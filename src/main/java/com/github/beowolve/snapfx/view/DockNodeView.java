@@ -4,7 +4,9 @@ import com.github.beowolve.snapfx.dnd.DockDragService;
 import com.github.beowolve.snapfx.model.DockGraph;
 import com.github.beowolve.snapfx.model.DockNode;
 import javafx.beans.binding.BooleanExpression;
+import javafx.beans.value.ChangeListener;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
@@ -22,6 +24,9 @@ public class DockNodeView extends VBox {
     private final StackPane iconPane;
     private final Button closeButton;
     private final StackPane contentPane;
+    private final Label titleLabel;
+    private final ChangeListener<Node> iconListener;
+    private final ChangeListener<Node> contentListener;
 
     public DockNodeView(DockNode dockNode, DockGraph dockGraph, DockDragService dragService) {
         this.dockNode = dockNode;
@@ -42,12 +47,13 @@ public class DockNodeView extends VBox {
         iconPane.setMinSize(16, 16);
 
         // Bind icon
-        dockNode.iconProperty().addListener((obs, oldIcon, newIcon) -> {
+        iconListener = (obs, oldIcon, newIcon) -> {
             iconPane.getChildren().clear();
             if (newIcon != null) {
                 iconPane.getChildren().add(newIcon);
             }
-        });
+        };
+        dockNode.iconProperty().addListener(iconListener);
 
         // Set initial icon
         if (dockNode.getIcon() != null) {
@@ -58,7 +64,7 @@ public class DockNodeView extends VBox {
         iconPane.visibleProperty().bind(dockNode.iconProperty().isNotNull());
         iconPane.managedProperty().bind(iconPane.visibleProperty());
 
-        Label titleLabel = new Label();
+        titleLabel = new Label();
         titleLabel.getStyleClass().add("dock-node-title-label");
         titleLabel.textProperty().bind(dockNode.titleProperty());
 
@@ -91,12 +97,13 @@ public class DockNodeView extends VBox {
         }
 
         // Content listener
-        dockNode.contentProperty().addListener((obs, oldContent, newContent) -> {
+        contentListener = (obs, oldContent, newContent) -> {
             contentPane.getChildren().clear();
             if (newContent != null) {
                 contentPane.getChildren().add(newContent);
             }
-        });
+        };
+        dockNode.contentProperty().addListener(contentListener);
 
         // Drag handlers on header
         header.setOnMousePressed(this::onHeaderPressed);
@@ -162,5 +169,28 @@ public class DockNodeView extends VBox {
     public void setHeaderVisible(boolean visible) {
         header.setVisible(visible);
         header.setManaged(visible);
+    }
+
+    /**
+     * Releases listeners and bindings to avoid retaining old views after rebuild cycles.
+     */
+    public void dispose() {
+        dockNode.iconProperty().removeListener(iconListener);
+        dockNode.contentProperty().removeListener(contentListener);
+
+        titleLabel.textProperty().unbind();
+
+        iconPane.visibleProperty().unbind();
+        iconPane.managedProperty().unbind();
+        iconPane.getChildren().clear();
+
+        closeButton.visibleProperty().unbind();
+        closeButton.setOnAction(null);
+
+        header.setOnMousePressed(null);
+        header.setOnMouseDragged(null);
+        header.setOnMouseReleased(null);
+
+        contentPane.getChildren().clear();
     }
 }
