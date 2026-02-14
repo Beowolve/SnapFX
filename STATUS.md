@@ -145,7 +145,7 @@
 - Fixed tab overflow dropdown entries for custom tab graphics by binding tab text to the node title
 
 ### Code Quality
-- Normalized JavaFX imports and list accessors (`getFirst`/`getLast`/`isEmpty`) across Java sources
+- Normalized JavaFX imports and list accessors (`getFirst`/`getLast`/`isEmpty`) in production code; tests may use index access for clarity
 ## Recent Changes (2026-02-11)
 
 ### Close Button Handler Fix (CRITICAL FIX)

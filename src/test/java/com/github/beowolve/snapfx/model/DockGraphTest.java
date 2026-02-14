@@ -205,7 +205,7 @@ class DockGraphTest {
 
         // root is a split; move it onto its own child should be a no-op
         DockContainer rootContainer = assertInstanceOf(DockContainer.class, rootBefore);
-        DockElement child = rootContainer.getChildren().getFirst();
+        DockElement child = rootContainer.getChildren().get(0);
 
         dockGraph.move(a, child, DockPosition.CENTER);
 
@@ -269,7 +269,7 @@ class DockGraphTest {
         assertTrue(leaves.contains(right));
 
         // Verify order: left, center, right
-        assertEquals(left, rootSplit.getChildren().getFirst());
+        assertEquals(left, rootSplit.getChildren().get(0));
         assertEquals(center, rootSplit.getChildren().get(1));
         assertEquals(right, rootSplit.getChildren().get(2));
     }
@@ -296,7 +296,7 @@ class DockGraphTest {
         assertEquals(3, rootSplit.getChildren().size());
 
         // Verify order: left, center, right
-        assertEquals(left, rootSplit.getChildren().getFirst());
+        assertEquals(left, rootSplit.getChildren().get(0));
         assertEquals(center, rootSplit.getChildren().get(1));
         assertEquals(right, rootSplit.getChildren().get(2));
     }
@@ -357,7 +357,7 @@ class DockGraphTest {
 
         // Set divider at 30% (left gets 30%, center gets 70%)
         rootSplit.setDividerPosition(0, 0.3);
-        double originalDividerPos = rootSplit.getDividerPositions().getFirst().get();
+        double originalDividerPos = rootSplit.getDividerPositions().get(0).get();
         assertEquals(0.3, originalDividerPos, 0.001);
 
         // Now dock right to center's right (should trigger optimization)
@@ -369,7 +369,7 @@ class DockGraphTest {
 
         // Verify: first divider position is preserved (or close to it)
         assertEquals(2, rootSplit.getDividerPositions().size());
-        double firstDividerAfter = rootSplit.getDividerPositions().getFirst().get();
+        double firstDividerAfter = rootSplit.getDividerPositions().get(0).get();
 
         // First divider should be unchanged (left boundary)
         assertEquals(0.3, firstDividerAfter, 0.001);
@@ -406,7 +406,7 @@ class DockGraphTest {
 
         // The remaining divider should be somewhere reasonable (not reset to 0.5)
         // Since we removed the middle element, the divider should be around 0.25 or adjusted
-        double remainingDivider = rootSplit.getDividerPositions().getFirst().get();
+        double remainingDivider = rootSplit.getDividerPositions().get(0).get();
         assertTrue(remainingDivider > 0.0 && remainingDivider < 1.0);
     }
 
@@ -623,7 +623,7 @@ class DockGraphTest {
 
         assertSame(rootTabPane, dockGraph.getRoot());
         assertEquals(3, rootTabPane.getChildren().size());
-        assertEquals(tab1, rootTabPane.getChildren().getFirst());
+        assertEquals(tab1, rootTabPane.getChildren().get(0));
         assertEquals(tab3, rootTabPane.getChildren().get(1));
         assertEquals(tab2, rootTabPane.getChildren().get(2));
         assertEquals(1, rootTabPane.getSelectedIndex());
@@ -642,7 +642,7 @@ class DockGraphTest {
         DockTabPane rootTabPane = (DockTabPane) dockGraph.getRoot();
         dockGraph.dock(tab3, rootTabPane, DockPosition.CENTER, -10);
 
-        assertEquals(tab3, rootTabPane.getChildren().getFirst());
+        assertEquals(tab3, rootTabPane.getChildren().get(0));
         assertEquals(0, rootTabPane.getSelectedIndex());
 
         dockGraph.dock(tab4, rootTabPane, DockPosition.CENTER, 99);
@@ -666,7 +666,7 @@ class DockGraphTest {
 
         assertSame(rootTabPane, dockGraph.getRoot());
         assertEquals(3, rootTabPane.getChildren().size());
-        assertEquals(tab3, rootTabPane.getChildren().getFirst());
+        assertEquals(tab3, rootTabPane.getChildren().get(0));
         assertEquals(tab1, rootTabPane.getChildren().get(1));
         assertEquals(tab2, rootTabPane.getChildren().get(2));
         assertEquals(0, rootTabPane.getSelectedIndex());
@@ -685,13 +685,13 @@ class DockGraphTest {
         DockTabPane rootTabPane = (DockTabPane) dockGraph.getRoot();
         dockGraph.move(tab1, rootTabPane, DockPosition.CENTER, 99);
 
-        assertEquals(tab2, rootTabPane.getChildren().getFirst());
+        assertEquals(tab2, rootTabPane.getChildren().get(0));
         assertEquals(tab3, rootTabPane.getChildren().get(1));
         assertEquals(tab1, rootTabPane.getChildren().get(2));
         assertEquals(2, rootTabPane.getSelectedIndex());
 
         dockGraph.move(tab1, rootTabPane, DockPosition.CENTER, -5);
-        assertEquals(tab1, rootTabPane.getChildren().getFirst());
+        assertEquals(tab1, rootTabPane.getChildren().get(0));
         assertEquals(0, rootTabPane.getSelectedIndex());
     }
 
@@ -709,7 +709,7 @@ class DockGraphTest {
 
         assertSame(rootTabPane, dockGraph.getRoot());
         assertEquals(3, rootTabPane.getChildren().size());
-        assertEquals(tab3, rootTabPane.getChildren().getFirst());
+        assertEquals(tab3, rootTabPane.getChildren().get(0));
         assertEquals(tab1, rootTabPane.getChildren().get(1));
         assertEquals(tab2, rootTabPane.getChildren().get(2));
         assertEquals(0, rootTabPane.getSelectedIndex());
@@ -730,7 +730,7 @@ class DockGraphTest {
 
         assertSame(rootTabPane, dockGraph.getRoot());
         assertEquals(3, rootTabPane.getChildren().size());
-        assertEquals(tab2, rootTabPane.getChildren().getFirst());
+        assertEquals(tab2, rootTabPane.getChildren().get(0));
         assertEquals(tab3, rootTabPane.getChildren().get(1));
         assertEquals(tab1, rootTabPane.getChildren().get(2));
         assertEquals(2, rootTabPane.getSelectedIndex());
@@ -1003,14 +1003,14 @@ class DockGraphTest {
         split.setDividerPosition(0, 0.3);
         split.setDividerPosition(1, 0.6);
 
-        double div0Before = split.getDividerPositions().getFirst().get();
+        double div0Before = split.getDividerPositions().get(0).get();
         double div1Before = split.getDividerPositions().get(1).get();
 
         // Move node1 to position between node2 and node3
         dockGraph.move(node1, node2, DockPosition.RIGHT);
 
         // Divider positions should be preserved
-        assertEquals(div0Before, split.getDividerPositions().getFirst().get(), 0.01);
+        assertEquals(div0Before, split.getDividerPositions().get(0).get(), 0.01);
         assertEquals(div1Before, split.getDividerPositions().get(1).get(), 0.01);
     }
 

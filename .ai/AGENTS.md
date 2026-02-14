@@ -23,4 +23,4 @@ These instructions are shared for all AI agents working on this workspace.
 - Write all code in Java 21 and ensure compatibility with JavaFX 21.
 - Write all code and documentation in English.
 - Prefer explicit imports over fully-qualified JavaFX class names; use fully-qualified names only when unavoidable.
-- Prefer `getFirst()`, `getLast()`, and `isEmpty()` over direct index access when available.
+- Prefer `getFirst()`, `getLast()`, and `isEmpty()` over direct index access in production code when available; tests may use index access for clarity.
