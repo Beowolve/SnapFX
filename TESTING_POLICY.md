@@ -287,7 +287,7 @@ void testSomething() {
 
 **As of 2026-02-14:**
 
-- **Total Tests**: 74 (was 49)
+- **Total Tests**: 77 (was 49)
 - **Test Classes**: 4
 - **Test Coverage**: ~87% (estimated)
 - **All Tests**: ✅ PASSING
@@ -297,7 +297,7 @@ void testSomething() {
   - 11 new regression tests added
 - `DockLayoutSerializerTest`: 9 tests (was 8)
   - 1 new regression test added
-- `DockLayoutEngineTest`: 12 tests
+- `DockLayoutEngineTest`: 15 tests
 - `SnapFXTest`: 7 tests
 
 ### Regression Test Coverage
@@ -313,6 +313,7 @@ void testSomething() {
 - ✅ TabPane in-place reordering
 - ✅ Tab close handler consistency
 - ✅ SplitPane middle insert divider preservation
+- ✅ View cache cleanup and boundedness across rebuild cycles
 
 ---
 
@@ -367,7 +368,7 @@ Before merging any PR:
 - 📋 Property-based testing for model
 - 📋 Performance benchmarks
 - 📋 Performance trend tracking for large-layout stress tests
-- 📋 Memory leak detection tests
+- 📋 Automated heap profiling and leak trend reporting
 - 📋 Multi-threaded operation tests
 
 ### Nice to Have

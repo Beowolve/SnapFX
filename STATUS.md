@@ -5,7 +5,7 @@
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 74 tests passing (46 + 9 + 12 + 7)  
+✅ **Tests**: All 77 tests passing (46 + 9 + 15 + 7)  
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully
 
@@ -86,10 +86,11 @@
 ### Testing (100% ✅)
 - ✅ DockGraphTest (46 tests, +11 regression tests)
 - ✅ DockLayoutSerializerTest (9 tests, +1 regression test)
-- ✅ DockLayoutEngineTest (12 tests)
+- ✅ DockLayoutEngineTest (15 tests)
 - ✅ **SnapFXTest (7 tests)** - NEW: Hide/Restore functionality tests
-- ✅ **74/74 tests passing** ✅ (was 49)
+- ✅ **77/77 tests passing** ✅ (was 49)
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
+- ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Regression tests** for all critical bug fixes
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
 - ✅ ~87% code coverage (improved from ~85%)
@@ -120,7 +121,7 @@
 
 ### Open
 - ⚠️ Performance: Benchmark trend tracking for large layouts not implemented
-- ⚠️ Memory: View caching strategy could be improved
+- ⚠️ Memory: Automated heap profiling in CI not implemented
 - ⚠️ UI: Animations missing
 - ⚠️ UI: Keyboard shortcuts not implemented
 
@@ -167,6 +168,8 @@
 ### Testing
 - Added large-layout performance coverage in `DockGraphTest` (50+ nodes)
 - Added stress scenario for repeated move/cleanup cycles on large graphs
+- Added memory cleanup coverage in `DockLayoutEngineTest` (cache boundedness and undock cleanup)
+- Added listener/binding cleanup on view cache resets to prevent stale view retention
 ## Recent Changes (2026-02-11)
 
 ### Close Button Handler Fix (CRITICAL FIX)
