@@ -167,7 +167,7 @@ public class DockSplitPane implements DockContainer {
      * When removing dividers, it simply removes from the end to preserve the positions of remaining dividers.
      * This method is called whenever children are added or removed to keep the divider positions in sync with the layout.
      */
-    private void updateDividerPositions() {
+    void updateDividerPositions() {
         int requiredDividers = Math.max(0, children.size() - 1);
         int currentDividers = dividerPositions.size();
 

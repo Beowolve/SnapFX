@@ -379,6 +379,47 @@ class DockGraphTest {
         assertTrue(secondDivider > 0.3 && secondDivider < 1.0);
     }
 
+    /**
+     * Regression test: Insert into a SplitPane in the middle must keep existing dividers ordered and stable.
+     * Bug: Middle insertions produced out-of-order divider positions when splitting the target segment.
+     * Fix: Insert the new divider between the target segment boundaries while preserving existing positions.
+     * Date: 2026-02-14
+     */
+    @Test
+    void testDividerPositionsPreservedOnMiddleInsert() {
+        DockNode left = new DockNode(new Label("Left"), "Left");
+        DockNode middle = new DockNode(new Label("Middle"), "Middle");
+        DockNode right = new DockNode(new Label("Right"), "Right");
+        DockNode inserted = new DockNode(new Label("Inserted"), "Inserted");
+
+        dockGraph.dock(left, null, DockPosition.CENTER);
+        dockGraph.dock(middle, left, DockPosition.RIGHT);
+        dockGraph.dock(right, middle, DockPosition.RIGHT);
+
+        DockSplitPane split = (DockSplitPane) dockGraph.getRoot();
+        split.setDividerPosition(0, 0.25);
+        split.setDividerPosition(1, 0.75);
+
+        dockGraph.dock(inserted, middle, DockPosition.LEFT);
+
+        DockSplitPane updatedSplit = (DockSplitPane) dockGraph.getRoot();
+        assertEquals(4, updatedSplit.getChildren().size());
+        assertEquals(left, updatedSplit.getChildren().get(0));
+        assertEquals(inserted, updatedSplit.getChildren().get(1));
+        assertEquals(middle, updatedSplit.getChildren().get(2));
+        assertEquals(right, updatedSplit.getChildren().get(3));
+
+        var dividers = updatedSplit.getDividerPositions();
+        assertEquals(3, dividers.size());
+        double firstDivider = dividers.get(0).get();
+        double middleDivider = dividers.get(1).get();
+        double lastDivider = dividers.get(2).get();
+
+        assertEquals(0.25, firstDivider, 0.001);
+        assertEquals(0.75, lastDivider, 0.001);
+        assertTrue(firstDivider < middleDivider && middleDivider < lastDivider);
+    }
+
     @Test
     void testDividerPositionsPreservedOnUndock() {
         DockNode left = new DockNode(new Label("Left"), "Left");

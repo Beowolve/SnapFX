@@ -3,6 +3,7 @@
 **Last Updated**: 2026-02-14
 
 This document tracks all planned features, improvements, and bug fixes for SnapFX. Items are marked as they are completed and new features are added as they are identified.
+This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 
 ## Legend
 
@@ -14,88 +15,40 @@ This document tracks all planned features, improvements, and bug fixes for SnapF
 
 ---
 
+## Overall Progress
+
+| Phase | Status | Completion |
+|-------|--------|------------|
+| Phase 1: Core Stability | 🚧 In Progress | 93% |
+| Phase 2: Floating Windows | 📋 Planned | 0% |
+| Phase 3: User Experience | 📋 Planned | 0% |
+| Phase 4: Advanced Features | 📋 Planned | 0% |
+| Phase 5: Themes & Customization | 📋 Planned | 0% |
+| Phase 6: Performance & Polish | 📋 Planned | 0% |
+| Phase 7: Developer Experience | 📋 Planned | 30% |
+| Phase 8: Production Readiness | 📋 Planned | 20% |
+
+**Total Project Completion**: ~46%
+
+---
+
 ## Phase 1: Core Stability (Current)
 
 ### 1.1 Drag & Drop Improvements
 **Priority**: 🔴 Critical
 
-#### Issues Fixed
-- ✅ **Fixed close button not adding to hidden nodes** (2026-02-11): Close button now properly hides nodes
-  - Moved setOnNodeCloseRequest() call before layout creation
-  - Removed default handler from DockNodeView constructor
-  - DockLayoutEngine always sets handler (custom or fallback)
-  - Added 7 comprehensive tests in SnapFXTest
-
-- ✅ **Fixed TabPane D&D bug** (2026-02-10): Tabs now maintain D&D capability after being moved
-  - Implemented proper cache invalidation in DockLayoutEngine
-  - Views are correctly rebuilt after structure changes
-  - Hit-testing works reliably for all tabs
-
-- ✅ **Fixed D&D complete failure after first drop** (2026-02-10): D&D now works consistently
-  - Implemented auto-rebuild on every revision change
-  - Views are automatically refreshed in Scene-Graph
-  - `findElementAt()` always finds valid targets
-
-- ✅ **Fixed empty containers after D&D** (2026-02-10): Tree integrity maintained
-  - Reordered cleanup logic: flatten first, then cleanup
-  - Fixed target invalidation: find target by ID after undock
-  - Handles tree restructuring during move operations
-
-- ✅ **Verified nested TabPanes work correctly** (2026-02-10): Current behavior is acceptable
-  - TabPanes can be nested when needed
-  - No optimization required
-
-- ✅ **Fixed splitter position preservation** (2026-02-14): No-op edge drops preserve divider positions
-  - Skips moves that would not change layout
-  - Divider positions remain unchanged on no-op drops
-
-- ✅ **Fixed TabPane reordering drops** (2026-02-14): In-place tab moves keep the TabPane intact
-  - Avoids flattening when only two tabs are present
-  - Keeps insert index stable when moving forward
-- ✅ **Fixed nested SplitPane optimization** (2026-02-14): Prevent SplitPane within SplitPane of same orientation
-  - Detect when adding SplitPane to SplitPane with matching orientation
-  - Flatten to single SplitPane with all children
-  - Verified with vertical and horizontal coverage
-  
-#### Issues to Fix
-None currently identified.
-
-#### Enhancements
-- ✅ **Improve hit-testing accuracy**: Precise element detection under cursor (2026-02-14)
-- ✅ **Visual drop indicators**: Clear drop zones and insert line (2026-02-14)
-- ✅ **Drop validation**: Prevent invalid drop operations with depth-first selection (2026-02-14)
-- ✅ **Per-tab insert targeting**: Drop at specific tab index (2026-02-14)
-- ✅ **Drop-zone visualization modes**: ALL/SUBTREE/DEFAULT/ACTIVE/OFF (2026-02-14)
-- ✅ **Drag preview image**: Show snapshot of dragged content (2026-02-14)
-- ✅ **Code style cleanup**: Prefer explicit JavaFX imports and sequenced collection accessors in production code (2026-02-14)
-
-**Estimated Time**: 2-3 days
+- No planned items; see `STATUS.md` for fixed issues.
 
 ---
 
 ### 1.2 Debug & Monitoring
 **Priority**: 🟡 High
 
-- ✅ **D&D Activity Logging**: Complete logging system with color-coded entries (COMPLETED 2026-02-10)
-- ✅ **Log Export**: Activity log included in clipboard export (COMPLETED 2026-02-10)
-- ✅ **Real-time tracking**: Track all D&D state changes (COMPLETED 2026-02-10)
-- ✅ **Settings panel**: Live layout options tab in the debug view (2026-02-14)
+- No planned items; see `STATUS.md` for fixed issues.
 
 ### 1.3 Testing & Quality Assurance  
 **Priority**: 🟡 High
 
-- ✅ **Regression tests for critical bugs**: All bugs now have tests (COMPLETED 2026-02-11)
-  - Empty container prevention
-  - Target invalidation during move
-  - Complex D&D sequences
-  - TabPane flattening
-  - SplitPane flattening
-  - Close button handler integration (NEW)
-  - Hide/Restore functionality (NEW)
-- ✅ **Testing Policy established**: TESTING_POLICY.md created (2026-02-10)
-- ✅ **Test count improved**: 41 → 49 → 55 → 61 → 62 → 63 → 65 → 69 → 70 → 71 tests (2026-02-14)
-- ✅ **Coverage improved**: ~80% → ~85% → ~87% (2026-02-14)
-- ✅ **SnapFXTest created**: 7 comprehensive tests for hide/restore (2026-02-11)
 - 📋 **Add performance tests**: Large layouts with 50+ nodes
 - 📋 **Add memory leak tests**: Ensure proper cleanup
 - 📋 **Add edge case tests**: More boundary conditions
@@ -103,23 +56,19 @@ None currently identified.
 **Estimated Time**: 1-2 days remaining
 
 
-### 1.3 Layout Optimization
+### 1.4 Layout Optimization
 **Priority**: 🟡 High
 
 - 📋 **Smart divider positioning**: Better initial divider positions
-- 📋 **Position preservation during insertion**: Minimal layout disruption
 - 📋 **Empty layout handling**: Proper behavior when graph is empty
 - 📋 **Single node optimization**: Skip unnecessary containers
 
 **Estimated Time**: 1 day
 
-### 1.4 UI Bug Fixes
+### 1.5 UI Bug Fixes
 **Priority**: 🟡 High
 
-- ✅ **Fix tab overflow dropdown entries**: Menu shows empty items when tabs use custom graphics (2026-02-14)
-- ✅ **Unify tab/title close handling**: Close buttons route to the same handler, tab close stays visible, styling is aligned, and visibility is configurable (2026-02-14)
-
-**Estimated Time**: 0.5 days
+- No planned items; see `STATUS.md` for fixed issues.
 
 ---
 
@@ -324,7 +273,6 @@ None currently identified.
 ### 7.2 Documentation
 **Priority**: 🟡 High
 
-- ✅ **Title bar modes documented**: Clarify AUTO behavior and tab-only drag handle (2026-02-14)
 - 📋 **API documentation**: Complete JavaDoc
 - 📋 **User guide**: Comprehensive usage guide
 - 📋 **Tutorial series**: Step-by-step tutorials
@@ -407,25 +355,6 @@ None currently identified.
 - 💡 **Improve error handling**: Better error messages
 - 💡 **Reduce coupling**: Further decouple components
 - 💡 **Optimize imports**: Clean up dependencies
-
----
-
-## Completion Tracking
-
-### Overall Progress
-
-| Phase | Status | Completion |
-|-------|--------|------------|
-| Phase 1: Core Stability | 🚧 In Progress | 92% |
-| Phase 2: Floating Windows | 📋 Planned | 0% |
-| Phase 3: User Experience | 📋 Planned | 0% |
-| Phase 4: Advanced Features | 📋 Planned | 0% |
-| Phase 5: Themes & Customization | 📋 Planned | 0% |
-| Phase 6: Performance & Polish | 📋 Planned | 0% |
-| Phase 7: Developer Experience | 📋 Planned | 30% |
-| Phase 8: Production Readiness | 📋 Planned | 20% |
-
-**Total Project Completion**: ~45%
 
 ---
 

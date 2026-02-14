@@ -287,64 +287,33 @@ public class DockGraph {
             parent.getChildren().add(insertIndex, node);
             node.setParent(parent);
 
-            // Calculate new divider positions intelligently
-            try {
-                java.lang.reflect.Method updateMethod = DockSplitPane.class.getDeclaredMethod("updateDividerPositions");
-                updateMethod.setAccessible(true);
-                updateMethod.invoke(parentSplit);
+            parentSplit.updateDividerPositions();
 
-                // Now adjust the new divider based on where we inserted
-                // The updateDividerPositions() method adds a divider in the largest gap
-                // But we want to insert it at a specific position to minimize layout changes
-                int newDividerCount = parentSplit.getDividerPositions().size();
-                if (newDividerCount == savedPositions.size() + 1) {
-                    // A new divider was added - adjust positions to minimize change
-                    List<Double> newPositions = new ArrayList<>();
+            int newDividerCount = parentSplit.getDividerPositions().size();
+            if (newDividerCount == savedPositions.size() + 1) {
+                // Insert a new divider inside the target segment to keep existing positions intact.
+                int newDividerIndex = (position == DockPosition.LEFT || position == DockPosition.TOP)
+                    ? insertIndex
+                    : insertIndex - 1;
 
-                    if (insertIndex == 0) {
-                        // Inserted at the beginning
-                        // New element takes a portion from the first element
-                        double firstDividerPos = savedPositions.isEmpty() ? 1.0 : savedPositions.getFirst();
-                        double newDividerPos = firstDividerPos * 0.5; // Split the first section
+                double prevBoundary = newDividerIndex > 0 ? savedPositions.get(newDividerIndex - 1) : 0.0;
+                double nextBoundary = newDividerIndex < savedPositions.size() ? savedPositions.get(newDividerIndex) : 1.0;
+                double newDividerPos = prevBoundary + (nextBoundary - prevBoundary) / 2.0;
+
+                List<Double> newPositions = new ArrayList<>(savedPositions.size() + 1);
+                for (int i = 0; i < savedPositions.size(); i++) {
+                    if (i == newDividerIndex) {
                         newPositions.add(newDividerPos);
-                        // Existing dividers keep their positions
-                        newPositions.addAll(savedPositions);
-                    } else if (insertIndex == parent.getChildren().size() - 1) {
-                        // Inserted at the end
-                        // New element takes a portion from the last element
-                        double lastDividerPos = savedPositions.isEmpty() ? 0.0 : savedPositions.getLast();
-                        // Existing dividers keep their positions
-                        newPositions.addAll(savedPositions);
-                        double newDividerPos = lastDividerPos + (1.0 - lastDividerPos) * 0.5;
-                        newPositions.add(newDividerPos);
-                    } else {
-                        // Inserted in the middle
-                        // New element splits the space between two dividers
-                        double prevDividerPos = (insertIndex - 1) < savedPositions.size() ? savedPositions.get(insertIndex - 1) : 0.0;
-                        double nextDividerPos = insertIndex < savedPositions.size() ? savedPositions.get(insertIndex) : 1.0;
-
-                        // Keep all dividers before insertion point
-                        for (int i = 0; i < insertIndex - 1; i++) {
-                            newPositions.add(savedPositions.get(i));
-                        }
-
-                        // Add two new dividers that split the space
-                        double midPoint = (prevDividerPos + nextDividerPos) / 2.0;
-                        newPositions.add(midPoint);
-
-                        // Keep all dividers after insertion point
-                        for (int i = insertIndex - 1; i < savedPositions.size(); i++) {
-                            newPositions.add(savedPositions.get(i));
-                        }
                     }
-
-                    // Apply new positions
-                    for (int i = 0; i < newPositions.size() && i < parentSplit.getDividerPositions().size(); i++) {
-                        parentSplit.setDividerPosition(i, newPositions.get(i));
-                    }
+                    newPositions.add(savedPositions.get(i));
                 }
-            } catch (Exception e) {
-                // Fallback: dividers will be calculated by default algorithm
+                if (newDividerIndex == savedPositions.size()) {
+                    newPositions.add(newDividerPos);
+                }
+
+                for (int i = 0; i < newPositions.size() && i < parentSplit.getDividerPositions().size(); i++) {
+                    parentSplit.setDividerPosition(i, newPositions.get(i));
+                }
             }
 
             bumpRevision();

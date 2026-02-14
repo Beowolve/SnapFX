@@ -5,7 +5,7 @@
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 71 tests passing (43 + 9 + 12 + 7)  
+✅ **Tests**: All 72 tests passing (44 + 9 + 12 + 7)  
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully
 
@@ -84,11 +84,11 @@
 - ✅ Documentation updated
 
 ### Testing (100% ✅)
-- ✅ DockGraphTest (43 tests, +10 regression tests)
+- ✅ DockGraphTest (44 tests, +11 regression tests)
 - ✅ DockLayoutSerializerTest (9 tests, +1 regression test)
 - ✅ DockLayoutEngineTest (12 tests)
 - ✅ **SnapFXTest (7 tests)** - NEW: Hide/Restore functionality tests
-- ✅ **71/71 tests passing** ✅ (was 49)
+- ✅ **72/72 tests passing** ✅ (was 49)
 - ✅ **Regression tests** for all critical bug fixes
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
 - ✅ ~87% code coverage (improved from ~85%)
@@ -115,26 +115,24 @@
 - ✅ TABPANE_TESTS.md
 - ✅ DONE.md
 
-## Known Issues
+## Issues
 
-### High Priority
-1. ~~❌ Drag & Drop: TabPane drop zones not fully functional~~ ✅ **FIXED** (2026-02-10)
-2. ~~❌ Drag & Drop: Tabs in TabPane lost D&D capability after being moved~~ ✅ **FIXED** (2026-02-10)
-3. ~~❌ Drag & Drop: D&D stops working completely after first drop~~ ✅ **FIXED** (2026-02-10)
-4. ~~❌ Layout: Nested TabPanes can occur (should be optimized)~~ ✅ **VERIFIED OK** (2026-02-10)
-5. ~~❌ Drag & Drop: Empty containers remain after complex D&D operations~~ ✅ **FIXED** (2026-02-10)
-6. ~~❌ Drag & Drop: Dropping on same position changes splitter positions~~ ✅ **FIXED** (2026-02-14)
-7. ~~❌ Drag & Drop: Tab reordering can miss drops despite insert indicator~~ ✅ **FIXED** (2026-02-14)
-8. ~~❌ UI: Tab close bypasses hidden nodes menu~~ ✅ **FIXED** (2026-02-14)
+### Open
+- ⚠️ Performance: Large layouts not tested
+- ⚠️ Memory: View caching strategy could be improved
+- ⚠️ UI: Animations missing
+- ⚠️ UI: Keyboard shortcuts not implemented
 
-### Medium Priority
-9. ⚠️ Performance: Large layouts not tested
-10. ⚠️ Memory: View caching strategy could be improved
-11. ~~⚠️ UI: Tab overflow dropdown shows empty entries when tab graphics are custom~~ ✅ **FIXED** (2026-02-14)
-
-### Low Priority
-12. ⚠️ UI: Animations missing
-13. ⚠️ UI: Keyboard shortcuts not implemented
+### Fixed (recent)
+- ✅ 2026-02-14: Drag & Drop - Dropping on same position changes splitter positions
+- ✅ 2026-02-14: Drag & Drop - Tab reordering can miss drops despite insert indicator
+- ✅ 2026-02-14: UI - Tab close bypasses hidden nodes menu
+- ✅ 2026-02-14: UI - Tab overflow dropdown shows empty entries when tab graphics are custom
+- ✅ 2026-02-10: Drag & Drop - TabPane drop zones not fully functional
+- ✅ 2026-02-10: Drag & Drop - Tabs in TabPane lost D&D capability after being moved
+- ✅ 2026-02-10: Drag & Drop - D&D stops working completely after first drop
+- ✅ 2026-02-10: Drag & Drop - Empty containers remain after complex D&D operations
+- ✅ 2026-02-10: Layout - Nested TabPanes can occur (verified OK)
 
 ## Recent Changes (2026-02-14)
 
@@ -145,7 +143,7 @@
 - Fixed in-place tab reordering to prevent TabPane flattening and missed drops
 - Moved the drag ghost overlay to the bottom-right of the cursor to keep targets visible
 - Preserved divider positions on no-op edge drops and added regression coverage
-- Expanded tab insert/reorder tests including index clamping (DockGraphTest: 43 tests, total: 71)
+- Expanded tab insert/reorder tests including index clamping (DockGraphTest: 44 tests, total: 72)
 
 ### UI Fixes
 - Fixed tab overflow dropdown entries for custom tab graphics by binding tab text to the node title
@@ -158,9 +156,11 @@
 
 ### Documentation
 - Clarified TitleBarMode.AUTO behavior and tab-only drag handling in README
+- Roadmap now focuses on planned work with the progress table at the top; issue tracking lives in STATUS
 
 ### Layout Optimization
 - Verified SplitPane optimization prevents nested same-orientation splits (added vertical regression coverage)
+- Preserved divider positions on middle inserts to minimize layout shifts
 ## Recent Changes (2026-02-11)
 
 ### Close Button Handler Fix (CRITICAL FIX)
