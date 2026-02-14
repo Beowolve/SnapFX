@@ -29,11 +29,13 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Central service for drag & drop operations.
@@ -47,6 +49,8 @@ public class DockDragService {
 
     // Drag threshold: minimum distance before drag starts
     private static final double DRAG_THRESHOLD = 5.0;
+    private static final double GHOST_OFFSET_X = 12.0;
+    private static final double GHOST_OFFSET_Y = 12.0;
     private double dragStartX;
     private double dragStartY;
     private boolean dragThresholdExceeded;
@@ -54,10 +58,13 @@ public class DockDragService {
     private final ObjectProperty<DockDragData> currentDragProperty = new SimpleObjectProperty<>();
 
     private DockGhostOverlay ghostOverlay;
+    private Stage ghostStage;
     private DockDropIndicator dropIndicator;
     private DockDropZonesOverlay dropZonesOverlay;
     private Stage mainStage;
     private DockLayoutEngine layoutEngine;
+    private Consumer<FloatDetachRequest> onFloatDetachRequest;
+    private Consumer<DropRequest> onDropRequest;
 
     public DockDragService(DockGraph dockGraph) {
         this.dockGraph = dockGraph;
@@ -94,20 +101,21 @@ public class DockDragService {
      * Creates overlay components and adds them to the target pane.
      */
     private void createAndSetupOverlays(Scene scene, Pane targetPane) {
-        ghostOverlay = new DockGhostOverlay();
+        if (ghostOverlay == null) {
+            ghostOverlay = new DockGhostOverlay();
+        }
         dropZonesOverlay = new DockDropZonesOverlay();
         dropIndicator = new DockDropIndicator();
         configureOverlayProperties();
-        targetPane.getChildren().addAll(ghostOverlay, dropZonesOverlay, dropIndicator);
+        targetPane.getChildren().addAll(dropZonesOverlay, dropIndicator);
         bindOverlaysToSceneSize(scene);
+        initializeGhostStage();
     }
 
     /**
      * Configures overlay properties (mouse transparency, layout management).
      */
     private void configureOverlayProperties() {
-        ghostOverlay.setMouseTransparent(true);
-        ghostOverlay.setManaged(false);
         dropZonesOverlay.setMouseTransparent(true);
         dropZonesOverlay.setManaged(false);
         dropIndicator.setMouseTransparent(true);
@@ -118,8 +126,6 @@ public class DockDragService {
      * Binds overlay dimensions to scene dimensions.
      */
     private void bindOverlaysToSceneSize(Scene scene) {
-        ghostOverlay.prefWidthProperty().bind(scene.widthProperty());
-        ghostOverlay.prefHeightProperty().bind(scene.heightProperty());
         dropZonesOverlay.prefWidthProperty().bind(scene.widthProperty());
         dropZonesOverlay.prefHeightProperty().bind(scene.heightProperty());
         dropIndicator.prefWidthProperty().bind(scene.widthProperty());
@@ -161,15 +167,28 @@ public class DockDragService {
      * Adds overlays to the target pane if they are not already present.
      */
     private void addOverlaysToPane(Pane target) {
-        if (ghostOverlay != null && !target.getChildren().contains(ghostOverlay)) {
-            target.getChildren().add(ghostOverlay);
-        }
         if (dropZonesOverlay != null && !target.getChildren().contains(dropZonesOverlay)) {
             target.getChildren().add(dropZonesOverlay);
         }
         if (dropIndicator != null && !target.getChildren().contains(dropIndicator)) {
             target.getChildren().add(dropIndicator);
         }
+    }
+
+    private void initializeGhostStage() {
+        if (ghostStage != null || ghostOverlay == null) {
+            return;
+        }
+        Scene ghostScene = new Scene(ghostOverlay);
+        ghostScene.setFill(Color.TRANSPARENT);
+
+        ghostStage = new Stage(StageStyle.TRANSPARENT);
+        if (mainStage != null) {
+            ghostStage.initOwner(mainStage);
+        }
+        ghostStage.setScene(ghostScene);
+        ghostStage.setAlwaysOnTop(true);
+        ghostStage.setResizable(false);
     }
 
     private Point2D toMainScenePoint(double screenX, double screenY) {
@@ -240,10 +259,8 @@ public class DockDragService {
             }
 
             ghostOverlay.setImage(img);
-
-            // Convert to main scene coordinates
-            Point2D sceneP = toMainScenePoint(dragStartX, dragStartY);
-            ghostOverlay.show(sceneP.getX(), sceneP.getY());
+            showGhostOverlay();
+            updateGhostOverlay(dragStartX, dragStartY);
         }
     }
 
@@ -256,8 +273,8 @@ public class DockDragService {
         if (!checkDragThreshold(event)) return;
 
         updateDragPosition(event);
+        updateGhostOverlay(event.getScreenX(), event.getScreenY());
         Point2D scenePoint = toMainScenePoint(event.getScreenX(), event.getScreenY());
-        updateGhostOverlay(scenePoint.getX(), scenePoint.getY());
 
         if (layoutEngine != null) {
             updateDropTarget(scenePoint.getX(), scenePoint.getY());
@@ -294,9 +311,33 @@ public class DockDragService {
     /**
      * Updates the ghost overlay position.
      */
-    private void updateGhostOverlay(double sceneX, double sceneY) {
+    private void updateGhostOverlay(double screenX, double screenY) {
         if (ghostOverlay != null) {
-            ghostOverlay.updatePosition(sceneX, sceneY);
+            ghostOverlay.updatePosition();
+        }
+        if (ghostStage != null) {
+            ghostStage.setX(screenX + GHOST_OFFSET_X);
+            ghostStage.setY(screenY + GHOST_OFFSET_Y);
+            ghostStage.toFront();
+        }
+    }
+
+    private void showGhostOverlay() {
+        if (ghostOverlay == null || ghostStage == null) {
+            return;
+        }
+        if (!ghostStage.isShowing()) {
+            ghostStage.show();
+        }
+        ghostStage.toFront();
+    }
+
+    private void hideGhostOverlay() {
+        if (ghostOverlay != null) {
+            ghostOverlay.hide();
+        }
+        if (ghostStage != null && ghostStage.isShowing()) {
+            ghostStage.hide();
         }
     }
 
@@ -361,8 +402,8 @@ public class DockDragService {
         Bounds bounds = zone.getBounds();
         dropIndicator.show(bounds, zone.getInsertLineX());
 
-        if (ghostOverlay != null) {
-            ghostOverlay.toFront();
+        if (ghostStage != null && ghostStage.isShowing()) {
+            ghostStage.toFront();
         }
     }
 
@@ -405,9 +446,7 @@ public class DockDragService {
         }
 
         // Hide overlays
-        if (ghostOverlay != null) {
-            ghostOverlay.hide();
-        }
+        hideGhostOverlay();
         if (dropIndicator != null) {
             dropIndicator.hide();
         }
@@ -423,7 +462,13 @@ public class DockDragService {
         // Perform dock operation only when we have a valid target.
         // This avoids destroying the layout when the hover target becomes null during release.
         if (dragged != null && target != null && pos != null) {
-            dockGraph.move(dragged, target, pos, tabIndex);
+            if (onDropRequest != null) {
+                onDropRequest.accept(new DropRequest(dragged, target, pos, tabIndex));
+            } else {
+                dockGraph.move(dragged, target, pos, tabIndex);
+            }
+        } else if (dragged != null && event != null) {
+            requestFloatDetach(dragged, event.getScreenX(), event.getScreenY());
         }
 
         currentDrag = null;
@@ -441,9 +486,7 @@ public class DockDragService {
         }
 
         // Hide overlays
-        if (ghostOverlay != null) {
-            ghostOverlay.hide();
-        }
+        hideGhostOverlay();
         if (dropIndicator != null) {
             dropIndicator.hide();
         }
@@ -467,6 +510,14 @@ public class DockDragService {
 
     public void setLayoutEngine(DockLayoutEngine layoutEngine) {
         this.layoutEngine = layoutEngine;
+    }
+
+    public void setOnFloatDetachRequest(Consumer<FloatDetachRequest> onFloatDetachRequest) {
+        this.onFloatDetachRequest = onFloatDetachRequest;
+    }
+
+    public void setOnDropRequest(Consumer<DropRequest> onDropRequest) {
+        this.onDropRequest = onDropRequest;
     }
 
     public ObjectProperty<DockDragData> currentDragProperty() {
@@ -496,11 +547,12 @@ public class DockDragService {
     /**
      * Ghost overlay that shows a semi-transparent image of the dragged element.
      */
-    private static class DockGhostOverlay extends Pane {
+    private static class DockGhostOverlay extends StackPane {
         private final ImageView ghostView;
 
         public DockGhostOverlay() {
             setMouseTransparent(true);
+            setPickOnBounds(false);
             setVisible(false);
 
             ghostView = new ImageView();
@@ -516,32 +568,17 @@ public class DockDragService {
                 ghostView.setImage(img);
                 ghostView.setFitWidth(Math.min(300, img.getWidth()));
                 ghostView.setFitHeight(Math.min(200, img.getHeight()));
-                // Force CSS/layout so bounds are available immediately
-                ghostView.applyCss();
-                DockGhostOverlay.this.applyCss();
-                DockGhostOverlay.this.requestLayout();
+                updatePosition();
+                setVisible(true);
             } else {
-                ghostView.setImage(null);
+                hide();
             }
         }
 
-        public void show(double x, double y) {
-            setVisible(true);
-            toFront();
-            // ensure it's front-most
-            Platform.runLater(() -> {
-                toFront();
-                updatePosition(x, y);
-            });
-        }
-
-        public void updatePosition(double x, double y) {
-            // convert scene coords to overlay-local coords
-            Point2D local = sceneToLocal(x, y);
+        public void updatePosition() {
             double w = ghostView.getBoundsInLocal().getWidth();
             double h = ghostView.getBoundsInLocal().getHeight();
             if (w <= 0 || h <= 0) {
-                // fallback to image dimensions / fit sizes
                 Image img = ghostView.getImage();
                 if (img != null) {
                     double fw = ghostView.getFitWidth() > 0 ? ghostView.getFitWidth() : img.getWidth();
@@ -549,12 +586,14 @@ public class DockDragService {
                     w = fw;
                     h = fh;
                 } else {
-                    w = 100; h = 30;
+                    w = 100;
+                    h = 30;
                 }
             }
-            ghostView.setLayoutX(Math.max(0, local.getX()));
-            ghostView.setLayoutY(Math.max(0, local.getY()));
-            toFront();
+            setMinSize(w, h);
+            setPrefSize(w, h);
+            setMaxSize(w, h);
+            requestLayout();
         }
 
         public void hide() {
@@ -794,5 +833,19 @@ public class DockDragService {
         if (mode != null) {
             this.dropVisualizationMode = mode;
         }
+    }
+
+    boolean requestFloatDetach(DockNode draggedNode, double screenX, double screenY) {
+        if (draggedNode == null || onFloatDetachRequest == null) {
+            return false;
+        }
+        onFloatDetachRequest.accept(new FloatDetachRequest(draggedNode, screenX, screenY));
+        return true;
+    }
+
+    public record FloatDetachRequest(DockNode draggedNode, double screenX, double screenY) {
+    }
+
+    public record DropRequest(DockNode draggedNode, DockElement target, DockPosition position, Integer tabIndex) {
     }
 }

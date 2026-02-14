@@ -1,9 +1,12 @@
 package com.github.beowolve.snapfx.demo;
 
+import com.github.beowolve.snapfx.DockFloatingWindow;
 import com.github.beowolve.snapfx.SnapFX;
 import com.github.beowolve.snapfx.debug.DockDebugOverlay;
 import com.github.beowolve.snapfx.debug.DockGraphDebugView;
 import com.github.beowolve.snapfx.dnd.DockDropVisualizationMode;
+import com.github.beowolve.snapfx.model.DockContainer;
+import com.github.beowolve.snapfx.model.DockElement;
 import com.github.beowolve.snapfx.model.DockNode;
 import com.github.beowolve.snapfx.model.DockPosition;
 import com.github.beowolve.snapfx.view.DockCloseButtonMode;
@@ -26,6 +29,8 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Demo application for the SnapFX framework.
@@ -40,6 +45,8 @@ public class MainDemo extends Application {
 
     // Menu for hidden windows
     private Menu hiddenWindowsMenu;
+    private Menu floatNodeMenu;
+    private Menu floatingWindowsMenu;
 
     // Shared lock state property
     private final BooleanProperty lockLayoutProperty = new SimpleBooleanProperty(false);
@@ -156,12 +163,31 @@ public class MainDemo extends Application {
         hiddenWindowsMenu = new Menu("Hidden Windows");
         updateHiddenWindowsMenu();
 
+        floatNodeMenu = new Menu("Float Node");
+        floatingWindowsMenu = new Menu("Floating Windows");
+        updateFloatingMenus();
+
         // Listen to hidden nodes changes
         snapFX.getHiddenNodes().addListener((ListChangeListener<DockNode>) c ->
             updateHiddenWindowsMenu()
         );
 
-        layoutMenu.getItems().addAll(resetItem, lockItem, sep2, hiddenWindowsMenu);
+        snapFX.getDockGraph().revisionProperty().addListener((obs, oldVal, newVal) ->
+            updateFloatingMenus()
+        );
+        snapFX.getFloatingWindows().addListener((ListChangeListener<DockFloatingWindow>) c ->
+            updateFloatingMenus()
+        );
+
+        layoutMenu.getItems().addAll(
+            resetItem,
+            lockItem,
+            sep2,
+            hiddenWindowsMenu,
+            new SeparatorMenuItem(),
+            floatNodeMenu,
+            floatingWindowsMenu
+        );
 
         // Help Menu
         Menu helpMenu = new Menu("Help");
@@ -250,6 +276,81 @@ public class MainDemo extends Application {
                 MenuItem item = new MenuItem(node.getTitle());
                 item.setOnAction(e -> snapFX.restore(node));
                 hiddenWindowsMenu.getItems().add(item);
+            }
+        }
+    }
+
+    private void updateFloatingMenus() {
+        updateFloatNodeMenu();
+        updateFloatingWindowsMenu();
+    }
+
+    private void updateFloatNodeMenu() {
+        floatNodeMenu.getItems().clear();
+        List<DockNode> nodes = new ArrayList<>();
+        collectDockNodes(snapFX.getDockGraph().getRoot(), nodes);
+
+        if (nodes.isEmpty()) {
+            MenuItem emptyItem = new MenuItem("(no docked nodes)");
+            emptyItem.setDisable(true);
+            floatNodeMenu.getItems().add(emptyItem);
+            return;
+        }
+
+        for (DockNode node : nodes) {
+            MenuItem item = new MenuItem(node.getTitle());
+            item.setOnAction(e -> snapFX.floatNode(node));
+            floatNodeMenu.getItems().add(item);
+        }
+    }
+
+    private void updateFloatingWindowsMenu() {
+        floatingWindowsMenu.getItems().clear();
+
+        if (snapFX.getFloatingWindows().isEmpty()) {
+            MenuItem emptyItem = new MenuItem("(no floating windows)");
+            emptyItem.setDisable(true);
+            floatingWindowsMenu.getItems().add(emptyItem);
+            return;
+        }
+
+        MenuItem attachAllItem = new MenuItem("Attach All");
+        attachAllItem.setOnAction(e -> {
+            List<DockFloatingWindow> windows = new ArrayList<>(snapFX.getFloatingWindows());
+            for (DockFloatingWindow window : windows) {
+                snapFX.attachFloatingWindow(window);
+            }
+        });
+        floatingWindowsMenu.getItems().add(attachAllItem);
+        floatingWindowsMenu.getItems().add(new SeparatorMenuItem());
+
+        for (DockFloatingWindow window : snapFX.getFloatingWindows()) {
+            List<DockNode> nodes = window.getDockNodes();
+            String label;
+            if (nodes.isEmpty()) {
+                label = "Attach: Floating Window";
+            } else if (nodes.size() == 1) {
+                label = "Attach: " + nodes.getFirst().getTitle();
+            } else {
+                label = "Attach: " + nodes.getFirst().getTitle() + " +" + (nodes.size() - 1);
+            }
+            MenuItem attachItem = new MenuItem(label);
+            attachItem.setOnAction(e -> snapFX.attachFloatingWindow(window));
+            floatingWindowsMenu.getItems().add(attachItem);
+        }
+    }
+
+    private void collectDockNodes(DockElement element, List<DockNode> nodes) {
+        if (element == null) {
+            return;
+        }
+        if (element instanceof DockNode node) {
+            nodes.add(node);
+            return;
+        }
+        if (element instanceof DockContainer container) {
+            for (DockElement child : container.getChildren()) {
+                collectDockNodes(child, nodes);
             }
         }
     }

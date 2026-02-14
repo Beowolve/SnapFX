@@ -15,6 +15,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -118,5 +120,25 @@ class DockDragServiceTest {
 
         assertTrue(dragService.activateTabHoverIfNeeded(tabHeaderZone));
         assertEquals(1, rootTabs.getSelectedIndex());
+    }
+
+    @Test
+    void testRequestFloatDetachInvokesCallback() {
+        DockNode dragged = new DockNode(new Label("Dragged"), "Dragged");
+        AtomicReference<DockDragService.FloatDetachRequest> requestRef = new AtomicReference<>();
+        dragService.setOnFloatDetachRequest(requestRef::set);
+
+        boolean handled = dragService.requestFloatDetach(dragged, 123.0, 456.0);
+
+        assertTrue(handled);
+        assertEquals(dragged, requestRef.get().draggedNode());
+        assertEquals(123.0, requestRef.get().screenX(), 0.0001);
+        assertEquals(456.0, requestRef.get().screenY(), 0.0001);
+    }
+
+    @Test
+    void testRequestFloatDetachWithoutHandlerReturnsFalse() {
+        DockNode dragged = new DockNode(new Label("Dragged"), "Dragged");
+        assertFalse(dragService.requestFloatDetach(dragged, 10.0, 20.0));
     }
 }

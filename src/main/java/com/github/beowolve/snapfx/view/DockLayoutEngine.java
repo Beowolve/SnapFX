@@ -13,6 +13,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.Button;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 
@@ -44,6 +46,7 @@ public class DockLayoutEngine {
     private DockCloseButtonMode closeButtonMode = DockCloseButtonMode.BOTH;
     private DockTitleBarMode titleBarMode = DockTitleBarMode.AUTO;
     private Consumer<DockNode> onNodeCloseRequest;
+    private Consumer<DockNode> onNodeFloatRequest;
 
     public DockLayoutEngine(DockGraph dockGraph, DockDragService dragService) {
         this.dockGraph = dockGraph;
@@ -119,6 +122,7 @@ public class DockLayoutEngine {
 
         // Set close button action
         nodeView.setOnCloseRequest(() -> handleCloseRequest(dockNode));
+        nodeView.setOnFloatRequest(() -> handleFloatRequest(dockNode));
         applyTitleBarVisibility(nodeView, dockNode);
         applyTitleCloseVisibility(nodeView, dockNode);
 
@@ -353,7 +357,21 @@ public class DockLayoutEngine {
 
         Label tabLabel = new Label();
         tabLabel.textProperty().bind(dockNode.titleProperty());
-        tabHeader.getChildren().addAll(iconPane, tabLabel);
+
+        Button floatButton = new Button();
+        floatButton.getStyleClass().addAll("dock-node-close-button", "dock-tab-float-button");
+        floatButton.setGraphic(DockControlIcons.createFloatIcon());
+        floatButton.setTooltip(new Tooltip("Float window"));
+        floatButton.setFocusTraversable(false);
+        floatButton.visibleProperty().bind(dockGraph.lockedProperty().not());
+        floatButton.managedProperty().bind(floatButton.visibleProperty());
+        floatButton.setOnAction(e -> {
+            handleFloatRequest(dockNode);
+            e.consume();
+        });
+        floatButton.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED, javafx.scene.input.MouseEvent::consume);
+
+        tabHeader.getChildren().addAll(iconPane, tabLabel, floatButton);
 
         Runnable cleanup = () -> {
             dockNode.iconProperty().removeListener(iconListener);
@@ -361,6 +379,9 @@ public class DockLayoutEngine {
             iconPane.visibleProperty().unbind();
             iconPane.managedProperty().unbind();
             iconPane.getChildren().clear();
+            floatButton.visibleProperty().unbind();
+            floatButton.managedProperty().unbind();
+            floatButton.setOnAction(null);
         };
         return new TabHeader(tabHeader, cleanup);
     }
@@ -373,14 +394,30 @@ public class DockLayoutEngine {
     private void setupTabDragHandlers(Tab tab, DockNode dockNode) {
         Node header = tab.getGraphic();
         if (dragService != null && header != null) {
-            header.setOnMousePressed(e -> dragService.startDrag(dockNode, e));
+            header.setOnMousePressed(e -> {
+                if (isInteractiveControlTarget(e.getTarget())) {
+                    return;
+                }
+                dragService.startDrag(dockNode, e);
+            });
             header.setOnMouseDragged(e -> {
-                if (dragService.isDragging()) dragService.updateDrag(e);
+                if (isInteractiveControlTarget(e.getTarget())) {
+                    return;
+                }
+                if (dragService.isDragging()) {
+                    dragService.updateDrag(e);
+                }
             });
             header.setOnMouseReleased(e -> {
-                if (dragService.isDragging()) dragService.endDrag(e);
+                if (dragService.isDragging()) {
+                    dragService.endDrag(e);
+                }
             });
         }
+    }
+
+    private boolean isInteractiveControlTarget(Object target) {
+        return target instanceof Button;
     }
 
     /**
@@ -433,6 +470,12 @@ public class DockLayoutEngine {
             onNodeCloseRequest.accept(dockNode);
         } else {
             dockGraph.undock(dockNode);
+        }
+    }
+
+    private void handleFloatRequest(DockNode dockNode) {
+        if (onNodeFloatRequest != null) {
+            onNodeFloatRequest.accept(dockNode);
         }
     }
 
@@ -899,6 +942,10 @@ public class DockLayoutEngine {
      */
     public void setOnNodeCloseRequest(Consumer<DockNode> onNodeCloseRequest) {
         this.onNodeCloseRequest = onNodeCloseRequest;
+    }
+
+    public void setOnNodeFloatRequest(Consumer<DockNode> onNodeFloatRequest) {
+        this.onNodeFloatRequest = onNodeFloatRequest;
     }
 
     public DockCloseButtonMode getCloseButtonMode() {

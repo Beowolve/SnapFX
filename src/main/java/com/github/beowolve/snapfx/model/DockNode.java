@@ -27,6 +27,11 @@ public class DockNode implements DockElement {
     // Store last known position for restore
     private DockElement lastKnownTarget;
     private DockPosition lastKnownPosition;
+    private Integer lastKnownTabIndex;
+    private Double lastFloatingX;
+    private Double lastFloatingY;
+    private Double lastFloatingWidth;
+    private Double lastFloatingHeight;
 
     /**
      * Creates a DockNode with an auto-generated UUID as both dockNodeId and layoutId.
@@ -154,6 +159,46 @@ public class DockNode implements DockElement {
 
     public void setLastKnownPosition(DockPosition lastKnownPosition) {
         this.lastKnownPosition = lastKnownPosition;
+    }
+
+    public Integer getLastKnownTabIndex() {
+        return lastKnownTabIndex;
+    }
+
+    public void setLastKnownTabIndex(Integer lastKnownTabIndex) {
+        this.lastKnownTabIndex = lastKnownTabIndex;
+    }
+
+    public Double getLastFloatingX() {
+        return lastFloatingX;
+    }
+
+    public void setLastFloatingX(Double lastFloatingX) {
+        this.lastFloatingX = lastFloatingX;
+    }
+
+    public Double getLastFloatingY() {
+        return lastFloatingY;
+    }
+
+    public void setLastFloatingY(Double lastFloatingY) {
+        this.lastFloatingY = lastFloatingY;
+    }
+
+    public Double getLastFloatingWidth() {
+        return lastFloatingWidth;
+    }
+
+    public void setLastFloatingWidth(Double lastFloatingWidth) {
+        this.lastFloatingWidth = lastFloatingWidth;
+    }
+
+    public Double getLastFloatingHeight() {
+        return lastFloatingHeight;
+    }
+
+    public void setLastFloatingHeight(Double lastFloatingHeight) {
+        this.lastFloatingHeight = lastFloatingHeight;
     }
 
     @Override

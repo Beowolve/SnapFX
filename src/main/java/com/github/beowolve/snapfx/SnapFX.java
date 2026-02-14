@@ -17,6 +17,8 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -32,6 +34,7 @@ public class SnapFX {
 
     // Hidden nodes (removed from layout but not destroyed)
     private final ObservableList<DockNode> hiddenNodes;
+    private final ObservableList<DockFloatingWindow> floatingWindows;
 
     private Pane rootContainer; // Container that holds the buildLayout() result
 
@@ -41,6 +44,10 @@ public class SnapFX {
         this.layoutEngine = new DockLayoutEngine(dockGraph, dragService);
         this.serializer = new DockLayoutSerializer(dockGraph);
         this.hiddenNodes = FXCollections.observableArrayList();
+        this.floatingWindows = FXCollections.observableArrayList();
+        this.layoutEngine.setOnNodeFloatRequest(node -> floatNode(node));
+        this.dragService.setOnDropRequest(this::handleResolvedDropRequest);
+        this.dragService.setOnFloatDetachRequest(this::handleUnresolvedDropRequest);
 
         // Auto-rebuild view when revision changes (after D&D, dock/undock operations)
         this.dockGraph.revisionProperty().addListener((obs, o, n) -> {
@@ -66,6 +73,9 @@ public class SnapFX {
         this.primaryStage = stage;
         dragService.initialize(stage);
         dragService.setLayoutEngine(layoutEngine);
+        for (DockFloatingWindow floatingWindow : floatingWindows) {
+            floatingWindow.show(primaryStage);
+        }
     }
 
     /**
@@ -189,6 +199,7 @@ public class SnapFX {
      * Loads a layout from JSON.
      */
     public void loadLayout(String json) {
+        closeAllFloatingWindows(false);
         serializer.deserialize(json);
         // Rebuild view
         layoutEngine.clearCache();
@@ -201,39 +212,19 @@ public class SnapFX {
         if (node == null || hiddenNodes.contains(node)) {
             return;
         }
-
-        // Store last known position
-        if (node.getParent() != null) {
-            DockContainer parent = node.getParent();
-            int index = parent.getChildren().indexOf(node);
-
-            // Find a sibling or parent as target
-            DockElement target = null;
-            DockPosition position = DockPosition.RIGHT;
-
-            if (parent.getChildren().size() > 1) {
-                // Use sibling as target
-                if (index > 0) {
-                    target = parent.getChildren().get(index - 1);
-                    position = DockPosition.RIGHT;
-                } else if (index < parent.getChildren().size() - 1) {
-                    target = parent.getChildren().get(index + 1);
-                    position = DockPosition.LEFT;
-                }
-            } else {
-                // Use parent as target
-                target = parent;
-                position = DockPosition.CENTER;
+        DockFloatingWindow floatingWindow = findFloatingWindow(node);
+        if (floatingWindow != null) {
+            rememberFloatingBoundsForNodes(floatingWindow);
+            floatingWindow.undockNode(node);
+            if (floatingWindow.isEmpty()) {
+                floatingWindows.remove(floatingWindow);
+                floatingWindow.closeWithoutNotification();
             }
-
-            node.setLastKnownTarget(target);
-            node.setLastKnownPosition(position);
+        } else if (isInGraph(node)) {
+            rememberLastKnownPlacement(node);
+            dockGraph.undock(node);
         }
 
-        // Remove from layout
-        dockGraph.undock(node);
-
-        // Add to hidden list
         hiddenNodes.add(node);
     }
 
@@ -246,22 +237,200 @@ public class SnapFX {
         }
 
         hiddenNodes.remove(node);
+        dockAtRememberedOrFallback(node);
+    }
 
-        // Try to restore at last known position
-        DockElement target = node.getLastKnownTarget();
-        DockPosition position = node.getLastKnownPosition();
+    /**
+     * Moves an existing DockNode into an external floating window.
+     */
+    public DockFloatingWindow floatNode(DockNode node) {
+        return floatNode(node, null, null);
+    }
 
-        // Validate target still exists in graph
-        if (target != null && isInGraph(target)) {
-            dockGraph.dock(node, target, position);
+    /**
+     * Moves an existing DockNode into an external floating window at a screen position.
+     * The screen coordinates can be on any monitor.
+     */
+    public DockFloatingWindow floatNode(DockNode node, Double screenX, Double screenY) {
+        if (node == null) {
+            return null;
+        }
+
+        DockFloatingWindow existingWindow = findFloatingWindow(node);
+        if (existingWindow != null) {
+            existingWindow.setPreferredPosition(screenX, screenY);
+            existingWindow.show(primaryStage);
+            return existingWindow;
+        }
+
+        hiddenNodes.remove(node);
+
+        DockFloatingWindow sourceFloatingWindow = null;
+        if (isInGraph(node)) {
+            rememberLastKnownPlacement(node);
+            dockGraph.undock(node);
         } else {
-            // Fallback: dock to root
-            if (dockGraph.getRoot() == null) {
-                dockGraph.setRoot(node);
-            } else {
-                dockGraph.dock(node, dockGraph.getRoot(), DockPosition.RIGHT);
+            sourceFloatingWindow = findFloatingWindow(node);
+            if (sourceFloatingWindow != null) {
+                sourceFloatingWindow.undockNode(node);
+                if (sourceFloatingWindow.isEmpty()) {
+                    floatingWindows.remove(sourceFloatingWindow);
+                    sourceFloatingWindow.closeWithoutNotification();
+                }
             }
         }
+
+        DockFloatingWindow floatingWindow = new DockFloatingWindow(node, dragService);
+        applyRememberedFloatingBounds(node, floatingWindow);
+        if (screenX != null || screenY != null) {
+            floatingWindow.setPreferredPosition(screenX, screenY);
+        }
+        floatingWindow.setOnAttachRequested(() -> attachFloatingWindow(floatingWindow));
+        floatingWindow.setOnWindowClosed(this::handleFloatingWindowClosed);
+        floatingWindows.add(floatingWindow);
+        if (primaryStage != null) {
+            floatingWindow.show(primaryStage);
+        }
+        return floatingWindow;
+    }
+
+    /**
+     * Attaches a floating window back into the main layout.
+     */
+    public void attachFloatingWindow(DockFloatingWindow floatingWindow) {
+        if (floatingWindow == null || !floatingWindows.remove(floatingWindow)) {
+            return;
+        }
+
+        floatingWindow.closeWithoutNotification();
+        rememberFloatingBoundsForNodes(floatingWindow);
+
+        List<DockNode> nodesToAttach = new ArrayList<>(floatingWindow.getDockNodes());
+        for (DockNode node : nodesToAttach) {
+            floatingWindow.undockNode(node);
+        }
+
+        for (DockNode node : nodesToAttach) {
+            dockAtRememberedOrFallback(node);
+        }
+    }
+
+    /**
+     * Returns all currently open floating windows.
+     */
+    public ObservableList<DockFloatingWindow> getFloatingWindows() {
+        return FXCollections.unmodifiableObservableList(floatingWindows);
+    }
+
+    private void handleResolvedDropRequest(DockDragService.DropRequest request) {
+        if (request == null
+            || request.draggedNode() == null
+            || request.target() == null
+            || request.position() == null) {
+            return;
+        }
+
+        DockNode draggedNode = request.draggedNode();
+        DockFloatingWindow sourceWindow = findFloatingWindow(draggedNode);
+
+        if (sourceWindow == null) {
+            dockGraph.move(draggedNode, request.target(), request.position(), request.tabIndex());
+            return;
+        }
+
+        sourceWindow.undockNode(draggedNode);
+        if (sourceWindow.isEmpty()) {
+            rememberFloatingBoundsForNodes(sourceWindow);
+            floatingWindows.remove(sourceWindow);
+            sourceWindow.closeWithoutNotification();
+        }
+
+        dockGraph.dock(draggedNode, request.target(), request.position(), request.tabIndex());
+    }
+
+    private void handleUnresolvedDropRequest(DockDragService.FloatDetachRequest request) {
+        if (request == null || request.draggedNode() == null) {
+            return;
+        }
+        if (tryDropIntoFloatingWindow(request.draggedNode(), request.screenX(), request.screenY())) {
+            return;
+        }
+        floatNode(request.draggedNode(), request.screenX(), request.screenY());
+    }
+
+    private boolean tryDropIntoFloatingWindow(DockNode node, double screenX, double screenY) {
+        DockFloatingWindow bestWindow = null;
+        DockFloatingWindow.DropTarget bestTarget = null;
+
+        for (DockFloatingWindow floatingWindow : floatingWindows) {
+            DockFloatingWindow.DropTarget candidate = floatingWindow.resolveDropTarget(screenX, screenY, node);
+            if (candidate == null) {
+                continue;
+            }
+            if (bestTarget == null
+                || candidate.depth() > bestTarget.depth()
+                || (candidate.depth() == bestTarget.depth() && candidate.area() < bestTarget.area())) {
+                bestWindow = floatingWindow;
+                bestTarget = candidate;
+            }
+        }
+
+        if (bestWindow == null || bestTarget == null) {
+            return false;
+        }
+
+        DockFloatingWindow sourceWindow = findFloatingWindow(node);
+        if (sourceWindow != null && sourceWindow == bestWindow) {
+            bestWindow.moveNode(node, bestTarget.target(), bestTarget.position(), bestTarget.tabIndex());
+            bestWindow.toFront();
+            return true;
+        }
+
+        if (isInGraph(node)) {
+            rememberLastKnownPlacement(node);
+            dockGraph.undock(node);
+        } else if (sourceWindow != null) {
+            rememberFloatingBoundsForNodes(sourceWindow);
+            sourceWindow.undockNode(node);
+            if (sourceWindow.isEmpty()) {
+                floatingWindows.remove(sourceWindow);
+                sourceWindow.closeWithoutNotification();
+            }
+        }
+
+        hiddenNodes.remove(node);
+        bestWindow.dockNode(node, bestTarget.target(), bestTarget.position(), bestTarget.tabIndex());
+        bestWindow.toFront();
+        return true;
+    }
+
+    private void applyRememberedFloatingBounds(DockNode node, DockFloatingWindow floatingWindow) {
+        if (node == null || floatingWindow == null) {
+            return;
+        }
+        if (node.getLastFloatingWidth() != null && node.getLastFloatingHeight() != null) {
+            floatingWindow.setPreferredSize(node.getLastFloatingWidth(), node.getLastFloatingHeight());
+        }
+        if (node.getLastFloatingX() != null || node.getLastFloatingY() != null) {
+            floatingWindow.setPreferredPosition(node.getLastFloatingX(), node.getLastFloatingY());
+        }
+    }
+
+    private void rememberFloatingBoundsForNodes(DockFloatingWindow floatingWindow) {
+        if (floatingWindow == null) {
+            return;
+        }
+        floatingWindow.captureCurrentBounds();
+        for (DockNode node : floatingWindow.getDockNodes()) {
+            node.setLastFloatingX(floatingWindow.getPreferredX());
+            node.setLastFloatingY(floatingWindow.getPreferredY());
+            node.setLastFloatingWidth(floatingWindow.getPreferredWidth());
+            node.setLastFloatingHeight(floatingWindow.getPreferredHeight());
+        }
+    }
+
+    private boolean isInGraph(DockNode node) {
+        return node != null && findInGraph(dockGraph.getRoot(), node);
     }
 
     private boolean isInGraph(DockElement element) {
@@ -343,5 +512,106 @@ public class SnapFX {
 
     public int getDockNodeCount(String id) {
         return dockGraph.getDockNodeCount(id);
+    }
+
+    private DockFloatingWindow findFloatingWindow(DockNode node) {
+        if (node == null) {
+            return null;
+        }
+        for (DockFloatingWindow floatingWindow : floatingWindows) {
+            if (floatingWindow.containsNode(node)) {
+                return floatingWindow;
+            }
+        }
+        return null;
+    }
+
+    private void closeAllFloatingWindows(boolean attachBack) {
+        if (floatingWindows.isEmpty()) {
+            return;
+        }
+        for (DockFloatingWindow floatingWindow : new ArrayList<>(floatingWindows)) {
+            if (attachBack) {
+                attachFloatingWindow(floatingWindow);
+            } else {
+                floatingWindows.remove(floatingWindow);
+                floatingWindow.closeWithoutNotification();
+            }
+        }
+    }
+
+    private void handleFloatingWindowClosed(DockFloatingWindow floatingWindow) {
+        if (floatingWindow == null || !floatingWindows.remove(floatingWindow)) {
+            return;
+        }
+        rememberFloatingBoundsForNodes(floatingWindow);
+        List<DockNode> nodes = new ArrayList<>(floatingWindow.getDockNodes());
+        for (DockNode node : nodes) {
+            floatingWindow.undockNode(node);
+        }
+        for (DockNode node : nodes) {
+            dockAtRememberedOrFallback(node);
+        }
+    }
+
+    private void rememberLastKnownPlacement(DockNode node) {
+        if (node == null || node.getParent() == null) {
+            return;
+        }
+
+        DockContainer parent = node.getParent();
+        int index = parent.getChildren().indexOf(node);
+
+        if (parent instanceof DockTabPane tabPane) {
+            DockElement tabTarget = tabPane;
+            if (tabPane.getChildren().size() > 1) {
+                if (index > 0) {
+                    tabTarget = tabPane.getChildren().get(index - 1);
+                } else if (index < tabPane.getChildren().size() - 1) {
+                    tabTarget = tabPane.getChildren().get(index + 1);
+                }
+            }
+            node.setLastKnownTarget(tabTarget);
+            node.setLastKnownPosition(DockPosition.CENTER);
+            node.setLastKnownTabIndex(index >= 0 ? index : tabPane.getChildren().size());
+            return;
+        }
+
+        DockElement target = null;
+        DockPosition position = DockPosition.RIGHT;
+        node.setLastKnownTabIndex(null);
+
+        if (parent.getChildren().size() > 1) {
+            if (index > 0) {
+                target = parent.getChildren().get(index - 1);
+                position = DockPosition.RIGHT;
+            } else if (index < parent.getChildren().size() - 1) {
+                target = parent.getChildren().get(index + 1);
+                position = DockPosition.LEFT;
+            }
+        } else {
+            target = parent;
+            position = DockPosition.CENTER;
+        }
+
+        node.setLastKnownTarget(target);
+        node.setLastKnownPosition(position);
+    }
+
+    private void dockAtRememberedOrFallback(DockNode node) {
+        DockElement target = node.getLastKnownTarget();
+        DockPosition position = node.getLastKnownPosition();
+        Integer tabIndex = node.getLastKnownTabIndex();
+
+        if (target != null && position != null && isInGraph(target)) {
+            dockGraph.dock(node, target, position, position == DockPosition.CENTER ? tabIndex : null);
+            return;
+        }
+
+        if (dockGraph.getRoot() == null) {
+            dockGraph.setRoot(node);
+        } else {
+            dockGraph.dock(node, dockGraph.getRoot(), DockPosition.RIGHT);
+        }
     }
 }

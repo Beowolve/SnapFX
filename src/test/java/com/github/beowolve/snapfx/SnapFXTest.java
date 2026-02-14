@@ -2,6 +2,7 @@ package com.github.beowolve.snapfx;
 
 import com.github.beowolve.snapfx.model.DockNode;
 import com.github.beowolve.snapfx.model.DockPosition;
+import com.github.beowolve.snapfx.model.DockTabPane;
 import javafx.application.Platform;
 import javafx.scene.control.Label;
 import org.junit.jupiter.api.BeforeAll;
@@ -194,6 +195,98 @@ class SnapFXTest {
         // Verify node is in hidden list
         assertEquals(1, snapFX.getHiddenNodes().size());
         assertTrue(snapFX.getHiddenNodes().contains(node1));
+    }
+
+    @Test
+    void testFloatNodeRemovesNodeFromGraphAndTracksFloatingWindow() {
+        DockNode node1 = new DockNode("node1", new Label("Node 1"), "Node 1");
+        DockNode node2 = new DockNode("node2", new Label("Node 2"), "Node 2");
+
+        snapFX.dock(node1, null, DockPosition.CENTER);
+        snapFX.dock(node2, node1, DockPosition.RIGHT);
+
+        DockFloatingWindow floatingWindow = snapFX.floatNode(node1);
+
+        assertNotNull(floatingWindow);
+        assertEquals(node1, floatingWindow.getDockNode());
+        assertEquals(1, snapFX.getFloatingWindows().size());
+        assertFalse(isInGraph(snapFX, node1));
+    }
+
+    @Test
+    void testAttachFloatingWindowRestoresNodeToGraph() {
+        DockNode node1 = new DockNode("node1", new Label("Node 1"), "Node 1");
+        DockNode node2 = new DockNode("node2", new Label("Node 2"), "Node 2");
+
+        snapFX.dock(node1, null, DockPosition.CENTER);
+        snapFX.dock(node2, node1, DockPosition.RIGHT);
+
+        DockFloatingWindow floatingWindow = snapFX.floatNode(node1);
+        snapFX.attachFloatingWindow(floatingWindow);
+
+        assertTrue(snapFX.getFloatingWindows().isEmpty());
+        assertTrue(isInGraph(snapFX, node1));
+    }
+
+    @Test
+    void testClosingFloatingWindowAttachesNodeBack() {
+        DockNode node1 = new DockNode("node1", new Label("Node 1"), "Node 1");
+        DockNode node2 = new DockNode("node2", new Label("Node 2"), "Node 2");
+
+        snapFX.dock(node1, null, DockPosition.CENTER);
+        snapFX.dock(node2, node1, DockPosition.RIGHT);
+
+        DockFloatingWindow floatingWindow = snapFX.floatNode(node1);
+        floatingWindow.close();
+
+        assertTrue(snapFX.getFloatingWindows().isEmpty());
+        assertTrue(isInGraph(snapFX, node1));
+    }
+
+    @Test
+    void testHideFloatingNodeMovesItToHiddenList() {
+        DockNode node1 = new DockNode("node1", new Label("Node 1"), "Node 1");
+        DockNode node2 = new DockNode("node2", new Label("Node 2"), "Node 2");
+
+        snapFX.dock(node1, null, DockPosition.CENTER);
+        snapFX.dock(node2, node1, DockPosition.RIGHT);
+
+        snapFX.floatNode(node1);
+        snapFX.hide(node1);
+
+        assertTrue(snapFX.getFloatingWindows().isEmpty());
+        assertEquals(1, snapFX.getHiddenNodes().size());
+        assertTrue(snapFX.getHiddenNodes().contains(node1));
+    }
+
+    @Test
+    void testAttachAfterFloatFromTabRestoresNodeAsTab() {
+        DockNode node1 = new DockNode("node1", new Label("Node 1"), "Node 1");
+        DockNode node2 = new DockNode("node2", new Label("Node 2"), "Node 2");
+
+        snapFX.dock(node1, null, DockPosition.CENTER);
+        snapFX.dock(node2, node1, DockPosition.CENTER);
+
+        assertTrue(node1.getParent() instanceof DockTabPane);
+        DockFloatingWindow floatingWindow = snapFX.floatNode(node2);
+        snapFX.attachFloatingWindow(floatingWindow);
+
+        assertTrue(node1.getParent() instanceof DockTabPane);
+        assertEquals(node1.getParent(), node2.getParent());
+    }
+
+    @Test
+    void testFloatAttachToggleKeepsRememberedFloatingPosition() {
+        DockNode node1 = new DockNode("node1", new Label("Node 1"), "Node 1");
+        snapFX.dock(node1, null, DockPosition.CENTER);
+
+        DockFloatingWindow firstFloat = snapFX.floatNode(node1, 321.0, 222.0);
+        snapFX.attachFloatingWindow(firstFloat);
+
+        DockFloatingWindow secondFloat = snapFX.floatNode(node1);
+
+        assertEquals(321.0, secondFloat.getPreferredX(), 0.0001);
+        assertEquals(222.0, secondFloat.getPreferredY(), 0.0001);
     }
 
     // Helper method to check if node is in graph

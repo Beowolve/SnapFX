@@ -24,27 +24,45 @@
 
 .dock-node-close-button {
     -fx-background-color: transparent;
-    -fx-text-fill: derive(-fx-text-base-color, 20%);
-    -fx-font-size: 18px;
-    -fx-padding: -2px 4px 0 4px;
+    -fx-padding: 2px;
     -fx-cursor: hand;
     -fx-background-radius: 3px;
-    -fx-min-height: 22px;
-    -fx-pref-height: 22px;
-    -fx-max-height: 22px;
+    -fx-min-width: 20px;
+    -fx-pref-width: 20px;
+    -fx-max-width: 20px;
+    -fx-min-height: 20px;
+    -fx-pref-height: 20px;
+    -fx-max-height: 20px;
     -fx-alignment: center;
     -fx-content-display: center;
 }
 
 .dock-node-close-button:hover {
-    -fx-text-fill: -fx-text-base-color;
-    -fx-background-color: transparent;
+    -fx-background-color: derive(-fx-background, -8%);
 }
 
 .dock-node-close-button:pressed {
-    -fx-text-fill: -fx-text-base-color;
-    -fx-background-color: transparent;
-    -fx-opacity: 0.85;
+    -fx-background-color: derive(-fx-background, -12%);
+}
+
+.dock-floating-window {
+    -fx-background-color: -fx-background;
+    -fx-border-color: derive(-fx-background, -10%);
+    -fx-border-width: 1px;
+}
+
+.dock-floating-title-bar {
+    -fx-padding: 4px 6px;
+}
+
+.dock-tab-float-button {
+    -fx-min-width: 16px;
+    -fx-pref-width: 16px;
+    -fx-max-width: 16px;
+    -fx-min-height: 16px;
+    -fx-pref-height: 16px;
+    -fx-max-height: 16px;
+    -fx-padding: 1px;
 }
 
 .dock-node-content {
