@@ -1,9 +1,16 @@
 # SnapFX Development Roadmap
 
-**Last Updated**: 2026-02-14
+**Last Updated**: 2026-02-15
 
 This document tracks all planned features, improvements, and bug fixes for SnapFX. Items are marked as they are completed and new features are added as they are identified.
 This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
+
+## Version Track
+
+- Current development version: `0.2.1-SNAPSHOT`
+- Current roadmap milestone: `0.2` (Floating Windows)
+- Latest milestone tag: `v0.2.0`
+- Next milestone target: `v0.3.0` (Phase 3 baseline)
 
 ## Legend
 
@@ -20,7 +27,7 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 | Phase | Status | Completion |
 |-------|--------|------------|
 | Phase 1: Core Stability | ✅ Completed | 100% |
-| Phase 2: Floating Windows | 🚧 In Progress | 40% |
+| Phase 2: Floating Windows | 🚧 In Progress | 85% |
 | Phase 3: User Experience | 📋 Planned | 0% |
 | Phase 4: Advanced Features | 📋 Planned | 0% |
 | Phase 5: Themes & Customization | 📋 Planned | 0% |
@@ -28,7 +35,7 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 | Phase 7: Developer Experience | 📋 Planned | 32% |
 | Phase 8: Production Readiness | 📋 Planned | 20% |
 
-**Total Project Completion**: ~53%
+**Total Project Completion**: ~59%
 
 ---
 
@@ -79,8 +86,9 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 
 - ✅ **DockFloatingWindow class**: Manage external stages
 - ✅ **Detach from main window**: Drag node outside main window to create floating window
-- 🚧 **Attach to main window**: Attach button and API done; drag-attach pending
+- ✅ **Attach to main window**: Drag-attach and title-bar attach are both supported
 - ✅ **Multi-monitor support**: Position by explicit screen coordinates (`floatNode(node, x, y)`)
+- ✅ **Cross-window D&D**: Dock between main and floating windows, including floating-to-floating
 - 📋 **Window state persistence**: Save/load floating window positions
 
 **Estimated Time**: In progress
@@ -90,9 +98,11 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 ### 2.2 Floating Window Features
 **Priority**: 🟢 Medium
 
-- 📋 **Minimize/maximize**: Standard window operations
+- ✅ **Maximize/restore**: Custom floating title-bar toggle implemented
 - 📋 **Always on top**: Pin window above main window
-- 📋 **Window decorations**: Custom title bar styling
+- ✅ **Window decorations**: Custom title bar styling and controls
+- ✅ **Resizable undecorated windows**: Edge/corner resize behavior for floating stages
+- ✅ **Tab-level float action**: Float button available in tab headers
 - 📋 **Close behavior**: Return to hidden nodes or destroy
 
 **Estimated Time**: 2 days

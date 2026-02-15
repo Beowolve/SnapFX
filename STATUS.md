@@ -1,6 +1,6 @@
 # Project Status
 
-**Last Updated**: 2026-02-14
+**Last Updated**: 2026-02-15
 
 ## Build Status
 
@@ -317,7 +317,7 @@ See [ROADMAP.md](ROADMAP.md) for detailed future development plans.
 
 ---
 
-**Version**: 1.0-SNAPSHOT  
+**Version**: 0.2.1-SNAPSHOT  
 **Java**: 21 (LTS)  
 **JavaFX**: 21  
 **Build Tool**: Gradle 9.0

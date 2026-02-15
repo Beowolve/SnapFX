@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.github.beowolve"
-version = "1.0-SNAPSHOT"
+version = "0.2.1-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -38,6 +38,13 @@ dependencies {
 
     // Hamcrest for TestFX
     testImplementation("org.hamcrest:hamcrest:2.2")
+}
+
+tasks.processResources {
+    inputs.property("snapfxVersion", project.version.toString())
+    filesMatching("snapfx-version.properties") {
+        expand("snapfxVersion" to project.version.toString())
+    }
 }
 
 // Application Configuration

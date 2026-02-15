@@ -2,6 +2,7 @@ package com.github.beowolve.snapfx.demo;
 
 import com.github.beowolve.snapfx.DockFloatingWindow;
 import com.github.beowolve.snapfx.SnapFX;
+import com.github.beowolve.snapfx.BuildInfo;
 import com.github.beowolve.snapfx.debug.DockDebugOverlay;
 import com.github.beowolve.snapfx.debug.DockGraphDebugView;
 import com.github.beowolve.snapfx.dnd.DockDropVisualizationMode;
@@ -215,7 +216,7 @@ public class MainDemo extends Application {
         VBox content = new VBox(10);
         content.setPadding(new Insets(10));
 
-        Label versionLabel = new Label("Version 1.0-SNAPSHOT");
+        Label versionLabel = new Label("Version " + BuildInfo.getVersion());
         versionLabel.setStyle(FX_FONT_WEIGHT_BOLD);
 
         Label descriptionLabel = new Label(

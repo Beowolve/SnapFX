@@ -256,6 +256,26 @@ DockNode tasks = snapFX.dock(tasksList, "Tasks", console, DockPosition.CENTER);
 - [ ] **Context menus**: Right-click options
 - [ ] **Perspectives**: Predefined layouts
 
+## Versioning
+
+- Pre-1.0 scheme: `0.M.PATCH-SNAPSHOT`
+- `M` maps to roadmap milestone progress (`0.1`, `0.2`, `0.3`, ...)
+- Current development version: `0.2.1-SNAPSHOT` (`0.2` milestone baseline + patch-level fixes)
+- On milestone completion: create tag `v0.M.0`, then bump to next snapshot milestone (`0.(M+1).0-SNAPSHOT`)
+- First full release after all roadmap items are done: `1.0.0` with tag `v1.0.0`
+
+Milestone tagging helper:
+
+```bash
+./scripts/tag-roadmap-milestone.ps1 -Milestone "0.2"
+```
+
+Optional push:
+
+```bash
+./scripts/tag-roadmap-milestone.ps1 -Milestone "0.2" -Push
+```
+
 ## License
 
 This project is a demo framework for educational purposes.

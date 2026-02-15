@@ -1,6 +1,6 @@
 # SnapFX Framework - Completed Features
 
-**Last Updated**: 2026-02-14
+**Last Updated**: 2026-02-15
 
 SnapFX has been fully implemented with core functionality and is production-ready for basic use cases.
 
@@ -254,7 +254,7 @@ See [ROADMAP.md](ROADMAP.md) for planned features and improvements.
 
 ---
 
-**Version**: 1.0-SNAPSHOT  
+**Version**: 0.2.1-SNAPSHOT  
 **Status**: Production-ready for basic use cases  
 **License**: Educational/Demo Purpose  
 **Developed**: 2026-02  
