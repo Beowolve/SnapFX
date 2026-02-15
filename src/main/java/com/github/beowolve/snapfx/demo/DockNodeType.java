@@ -25,6 +25,14 @@ public enum DockNodeType {
     private final String defaultTitle;
     private final boolean singleton;
 
+    /**
+     * Constructs a new DockNodeType with the given properties.
+     *
+     * @param id           unique ID for this node type
+     * @param iconName     filename of the icon for this node type
+     * @param defaultTitle default display title for this node type
+     * @param singleton    whether this node type is a singleton (only one instance allowed)
+     */
     DockNodeType(String id, String iconName, String defaultTitle, boolean singleton) {
         this.id = id;
         this.iconName = iconName;

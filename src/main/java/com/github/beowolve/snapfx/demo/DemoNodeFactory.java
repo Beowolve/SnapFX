@@ -198,7 +198,12 @@ public final class DemoNodeFactory implements DockNodeFactory {
         return createDockNode(DockNodeType.TASKS, tasksList);
     }
 
-    // Methods for dynamic nodes (Toolbar)
+    /**
+     * Creates a new Editor node with a unique ID for dynamic addition.
+     * This demonstrates how to create dynamic nodes with unique IDs.
+     * @param title the title for the editor
+     * @return DockNode instance
+     */
     public DockNode createEditorNode(String title) {
         SerializableEditor editor = new SerializableEditor(title);
         DockNode node = new DockNode(DockNodeType.EDITOR.getId(), editor, title);
@@ -206,6 +211,11 @@ public final class DemoNodeFactory implements DockNodeFactory {
         return node;
     }
 
+    /**
+     * Creates a Properties panel node with the same content as the main Properties.
+     * This demonstrates how to create dynamic nodes with unique IDs.
+     * @return DockNode instance
+     */
     public DockNode createPropertiesPanelNode() {
         VBox propertiesContent = new VBox(10);
         propertiesContent.setPadding(new Insets(10));
@@ -226,6 +236,11 @@ public final class DemoNodeFactory implements DockNodeFactory {
         return node;
     }
 
+    /**
+     * Creates a Console panel node with the same content as the main Console.
+     * This demonstrates how to create dynamic nodes with unique IDs.
+     * @return DockNode instance
+     */
     public DockNode createConsolePanelNode() {
         TextArea console = new TextArea();
         console.setEditable(false);
@@ -244,6 +259,12 @@ public final class DemoNodeFactory implements DockNodeFactory {
         return node;
     }
 
+    /**
+     * Creates a generic panel node with the given title.
+     * This demonstrates how to create dynamic nodes with unique IDs.
+     * @param title the title for the panel
+     * @return DockNode instance
+     */
     public DockNode createGenericPanelNode(String title) {
         VBox content = new VBox(10);
         content.setPadding(new Insets(20));

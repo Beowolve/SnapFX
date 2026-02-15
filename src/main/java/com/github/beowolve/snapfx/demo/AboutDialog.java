@@ -36,8 +36,8 @@ import java.util.function.Consumer;
 public final class AboutDialog {
     private static final String CONTENT_LOGO_RESOURCE = "/images/128/snapfx.png";
     private static final String DIALOG_ICON_RESOURCE = "/images/64/snapfx.png";
-    private static final String YUSUKE_AUTHOR_URL = "http://p.yusukekamiyamane.com/";
-    private static final String YUSUKE_LICENSE_URL = "http://creativecommons.org/licenses/by/3.0/deed.de";
+    private static final String YUSUKE_AUTHOR_URL = "https://p.yusukekamiyamane.com/";
+    private static final String YUSUKE_LICENSE_URL = "https://creativecommons.org/licenses/by/3.0/deed.de";
     private static final String FLATICON_CREDIT_URL = "https://www.flaticon.com/free-icons/logout";
     private static final String EASTER_EGG_RUNNING_KEY = "snapfx.about.easterEgg.running";
     private static final Duration EASTER_EGG_POP_DURATION = Duration.millis(210);
