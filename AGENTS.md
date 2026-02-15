@@ -15,6 +15,7 @@ These instructions are shared for all AI agents working on this workspace.
 - If a fixed collaboration rule is agreed with the user, add it to this `AGENTS.md` immediately.
 - Treat `AGENTS.md` as the source of truth for all persistent collaboration rules in this workspace.
 - As soon as a focused, sensible commit is ready, proactively show the proposed commit message without waiting for the user to ask.
+- If `MainDemo` visuals change (layout, window composition, look and feel, styling, icons, controls), always run `./scripts/update-main-demo-preview.ps1` and include the updated `docs/images/main-demo.png`.
 
 ## DnD-Specific Rules
 - Any drag-and-drop change must include model-level tests for the affected behavior.
