@@ -182,6 +182,7 @@
 - ✅ 2026-02-15: CI - Added GitHub Actions workflow for push/PR validation (`./gradlew test`) with tag fetch for `gradle-jgitver`.
 - ✅ 2026-02-15: Release - Added tag-triggered GitHub Release workflow for `v*` tags that builds/tests and publishes distribution artifacts.
 - ✅ 2026-02-15: Release - Integrated `git-cliff` (`cliff.toml`) to generate grouped release notes from commits between tags.
+- ✅ 2026-02-15: CI/Release - Tracked `gradlew` with executable mode (`100755`) so Linux runners can execute the Gradle wrapper without permission errors.
 - ✅ 2026-02-15: Floating Window - Double-click on maximized title bar now restores previous window bounds
 - ✅ 2026-02-15: Floating Window - Dragging a maximized title bar now restores and continues move (Windows-style behavior)
 - ✅ 2026-02-15: UI - Tab float button clicks are no longer intercepted by drag handling

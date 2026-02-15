@@ -212,6 +212,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Added GitHub Actions CI workflow for push/PR validation with `./gradlew test` on JDK 21.
 - ✅ Added GitHub Actions release workflow for `v*` tags that runs build/tests and publishes GitHub Releases with distribution artifacts.
 - ✅ Added `git-cliff` release-note generation (`cliff.toml`) and wired release workflow to publish generated notes.
+- ✅ Tracked `gradlew` as executable (`100755`) so Linux CI/release runners can execute the Gradle wrapper reliably.
 - ✅ **Gradle Build**: Modern Kotlin DSL build script
 - ✅ **Module Configuration**: Java 21 module support
 - ✅ **JavaFX Integration**: JavaFX Gradle plugin
