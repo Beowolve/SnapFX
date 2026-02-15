@@ -5,7 +5,7 @@
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 116 tests passing (56 + 9 + 21 + 18 + 1 + 5 + 2 + 2 + 2)  
+✅ **Tests**: All 119 tests passing (56 + 9 + 21 + 21 + 1 + 5 + 2 + 2 + 2)  
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully
 
@@ -67,7 +67,7 @@
 - ✅ Original position tracking
 - ✅ **Close button handler integration** (Fixed: 2026-02-11)
 
-### Floating Windows (Core 85% 🚧)
+### Floating Windows (Core 100% ✅)
 - ✅ `DockFloatingWindow` as external dock host with its own `DockGraph`/`DockLayoutEngine`
 - ✅ Programmatic floating API: `SnapFX.floatNode(...)`
 - ✅ Drag-out detach: unresolved drop positions open/update floating windows
@@ -80,7 +80,7 @@
 - ✅ Runtime floating bounds memory per node (float/attach toggle keeps position/size)
 - ✅ Undecorated resize handling via edges/corners
 - ✅ Re-attach after floating from tabs restores as tab (not forced split)
-- 🚧 Save/load persistence for floating windows is pending
+- ✅ Save/load persistence for floating windows, including floating snapshot restore on layout load
 
 ### Debug Tools (100% ✅)
 - ✅ DockGraphDebugView
@@ -105,13 +105,13 @@
 - ✅ DockGraphTest (56 tests, +11 regression tests)
 - ✅ DockLayoutSerializerTest (9 tests, +1 regression test)
 - ✅ DockLayoutEngineTest (21 tests)
-- ✅ **SnapFXTest (18 tests)** - Hide/Restore + Floating Window API tests
+- ✅ **SnapFXTest (21 tests)** - Hide/Restore + Floating Window API tests
 - ✅ DockGraphSplitTargetDockingTest (1 test)
 - ✅ DockDragServiceTest (5 tests)
 - ✅ DockFloatingWindowTest (2 tests) - Floating title bar maximize/restore interaction behavior
 - ✅ MainDemoTest (2 tests) - Demo app icon resource wiring and availability
 - ✅ AboutDialogTest (2 tests) - About dialog branding resources and credit link targets
-- ✅ **116/116 tests passing** ✅ (was 49)
+- ✅ **119/119 tests passing** ✅ (was 49)
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Edge case tests** (null inputs, detached nodes, invalid move targets, no-op revision checks)
@@ -177,7 +177,7 @@
 - Added `DockGraphTest#testDemoLikeLayoutCanUseQuarterHalfQuarterSplit` to verify exact `25/50/25` split ratios can be set programmatically.
 - Added `SnapFXTest` coverage for ratio API behavior (normalized values + invalid input handling).
 - Added `DockLayoutEngineTest` coverage for stylesheet-based control glyph class wiring (title close + tab float button).
-- Test status: **116/116 passing** ✅
+- Test status: **119/119 passing** ✅
 
 ### Documentation
 - Fixed Unicode/Mojibake issues in `ROADMAP.md` (Phase 4.5 Floating Window Snapping icons/priority).
@@ -198,6 +198,12 @@
 - Fixed floating-window title-bar maximize interactions: double-click now toggles restore correctly and dragging from maximized restores first, then moves the window.
 - Refactored MainDemo About dialog into AboutDialog, added dialog/app branding icon wiring, and updated credit links.
 - Added About dialog easter egg animation and new test coverage (`AboutDialogTest`).
+
+### Floating Window Persistence
+- Added snapshot-based `SnapFX.saveLayout()`/`loadLayout()` support for open floating windows.
+- Floating window bounds (`x`, `y`, `width`, `height`) now persist across layout save/load round-trips.
+- Floating window subtree layouts are serialized and reconstructed on load.
+- Added `SnapFXTest` coverage for snapshot payload generation, round-trip restore, and legacy JSON compatibility.
 
 ## Recent Changes (2026-02-14)
 
@@ -355,7 +361,7 @@
 
 See [ROADMAP.md](ROADMAP.md) for detailed future development plans.
 
-**Priority**: Finish Phase 2 floating persistence (save/load) and start snapping behavior.
+**Priority**: Start Phase 2 floating window snapping behavior.
 
 ---
 

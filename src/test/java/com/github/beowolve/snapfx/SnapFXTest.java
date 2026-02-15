@@ -10,6 +10,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -383,6 +385,78 @@ class SnapFXTest {
         assertFalse(snapFX.setRootSplitRatios(1, Double.POSITIVE_INFINITY, 1));
     }
 
+    @Test
+    void testSaveLayoutWithFloatingWindowIncludesSnapshotSection() {
+        DockNode nodeMain = new DockNode("nodeMain", new Label("Main"), "Main");
+        DockNode nodeFloat = new DockNode("nodeFloat", new Label("Float"), "Float");
+
+        snapFX.dock(nodeMain, null, DockPosition.CENTER);
+        snapFX.dock(nodeFloat, nodeMain, DockPosition.RIGHT);
+
+        DockFloatingWindow floatingWindow = snapFX.floatNode(nodeFloat, 420.0, 210.0);
+        floatingWindow.setPreferredSize(640.0, 420.0);
+
+        String json = snapFX.saveLayout();
+
+        assertTrue(json.contains("\"mainLayout\""));
+        assertTrue(json.contains("\"floatingWindows\""));
+        assertTrue(json.contains("\"layout\""));
+    }
+
+    @Test
+    void testSaveLoadRoundTripRestoresFloatingWindowBoundsAndNode() {
+        DockNode nodeMain = new DockNode("nodeMain", new Label("Main"), "Main");
+        DockNode nodeFloat = new DockNode("nodeFloat", new Label("Float"), "Float");
+
+        snapFX.setNodeFactory(this::createFactoryNode);
+        snapFX.dock(nodeMain, null, DockPosition.CENTER);
+        snapFX.dock(nodeFloat, nodeMain, DockPosition.RIGHT);
+
+        DockFloatingWindow floatingWindow = snapFX.floatNode(nodeFloat, 333.0, 144.0);
+        floatingWindow.setPreferredSize(610.0, 390.0);
+
+        String json = snapFX.saveLayout();
+
+        SnapFX restored = new SnapFX();
+        restored.setNodeFactory(this::createFactoryNode);
+        restored.loadLayout(json);
+
+        assertEquals(1, restored.getFloatingWindows().size());
+        DockFloatingWindow restoredWindow = restored.getFloatingWindows().get(0);
+        assertEquals(333.0, restoredWindow.getPreferredX(), 0.0001);
+        assertEquals(144.0, restoredWindow.getPreferredY(), 0.0001);
+        assertEquals(610.0, restoredWindow.getPreferredWidth(), 0.0001);
+        assertEquals(390.0, restoredWindow.getPreferredHeight(), 0.0001);
+
+        List<DockNode> floatingNodes = restoredWindow.getDockNodes();
+        assertEquals(1, floatingNodes.size());
+        assertEquals("nodeFloat", floatingNodes.get(0).getDockNodeId());
+        assertFalse(isInGraph(restored, floatingNodes.get(0)));
+
+        DockNode restoredMainNode = assertInstanceOf(DockNode.class, restored.getDockGraph().getRoot());
+        assertEquals("nodeMain", restoredMainNode.getDockNodeId());
+    }
+
+    @Test
+    void testLoadLayoutRemainsCompatibleWithLegacyMainLayoutJson() {
+        DockNode nodeMain = new DockNode("nodeMain", new Label("Main"), "Main");
+        DockNode nodeRight = new DockNode("nodeRight", new Label("Right"), "Right");
+
+        snapFX.setNodeFactory(this::createFactoryNode);
+        snapFX.dock(nodeMain, null, DockPosition.CENTER);
+        snapFX.dock(nodeRight, nodeMain, DockPosition.RIGHT);
+
+        String legacyJson = snapFX.saveLayout();
+        assertFalse(legacyJson.contains("\"mainLayout\""));
+
+        SnapFX restored = new SnapFX();
+        restored.setNodeFactory(this::createFactoryNode);
+        restored.loadLayout(legacyJson);
+
+        assertTrue(restored.getFloatingWindows().isEmpty());
+        assertNotNull(restored.getDockGraph().getRoot());
+    }
+
     // Helper method to check if node is in graph
     private boolean isInGraph(SnapFX snapFX, DockNode node) {
         return findInGraph(snapFX.getDockGraph().getRoot(), node);
@@ -403,6 +477,13 @@ class SnapFXTest {
             }
         }
         return false;
+    }
+
+    private DockNode createFactoryNode(String nodeId) {
+        if (nodeId == null || nodeId.isBlank()) {
+            return null;
+        }
+        return new DockNode(nodeId, new Label("Factory: " + nodeId), nodeId);
     }
 }
 

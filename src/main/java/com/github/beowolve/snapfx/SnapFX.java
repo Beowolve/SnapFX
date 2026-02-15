@@ -5,6 +5,13 @@ import com.github.beowolve.snapfx.dnd.DockDropVisualizationMode;
 import com.github.beowolve.snapfx.model.*;
 import com.github.beowolve.snapfx.persistence.DockLayoutSerializer;
 import com.github.beowolve.snapfx.persistence.DockNodeFactory;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import com.github.beowolve.snapfx.view.DockCloseButtonMode;
 import com.github.beowolve.snapfx.view.DockLayoutEngine;
 import com.github.beowolve.snapfx.view.DockTitleBarMode;
@@ -26,11 +33,21 @@ import java.util.function.Consumer;
  * Provides a simple, fluent API for docking JavaFX nodes.
  */
 public class SnapFX {
+    private static final Gson SNAPSHOT_GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final String SNAPSHOT_MAIN_LAYOUT_KEY = "mainLayout";
+    private static final String SNAPSHOT_FLOATING_WINDOWS_KEY = "floatingWindows";
+    private static final String SNAPSHOT_FLOATING_LAYOUT_KEY = "layout";
+    private static final String SNAPSHOT_FLOATING_X_KEY = "x";
+    private static final String SNAPSHOT_FLOATING_Y_KEY = "y";
+    private static final String SNAPSHOT_FLOATING_WIDTH_KEY = "width";
+    private static final String SNAPSHOT_FLOATING_HEIGHT_KEY = "height";
+
     private final DockGraph dockGraph;
     private final DockLayoutEngine layoutEngine;
     private final DockDragService dragService;
     private final DockLayoutSerializer serializer;
     private Stage primaryStage;
+    private DockNodeFactory nodeFactory;
 
     // Hidden nodes (removed from layout but not destroyed)
     private final ObservableList<DockNode> hiddenNodes;
@@ -185,6 +202,7 @@ public class SnapFX {
      * @param factory Factory that creates nodes from their IDs
      */
     public void setNodeFactory(DockNodeFactory factory) {
+        this.nodeFactory = factory;
         serializer.setNodeFactory(factory);
     }
 
@@ -192,7 +210,15 @@ public class SnapFX {
      * Saves the current layout as JSON.
      */
     public String saveLayout() {
-        return serializer.serialize();
+        String mainLayoutJson = serializer.serialize();
+        if (floatingWindows.isEmpty()) {
+            return mainLayoutJson;
+        }
+
+        JsonObject snapshot = new JsonObject();
+        snapshot.add(SNAPSHOT_MAIN_LAYOUT_KEY, parseJsonObjectOrEmpty(mainLayoutJson));
+        snapshot.add(SNAPSHOT_FLOATING_WINDOWS_KEY, serializeFloatingWindows());
+        return SNAPSHOT_GSON.toJson(snapshot);
     }
 
     /**
@@ -200,7 +226,13 @@ public class SnapFX {
      */
     public void loadLayout(String json) {
         closeAllFloatingWindows(false);
-        serializer.deserialize(json);
+        LayoutSnapshot snapshot = tryParseLayoutSnapshot(json);
+        if (snapshot != null) {
+            serializer.deserialize(SNAPSHOT_GSON.toJson(snapshot.mainLayout()));
+            restoreFloatingWindows(snapshot.floatingWindows());
+        } else {
+            serializer.deserialize(json);
+        }
         // Rebuild view
         layoutEngine.clearCache();
     }
@@ -683,5 +715,167 @@ public class SnapFX {
         } else {
             dockGraph.dock(node, dockGraph.getRoot(), DockPosition.RIGHT);
         }
+    }
+
+    private JsonArray serializeFloatingWindows() {
+        JsonArray floatingArray = new JsonArray();
+        for (DockFloatingWindow floatingWindow : floatingWindows) {
+            rememberFloatingBoundsForNodes(floatingWindow);
+            DockLayoutSerializer floatingSerializer = createLayoutSerializer(floatingWindow.getDockGraph());
+            JsonObject floatingData = new JsonObject();
+            floatingData.add(SNAPSHOT_FLOATING_LAYOUT_KEY, parseJsonObjectOrEmpty(floatingSerializer.serialize()));
+            addOptionalNumber(floatingData, SNAPSHOT_FLOATING_X_KEY, floatingWindow.getPreferredX());
+            addOptionalNumber(floatingData, SNAPSHOT_FLOATING_Y_KEY, floatingWindow.getPreferredY());
+            floatingData.addProperty(SNAPSHOT_FLOATING_WIDTH_KEY, floatingWindow.getPreferredWidth());
+            floatingData.addProperty(SNAPSHOT_FLOATING_HEIGHT_KEY, floatingWindow.getPreferredHeight());
+            floatingArray.add(floatingData);
+        }
+        return floatingArray;
+    }
+
+    private void restoreFloatingWindows(List<FloatingWindowSnapshot> snapshots) {
+        if (snapshots == null || snapshots.isEmpty()) {
+            return;
+        }
+        for (FloatingWindowSnapshot snapshot : snapshots) {
+            restoreFloatingWindow(snapshot);
+        }
+    }
+
+    private void restoreFloatingWindow(FloatingWindowSnapshot snapshot) {
+        if (snapshot == null || snapshot.layout() == null) {
+            return;
+        }
+
+        DockGraph floatingGraph = new DockGraph();
+        DockLayoutSerializer floatingSerializer = createLayoutSerializer(floatingGraph);
+        floatingSerializer.deserialize(SNAPSHOT_GSON.toJson(snapshot.layout()));
+        DockElement floatingRoot = floatingGraph.getRoot();
+        if (floatingRoot == null) {
+            return;
+        }
+
+        DockFloatingWindow floatingWindow = new DockFloatingWindow(floatingRoot, dragService);
+        if (isFinitePositive(snapshot.width()) || isFinitePositive(snapshot.height())) {
+            double width = isFinitePositive(snapshot.width())
+                ? snapshot.width()
+                : floatingWindow.getPreferredWidth();
+            double height = isFinitePositive(snapshot.height())
+                ? snapshot.height()
+                : floatingWindow.getPreferredHeight();
+            floatingWindow.setPreferredSize(width, height);
+        }
+        if (isFiniteNumber(snapshot.x()) || isFiniteNumber(snapshot.y())) {
+            floatingWindow.setPreferredPosition(snapshot.x(), snapshot.y());
+        }
+        floatingWindow.setOnAttachRequested(() -> attachFloatingWindow(floatingWindow));
+        floatingWindow.setOnWindowClosed(this::handleFloatingWindowClosed);
+        floatingWindows.add(floatingWindow);
+        if (primaryStage != null) {
+            floatingWindow.show(primaryStage);
+        }
+    }
+
+    private LayoutSnapshot tryParseLayoutSnapshot(String json) {
+        if (json == null || json.isBlank()) {
+            return null;
+        }
+
+        try {
+            JsonElement parsed = JsonParser.parseString(json);
+            if (!parsed.isJsonObject()) {
+                return null;
+            }
+            JsonObject snapshotJson = parsed.getAsJsonObject();
+            JsonElement mainLayoutElement = snapshotJson.get(SNAPSHOT_MAIN_LAYOUT_KEY);
+            if (mainLayoutElement == null || !mainLayoutElement.isJsonObject()) {
+                return null;
+            }
+
+            JsonObject mainLayout = mainLayoutElement.getAsJsonObject();
+            List<FloatingWindowSnapshot> snapshots = new ArrayList<>();
+            JsonElement floatingWindowsElement = snapshotJson.get(SNAPSHOT_FLOATING_WINDOWS_KEY);
+            if (floatingWindowsElement != null && floatingWindowsElement.isJsonArray()) {
+                for (JsonElement floatingElement : floatingWindowsElement.getAsJsonArray()) {
+                    if (!floatingElement.isJsonObject()) {
+                        continue;
+                    }
+                    JsonObject floatingJson = floatingElement.getAsJsonObject();
+                    JsonElement floatingLayoutElement = floatingJson.get(SNAPSHOT_FLOATING_LAYOUT_KEY);
+                    if (floatingLayoutElement == null || !floatingLayoutElement.isJsonObject()) {
+                        continue;
+                    }
+                    snapshots.add(new FloatingWindowSnapshot(
+                        floatingLayoutElement.getAsJsonObject(),
+                        readOptionalFiniteDouble(floatingJson, SNAPSHOT_FLOATING_X_KEY),
+                        readOptionalFiniteDouble(floatingJson, SNAPSHOT_FLOATING_Y_KEY),
+                        readOptionalFiniteDouble(floatingJson, SNAPSHOT_FLOATING_WIDTH_KEY),
+                        readOptionalFiniteDouble(floatingJson, SNAPSHOT_FLOATING_HEIGHT_KEY)
+                    ));
+                }
+            }
+            return new LayoutSnapshot(mainLayout, snapshots);
+        } catch (JsonSyntaxException ignored) {
+            return null;
+        }
+    }
+
+    private DockLayoutSerializer createLayoutSerializer(DockGraph graph) {
+        DockLayoutSerializer layoutSerializer = new DockLayoutSerializer(graph);
+        if (nodeFactory != null) {
+            layoutSerializer.setNodeFactory(nodeFactory);
+        }
+        return layoutSerializer;
+    }
+
+    private JsonObject parseJsonObjectOrEmpty(String json) {
+        if (json == null || json.isBlank()) {
+            return new JsonObject();
+        }
+        try {
+            JsonElement parsed = JsonParser.parseString(json);
+            if (parsed.isJsonObject()) {
+                return parsed.getAsJsonObject();
+            }
+        } catch (JsonSyntaxException ignored) {
+            // Ignore invalid data and return empty object fallback.
+        }
+        return new JsonObject();
+    }
+
+    private void addOptionalNumber(JsonObject object, String key, Double value) {
+        if (object == null || key == null || !isFiniteNumber(value)) {
+            return;
+        }
+        object.addProperty(key, value);
+    }
+
+    private Double readOptionalFiniteDouble(JsonObject object, String key) {
+        if (object == null || key == null || !object.has(key)) {
+            return null;
+        }
+        JsonElement value = object.get(key);
+        if (value == null || !value.isJsonPrimitive() || !value.getAsJsonPrimitive().isNumber()) {
+            return null;
+        }
+        double parsed = value.getAsDouble();
+        if (!Double.isFinite(parsed)) {
+            return null;
+        }
+        return parsed;
+    }
+
+    private boolean isFinitePositive(Double value) {
+        return isFiniteNumber(value) && value > 0.0;
+    }
+
+    private boolean isFiniteNumber(Double value) {
+        return value != null && Double.isFinite(value);
+    }
+
+    private record LayoutSnapshot(JsonObject mainLayout, List<FloatingWindowSnapshot> floatingWindows) {
+    }
+
+    private record FloatingWindowSnapshot(JsonObject layout, Double x, Double y, Double width, Double height) {
     }
 }

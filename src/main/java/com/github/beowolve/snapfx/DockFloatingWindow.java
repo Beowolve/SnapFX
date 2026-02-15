@@ -93,27 +93,37 @@ public final class DockFloatingWindow {
     private double resizeStartWindowHeight;
 
     DockFloatingWindow(DockNode dockNode) {
-        this(dockNode, "SnapFX", null);
+        this((DockElement) dockNode, "SnapFX", null);
     }
 
     DockFloatingWindow(DockNode dockNode, DockDragService dragService) {
-        this(dockNode, "SnapFX", dragService);
+        this((DockElement) dockNode, "SnapFX", dragService);
     }
 
     DockFloatingWindow(DockNode dockNode, String titlePrefix) {
-        this(dockNode, titlePrefix, null);
+        this((DockElement) dockNode, titlePrefix, null);
     }
 
     DockFloatingWindow(DockNode dockNode, String titlePrefix, DockDragService dragService) {
+        this((DockElement) dockNode, titlePrefix, dragService);
+    }
+
+    DockFloatingWindow(DockElement floatingRoot, DockDragService dragService) {
+        this(floatingRoot, "SnapFX", dragService);
+    }
+
+    DockFloatingWindow(DockElement floatingRoot, String titlePrefix, DockDragService dragService) {
         this.id = UUID.randomUUID().toString();
-        this.primaryDockNode = Objects.requireNonNull(dockNode, "dockNode");
+        DockElement rootElement = Objects.requireNonNull(floatingRoot, "floatingRoot");
+        DockNode representative = findFirstDockNode(rootElement);
+        this.primaryDockNode = Objects.requireNonNull(representative, "floatingRoot must contain at least one DockNode");
         this.titlePrefix = (titlePrefix == null || titlePrefix.isBlank()) ? "SnapFX" : titlePrefix;
         this.floatingGraph = new DockGraph();
         this.floatingLayoutEngine = new DockLayoutEngine(floatingGraph, dragService);
         this.layoutContainer = new StackPane();
         this.layoutContainer.getStyleClass().add("dock-floating-layout-container");
 
-        floatingGraph.setRoot(dockNode);
+        floatingGraph.setRoot(rootElement);
         floatingGraph.revisionProperty().addListener((obs, oldValue, newValue) ->
             Platform.runLater(this::rebuildLayout)
         );
@@ -125,6 +135,24 @@ public final class DockFloatingWindow {
                 }
             })
         );
+    }
+
+    private static DockNode findFirstDockNode(DockElement element) {
+        if (element == null) {
+            return null;
+        }
+        if (element instanceof DockNode dockNode) {
+            return dockNode;
+        }
+        if (element instanceof DockContainer container) {
+            for (DockElement child : container.getChildren()) {
+                DockNode found = findFirstDockNode(child);
+                if (found != null) {
+                    return found;
+                }
+            }
+        }
+        return null;
     }
 
     public String getId() {
