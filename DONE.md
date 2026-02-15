@@ -57,7 +57,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (9 test classes, 121 tests)
+### Testing (12 test classes, 155 tests)
 - ✅ `DockGraphTest` (56 tests) - Tree manipulation and algorithms
   - **+11 regression tests** for critical bug fixes
   - Tests for empty container prevention
@@ -68,15 +68,18 @@ SnapFX has been fully implemented with core functionality and is production-read
   - Edge case tests for null/no-op/detached-target handling
 - ✅ `DockLayoutSerializerTest` (9 tests) - Persistence functionality
   - **+1 regression test** for locked state synchronization (2026-02-10)
-- ✅ `DockLayoutEngineTest` (21 tests) - View creation with TestFX
+- ✅ `DockLayoutEngineTest` (22 tests) - View creation with TestFX
   - Memory cleanup tests for cache boundedness and undock/rebuild cycles
   - Layout optimization tests for empty/single-child roots
-- ✅ `SnapFXTest` (23 tests) - Hide/Restore + Floating Window API behavior
+- ✅ `SnapFXTest` (35 tests) - Hide/Restore + Floating Window API behavior
 - ✅ `DockGraphSplitTargetDockingTest` (1 test) - Split-target docking regression coverage
-- ✅ `DockDragServiceTest` (5 tests) - D&D visibility, tab-hover activation, and float-detach callback behavior
-- ✅ `DockFloatingWindowTest` (2 tests) - Maximized title-bar double-click + drag-restore behavior
-- ✅ `MainDemoTest` (2 tests) - Application icon resources and wiring
+- ✅ `DockDragServiceTest` (6 tests) - D&D visibility, tab-hover activation, and float-detach callback behavior
+- ✅ `DockFloatingWindowTest` (8 tests) - Floating title-bar controls, pin behavior, and maximize/restore interaction behavior
+- ✅ `MainDemoTest` (4 tests) - Application icon resources, menu icon copy behavior, and wiring
 - ✅ `AboutDialogTest` (2 tests) - About dialog resources and credit link targets
+- ✅ `EditorCloseDecisionPolicyTest` (5 tests) - Deterministic close-decision behavior for dirty editor nodes
+- ✅ `SimpleExampleTest` (2 tests) - Stylesheet resource resolution behavior
+- ✅ `MarkdownDocumentationConsistencyTest` (5 tests) - Documentation consistency guardrails
 - ✅ All tests passing ✅
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
 - ✅ Mandatory regression tests for all bug fixes
@@ -248,8 +251,8 @@ In IntelliJ IDEA:
 
 - **Total Java Files**: 38
 - **Production Classes**: 31
-- **Test Classes**: 9
-- **Test Cases**: 121 (all passing ✅)
+- **Test Classes**: 12
+- **Test Cases**: 155 (all passing ✅)
 - **Lines of Code**: ~3,500+ (estimated)
 - **Documentation**: 7 Core Markdown files
 - **Test Coverage**: ~87% (estimated, improved from ~80%)
@@ -282,7 +285,7 @@ In IntelliJ IDEA:
 
 See [ROADMAP.md](ROADMAP.md) for planned features and improvements.
 
-**Current Priority**: Start floating window snapping behavior (Phase 2 next step).
+**Current Priority**: Focus on Phase 3 user-experience backlog (shortcuts, context menus, interaction polish).
 
 ---
 

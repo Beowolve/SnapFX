@@ -9,7 +9,7 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 
 - Version source: `gradle-jgitver` (Git tags + commit distance)
 - Local fallback without tags: `0.0.0-<distance>-<branch>`
-- Current roadmap milestone: `0.2` (Floating Windows)
+- Current roadmap milestone: `0.3` (User Experience)
 - Latest milestone tag target: `v0.2.0`
 - Next milestone target: `v0.3.0` (Phase 3 baseline)
 
@@ -28,15 +28,15 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 | Phase | Status | Completion |
 |-------|--------|------------|
 | Phase 1: Core Stability | ✅ Completed | 100% |
-| Phase 2: Floating Windows | 🚧 In Progress | 94% |
-| Phase 3: User Experience | 🚧 In Progress | 5% |
+| Phase 2: Floating Windows | ✅ Completed | 100% |
+| Phase 3: User Experience | 🚧 In Progress | 8% |
 | Phase 4: Advanced Features | 📋 Planned | 0% |
 | Phase 5: Themes & Customization | 📋 Planned | 0% |
 | Phase 6: Performance & Polish | 📋 Planned | 0% |
 | Phase 7: Developer Experience | 📋 Planned | 32% |
 | Phase 8: Production Readiness | 📋 Planned | 20% |
 
-**Total Project Completion**: ~62%
+**Total Project Completion**: ~63%
 
 ---
 
@@ -117,7 +117,7 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 - ✅ **Resizable undecorated windows**: Edge/corner resize behavior for floating stages
 - ✅ **Tab-level float action**: Float button available in tab headers
 
-**Estimated Time**: 2 days
+**Estimated Time**: Completed
 
 ---
 
@@ -132,6 +132,7 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 - 📋 **Alt+1..9**: Focus specific panel
 - 📋 **F11**: Toggle fullscreen
 - 📋 **Escape**: Cancel drag operation
+- 📋 **Ctrl+Shift+P**: Toggle always-on-top for the active floating window
 
 **Estimated Time**: 1 day
 
@@ -141,6 +142,7 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 - 📋 **Right-click on tab**: Close, Close Others, Close All, Float
 - 📋 **Right-click on splitter**: Reset to 50/50
 - 📋 **Right-click on header**: Minimize, Maximize, Float
+- 📋 **Right-click on floating title bar**: Toggle "Always on Top"
 - 📋 **Customizable menu items**: API for adding custom actions
 
 **Estimated Time**: 2 days

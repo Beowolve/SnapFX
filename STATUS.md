@@ -5,7 +5,7 @@
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 121 tests passing (56 + 9 + 21 + 23 + 1 + 5 + 2 + 2 + 2)  
+✅ **Tests**: All 155 tests passing (latest full suite)  
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully
 
@@ -67,7 +67,7 @@
 - ✅ Original position tracking
 - ✅ **Close button handler integration** (Fixed: 2026-02-11)
 
-### Floating Windows (Core 100% ✅)
+### Floating Windows (Phase 2 100% ✅)
 - ✅ `DockFloatingWindow` as external dock host with its own `DockGraph`/`DockLayoutEngine`
 - ✅ Programmatic floating API: `SnapFX.floatNode(...)`
 - ✅ Drag-out detach: unresolved drop positions open/update floating windows
@@ -81,6 +81,8 @@
 - ✅ Undecorated resize handling via edges/corners
 - ✅ Re-attach after floating from tabs restores as tab (not forced split)
 - ✅ Save/load persistence for floating windows, including floating snapshot restore on layout load
+- ✅ Configurable floating pin controls (`ALWAYS`/`AUTO`/`NEVER`) with default always-on-top and lock-mode behavior
+- ✅ Source-aware floating pin change callbacks plus always-on-top snapshot persistence
 
 ### Debug Tools (100% ✅)
 - ✅ DockGraphDebugView
@@ -104,14 +106,17 @@
 ### Testing (100% ✅)
 - ✅ DockGraphTest (56 tests, +11 regression tests)
 - ✅ DockLayoutSerializerTest (9 tests, +1 regression test)
-- ✅ DockLayoutEngineTest (21 tests)
-- ✅ **SnapFXTest (23 tests)** - Hide/Restore + Floating Window API tests
+- ✅ DockLayoutEngineTest (22 tests)
+- ✅ **SnapFXTest (35 tests)** - Hide/Restore + Floating Window API tests
 - ✅ DockGraphSplitTargetDockingTest (1 test)
-- ✅ DockDragServiceTest (5 tests)
-- ✅ DockFloatingWindowTest (2 tests) - Floating title bar maximize/restore interaction behavior
-- ✅ MainDemoTest (2 tests) - Demo app icon resource wiring and availability
+- ✅ DockDragServiceTest (6 tests)
+- ✅ DockFloatingWindowTest (8 tests) - Floating title bar controls, pin behavior, and maximize/restore interaction behavior
+- ✅ MainDemoTest (4 tests) - Demo app icon resource wiring and menu icon behavior
+- ✅ EditorCloseDecisionPolicyTest (5 tests) - Deterministic close-decision policy checks
+- ✅ SimpleExampleTest (2 tests) - Stylesheet resource resolution behavior
+- ✅ MarkdownDocumentationConsistencyTest (5 tests) - Markdown consistency guardrails
 - ✅ AboutDialogTest (2 tests) - About dialog branding resources and credit link targets
-- ✅ **121/121 tests passing** ✅ (was 49)
+- ✅ **155/155 tests passing** ✅ (was 49)
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Edge case tests** (null inputs, detached nodes, invalid move targets, no-op revision checks)
@@ -130,7 +135,7 @@
 - ✅ About dialog extracted into dedicated class with dynamic version info, large logo branding, and icon credits
 - ✅ About dialog easter egg animation (triple-click logo)
 - ✅ Debug view toggle
-- ✅ Settings tab for live layout options (title bar, close buttons, drop visualization, lock)
+- ✅ Settings tab for live layout options (title bar, close buttons, drop visualization, lock, floating pin controls)
 
 ### Documentation (100% ✅)
 - ✅ README.md updated
@@ -148,8 +153,9 @@
 ### Open
 - ⚠️ Performance: Benchmark trend tracking for large layouts not implemented
 - ⚠️ Memory: Automated heap profiling in CI not implemented
-- ⚠️ UI: Global interaction animations missing (only About dialog easter egg animation exists)
-- ⚠️ UI: Keyboard shortcuts not implemented
+- ⚠️ UI: Global interaction animations missing (only About dialog easter egg animation exists; tracked in `ROADMAP.md` Phase 3.3)
+- ⚠️ UI: Keyboard shortcuts not implemented (tracked in `ROADMAP.md` Phase 3.1)
+- ⚠️ UI: Context menus for advanced actions (including floating always-on-top toggle) not implemented (tracked in `ROADMAP.md` Phase 3.2)
 
 ### Fixed (recent)
 - ✅ 2026-02-15: MainDemo - Close callbacks now prompt only for dirty editor nodes (Save / Don't Save / Cancel) before allowing close.
