@@ -130,6 +130,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **Control Button Interaction Fixes**: Tab float and floating-window title-bar buttons no longer lose clicks to drag interception
 - ✅ **Maximized title-bar interaction parity**: Double-click restore and drag-to-restore behavior for floating windows
 - ✅ **MainDemo application icon**: Multi-size SnapFX branding icons are applied to the primary stage
+- ✅ **MainDemo layout menu icons**: Hidden/Floating menu actions now show dock-node icons when available
 - ✅ **View Caching**: Performance optimization through view reuse
 
 ### Drag & Drop (Baseline + Critical Bug Fixes)

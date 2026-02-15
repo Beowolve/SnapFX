@@ -28,6 +28,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -184,17 +185,17 @@ public class MainDemo extends Application {
         saveEditorItem.setOnAction(e -> saveActiveEditor(false));
 
         MenuItem saveEditorAsItem = new MenuItem("Save Active Editor As...");
-        saveEditorAsItem.setGraphic(IconUtil.loadIcon("disk.png"));
+        saveEditorAsItem.setGraphic(IconUtil.loadIcon("disk--pencil.png"));
         saveEditorAsItem.setOnAction(e -> saveActiveEditor(true));
 
         SeparatorMenuItem separatorEditor = new SeparatorMenuItem();
 
         MenuItem saveLayoutItem = new MenuItem("Save Layout...");
-        saveLayoutItem.setGraphic(IconUtil.loadIcon("disk.png"));
+        saveLayoutItem.setGraphic(IconUtil.loadIcon("disk-black.png"));
         saveLayoutItem.setOnAction(e -> saveLayout());
 
         MenuItem loadLayoutItem = new MenuItem("Load Layout...");
-        loadLayoutItem.setGraphic(IconUtil.loadIcon("folder-open-document-text.png"));
+        loadLayoutItem.setGraphic(IconUtil.loadIcon("folder-open-document.png"));
         loadLayoutItem.setOnAction(e -> loadLayout());
 
         SeparatorMenuItem separator1 = new SeparatorMenuItem();
@@ -284,6 +285,7 @@ public class MainDemo extends Application {
         } else {
             for (DockNode node : snapFX.getHiddenNodes()) {
                 MenuItem item = new MenuItem(node.getTitle());
+                item.setGraphic(createMenuItemIcon(node));
                 item.setOnAction(e -> snapFX.restore(node));
                 hiddenWindowsMenu.getItems().add(item);
             }
@@ -309,6 +311,7 @@ public class MainDemo extends Application {
 
         for (DockNode node : nodes) {
             MenuItem item = new MenuItem(node.getTitle());
+            item.setGraphic(createMenuItemIcon(node));
             item.setOnAction(e -> snapFX.floatNode(node));
             floatNodeMenu.getItems().add(item);
         }
@@ -340,9 +343,32 @@ public class MainDemo extends Application {
                 label = "Attach: " + nodes.getFirst().getTitle() + " +" + (nodes.size() - 1);
             }
             MenuItem attachItem = new MenuItem(label);
+            if (!nodes.isEmpty()) {
+                attachItem.setGraphic(createMenuItemIcon(nodes.getFirst()));
+            }
             attachItem.setOnAction(e -> snapFX.attachFloatingWindow(window));
             floatingWindowsMenu.getItems().add(attachItem);
         }
+    }
+
+    private Node createMenuItemIcon(DockNode node) {
+        if (node == null) {
+            return null;
+        }
+        return copyMenuIcon(node.getIcon());
+    }
+
+    static Node copyMenuIcon(Node icon) {
+        if (!(icon instanceof ImageView source) || source.getImage() == null) {
+            return null;
+        }
+        ImageView copy = new ImageView(source.getImage());
+        copy.setFitWidth(source.getFitWidth() > 0 ? source.getFitWidth() : 16);
+        copy.setFitHeight(source.getFitHeight() > 0 ? source.getFitHeight() : 16);
+        copy.setPreserveRatio(source.isPreserveRatio());
+        copy.setSmooth(source.isSmooth());
+        copy.setCache(source.isCache());
+        return copy;
     }
 
     private void collectDockNodes(DockElement element, List<DockNode> nodes) {
@@ -521,7 +547,9 @@ public class MainDemo extends Application {
         debugTabs.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 
         Tab debugTab = new Tab("Debug", debugView);
+        debugTab.setGraphic(IconUtil.loadIcon("bug.png"));
         Tab settingsTab = new Tab("Settings", createSettingsPanel());
+        settingsTab.setGraphic(IconUtil.loadIcon("hammer-screwdriver.png"));
         debugTabs.getTabs().addAll(debugTab, settingsTab);
 
         // Create split pane with dock layout on left and debug view on right

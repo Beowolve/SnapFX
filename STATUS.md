@@ -174,6 +174,7 @@
 - ✅ 2026-02-15: UI - Tab float button clicks are no longer intercepted by drag handling
 - ✅ 2026-02-15: Floating Window - Close (`X`) now moves floating nodes to hidden windows list
 - ✅ 2026-02-15: Floating Window - Maximize/restore title-bar buttons are clickable again
+- ✅ 2026-02-15: MainDemo - Layout menus now show node icons (Hidden, Float, Attach) when a dock node provides an icon.
 - ✅ 2026-02-14: Drag & Drop - Dropping on same position changes splitter positions
 - ✅ 2026-02-14: Drag & Drop - Tab reordering can miss drops despite insert indicator
 - ✅ 2026-02-14: UI - Tab close bypasses hidden nodes menu
@@ -193,6 +194,7 @@
 ### Demo Layout
 - ✅ MainDemo now demonstrates close-hook customization by intercepting close events and applying editor-specific save prompts.
 - ✅ MainDemo file menu now includes demo editor file operations (open/save/save-as) backed by `SerializableEditor`.
+- ✅ MainDemo layout-related menus now show copied dock-node icons for hidden, float, and floating-attach actions.
 - Added `SnapFX` API methods `setRootSplitRatios(...)` and `setSplitRatios(...)` to configure split pane ratios programmatically.
 - Switched `MainDemo` to the new API so the default root split ratio is configured via `snapFX.setRootSplitRatios(25, 50, 25)`.
 
