@@ -152,6 +152,8 @@
 - ⚠️ UI: Keyboard shortcuts not implemented
 
 ### Fixed (recent)
+- ✅ 2026-02-15: Drag & Drop - Overlapping surfaces now target only the topmost window under the cursor; main and floating previews are no longer shown simultaneously.
+- ✅ 2026-02-15: Drag & Drop - Drops over overlapping floating/main windows now resolve to the topmost floating window instead of the covered main layout.
 - ✅ 2026-02-15: Build - `runSimpleExample` now launches in module mode (`mainModule` + `mainClass`) so JavaFX runtime components are loaded reliably.
 - ✅ 2026-02-15: Demo - `SimpleExample` stylesheet resolution now supports both module-resource and classpath-resource lookup paths.
 - ✅ 2026-02-15: MainDemo - Floating windows list now updates reliably for all float/attach paths
@@ -203,6 +205,7 @@
 - MainDemo now applies multi-size SnapFX application icons (16/24/32/48/64/128) from resources.
 
 ### UI Interaction
+- ✅ Overlapping-window drag targeting now uses topmost-hit precedence: only the frontmost surface under the cursor receives preview and drop.
 - Fixed tab-header float button interactions by preventing drag handlers from hijacking button clicks.
 - Fixed floating-window title-bar control interactions (attach/maximize/restore/close) by removing pressed-event consumption and improving control-target detection.
 - Closing a floating window via `X` now moves its nodes to hidden windows instead of auto-attaching back to the layout.

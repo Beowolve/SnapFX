@@ -141,4 +141,19 @@ class DockDragServiceTest {
         DockNode dragged = new DockNode(new Label("Dragged"), "Dragged");
         assertFalse(dragService.requestFloatDetach(dragged, 10.0, 20.0));
     }
+
+    @Test
+    void testMainDropSuppressionPredicateIsEvaluated() {
+        assertFalse(dragService.shouldSuppressMainDropAt(120.0, 80.0));
+
+        dragService.setSuppressMainDropAtScreenPoint((screenX, screenY) ->
+            screenX != null && screenY != null && screenX > 100.0 && screenY > 50.0
+        );
+
+        assertTrue(dragService.shouldSuppressMainDropAt(120.0, 80.0));
+        assertFalse(dragService.shouldSuppressMainDropAt(40.0, 20.0));
+
+        dragService.setSuppressMainDropAtScreenPoint(null);
+        assertFalse(dragService.shouldSuppressMainDropAt(120.0, 80.0));
+    }
 }

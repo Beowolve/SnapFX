@@ -35,6 +35,7 @@ import javafx.beans.property.SimpleObjectProperty;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 
 /**
@@ -67,6 +68,7 @@ public class DockDragService {
     private Consumer<DropRequest> onDropRequest;
     private Consumer<DragHoverEvent> onDragHover;
     private Runnable onDragFinished;
+    private BiPredicate<Double, Double> suppressMainDropAtScreenPoint;
 
     public DockDragService(DockGraph dockGraph) {
         this.dockGraph = dockGraph;
@@ -279,7 +281,7 @@ public class DockDragService {
         Point2D scenePoint = toMainScenePoint(event.getScreenX(), event.getScreenY());
 
         if (layoutEngine != null) {
-            updateDropTarget(scenePoint.getX(), scenePoint.getY());
+            updateDropTarget(scenePoint.getX(), scenePoint.getY(), event.getScreenX(), event.getScreenY());
         } else {
             clearDropTarget();
         }
@@ -349,7 +351,12 @@ public class DockDragService {
     /**
      * Updates the drop target and indicator based on mouse position.
      */
-    private void updateDropTarget(double sceneX, double sceneY) {
+    private void updateDropTarget(double sceneX, double sceneY, double screenX, double screenY) {
+        if (shouldSuppressMainDropAt(screenX, screenY)) {
+            clearDropTarget();
+            return;
+        }
+
         List<DockDropZone> zones = layoutEngine.collectDropZones();
         List<DockDropZone> validZones = filterZonesForDrag(zones, currentDrag.getDraggedNode());
         DockDropZone activeZone = layoutEngine.findBestDropZone(validZones, sceneX, sceneY);
@@ -540,6 +547,10 @@ public class DockDragService {
 
     public void setOnDragFinished(Runnable onDragFinished) {
         this.onDragFinished = onDragFinished;
+    }
+
+    public void setSuppressMainDropAtScreenPoint(BiPredicate<Double, Double> suppressMainDropAtScreenPoint) {
+        this.suppressMainDropAtScreenPoint = suppressMainDropAtScreenPoint;
     }
 
     public ObjectProperty<DockDragData> currentDragProperty() {
@@ -845,6 +856,11 @@ public class DockDragService {
             current = current.getParent();
         }
         return false;
+    }
+
+    boolean shouldSuppressMainDropAt(double screenX, double screenY) {
+        return suppressMainDropAtScreenPoint != null
+            && suppressMainDropAtScreenPoint.test(screenX, screenY);
     }
 
     public DockDropVisualizationMode getDropVisualizationMode() {

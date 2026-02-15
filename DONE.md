@@ -139,6 +139,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **Ghost Overlay Offset**: Positioned away from cursor to keep drop targets visible
 - ✅ **Unresolved Drop Fallback**: Non-drop-zone releases trigger floating behavior
 - ✅ **Cross-Window D&D**: Dock between main layout and floating windows
+- ✅ **Topmost-surface D&D targeting**: For overlapping floating/main windows, preview and drop resolve only on the frontmost surface under the cursor
 - ✅ **Floating close-to-hidden behavior**: Closing floating windows via `X` moves nodes to hidden windows list
 - ✅ **Floating window save/load persistence**: Open floating windows and bounds are restored via layout snapshots
 - ✅ **Floating drag/drop feedback parity**: Floating windows render drop zones and active drop indicator during drag

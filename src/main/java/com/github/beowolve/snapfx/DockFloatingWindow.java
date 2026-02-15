@@ -76,6 +76,7 @@ public final class DockFloatingWindow {
 
     private Runnable onAttachRequested;
     private Consumer<DockFloatingWindow> onWindowClosed;
+    private Runnable onWindowActivated;
 
     private StackPane iconPane;
     private Label titleLabel;
@@ -198,9 +199,22 @@ public final class DockFloatingWindow {
         return stage != null && stage.isShowing();
     }
 
+    boolean containsScreenPoint(double screenX, double screenY) {
+        if (stage == null || !stage.isShowing() || stage.getScene() == null) {
+            return false;
+        }
+        Node sceneRoot = stage.getScene().getRoot();
+        if (sceneRoot == null) {
+            return false;
+        }
+        Point2D scenePoint = sceneRoot.screenToLocal(screenX, screenY);
+        return scenePoint != null && sceneRoot.getBoundsInLocal().contains(scenePoint);
+    }
+
     public void toFront() {
         if (stage != null && stage.isShowing()) {
             stage.toFront();
+            notifyWindowActivated();
         }
     }
 
@@ -271,6 +285,7 @@ public final class DockFloatingWindow {
             stage.show();
         }
         stage.toFront();
+        notifyWindowActivated();
         rebuildLayout();
     }
 
@@ -288,6 +303,10 @@ public final class DockFloatingWindow {
 
     void setOnWindowClosed(Consumer<DockFloatingWindow> onWindowClosed) {
         this.onWindowClosed = onWindowClosed;
+    }
+
+    void setOnWindowActivated(Runnable onWindowActivated) {
+        this.onWindowActivated = onWindowActivated;
     }
 
     void undockNode(DockNode node) {
@@ -434,6 +453,11 @@ public final class DockFloatingWindow {
         window.setScene(scene);
         applyWindowPosition(window, ownerStage);
 
+        window.focusedProperty().addListener((obs, oldValue, newValue) -> {
+            if (Boolean.TRUE.equals(newValue)) {
+                notifyWindowActivated();
+            }
+        });
         window.maximizedProperty().addListener((obs, oldValue, newValue) -> updateMaximizeButtonState(window));
         updateMaximizeButtonState(window);
         window.setOnHidden(e -> onWindowHidden(window));
@@ -1129,6 +1153,12 @@ public final class DockFloatingWindow {
             setVisible(false);
             getChildren().clear();
             rectangles.clear();
+        }
+    }
+
+    private void notifyWindowActivated() {
+        if (onWindowActivated != null) {
+            onWindowActivated.run();
         }
     }
 

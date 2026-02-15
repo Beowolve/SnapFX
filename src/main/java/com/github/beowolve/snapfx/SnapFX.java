@@ -69,6 +69,7 @@ public class SnapFX {
         this.dragService.setOnFloatDetachRequest(this::handleUnresolvedDropRequest);
         this.dragService.setOnDragHover(this::handleDragHover);
         this.dragService.setOnDragFinished(this::clearFloatingDropPreviews);
+        this.dragService.setSuppressMainDropAtScreenPoint(this::isMainDropSuppressedByFloatingWindow);
 
         // Auto-rebuild view when revision changes (after D&D, dock/undock operations)
         this.dockGraph.revisionProperty().addListener((obs, o, n) -> {
@@ -332,6 +333,7 @@ public class SnapFX {
         }
         floatingWindow.setOnAttachRequested(() -> attachFloatingWindow(floatingWindow));
         floatingWindow.setOnWindowClosed(this::handleFloatingWindowClosed);
+        floatingWindow.setOnWindowActivated(() -> promoteFloatingWindowToFront(floatingWindow));
         floatingWindows.add(floatingWindow);
         if (primaryStage != null) {
             floatingWindow.show(primaryStage);
@@ -417,14 +419,25 @@ public class SnapFX {
             clearFloatingDropPreviews();
             return;
         }
+
+        DockFloatingWindow topWindow = findTopFloatingWindowAt(hoverEvent.screenX(), hoverEvent.screenY());
+        if (topWindow == null) {
+            clearFloatingDropPreviews();
+            return;
+        }
+
         DockDropVisualizationMode visualizationMode = dragService.getDropVisualizationMode();
-        for (DockFloatingWindow floatingWindow : floatingWindows) {
-            floatingWindow.updateDropPreview(
-                hoverEvent.draggedNode(),
-                hoverEvent.screenX(),
-                hoverEvent.screenY(),
-                visualizationMode
-            );
+        for (DockFloatingWindow floatingWindow : new ArrayList<>(floatingWindows)) {
+            if (floatingWindow == topWindow) {
+                floatingWindow.updateDropPreview(
+                    hoverEvent.draggedNode(),
+                    hoverEvent.screenX(),
+                    hoverEvent.screenY(),
+                    visualizationMode
+                );
+                continue;
+            }
+            floatingWindow.clearDropPreview();
         }
     }
 
@@ -432,36 +445,25 @@ public class SnapFX {
         if (floatingWindows.isEmpty()) {
             return;
         }
-        for (DockFloatingWindow floatingWindow : floatingWindows) {
+        for (DockFloatingWindow floatingWindow : new ArrayList<>(floatingWindows)) {
             floatingWindow.clearDropPreview();
         }
     }
 
     private boolean tryDropIntoFloatingWindow(DockNode node, double screenX, double screenY) {
-        DockFloatingWindow bestWindow = null;
-        DockFloatingWindow.DropTarget bestTarget = null;
-
-        for (DockFloatingWindow floatingWindow : floatingWindows) {
-            DockFloatingWindow.DropTarget candidate = floatingWindow.resolveDropTarget(screenX, screenY, node);
-            if (candidate == null) {
-                continue;
-            }
-            if (bestTarget == null
-                || candidate.depth() > bestTarget.depth()
-                || (candidate.depth() == bestTarget.depth() && candidate.area() < bestTarget.area())) {
-                bestWindow = floatingWindow;
-                bestTarget = candidate;
-            }
+        DockFloatingWindow topWindow = findTopFloatingWindowAt(screenX, screenY);
+        if (topWindow == null) {
+            return false;
         }
-
-        if (bestWindow == null || bestTarget == null) {
+        DockFloatingWindow.DropTarget bestTarget = topWindow.resolveDropTarget(screenX, screenY, node);
+        if (bestTarget == null) {
             return false;
         }
 
         DockFloatingWindow sourceWindow = findFloatingWindow(node);
-        if (sourceWindow != null && sourceWindow == bestWindow) {
-            bestWindow.moveNode(node, bestTarget.target(), bestTarget.position(), bestTarget.tabIndex());
-            bestWindow.toFront();
+        if (sourceWindow != null && sourceWindow == topWindow) {
+            topWindow.moveNode(node, bestTarget.target(), bestTarget.position(), bestTarget.tabIndex());
+            topWindow.toFront();
             return true;
         }
 
@@ -478,9 +480,38 @@ public class SnapFX {
         }
 
         hiddenNodes.remove(node);
-        bestWindow.dockNode(node, bestTarget.target(), bestTarget.position(), bestTarget.tabIndex());
-        bestWindow.toFront();
+        topWindow.dockNode(node, bestTarget.target(), bestTarget.position(), bestTarget.tabIndex());
+        topWindow.toFront();
         return true;
+    }
+
+    private boolean isMainDropSuppressedByFloatingWindow(Double screenX, Double screenY) {
+        if (screenX == null || screenY == null) {
+            return false;
+        }
+        return findTopFloatingWindowAt(screenX, screenY) != null;
+    }
+
+    private DockFloatingWindow findTopFloatingWindowAt(double screenX, double screenY) {
+        for (int i = floatingWindows.size() - 1; i >= 0; i--) {
+            DockFloatingWindow floatingWindow = floatingWindows.get(i);
+            if (floatingWindow != null && floatingWindow.containsScreenPoint(screenX, screenY)) {
+                return floatingWindow;
+            }
+        }
+        return null;
+    }
+
+    private void promoteFloatingWindowToFront(DockFloatingWindow floatingWindow) {
+        if (floatingWindow == null) {
+            return;
+        }
+        int index = floatingWindows.indexOf(floatingWindow);
+        if (index < 0 || index == floatingWindows.size() - 1) {
+            return;
+        }
+        floatingWindows.remove(index);
+        floatingWindows.add(floatingWindow);
     }
 
     private void applyRememberedFloatingBounds(DockNode node, DockFloatingWindow floatingWindow) {
@@ -810,6 +841,7 @@ public class SnapFX {
         }
         floatingWindow.setOnAttachRequested(() -> attachFloatingWindow(floatingWindow));
         floatingWindow.setOnWindowClosed(this::handleFloatingWindowClosed);
+        floatingWindow.setOnWindowActivated(() -> promoteFloatingWindowToFront(floatingWindow));
         floatingWindows.add(floatingWindow);
         if (primaryStage != null) {
             floatingWindow.show(primaryStage);
