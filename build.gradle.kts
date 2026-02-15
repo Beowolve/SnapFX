@@ -1,11 +1,14 @@
 plugins {
     java
     application
-    id("fr.brouillard.oss.gradle.jgitver") version "0.10.0-rc03"
-    id("org.openjfx.javafxplugin") version "0.1.0"
+    alias(libs.plugins.jgitver)
+    alias(libs.plugins.javafx)
 }
 
 group = "com.github.beowolve"
+val javafxModules = listOf("javafx.controls")
+val javaVersion = JavaVersion.VERSION_21
+val javafxRuntimeVersion = javaVersion.majorVersion
 
 jgitver {
     strategy("CONFIGURABLE")
@@ -22,32 +25,28 @@ repositories {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
     modularity.inferModulePath.set(true)
 }
 
 // JavaFX Configuration
 javafx {
-    version = "21"
-    modules("javafx.controls")
+    version = javafxRuntimeVersion
+    modules(*javafxModules.toTypedArray())
 }
 
 dependencies {
     // JSON for Persistence
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation(libs.gson)
 
-    // Test Dependencies
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-
-    // TestFX for UI Testing
-    testImplementation("org.testfx:testfx-core:4.0.18")
-    testImplementation("org.testfx:testfx-junit5:4.0.18")
-
-    // Hamcrest for TestFX
-    testImplementation("org.hamcrest:hamcrest:2.2")
+    // Test dependencies grouped by destination configuration.
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.testfx.core)
+    testImplementation(libs.testfx.junit5)
+    testImplementation(libs.hamcrest)
+    testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 tasks.processResources {
@@ -75,7 +74,7 @@ tasks.test {
         classpath = classpath.minus(javafxJars)
         jvmArgs(
             "--module-path", javafxJars.asPath,
-            "--add-modules", "javafx.controls",
+            "--add-modules", javafxModules.joinToString(","),
             // TestFX reflects into JavaFX internals during setup/cleanup.
             "--add-exports", "javafx.graphics/com.sun.javafx.application=ALL-UNNAMED",
             "--add-opens", "javafx.graphics/com.sun.javafx.application=ALL-UNNAMED",

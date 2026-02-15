@@ -1,0 +1,20 @@
+[versions]
+jgitver = "0.10.0-rc03"
+javafx-plugin = "0.1.0"
+gson = "2.10.1"
+junit-bom = "5.10.0"
+testfx = "4.0.18"
+hamcrest = "2.2"
+
+[libraries]
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit-bom" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+testfx-core = { module = "org.testfx:testfx-core", version.ref = "testfx" }
+testfx-junit5 = { module = "org.testfx:testfx-junit5", version.ref = "testfx" }
+hamcrest = { module = "org.hamcrest:hamcrest", version.ref = "hamcrest" }
+
+[plugins]
+jgitver = { id = "fr.brouillard.oss.gradle.jgitver", version.ref = "jgitver" }
+javafx = { id = "org.openjfx.javafxplugin", version.ref = "javafx-plugin" }

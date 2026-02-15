@@ -186,6 +186,7 @@
 - ✅ 2026-02-15: CI/Release - JavaFX tests now run via `xvfb-run -a` to avoid headless Linux toolkit initialization failures (`Platform.startup`).
 - ✅ 2026-02-15: Build/Test - Removed obsolete `--add-opens/--add-exports` JavaFX test JVM args that caused "Unknown module: javafx.graphics" warnings in classpath-based test runs.
 - ✅ 2026-02-15: Build/Test - JavaFX test runtime now loads required JavaFX jars from the module path (`javafx.controls`) and applies required TestFX access flags (`--add-exports`/`--add-opens`) to avoid unnamed-module warnings and reflective-access stack traces.
+- ✅ 2026-02-15: Build - Migrated Gradle plugin/dependency version declarations to `gradle/libs.versions.toml` and removed duplicated JavaFX module literals in `build.gradle.kts`.
 - ✅ 2026-02-15: Floating Window - Double-click on maximized title bar now restores previous window bounds
 - ✅ 2026-02-15: Floating Window - Dragging a maximized title bar now restores and continues move (Windows-style behavior)
 - ✅ 2026-02-15: UI - Tab float button clicks are no longer intercepted by drag handling
@@ -208,6 +209,9 @@
 - ✅ Updated `SimpleExample` to use `System.Logger` for CSS-missing warnings without introducing a direct logging framework dependency.
 - ✅ Added modular Gradle run task wiring for `runSimpleExample` so it starts with JavaFX runtime modules and packaged resources.
 - ✅ Updated Gradle test runtime wiring so required JavaFX modules are launched as named modules with TestFX access flags, eliminating unnamed-module JavaFX startup warnings and related reflective-access errors.
+
+### Build & Tooling
+- ✅ Migrated plugin/dependency versions to a Gradle version catalog (`gradle/libs.versions.toml`) and reused a single JavaFX module list in `build.gradle.kts`.
 
 ### Demo Layout
 - ✅ MainDemo now demonstrates close-hook customization by intercepting close events and applying editor-specific save prompts.
