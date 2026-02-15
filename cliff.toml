@@ -1,0 +1,38 @@
+[changelog]
+header = """
+# Changelog
+
+All notable changes to this project are documented in this file.
+"""
+
+body = """
+{% if version %}
+## {{ version }} - {{ timestamp | date(format="%Y-%m-%d") }}
+{% else %}
+## Unreleased
+{% endif %}
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | striptags | trim }}
+{% for commit in commits %}
+- {{ commit.message | split(pat="\n") | first | trim }} ({{ commit.id | truncate(length=7, end="") }})
+{% endfor %}
+{% endfor %}
+"""
+
+trim = true
+
+[git]
+tag_pattern = "v[0-9].*"
+filter_unconventional = false
+sort_commits = "newest"
+
+commit_parsers = [
+  { message = "^(feat|feature)(\\(.+\\))?:", group = "Features" },
+  { message = "^(fix|bugfix|hotfix)(\\(.+\\))?:", group = "Fixes" },
+  { message = "^(floating|dnd|ui|demo)(\\(.+\\))?:", group = "UI and Interaction" },
+  { message = "^(perf|refactor)(\\(.+\\))?:", group = "Refactoring" },
+  { message = "^(test|tests)(\\(.+\\))?:", group = "Tests" },
+  { message = "^(docs|doc)(\\(.+\\))?:", group = "Documentation" },
+  { message = "^(build|ci|chore)(\\(.+\\))?:", group = "Build and Tooling" },
+  { message = "^[a-zA-Z0-9_-]+(\\(.+\\))?:", group = "Other Changes" },
+]

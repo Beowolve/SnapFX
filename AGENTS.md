@@ -12,7 +12,9 @@ These instructions are shared for all AI agents working on this workspace.
 - Always `git add` new files when preparing a commit.
 - Before creating a commit, always show the proposed commit message to the user and get confirmation.
 - Keep commits minimally mixed: one logical topic/fix per commit; avoid bundling unrelated changes.
+- Default to one commit per fix/feature so changes stay clearly separated and release notes remain precise.
 - For fix commits, use a multi-line commit message body with at least one explanation line per fix.
+- Use git-cliff-compatible commit prefixes in the subject line (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `perf:`, `ci:`, `build:`, `chore:`); domain prefixes like `floating:`, `dnd:`, `ui:`, `demo:` are also allowed when they map to cliff groups.
 - If a fixed collaboration rule is agreed with the user, add it to this `AGENTS.md` immediately.
 - Treat `AGENTS.md` as the source of truth for all persistent collaboration rules in this workspace.
 - As soon as a focused, sensible commit is ready, proactively show the proposed commit message without waiting for the user to ask.

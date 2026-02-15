@@ -209,6 +209,9 @@ SnapFX has been fully implemented with core functionality and is production-read
 ### Build & Deployment
 - ✅ Completed `runSimpleExample` Gradle task for launching `SimpleExample` with JavaFX module runtime support.
 - ✅ `SimpleExample` now logs a warning through `System.Logger` when `snapfx.css` is missing, without requiring a logging framework dependency.
+- ✅ Added GitHub Actions CI workflow for push/PR validation with `./gradlew test` on JDK 21.
+- ✅ Added GitHub Actions release workflow for `v*` tags that runs build/tests and publishes GitHub Releases with distribution artifacts.
+- ✅ Added `git-cliff` release-note generation (`cliff.toml`) and wired release workflow to publish generated notes.
 - ✅ **Gradle Build**: Modern Kotlin DSL build script
 - ✅ **Module Configuration**: Java 21 module support
 - ✅ **JavaFX Integration**: JavaFX Gradle plugin

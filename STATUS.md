@@ -7,7 +7,9 @@
 ✅ **Build**: `BUILD SUCCESSFUL`  
 ✅ **Tests**: All 155 tests passing (latest full suite)  
 ✅ **Module System**: Fully implemented (JPMS)  
-✅ **Demo App**: Running successfully
+✅ **Demo App**: Running successfully  
+✅ **CI Automation**: GitHub Actions workflows added for push/PR tests and tag-triggered releases  
+✅ **Release Notes Automation**: `git-cliff` generates tag-based GitHub Release notes
 
 ## Implementation Progress
 
@@ -177,6 +179,9 @@
 - ✅ 2026-02-15: Floating Window - Drag & drop visual feedback is now shown inside floating windows
 - ✅ 2026-02-15: Floating Window - Pin button behavior is now configurable (`ALWAYS`/`AUTO`/`NEVER`) with default pinned state, lock-mode policy, and optional user-toggle disable.
 - ✅ 2026-02-15: Persistence - Floating window always-on-top state is now serialized/restored and exposed through source-aware pin change callbacks.
+- ✅ 2026-02-15: CI - Added GitHub Actions workflow for push/PR validation (`./gradlew test`) with tag fetch for `gradle-jgitver`.
+- ✅ 2026-02-15: Release - Added tag-triggered GitHub Release workflow for `v*` tags that builds/tests and publishes distribution artifacts.
+- ✅ 2026-02-15: Release - Integrated `git-cliff` (`cliff.toml`) to generate grouped release notes from commits between tags.
 - ✅ 2026-02-15: Floating Window - Double-click on maximized title bar now restores previous window bounds
 - ✅ 2026-02-15: Floating Window - Dragging a maximized title bar now restores and continues move (Windows-style behavior)
 - ✅ 2026-02-15: UI - Tab float button clicks are no longer intercepted by drag handling
@@ -220,6 +225,8 @@
 - Added SnapFX SVG logo to README for shared GitHub/GitHub Pages branding usage.
 - Added roadmap item for a full GitHub Pages documentation portal.
 - Updated `AGENTS.md` collaboration rules: fix commits require per-fix explanation lines and multi-statement UI callbacks must be extracted to named methods.
+- Added CI/CD documentation for GitHub Actions push/PR checks and tag-based release publishing.
+- Added `git-cliff` release-notes documentation and repository configuration (`cliff.toml`).
 
 ### UI Styling
 - Removed `DockControlIcons` vector icon usage from dock/floating controls and switched to stylesheet-driven glyph classes.

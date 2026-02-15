@@ -342,11 +342,12 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 ### 8.1 Packaging & Distribution
 **Priority**: 🟡 High
 
+- ✅ **GitHub tag release workflow**: Pushing `v*` tags now runs build/test and publishes a GitHub Release with distribution artifacts
+- ✅ **Release notes automation**: `git-cliff` now generates tag-based release notes used as GitHub Release body
 - 📋 **Maven Central**: Publish to Maven Central
 - 📋 **jlink support**: Create custom runtime images
 - 📋 **jpackage support**: Native installers
 - 📋 **Version management**: Semantic versioning
-- 📋 **Release notes**: Automated changelog
 
 **Estimated Time**: 2-3 days
 
