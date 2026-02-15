@@ -259,7 +259,7 @@ See [ROADMAP.md](ROADMAP.md) for planned features and improvements.
 
 ---
 
-**Version**: 0.2.1-SNAPSHOT  
+**Version**: Git-derived via `gradle-jgitver` (tag-based)  
 **Status**: Production-ready for basic use cases  
 **License**: Educational/Demo Purpose  
 **Developed**: 2026-02  

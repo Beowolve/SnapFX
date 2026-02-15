@@ -1,11 +1,21 @@
 plugins {
     java
     application
+    id("fr.brouillard.oss.gradle.jgitver") version "0.10.0-rc03"
     id("org.openjfx.javafxplugin") version "0.1.0"
 }
 
 group = "com.github.beowolve"
-version = "0.2.1-SNAPSHOT"
+
+jgitver {
+    strategy("CONFIGURABLE")
+    autoIncrementPatch(true)
+    useDistance(true)
+    useGitCommitID(true)
+    gitCommitIDLength(7)
+    nonQualifierBranches("main,master")
+    regexVersionTag("v(.*)")
+}
 
 repositories {
     mavenCentral()

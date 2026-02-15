@@ -16,6 +16,9 @@ These instructions are shared for all AI agents working on this workspace.
 - Treat `AGENTS.md` as the source of truth for all persistent collaboration rules in this workspace.
 - As soon as a focused, sensible commit is ready, proactively show the proposed commit message without waiting for the user to ask.
 - If `MainDemo` visuals change (layout, window composition, look and feel, styling, icons, controls), always run `./scripts/update-main-demo-preview.ps1` and include the updated `docs/images/main-demo.png`.
+- Versioning is controlled by `gradle-jgitver` in `build.gradle.kts`; do not reintroduce custom version calculators in the build script.
+- Use tag-driven releases (`vX.Y.Z`) as the only release source of truth; do not create tags per commit.
+- Branch workflow policy: while base implementation is ongoing, work directly on `main`; once `develop` exists, integrate features into `develop` and cut release tags from `main` after merge.
 
 ## DnD-Specific Rules
 - Any drag-and-drop change must include model-level tests for the affected behavior.

@@ -346,7 +346,7 @@ See [ROADMAP.md](ROADMAP.md) for detailed future development plans.
 
 ---
 
-**Version**: 0.2.1-SNAPSHOT  
+**Version**: Git-derived via `gradle-jgitver` (tag-based)  
 **Java**: 21 (LTS)  
 **JavaFX**: 21  
 **Build Tool**: Gradle 9.0

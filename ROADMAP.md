@@ -7,9 +7,10 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 
 ## Version Track
 
-- Current development version: `0.2.1-SNAPSHOT`
+- Version source: `gradle-jgitver` (Git tags + commit distance)
+- Local fallback without tags: `0.0.0-<distance>-<branch>`
 - Current roadmap milestone: `0.2` (Floating Windows)
-- Latest milestone tag: `v0.2.0`
+- Latest milestone tag target: `v0.2.0`
 - Next milestone target: `v0.3.0` (Phase 3 baseline)
 
 ## Legend

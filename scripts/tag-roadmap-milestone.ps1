@@ -15,6 +15,11 @@ if (-not [string]::IsNullOrWhiteSpace($status)) {
     throw "Working tree is not clean. Commit or stash changes before tagging."
 }
 
+$currentBranch = (git rev-parse --abbrev-ref HEAD).Trim()
+if ($currentBranch -ne "main") {
+    throw "Milestone tags must be created from 'main'. Current branch: '$currentBranch'."
+}
+
 $tagName = "v$Milestone.0"
 
 git rev-parse --verify "refs/tags/$tagName" *> $null

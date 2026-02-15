@@ -258,11 +258,17 @@ DockNode tasks = snapFX.dock(tasksList, "Tasks", console, DockPosition.CENTER);
 
 ## Versioning
 
-- Pre-1.0 scheme: `0.M.PATCH-SNAPSHOT`
-- `M` maps to roadmap milestone progress (`0.1`, `0.2`, `0.3`, ...)
-- Current development version: `0.2.1-SNAPSHOT` (`0.2` milestone baseline + patch-level fixes)
-- On milestone completion: create tag `v0.M.0`, then bump to next snapshot milestone (`0.(M+1).0-SNAPSHOT`)
-- First full release after all roadmap items are done: `1.0.0` with tag `v1.0.0`
+- Versioning is fully Git-driven via `gradle-jgitver` (configured in `build.gradle.kts`)
+- Release tags are the source of truth: `vX.Y.Z`
+- Every commit gets a higher derived version than the previous one (commit distance is part of the version)
+- If no matching tag exists in local history yet, jgitver starts from `0.0.0` baseline
+- For CI and local builds, make sure tags are available (`git fetch --tags`)
+
+Inspect the resolved version:
+
+```bash
+./gradlew version
+```
 
 Milestone tagging helper:
 
@@ -270,11 +276,19 @@ Milestone tagging helper:
 ./scripts/tag-roadmap-milestone.ps1 -Milestone "0.2"
 ```
 
+Note: milestone tags are only created from the `main` branch.
+
 Optional push:
 
 ```bash
 ./scripts/tag-roadmap-milestone.ps1 -Milestone "0.2" -Push
 ```
+
+## Branch Strategy
+
+- Current phase (base implementation): work directly on `main`
+- Later phase: move integration to `develop`, keep `main` release-focused
+- Release flow after `develop` is introduced: merge `develop` -> `main`, then create/push release tag (`vX.Y.Z`)
 
 ## License
 
