@@ -16,6 +16,11 @@ import java.util.UUID;
  * </ul>
  */
 public class DockNode implements DockElement {
+    public enum HiddenRestoreTarget {
+        DOCKED,
+        FLOATING
+    }
+
     private final String dockNodeId; // Type-based ID for factory
     private String layoutId; // Unique ID for this instance in layout
     private final StringProperty title;
@@ -32,6 +37,7 @@ public class DockNode implements DockElement {
     private Double lastFloatingY;
     private Double lastFloatingWidth;
     private Double lastFloatingHeight;
+    private HiddenRestoreTarget hiddenRestoreTarget = HiddenRestoreTarget.DOCKED;
 
     /**
      * Creates a DockNode with an auto-generated UUID as both dockNodeId and layoutId.
@@ -199,6 +205,14 @@ public class DockNode implements DockElement {
 
     public void setLastFloatingHeight(Double lastFloatingHeight) {
         this.lastFloatingHeight = lastFloatingHeight;
+    }
+
+    public HiddenRestoreTarget getHiddenRestoreTarget() {
+        return hiddenRestoreTarget;
+    }
+
+    public void setHiddenRestoreTarget(HiddenRestoreTarget hiddenRestoreTarget) {
+        this.hiddenRestoreTarget = hiddenRestoreTarget == null ? HiddenRestoreTarget.DOCKED : hiddenRestoreTarget;
     }
 
     @Override

@@ -370,7 +370,6 @@ public class DockLayoutEngine {
             handleFloatRequest(dockNode);
             e.consume();
         });
-        floatButton.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED, javafx.scene.input.MouseEvent::consume);
 
         tabHeader.getChildren().addAll(iconPane, tabLabel, floatButton);
 
@@ -425,7 +424,17 @@ public class DockLayoutEngine {
     }
 
     private boolean isInteractiveControlTarget(Object target) {
-        return target instanceof Button;
+        if (!(target instanceof Node node)) {
+            return false;
+        }
+        Node current = node;
+        while (current != null) {
+            if (current instanceof Button) {
+                return true;
+            }
+            current = current.getParent();
+        }
+        return false;
     }
 
     /**

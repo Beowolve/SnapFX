@@ -1,5 +1,6 @@
 package com.github.beowolve.snapfx.view;
 
+import com.github.beowolve.snapfx.dnd.DockDragService;
 import com.github.beowolve.snapfx.model.*;
 import javafx.application.Platform;
 import javafx.event.Event;
@@ -8,6 +9,9 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.PickResult;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.control.Tab;
@@ -31,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class DockLayoutEngineTest extends ApplicationTest {
     private DockGraph dockGraph;
     private DockLayoutEngine layoutEngine;
+    private DockDragService dragService;
 
     @BeforeAll
     static void initJavaFX() {
@@ -45,7 +50,8 @@ class DockLayoutEngineTest extends ApplicationTest {
     @BeforeEach
     void setUp() {
         dockGraph = new DockGraph();
-        layoutEngine = new DockLayoutEngine(dockGraph, new com.github.beowolve.snapfx.dnd.DockDragService(dockGraph));
+        dragService = new DockDragService(dockGraph);
+        layoutEngine = new DockLayoutEngine(dockGraph, dragService);
     }
 
     @Test
@@ -185,6 +191,10 @@ class DockLayoutEngineTest extends ApplicationTest {
         assertNotNull(closeGraphic);
         assertTrue(closeGraphic.getStyleClass().contains("dock-control-icon"));
         assertTrue(closeGraphic.getStyleClass().contains("dock-control-icon-close"));
+
+        MouseEvent press = createPrimaryPressEvent(nodeView.getHeader(), closeButton);
+        nodeView.getHeader().getOnMousePressed().handle(press);
+        assertFalse(dragService.isDragging());
     }
 
     @Test
@@ -209,6 +219,10 @@ class DockLayoutEngineTest extends ApplicationTest {
         assertNotNull(floatGraphic);
         assertTrue(floatGraphic.getStyleClass().contains("dock-control-icon"));
         assertTrue(floatGraphic.getStyleClass().contains("dock-control-icon-float"));
+
+        MouseEvent press = createPrimaryPressEvent((HBox) tabHeader, floatButton);
+        ((HBox) tabHeader).getOnMousePressed().handle(press);
+        assertFalse(dragService.isDragging());
     }
 
     @Test
@@ -439,5 +453,30 @@ class DockLayoutEngineTest extends ApplicationTest {
         } catch (ReflectiveOperationException e) {
             throw new AssertionError("Unable to inspect DockLayoutEngine view cache", e);
         }
+    }
+
+    private MouseEvent createPrimaryPressEvent(Node source, Node target) {
+        return new MouseEvent(
+            source,
+            target,
+            MouseEvent.MOUSE_PRESSED,
+            0,
+            0,
+            0,
+            0,
+            MouseButton.PRIMARY,
+            1,
+            false,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            true,
+            false,
+            false,
+            new PickResult(target, 0, 0)
+        );
     }
 }

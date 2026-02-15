@@ -216,6 +216,7 @@ public class SnapFX {
         if (floatingWindow != null) {
             rememberFloatingBoundsForNodes(floatingWindow);
             floatingWindow.undockNode(node);
+            node.setHiddenRestoreTarget(DockNode.HiddenRestoreTarget.FLOATING);
             if (floatingWindow.isEmpty()) {
                 floatingWindows.remove(floatingWindow);
                 floatingWindow.closeWithoutNotification();
@@ -223,6 +224,9 @@ public class SnapFX {
         } else if (isInGraph(node)) {
             rememberLastKnownPlacement(node);
             dockGraph.undock(node);
+            node.setHiddenRestoreTarget(DockNode.HiddenRestoreTarget.DOCKED);
+        } else {
+            node.setHiddenRestoreTarget(DockNode.HiddenRestoreTarget.DOCKED);
         }
 
         hiddenNodes.add(node);
@@ -237,6 +241,10 @@ public class SnapFX {
         }
 
         hiddenNodes.remove(node);
+        if (node.getHiddenRestoreTarget() == DockNode.HiddenRestoreTarget.FLOATING) {
+            floatNode(node);
+            return;
+        }
         dockAtRememberedOrFallback(node);
     }
 
@@ -609,9 +617,10 @@ public class SnapFX {
         List<DockNode> nodes = new ArrayList<>(floatingWindow.getDockNodes());
         for (DockNode node : nodes) {
             floatingWindow.undockNode(node);
-        }
-        for (DockNode node : nodes) {
-            dockAtRememberedOrFallback(node);
+            node.setHiddenRestoreTarget(DockNode.HiddenRestoreTarget.FLOATING);
+            if (!hiddenNodes.contains(node)) {
+                hiddenNodes.add(node);
+            }
         }
     }
 

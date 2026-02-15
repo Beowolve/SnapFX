@@ -230,7 +230,7 @@ class SnapFXTest {
     }
 
     @Test
-    void testClosingFloatingWindowAttachesNodeBack() {
+    void testClosingFloatingWindowMovesNodeToHiddenList() {
         DockNode node1 = new DockNode("node1", new Label("Node 1"), "Node 1");
         DockNode node2 = new DockNode("node2", new Label("Node 2"), "Node 2");
 
@@ -241,7 +241,9 @@ class SnapFXTest {
         floatingWindow.close();
 
         assertTrue(snapFX.getFloatingWindows().isEmpty());
-        assertTrue(isInGraph(snapFX, node1));
+        assertFalse(isInGraph(snapFX, node1));
+        assertEquals(1, snapFX.getHiddenNodes().size());
+        assertTrue(snapFX.getHiddenNodes().contains(node1));
     }
 
     @Test
@@ -258,6 +260,56 @@ class SnapFXTest {
         assertTrue(snapFX.getFloatingWindows().isEmpty());
         assertEquals(1, snapFX.getHiddenNodes().size());
         assertTrue(snapFX.getHiddenNodes().contains(node1));
+    }
+
+    @Test
+    void testRestoreHiddenFloatingNodeReopensAsFloatingWindow() {
+        DockNode node1 = new DockNode("node1", new Label("Node 1"), "Node 1");
+        DockNode node2 = new DockNode("node2", new Label("Node 2"), "Node 2");
+
+        snapFX.dock(node1, null, DockPosition.CENTER);
+        snapFX.dock(node2, node1, DockPosition.RIGHT);
+
+        snapFX.floatNode(node1, 420.0, 210.0);
+        snapFX.hide(node1);
+
+        assertTrue(snapFX.getFloatingWindows().isEmpty());
+        assertTrue(snapFX.getHiddenNodes().contains(node1));
+
+        snapFX.restore(node1);
+
+        assertTrue(snapFX.getHiddenNodes().isEmpty());
+        assertFalse(isInGraph(snapFX, node1));
+        assertEquals(1, snapFX.getFloatingWindows().size());
+        DockFloatingWindow restoredWindow = snapFX.getFloatingWindows().get(0);
+        assertTrue(restoredWindow.containsNode(node1));
+        assertEquals(420.0, restoredWindow.getPreferredX(), 0.0001);
+        assertEquals(210.0, restoredWindow.getPreferredY(), 0.0001);
+    }
+
+    @Test
+    void testRestoreAfterClosingFloatingWindowReopensAsFloatingWindow() {
+        DockNode node1 = new DockNode("node1", new Label("Node 1"), "Node 1");
+        DockNode node2 = new DockNode("node2", new Label("Node 2"), "Node 2");
+
+        snapFX.dock(node1, null, DockPosition.CENTER);
+        snapFX.dock(node2, node1, DockPosition.RIGHT);
+
+        DockFloatingWindow floatingWindow = snapFX.floatNode(node1, 333.0, 144.0);
+        floatingWindow.close();
+
+        assertTrue(snapFX.getFloatingWindows().isEmpty());
+        assertTrue(snapFX.getHiddenNodes().contains(node1));
+
+        snapFX.restore(node1);
+
+        assertTrue(snapFX.getHiddenNodes().isEmpty());
+        assertFalse(isInGraph(snapFX, node1));
+        assertEquals(1, snapFX.getFloatingWindows().size());
+        DockFloatingWindow restoredWindow = snapFX.getFloatingWindows().get(0);
+        assertTrue(restoredWindow.containsNode(node1));
+        assertEquals(333.0, restoredWindow.getPreferredX(), 0.0001);
+        assertEquals(144.0, restoredWindow.getPreferredY(), 0.0001);
     }
 
     @Test

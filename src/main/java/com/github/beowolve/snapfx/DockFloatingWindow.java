@@ -403,7 +403,6 @@ public final class DockFloatingWindow {
             }
             e.consume();
         });
-        button.addEventFilter(MouseEvent.MOUSE_PRESSED, MouseEvent::consume);
         return button;
     }
 
@@ -444,8 +443,22 @@ public final class DockFloatingWindow {
     private boolean isTitleDragCandidate(MouseEvent event, Stage window) {
         return !resizing
             && !window.isMaximized()
-            && !(event.getTarget() instanceof Button)
+            && !isInteractiveControlTarget(event.getTarget())
             && resolveResizeMask(event.getScreenX(), event.getScreenY(), window) == 0;
+    }
+
+    private boolean isInteractiveControlTarget(Object target) {
+        if (!(target instanceof Node node)) {
+            return false;
+        }
+        Node current = node;
+        while (current != null) {
+            if (current instanceof Button) {
+                return true;
+            }
+            current = current.getParent();
+        }
+        return false;
     }
 
     private void toggleMaximize(Stage window) {

@@ -120,6 +120,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **Tab Auto-Hide**: In locked mode, tabs only visible when >1
 - ✅ **Close Button Options**: Toggle tab/title close buttons, keep tab close always visible, align styling, and hide the title bar when desired
 - ✅ **CSS-based Control Glyphs**: Dock/floating control icons are stylesheet-defined; title close glyph is aligned with tab close styling
+- ✅ **Control Button Interaction Fixes**: Tab float and floating-window title-bar buttons no longer lose clicks to drag interception
 - ✅ **View Caching**: Performance optimization through view reuse
 
 ### Drag & Drop (Baseline + Critical Bug Fixes)
@@ -129,6 +130,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **Ghost Overlay Offset**: Positioned away from cursor to keep drop targets visible
 - ✅ **Unresolved Drop Fallback**: Non-drop-zone releases trigger floating behavior
 - ✅ **Cross-Window D&D**: Dock between main layout and floating windows
+- ✅ **Floating close-to-hidden behavior**: Closing floating windows via `X` moves nodes to hidden windows list
 - ✅ **Drop Zones**: Detection for SplitPane areas
 - ✅ **Drop zone visualization modes (ALL/SUBTREE/DEFAULT/ACTIVE/OFF)**
 - ✅ **Per-tab insert targeting with visible insert line**

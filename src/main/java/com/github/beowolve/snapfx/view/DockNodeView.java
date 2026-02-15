@@ -118,21 +118,44 @@ public class DockNodeView extends VBox {
     }
 
     private void onHeaderPressed(MouseEvent event) {
+        if (isInteractiveControlTarget(event.getTarget())) {
+            return;
+        }
         if (dragService != null) {
             dragService.startDrag(dockNode, event);
         }
     }
 
     private void onHeaderDragged(MouseEvent event) {
+        if (isInteractiveControlTarget(event.getTarget())) {
+            return;
+        }
         if (dragService != null && dragService.isDragging()) {
             dragService.updateDrag(event);
         }
     }
 
     private void onHeaderReleased(MouseEvent event) {
+        if (isInteractiveControlTarget(event.getTarget())) {
+            return;
+        }
         if (dragService != null && dragService.isDragging()) {
             dragService.endDrag(event);
         }
+    }
+
+    private boolean isInteractiveControlTarget(Object target) {
+        if (!(target instanceof Node node)) {
+            return false;
+        }
+        Node current = node;
+        while (current != null) {
+            if (current instanceof Button) {
+                return true;
+            }
+            current = current.getParent();
+        }
+        return false;
     }
 
     private Region createControlIcon(String styleClass) {

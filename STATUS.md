@@ -147,6 +147,9 @@
 - ⚠️ UI: Keyboard shortcuts not implemented
 
 ### Fixed (recent)
+- ✅ 2026-02-15: UI - Tab float button clicks are no longer intercepted by drag handling
+- ✅ 2026-02-15: Floating Window - Close (`X`) now moves floating nodes to hidden windows list
+- ✅ 2026-02-15: Floating Window - Maximize/restore title-bar buttons are clickable again
 - ✅ 2026-02-14: Drag & Drop - Dropping on same position changes splitter positions
 - ✅ 2026-02-14: Drag & Drop - Tab reordering can miss drops despite insert indicator
 - ✅ 2026-02-14: UI - Tab close bypasses hidden nodes menu
@@ -177,6 +180,11 @@
 - Removed `DockControlIcons` vector icon usage from dock/floating controls and switched to stylesheet-driven glyph classes.
 - Close buttons now use the same CSS glyph path family as tab close controls for consistent visuals.
 - Updated `docs/images/main-demo.png` after the visual change.
+
+### UI Interaction
+- Fixed tab-header float button interactions by preventing drag handlers from hijacking button clicks.
+- Fixed floating-window title-bar control interactions (attach/maximize/restore/close) by removing pressed-event consumption and improving control-target detection.
+- Closing a floating window via `X` now moves its nodes to hidden windows instead of auto-attaching back to the layout.
 
 ## Recent Changes (2026-02-14)
 

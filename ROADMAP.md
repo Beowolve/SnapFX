@@ -104,7 +104,7 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 - ✅ **Window decorations**: Custom title bar styling and controls
 - ✅ **Resizable undecorated windows**: Edge/corner resize behavior for floating stages
 - ✅ **Tab-level float action**: Float button available in tab headers
-- 📋 **Close behavior**: Return to hidden nodes or destroy
+- 🚧 **Close behavior**: Closing via `X` now returns floating nodes to hidden windows (destroy option pending)
 
 **Estimated Time**: 2 days
 
