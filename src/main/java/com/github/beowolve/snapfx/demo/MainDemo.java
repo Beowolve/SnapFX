@@ -2,6 +2,9 @@ package com.github.beowolve.snapfx.demo;
 
 import com.github.beowolve.snapfx.SnapFX;
 import com.github.beowolve.snapfx.close.DockCloseBehavior;
+import com.github.beowolve.snapfx.close.DockCloseDecision;
+import com.github.beowolve.snapfx.close.DockCloseRequest;
+import com.github.beowolve.snapfx.close.DockCloseResult;
 import com.github.beowolve.snapfx.debug.DockDebugOverlay;
 import com.github.beowolve.snapfx.debug.DockGraphDebugView;
 import com.github.beowolve.snapfx.dnd.DockDropVisualizationMode;
@@ -16,6 +19,7 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -31,8 +35,12 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Demo application for the SnapFX framework.
@@ -40,6 +48,7 @@ import java.util.List;
  */
 public class MainDemo extends Application {
     public static final String FX_FONT_WEIGHT_BOLD = "-fx-font-weight: bold;";
+    private static final String DIRTY_TITLE_SUFFIX = " *";
     private static final List<String> APP_ICON_RESOURCES = List.of(
         "/images/16/snapfx.png",
         "/images/24/snapfx.png",
@@ -63,6 +72,17 @@ public class MainDemo extends Application {
 
     // Node factory for creating demo nodes
     private DemoNodeFactory demoNodeFactory;
+    private final BooleanProperty promptOnEditorCloseProperty = new SimpleBooleanProperty(true);
+    private final Map<DockNode, EditorDocumentState> editorDocumentStates = new HashMap<>();
+    private EditorCloseDecisionPolicy editorCloseDecisionPolicy;
+
+    private static final class EditorDocumentState {
+        private String baseTitle;
+        private Path filePath;
+        private boolean dirty;
+        private boolean suppressDirtyTracking;
+        private ChangeListener<String> textListener;
+    }
 
     @Override
     public void start(Stage stage) {
@@ -85,12 +105,15 @@ public class MainDemo extends Application {
 
         // Create demo node factory
         demoNodeFactory = new DemoNodeFactory();
+        editorCloseDecisionPolicy = createEditorCloseDecisionPolicy();
 
         // Setup node factory for proper save/load across sessions
         setupNodeFactory();
 
         // Keep default close behavior explicit for demo clarity
         snapFX.setDefaultCloseBehavior(DockCloseBehavior.HIDE);
+        snapFX.setOnCloseRequest(this::handleCloseRequest);
+        snapFX.setOnCloseHandled(this::handleCloseHandled);
 
         // Set drop visualization mode
         snapFX.setDropVisualizationMode(DockDropVisualizationMode.DEFAULT);
@@ -152,13 +175,27 @@ public class MainDemo extends Application {
         // File Menu
         Menu fileMenu = new Menu("File");
 
-        MenuItem saveItem = new MenuItem("Save Layout...");
-        saveItem.setGraphic(IconUtil.loadIcon("disk.png"));
-        saveItem.setOnAction(e -> saveLayout());
+        MenuItem openEditorItem = new MenuItem("Open Text File...");
+        openEditorItem.setGraphic(IconUtil.loadIcon("folder-open-document-text.png"));
+        openEditorItem.setOnAction(e -> openTextFileInEditor());
 
-        MenuItem loadItem = new MenuItem("Load Layout...");
-        loadItem.setGraphic(IconUtil.loadIcon("folder-open-document-text.png"));
-        loadItem.setOnAction(e -> loadLayout());
+        MenuItem saveEditorItem = new MenuItem("Save Active Editor");
+        saveEditorItem.setGraphic(IconUtil.loadIcon("disk.png"));
+        saveEditorItem.setOnAction(e -> saveActiveEditor(false));
+
+        MenuItem saveEditorAsItem = new MenuItem("Save Active Editor As...");
+        saveEditorAsItem.setGraphic(IconUtil.loadIcon("disk.png"));
+        saveEditorAsItem.setOnAction(e -> saveActiveEditor(true));
+
+        SeparatorMenuItem separatorEditor = new SeparatorMenuItem();
+
+        MenuItem saveLayoutItem = new MenuItem("Save Layout...");
+        saveLayoutItem.setGraphic(IconUtil.loadIcon("disk.png"));
+        saveLayoutItem.setOnAction(e -> saveLayout());
+
+        MenuItem loadLayoutItem = new MenuItem("Load Layout...");
+        loadLayoutItem.setGraphic(IconUtil.loadIcon("folder-open-document-text.png"));
+        loadLayoutItem.setOnAction(e -> loadLayout());
 
         SeparatorMenuItem separator1 = new SeparatorMenuItem();
 
@@ -166,7 +203,16 @@ public class MainDemo extends Application {
         exitItem.setGraphic(IconUtil.loadIcon("logout.png"));
         exitItem.setOnAction(e -> Platform.exit());
 
-        fileMenu.getItems().addAll(saveItem, loadItem, separator1, exitItem);
+        fileMenu.getItems().addAll(
+            openEditorItem,
+            saveEditorItem,
+            saveEditorAsItem,
+            separatorEditor,
+            saveLayoutItem,
+            loadLayoutItem,
+            separator1,
+            exitItem
+        );
 
         // Layout Menu
         Menu layoutMenu = new Menu("Layout");
@@ -279,12 +325,7 @@ public class MainDemo extends Application {
         }
 
         MenuItem attachAllItem = new MenuItem("Attach All");
-        attachAllItem.setOnAction(e -> {
-            List<DockFloatingWindow> windows = new ArrayList<>(snapFX.getFloatingWindows());
-            for (DockFloatingWindow window : windows) {
-                snapFX.attachFloatingWindow(window);
-            }
-        });
+        attachAllItem.setOnAction(e -> attachAllFloatingWindows());
         floatingWindowsMenu.getItems().add(attachAllItem);
         floatingWindowsMenu.getItems().add(new SeparatorMenuItem());
 
@@ -333,32 +374,19 @@ public class MainDemo extends Application {
 
         Button addEditorBtn = new Button("+ Editor");
         addEditorBtn.setGraphic(IconUtil.loadIcon("document--pencil.png"));
-        addEditorBtn.setOnAction(e -> {
-            DockNode node = demoNodeFactory.createEditorNode("Untitled");
-            addDockNode(node);
-        });
+        addEditorBtn.setOnAction(e -> addNewEditorNode());
 
         Button addPropsBtn = new Button("+ Properties");
         addPropsBtn.setGraphic(IconUtil.loadIcon("property.png"));
-        addPropsBtn.setOnAction(e -> {
-            DockNode node = demoNodeFactory.createPropertiesPanelNode();
-            addDockNode(node);
-        });
+        addPropsBtn.setOnAction(e -> addNewPropertiesNode());
 
         Button addConsoleBtn = new Button("+ Console");
         addConsoleBtn.setGraphic(IconUtil.loadIcon("terminal.png"));
-        addConsoleBtn.setOnAction(e -> {
-            DockNode node = demoNodeFactory.createConsolePanelNode();
-            addDockNode(node);
-        });
+        addConsoleBtn.setOnAction(e -> addNewConsoleNode());
 
         Button addGenericBtn = new Button("+ Panel");
         addGenericBtn.setGraphic(IconUtil.loadIcon("plus.png"));
-        addGenericBtn.setOnAction(e -> {
-            String name = "Panel_" + (snapFX.getDockNodeCount(DockNodeType.GENERIC_PANEL.getId()) + 1);
-            DockNode node = demoNodeFactory.createGenericPanelNode(name);
-            addDockNode(node);
-        });
+        addGenericBtn.setOnAction(e -> addNewGenericPanelNode());
 
         toolbar.getItems().addAll(
             lockCheckBox,
@@ -376,7 +404,29 @@ public class MainDemo extends Application {
     /**
      * Adds a DockNode to the right side of the current layout.
      */
+    private void addNewEditorNode() {
+        DockNode node = demoNodeFactory.createEditorNode("Untitled");
+        addDockNode(node);
+    }
+
+    private void addNewPropertiesNode() {
+        DockNode node = demoNodeFactory.createPropertiesPanelNode();
+        addDockNode(node);
+    }
+
+    private void addNewConsoleNode() {
+        DockNode node = demoNodeFactory.createConsolePanelNode();
+        addDockNode(node);
+    }
+
+    private void addNewGenericPanelNode() {
+        String name = "Panel_" + (snapFX.getDockNodeCount(DockNodeType.GENERIC_PANEL.getId()) + 1);
+        DockNode node = demoNodeFactory.createGenericPanelNode(name);
+        addDockNode(node);
+    }
+
     private void addDockNode(DockNode node) {
+        registerEditorNode(node);
         if (snapFX.getDockGraph().getRoot() == null) {
             snapFX.getDockGraph().setRoot(node);
         } else {
@@ -392,10 +442,37 @@ public class MainDemo extends Application {
         snapFX.setNodeFactory(demoNodeFactory);
     }
 
+    private void attachAllFloatingWindows() {
+        List<DockFloatingWindow> windows = new ArrayList<>(snapFX.getFloatingWindows());
+        for (DockFloatingWindow window : windows) {
+            snapFX.attachFloatingWindow(window);
+        }
+    }
+
+    private void onTitleBarModeChanged(DockTitleBarMode mode) {
+        if (mode != null) {
+            snapFX.setTitleBarMode(mode);
+        }
+    }
+
+    private void onCloseButtonModeChanged(DockCloseButtonMode mode) {
+        if (mode != null) {
+            snapFX.setCloseButtonMode(mode);
+        }
+    }
+
+    private void onDropVisualizationModeChanged(DockDropVisualizationMode mode) {
+        if (mode != null) {
+            snapFX.setDropVisualizationMode(mode);
+        }
+    }
+
     /**
      * Creates the demo layout with fixed node IDs for persistence.
      */
     private void createDemoLayout() {
+        clearEditorRegistry();
+
         // 1. Project Explorer (left)
         DockNode projectNode = demoNodeFactory.createProjectExplorerNode();
         snapFX.getDockGraph().setRoot(projectNode);
@@ -416,6 +493,8 @@ public class MainDemo extends Application {
         DockNode tasksNode = demoNodeFactory.createTasksNode();
         snapFX.getDockGraph().dock(tasksNode, consoleNode, DockPosition.CENTER);
         snapFX.setRootSplitRatios(25, 50, 25);
+
+        registerEditorNode(editorNode);
     }
 
     private void resetLayoutToDefault() {
@@ -483,40 +562,32 @@ public class MainDemo extends Application {
         titleBarMode.getItems().setAll(DockTitleBarMode.values());
         titleBarMode.setMaxWidth(Double.MAX_VALUE);
         titleBarMode.setValue(snapFX.getTitleBarMode());
-        titleBarMode.valueProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) {
-                snapFX.setTitleBarMode(newVal);
-            }
-        });
+        titleBarMode.valueProperty().addListener((obs, oldVal, newVal) -> onTitleBarModeChanged(newVal));
         grid.addRow(0, new Label("Title Bar Mode"), titleBarMode);
 
         ComboBox<DockCloseButtonMode> closeButtonMode = new ComboBox<>();
         closeButtonMode.getItems().setAll(DockCloseButtonMode.values());
         closeButtonMode.setMaxWidth(Double.MAX_VALUE);
         closeButtonMode.setValue(snapFX.getCloseButtonMode());
-        closeButtonMode.valueProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) {
-                snapFX.setCloseButtonMode(newVal);
-            }
-        });
+        closeButtonMode.valueProperty().addListener((obs, oldVal, newVal) -> onCloseButtonModeChanged(newVal));
         grid.addRow(1, new Label("Close Button Mode"), closeButtonMode);
 
         ComboBox<DockDropVisualizationMode> dropMode = new ComboBox<>();
         dropMode.getItems().setAll(DockDropVisualizationMode.values());
         dropMode.setMaxWidth(Double.MAX_VALUE);
         dropMode.setValue(snapFX.getDropVisualizationMode());
-        dropMode.valueProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) {
-                snapFX.setDropVisualizationMode(newVal);
-            }
-        });
+        dropMode.valueProperty().addListener((obs, oldVal, newVal) -> onDropVisualizationModeChanged(newVal));
         grid.addRow(2, new Label("Drop Visualization"), dropMode);
 
         CheckBox lockCheckBox = new CheckBox("Locked");
         lockCheckBox.selectedProperty().bindBidirectional(lockLayoutProperty);
         grid.addRow(3, new Label("Layout Lock"), lockCheckBox);
 
-        Label hint = new Label("Changes apply immediately.");
+        CheckBox promptEditorCloseCheckBox = new CheckBox("Prompt for unsaved editors");
+        promptEditorCloseCheckBox.selectedProperty().bindBidirectional(promptOnEditorCloseProperty);
+        grid.addRow(4, new Label("Close Hook"), promptEditorCloseCheckBox);
+
+        Label hint = new Label("Changes apply immediately. Dirty editors are marked with '*'.");
 
         VBox panel = new VBox(12, header, grid, hint);
         panel.setPadding(new Insets(10));
@@ -591,6 +662,7 @@ public class MainDemo extends Application {
                 String json = Files.readString(file.toPath());
                 snapFX.loadLayout(json);
                 updateDockLayout();
+                rebuildEditorRegistryFromCurrentLayout();
 
                 // Synchronize lock state from loaded layout
                 lockLayoutProperty.set(snapFX.isLocked());
@@ -600,6 +672,294 @@ public class MainDemo extends Application {
                 showError("Error while loading:\n" + e.getMessage());
             }
         }
+    }
+
+    private EditorCloseDecisionPolicy createEditorCloseDecisionPolicy() {
+        return new EditorCloseDecisionPolicy(
+            this::shouldPromptBeforeClose,
+            this::promptSaveBeforeClose,
+            this::saveEditorNodeForClose
+        );
+    }
+
+    private DockCloseDecision handleCloseRequest(DockCloseRequest request) {
+        if (editorCloseDecisionPolicy == null) {
+            return DockCloseDecision.DEFAULT;
+        }
+        return editorCloseDecisionPolicy.resolve(request);
+    }
+
+    private void handleCloseHandled(DockCloseResult result) {
+        if (result == null || result.request() == null || result.canceled()) {
+            return;
+        }
+        if (result.appliedBehavior() != DockCloseBehavior.REMOVE) {
+            return;
+        }
+        for (DockNode node : result.request().nodes()) {
+            removeEditorNodeState(node);
+        }
+    }
+
+    private boolean shouldPromptBeforeClose(DockNode node) {
+        if (!promptOnEditorCloseProperty.get()) {
+            return false;
+        }
+        EditorDocumentState state = editorDocumentStates.get(node);
+        return state != null && state.dirty;
+    }
+
+    private EditorCloseDecisionPolicy.SavePromptResult promptSaveBeforeClose(DockNode node) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.initOwner(primaryStage);
+        alert.setTitle("Unsaved Changes");
+        alert.setHeaderText("Save changes before closing \"" + node.getTitle().replace(DIRTY_TITLE_SUFFIX, "") + "\"?");
+        alert.setContentText("Your changes will be lost if you choose \"Don't Save\".");
+
+        ButtonType saveButton = new ButtonType("Save");
+        ButtonType discardButton = new ButtonType("Don't Save");
+        ButtonType cancelButton = ButtonType.CANCEL;
+        alert.getButtonTypes().setAll(saveButton, discardButton, cancelButton);
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isEmpty() || result.get() == cancelButton) {
+            return EditorCloseDecisionPolicy.SavePromptResult.CANCEL;
+        }
+        if (result.get() == saveButton) {
+            return EditorCloseDecisionPolicy.SavePromptResult.SAVE;
+        }
+        return EditorCloseDecisionPolicy.SavePromptResult.DONT_SAVE;
+    }
+
+    private boolean saveEditorNodeForClose(DockNode node) {
+        return saveEditorNode(node, false);
+    }
+
+    private void openTextFileInEditor() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open text file");
+        fileChooser.getExtensionFilters().addAll(
+            new FileChooser.ExtensionFilter("Text files", "*.txt", "*.md", "*.java", "*.xml", "*.json", "*.properties"),
+            new FileChooser.ExtensionFilter("All files", "*.*")
+        );
+        File file = fileChooser.showOpenDialog(primaryStage);
+        if (file == null) {
+            return;
+        }
+
+        try {
+            String content = Files.readString(file.toPath());
+            DockNode editorNode = demoNodeFactory.createEditorNode(file.getName());
+            registerEditorNode(editorNode);
+            setEditorContentWithoutDirtyTracking(editorNode, content);
+            setEditorFilePath(editorNode, file.toPath());
+            markEditorDirty(editorNode, false);
+            addDockNode(editorNode);
+        } catch (IOException e) {
+            showError("Error while opening file:\n" + e.getMessage());
+        }
+    }
+
+    private void saveActiveEditor(boolean forceSaveAs) {
+        DockNode activeEditorNode = findActiveEditorNode();
+        if (activeEditorNode == null) {
+            showError("No active editor available.");
+            return;
+        }
+
+        saveEditorNode(activeEditorNode, forceSaveAs);
+    }
+
+    private boolean saveEditorNode(DockNode node, boolean forceSaveAs) {
+        SerializableEditor editor = extractEditor(node);
+        EditorDocumentState state = editorDocumentStates.get(node);
+        if (editor == null || state == null) {
+            return false;
+        }
+
+        Path targetPath = state.filePath;
+        if (forceSaveAs || targetPath == null) {
+            File chosenFile = chooseEditorSaveTargetFile(state);
+            if (chosenFile == null) {
+                return false;
+            }
+            targetPath = chosenFile.toPath();
+        }
+
+        try {
+            Files.writeString(targetPath, editor.getText());
+            setEditorFilePath(node, targetPath);
+            markEditorDirty(node, false);
+            return true;
+        } catch (IOException e) {
+            showError("Error while saving file:\n" + e.getMessage());
+            return false;
+        }
+    }
+
+    private DockNode findActiveEditorNode() {
+        List<DockNode> nodes = new ArrayList<>();
+        collectDockNodes(snapFX.getDockGraph().getRoot(), nodes);
+        for (DockFloatingWindow floatingWindow : snapFX.getFloatingWindows()) {
+            nodes.addAll(floatingWindow.getDockNodes());
+        }
+
+        DockNode firstEditorNode = null;
+        DockNode mainEditorNode = null;
+        for (DockNode node : nodes) {
+            SerializableEditor editor = extractEditor(node);
+            if (editor == null) {
+                continue;
+            }
+            if (editor.isFocused()) {
+                return node;
+            }
+            if (firstEditorNode == null) {
+                firstEditorNode = node;
+            }
+            if (DockNodeType.MAIN_EDITOR.getId().equals(node.getDockNodeId())) {
+                mainEditorNode = node;
+            }
+        }
+
+        return mainEditorNode != null ? mainEditorNode : firstEditorNode;
+    }
+
+    private File chooseEditorSaveTargetFile(EditorDocumentState state) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save editor content");
+        fileChooser.getExtensionFilters().addAll(
+            new FileChooser.ExtensionFilter("Text files", "*.txt", "*.md", "*.java", "*.xml", "*.json", "*.properties"),
+            new FileChooser.ExtensionFilter("All files", "*.*")
+        );
+
+        if (state != null && state.filePath != null) {
+            File currentFile = state.filePath.toFile();
+            File parentFile = currentFile.getParentFile();
+            if (parentFile != null && parentFile.isDirectory()) {
+                fileChooser.setInitialDirectory(parentFile);
+            }
+            fileChooser.setInitialFileName(currentFile.getName());
+        } else if (state != null && state.baseTitle != null && !state.baseTitle.isBlank()) {
+            fileChooser.setInitialFileName(state.baseTitle);
+        }
+
+        return fileChooser.showSaveDialog(primaryStage);
+    }
+
+    private void registerEditorNode(DockNode node) {
+        SerializableEditor editor = extractEditor(node);
+        if (editor == null || editorDocumentStates.containsKey(node)) {
+            return;
+        }
+
+        EditorDocumentState state = new EditorDocumentState();
+        state.baseTitle = stripDirtySuffix(node.getTitle());
+        state.filePath = null;
+        state.dirty = false;
+        state.suppressDirtyTracking = false;
+        state.textListener = (obs, oldVal, newVal) -> {
+            if (!state.suppressDirtyTracking) {
+                markEditorDirty(node, true);
+            }
+        };
+        editor.textProperty().addListener(state.textListener);
+        editorDocumentStates.put(node, state);
+        updateEditorTitle(node, state);
+    }
+
+    private void removeEditorNodeState(DockNode node) {
+        if (node == null) {
+            return;
+        }
+        EditorDocumentState state = editorDocumentStates.remove(node);
+        SerializableEditor editor = extractEditor(node);
+        if (state != null && editor != null && state.textListener != null) {
+            editor.textProperty().removeListener(state.textListener);
+        }
+    }
+
+    private void clearEditorRegistry() {
+        List<DockNode> nodes = new ArrayList<>(editorDocumentStates.keySet());
+        for (DockNode node : nodes) {
+            removeEditorNodeState(node);
+        }
+    }
+
+    private void rebuildEditorRegistryFromCurrentLayout() {
+        clearEditorRegistry();
+
+        List<DockNode> nodes = new ArrayList<>();
+        collectDockNodes(snapFX.getDockGraph().getRoot(), nodes);
+        for (DockFloatingWindow floatingWindow : snapFX.getFloatingWindows()) {
+            nodes.addAll(floatingWindow.getDockNodes());
+        }
+        nodes.addAll(snapFX.getHiddenNodes());
+        for (DockNode node : nodes) {
+            registerEditorNode(node);
+        }
+    }
+
+    private SerializableEditor extractEditor(DockNode node) {
+        if (node == null || !(node.getContent() instanceof SerializableEditor editor)) {
+            return null;
+        }
+        return editor;
+    }
+
+    private void setEditorFilePath(DockNode node, Path filePath) {
+        EditorDocumentState state = editorDocumentStates.get(node);
+        if (state == null) {
+            return;
+        }
+        state.filePath = filePath;
+        if (filePath != null && filePath.getFileName() != null) {
+            state.baseTitle = filePath.getFileName().toString();
+        }
+        updateEditorTitle(node, state);
+    }
+
+    private void setEditorContentWithoutDirtyTracking(DockNode node, String content) {
+        SerializableEditor editor = extractEditor(node);
+        EditorDocumentState state = editorDocumentStates.get(node);
+        if (editor == null || state == null) {
+            return;
+        }
+        state.suppressDirtyTracking = true;
+        try {
+            editor.setText(content == null ? "" : content);
+            editor.positionCaret(0);
+        } finally {
+            state.suppressDirtyTracking = false;
+        }
+    }
+
+    private void markEditorDirty(DockNode node, boolean dirty) {
+        EditorDocumentState state = editorDocumentStates.get(node);
+        if (state == null) {
+            return;
+        }
+        state.dirty = dirty;
+        updateEditorTitle(node, state);
+    }
+
+    private void updateEditorTitle(DockNode node, EditorDocumentState state) {
+        if (node == null || state == null) {
+            return;
+        }
+        String baseTitle = stripDirtySuffix(state.baseTitle);
+        state.baseTitle = baseTitle;
+        node.setTitle(state.dirty ? baseTitle + DIRTY_TITLE_SUFFIX : baseTitle);
+    }
+
+    private String stripDirtySuffix(String title) {
+        if (title == null || title.isBlank()) {
+            return "Untitled";
+        }
+        if (title.endsWith(DIRTY_TITLE_SUFFIX)) {
+            return title.substring(0, title.length() - DIRTY_TITLE_SUFFIX.length());
+        }
+        return title;
     }
 
 

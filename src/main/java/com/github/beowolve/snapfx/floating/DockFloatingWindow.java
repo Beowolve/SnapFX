@@ -303,7 +303,7 @@ public final class DockFloatingWindow {
         if (floatingGraph.isLocked()) {
             return;
         }
-        if (stage == null && !canProcessCloseRequest()) {
+        if (!canProcessCloseRequest()) {
             return;
         }
         closeInternal(true);

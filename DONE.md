@@ -190,6 +190,8 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **Property Binding**: Synchronized across UI
 
 ### User Interface
+- ✅ **Editor file workflow demo**: MainDemo supports opening text files into editor nodes plus save/save-as actions for active editors
+- ✅ **Editor close-hook demo**: MainDemo intercepts close requests and prompts only for dirty editor nodes (Save / Don't Save / Cancel)
 - ✅ **Menu Bar**: File, Layout, Help menus
 - ✅ **Toolbar**: Add/remove panel buttons
 - ✅ **Context Actions**: Save, Load, Reset layout

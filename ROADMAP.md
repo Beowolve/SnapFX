@@ -100,6 +100,8 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 ### 2.2 Floating Window Features
 **Priority**: 🟢 Medium
 
+- ✅ **MainDemo close-hook sample**: Demo now shows editor-specific save prompts on close requests
+- ✅ **MainDemo editor file actions**: Demo now includes open/save/save-as workflow for `SerializableEditor` nodes
 - ✅ **Maximize/restore**: Custom floating title-bar toggle implemented
 - ✅ **Maximized drag restore**: Dragging the title bar from maximized restores and moves the window
 - ✅ **Floating D&D visual feedback**: Floating windows show drop zones and active drop indicator during drag

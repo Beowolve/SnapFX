@@ -152,6 +152,8 @@
 - ⚠️ UI: Keyboard shortcuts not implemented
 
 ### Fixed (recent)
+- ✅ 2026-02-15: MainDemo - Close callbacks now prompt only for dirty editor nodes (Save / Don't Save / Cancel) before allowing close.
+- ✅ 2026-02-15: MainDemo - Added text file workflow (`Open Text File`, `Save Active Editor`, `Save Active Editor As`) with dirty-title markers.
 - ✅ 2026-02-15: Close API - Added configurable default close behavior (`HIDE`/`REMOVE`) with `HIDE` as the unchanged default.
 - ✅ 2026-02-15: Close API - Added source-aware close callbacks (`setOnCloseRequest`, `setOnCloseHandled`) for tab/title/floating close interception.
 - ✅ 2026-02-15: Close handling - Floating-window `X` close now uses the same close decision pipeline as node/tab/title-bar close actions.
@@ -189,10 +191,13 @@
 - ✅ Added modular Gradle run task wiring for `runSimpleExample` so it starts with JavaFX runtime modules and packaged resources.
 
 ### Demo Layout
+- ✅ MainDemo now demonstrates close-hook customization by intercepting close events and applying editor-specific save prompts.
+- ✅ MainDemo file menu now includes demo editor file operations (open/save/save-as) backed by `SerializableEditor`.
 - Added `SnapFX` API methods `setRootSplitRatios(...)` and `setSplitRatios(...)` to configure split pane ratios programmatically.
 - Switched `MainDemo` to the new API so the default root split ratio is configured via `snapFX.setRootSplitRatios(25, 50, 25)`.
 
 ### Testing
+- ✅ Added `EditorCloseDecisionPolicyTest` coverage to keep editor-close prompt decisions deterministic and UI-independent.
 - Added `DockGraphTest#testDemoLikeLayoutCanUseQuarterHalfQuarterSplit` to verify exact `25/50/25` split ratios can be set programmatically.
 - Added `SnapFXTest` coverage for ratio API behavior (normalized values + invalid input handling).
 - Added `DockLayoutEngineTest` coverage for stylesheet-based control glyph class wiring (title close + tab float button).
@@ -212,6 +217,8 @@
 - MainDemo now applies multi-size SnapFX application icons (16/24/32/48/64/128) from resources.
 
 ### UI Interaction
+- ✅ MainDemo close-hook flow now prompts only for dirty editor nodes; non-editor nodes close directly with default behavior.
+- ✅ Dirty editor state is now visible via `*` title suffix and integrates with save-before-close decisions.
 - ✅ Close behavior is now centrally configurable (`HIDE`/`REMOVE`) and consistently applied to docked, tabbed, and floating close actions.
 - ✅ Close requests now expose source-aware callback hooks for pre-close decisions and post-close outcome handling.
 - ✅ Single-node floating windows keep the inner drag title bar but hide redundant inner close/float controls.
