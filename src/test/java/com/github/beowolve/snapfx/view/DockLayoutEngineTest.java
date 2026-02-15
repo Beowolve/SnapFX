@@ -5,9 +5,11 @@ import javafx.application.Platform;
 import javafx.event.Event;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import org.junit.jupiter.api.BeforeAll;
@@ -163,6 +165,50 @@ class DockLayoutEngineTest extends ApplicationTest {
 
         DockNodeView nodeView = (DockNodeView) layoutEngine.buildSceneGraph();
         assertFalse(nodeView.isCloseButtonVisible());
+    }
+
+    @Test
+    void testTitleCloseButtonUsesCssCloseGlyph() {
+        DockNode node = new DockNode(new Label("Test"), "Node 1");
+        dockGraph.setRoot(node);
+
+        DockNodeView nodeView = assertInstanceOf(DockNodeView.class, layoutEngine.buildSceneGraph());
+
+        Button closeButton = nodeView.getHeader().getChildren().stream()
+            .filter(Button.class::isInstance)
+            .map(Button.class::cast)
+            .filter(button -> !button.getStyleClass().contains("dock-node-float-button"))
+            .findFirst()
+            .orElseThrow();
+
+        Node closeGraphic = closeButton.getGraphic();
+        assertNotNull(closeGraphic);
+        assertTrue(closeGraphic.getStyleClass().contains("dock-control-icon"));
+        assertTrue(closeGraphic.getStyleClass().contains("dock-control-icon-close"));
+    }
+
+    @Test
+    void testTabFloatButtonUsesCssFloatGlyph() {
+        DockNode node1 = new DockNode(new Label("Test1"), "Node 1");
+        DockNode node2 = new DockNode(new Label("Test2"), "Node 2");
+
+        dockGraph.dock(node1, null, DockPosition.CENTER);
+        dockGraph.dock(node2, node1, DockPosition.CENTER);
+
+        TabPane tabPane = assertInstanceOf(TabPane.class, layoutEngine.buildSceneGraph());
+        Node tabHeader = tabPane.getTabs().getFirst().getGraphic();
+
+        Button floatButton = ((HBox) tabHeader).getChildren().stream()
+            .filter(Button.class::isInstance)
+            .map(Button.class::cast)
+            .filter(button -> button.getStyleClass().contains("dock-tab-float-button"))
+            .findFirst()
+            .orElseThrow();
+
+        Node floatGraphic = floatButton.getGraphic();
+        assertNotNull(floatGraphic);
+        assertTrue(floatGraphic.getStyleClass().contains("dock-control-icon"));
+        assertTrue(floatGraphic.getStyleClass().contains("dock-control-icon-float"));
     }
 
     @Test

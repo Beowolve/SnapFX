@@ -5,7 +5,7 @@
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 105 tests passing (55 + 9 + 19 + 16 + 1 + 5)  
+✅ **Tests**: All 107 tests passing (55 + 9 + 21 + 16 + 1 + 5)  
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully
 
@@ -104,11 +104,11 @@
 ### Testing (100% ✅)
 - ✅ DockGraphTest (55 tests, +11 regression tests)
 - ✅ DockLayoutSerializerTest (9 tests, +1 regression test)
-- ✅ DockLayoutEngineTest (19 tests)
+- ✅ DockLayoutEngineTest (21 tests)
 - ✅ **SnapFXTest (16 tests)** - Hide/Restore + Floating Window API tests
 - ✅ DockGraphSplitTargetDockingTest (1 test)
 - ✅ DockDragServiceTest (5 tests)
-- ✅ **105/105 tests passing** ✅ (was 49)
+- ✅ **107/107 tests passing** ✅ (was 49)
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Edge case tests** (null inputs, detached nodes, invalid move targets, no-op revision checks)
@@ -166,11 +166,17 @@
 ### Testing
 - Added `DockGraphTest#testDemoLikeLayoutCanUseQuarterHalfQuarterSplit` to verify exact `25/50/25` split ratios can be set programmatically.
 - Added `SnapFXTest` coverage for ratio API behavior (normalized values + invalid input handling).
-- Test status: **105/105 passing** ✅
+- Added `DockLayoutEngineTest` coverage for stylesheet-based control glyph class wiring (title close + tab float button).
+- Test status: **107/107 passing** ✅
 
 ### Documentation
 - Fixed Unicode/Mojibake issues in `ROADMAP.md` (Phase 4.5 Floating Window Snapping icons/priority).
 - Performed repository-wide markdown scan and verified no further encoding artifacts in `*.md` files.
+
+### UI Styling
+- Removed `DockControlIcons` vector icon usage from dock/floating controls and switched to stylesheet-driven glyph classes.
+- Close buttons now use the same CSS glyph path family as tab close controls for consistent visuals.
+- Updated `docs/images/main-demo.png` after the visual change.
 
 ## Recent Changes (2026-02-14)
 

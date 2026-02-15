@@ -16,6 +16,7 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.Button;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 
 import java.util.ArrayList;
@@ -360,7 +361,7 @@ public class DockLayoutEngine {
 
         Button floatButton = new Button();
         floatButton.getStyleClass().addAll("dock-node-close-button", "dock-tab-float-button");
-        floatButton.setGraphic(DockControlIcons.createFloatIcon());
+        floatButton.setGraphic(createControlIcon("dock-control-icon-float"));
         floatButton.setTooltip(new Tooltip("Float window"));
         floatButton.setFocusTraversable(false);
         floatButton.visibleProperty().bind(dockGraph.lockedProperty().not());
@@ -384,6 +385,13 @@ public class DockLayoutEngine {
             floatButton.setOnAction(null);
         };
         return new TabHeader(tabHeader, cleanup);
+    }
+
+    private Region createControlIcon(String styleClass) {
+        Region icon = new Region();
+        icon.getStyleClass().addAll("dock-control-icon", styleClass);
+        icon.setMouseTransparent(true);
+        return icon;
     }
 
     /**

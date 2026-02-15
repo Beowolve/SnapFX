@@ -6,7 +6,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 
 ## ✅ What Has Been Completed
 
-### Core Framework (22 classes)
+### Core Framework (21 classes)
 
 #### Model Layer (7 classes)
 - ✅ `DockGraph` - Central data structure for the docking system
@@ -17,13 +17,13 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `DockTabPane` - Tab container with auto-hide
 - ✅ `DockPosition` - Enum for dock zones (5 positions)
 
-#### View Layer (5 classes)
+#### View Layer (4 classes)
 
 - ✅ `DockLayoutEngine` - Converts model to JavaFX SceneGraph
 - ✅ `DockNodeView` - Visual representation with header and float/close controls
 - ✅ `DockDropZone` - Drop-zone definition (bounds, target, depth)
 - ✅ `DockDropZoneType` - Drop-zone category enum
-- ✅ `DockControlIcons` - Shared vector icons for dock/floating controls
+- ✅ CSS-driven control glyphs for dock/floating controls (stylesheet-configurable)
 
 #### Drag & Drop (3 classes)
 
@@ -56,7 +56,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (6 test classes, 105 tests)
+### Testing (6 test classes, 107 tests)
 - ✅ `DockGraphTest` (55 tests) - Tree manipulation and algorithms
   - **+11 regression tests** for critical bug fixes
   - Tests for empty container prevention
@@ -67,7 +67,7 @@ SnapFX has been fully implemented with core functionality and is production-read
   - Edge case tests for null/no-op/detached-target handling
 - ✅ `DockLayoutSerializerTest` (9 tests) - Persistence functionality
   - **+1 regression test** for locked state synchronization (2026-02-10)
-- ✅ `DockLayoutEngineTest` (19 tests) - View creation with TestFX
+- ✅ `DockLayoutEngineTest` (21 tests) - View creation with TestFX
   - Memory cleanup tests for cache boundedness and undock/rebuild cycles
   - Layout optimization tests for empty/single-child roots
 - ✅ `SnapFXTest` (16 tests) - Hide/Restore + Floating Window API behavior
@@ -119,6 +119,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **Tab Overflow Dropdown**: Menu shows titles when using custom tab graphics
 - ✅ **Tab Auto-Hide**: In locked mode, tabs only visible when >1
 - ✅ **Close Button Options**: Toggle tab/title close buttons, keep tab close always visible, align styling, and hide the title bar when desired
+- ✅ **CSS-based Control Glyphs**: Dock/floating control icons are stylesheet-defined; title close glyph is aligned with tab close styling
 - ✅ **View Caching**: Performance optimization through view reuse
 
 ### Drag & Drop (Baseline + Critical Bug Fixes)
@@ -219,7 +220,7 @@ In IntelliJ IDEA:
 - **Total Java Files**: 36
 - **Production Classes**: 30
 - **Test Classes**: 6
-- **Test Cases**: 105 (all passing ✅) - +13 regression tests
+- **Test Cases**: 107 (all passing ✅) - +13 regression tests
 - **Lines of Code**: ~3,500+ (estimated)
 - **Documentation**: 7 Core Markdown files
 - **Test Coverage**: ~87% (estimated, improved from ~80%)

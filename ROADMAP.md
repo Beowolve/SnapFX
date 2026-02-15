@@ -230,6 +230,7 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 ### 5.2 Visual Customization
 **Priority**: 🔵 Low
 
+- ✅ **Control glyph styling via CSS**: Dock/floating control icons are stylesheet-defined (no hardcoded vector icon factory)
 - 💡 **Custom icons**: Replace default icons
 - 💡 **Tab styles**: Different tab appearances
 - 💡 **Header styles**: Customizable node headers

@@ -32,3 +32,5 @@ These instructions are shared for all AI agents working on this workspace.
 - Prefer `getFirst()`, `getLast()`, and `isEmpty()` over direct index access in production code when available; tests may use index access for clarity.
 - Use `Math.clamp(...)` for range clamping instead of nested `Math.min(...)` and `Math.max(...)`.
 - Keep function complexity at a reasonable level, aligned with SonarQube guidance (target low cognitive complexity; refactor methods approaching high complexity, e.g. around 15+ cognitive complexity).
+- Control visuals (dock/floating button icons, glyphs, close symbols) must be defined via stylesheet classes, not hardcoded vector/icon factories in Java code.
+- Keep close-button visuals consistent with tab close styling (same glyph family/path unless explicitly changed by the user).

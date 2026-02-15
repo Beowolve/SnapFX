@@ -7,7 +7,6 @@ import com.github.beowolve.snapfx.model.DockGraph;
 import com.github.beowolve.snapfx.model.DockNode;
 import com.github.beowolve.snapfx.model.DockPosition;
 import com.github.beowolve.snapfx.model.DockTabPane;
-import com.github.beowolve.snapfx.view.DockControlIcons;
 import com.github.beowolve.snapfx.view.DockDropZone;
 import com.github.beowolve.snapfx.view.DockDropZoneType;
 import com.github.beowolve.snapfx.view.DockLayoutEngine;
@@ -359,7 +358,7 @@ public final class DockFloatingWindow {
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         Button attachButton = createControlButton(
-            DockControlIcons.createAttachIcon(),
+            "dock-control-icon-attach",
             "Attach to layout",
             () -> {
                 if (onAttachRequested != null) {
@@ -371,7 +370,7 @@ public final class DockFloatingWindow {
 
         maximizeTooltip = new Tooltip("Maximize window");
         maximizeButton = createControlButton(
-            DockControlIcons.createMaximizeIcon(),
+            "dock-control-icon-maximize",
             maximizeTooltip.getText(),
             () -> toggleMaximize(window),
             "dock-window-maximize-button"
@@ -379,7 +378,7 @@ public final class DockFloatingWindow {
         maximizeButton.setTooltip(maximizeTooltip);
 
         Button closeButton = createControlButton(
-            DockControlIcons.createCloseIcon(),
+            "dock-control-icon-close",
             "Close floating window",
             this::close,
             "dock-window-close-button"
@@ -390,10 +389,10 @@ public final class DockFloatingWindow {
         return titleBar;
     }
 
-    private Button createControlButton(Node icon, String tooltipText, Runnable action, String styleClass) {
+    private Button createControlButton(String iconStyleClass, String tooltipText, Runnable action, String styleClass) {
         Button button = new Button();
         button.getStyleClass().addAll("dock-node-close-button", "dock-window-control-button", styleClass);
-        button.setGraphic(icon);
+        button.setGraphic(createControlIcon(iconStyleClass));
         button.setFocusTraversable(false);
         if (tooltipText != null && !tooltipText.isBlank()) {
             button.setTooltip(new Tooltip(tooltipText));
@@ -406,6 +405,13 @@ public final class DockFloatingWindow {
         });
         button.addEventFilter(MouseEvent.MOUSE_PRESSED, MouseEvent::consume);
         return button;
+    }
+
+    private Region createControlIcon(String styleClass) {
+        Region icon = new Region();
+        icon.getStyleClass().addAll("dock-control-icon", styleClass);
+        icon.setMouseTransparent(true);
+        return icon;
     }
 
     private void setupTitleBarDrag(HBox titleBar, Stage window) {
@@ -476,12 +482,12 @@ public final class DockFloatingWindow {
             return;
         }
         if (window.isMaximized()) {
-            maximizeButton.setGraphic(DockControlIcons.createRestoreIcon());
+            maximizeButton.setGraphic(createControlIcon("dock-control-icon-restore"));
             if (maximizeTooltip != null) {
                 maximizeTooltip.setText("Restore window");
             }
         } else {
-            maximizeButton.setGraphic(DockControlIcons.createMaximizeIcon());
+            maximizeButton.setGraphic(createControlIcon("dock-control-icon-maximize"));
             if (maximizeTooltip != null) {
                 maximizeTooltip.setText("Maximize window");
             }

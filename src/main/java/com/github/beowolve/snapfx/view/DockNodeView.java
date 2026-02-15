@@ -71,7 +71,7 @@ public class DockNodeView extends VBox {
 
         floatButton = new Button();
         floatButton.getStyleClass().addAll("dock-node-close-button", "dock-node-float-button");
-        floatButton.setGraphic(DockControlIcons.createFloatIcon());
+        floatButton.setGraphic(createControlIcon("dock-control-icon-float"));
         floatButton.setTooltip(new Tooltip("Float window"));
         floatButton.setFocusTraversable(false);
         floatButton.setOnAction(e -> { });
@@ -80,7 +80,7 @@ public class DockNodeView extends VBox {
 
         closeButton = new Button();
         closeButton.getStyleClass().add("dock-node-close-button");
-        closeButton.setGraphic(DockControlIcons.createCloseIcon());
+        closeButton.setGraphic(createControlIcon("dock-control-icon-close"));
         closeButton.setTooltip(new Tooltip("Close panel"));
         closeButton.setFocusTraversable(false);
         closeButton.setOnAction(e -> dockGraph.undock(dockNode));
@@ -133,6 +133,13 @@ public class DockNodeView extends VBox {
         if (dragService != null && dragService.isDragging()) {
             dragService.endDrag(event);
         }
+    }
+
+    private Region createControlIcon(String styleClass) {
+        Region icon = new Region();
+        icon.getStyleClass().addAll("dock-control-icon", styleClass);
+        icon.setMouseTransparent(true);
+        return icon;
     }
 
     public void setOnCloseRequest(Runnable handler) {
