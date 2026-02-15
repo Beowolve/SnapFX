@@ -89,9 +89,15 @@ public class DockSplitPane implements DockContainer {
      */
     @Override
     public void removeChild(DockElement element) {
-        children.remove(element);
+        int removedIndex = children.indexOf(element);
+        if (removedIndex < 0) {
+            return;
+        }
+        int dividerCountBeforeRemoval = dividerPositions.size();
+
+        children.remove(removedIndex);
         element.setParent(null);
-        updateDividerPositions();
+        updateDividerPositionsAfterRemoval(removedIndex, dividerCountBeforeRemoval);
 
         // If only one child remains, flatten FIRST before cleanup
         if (children.size() == 1) {
@@ -253,6 +259,20 @@ public class DockSplitPane implements DockContainer {
                 }
             }
         }
+    }
+
+    private void updateDividerPositionsAfterRemoval(int removedChildIndex, int dividerCountBeforeRemoval) {
+        int requiredDividers = Math.max(0, children.size() - 1);
+
+        if (dividerCountBeforeRemoval == requiredDividers + 1 && !dividerPositions.isEmpty()) {
+            // Preserve right-hand splitter positions when one child is removed.
+            int dividerToRemove = removedChildIndex == 0 ? 0 : removedChildIndex - 1;
+            dividerToRemove = Math.clamp(dividerToRemove, 0, dividerPositions.size() - 1);
+            dividerPositions.remove(dividerToRemove);
+            return;
+        }
+
+        updateDividerPositions();
     }
 
     private double calculateInitialSingleDividerPosition() {

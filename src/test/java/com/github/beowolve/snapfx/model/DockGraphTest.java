@@ -579,10 +579,35 @@ class DockGraphTest {
         assertEquals(2, rootSplit.getChildren().size());
         assertEquals(1, rootSplit.getDividerPositions().size());
 
-        // The remaining divider should be somewhere reasonable (not reset to 0.5)
-        // Since we removed the middle element, the divider should be around 0.25 or adjusted
         double remainingDivider = rootSplit.getDividerPositions().get(0).get();
-        assertTrue(remainingDivider > 0.0 && remainingDivider < 1.0);
+        assertEquals(0.75, remainingDivider, 0.0001);
+    }
+
+    /**
+     * Regression test: Removing the first split child must keep the next divider position.
+     * Bug: The second divider became the new first divider index but inherited the old first position.
+     * Fix: Remove the divider adjacent to the removed child and keep right-side divider coordinates.
+     * Date: 2026-02-15
+     */
+    @Test
+    void testUndockFirstSplitChildKeepsFollowingDividerPosition() {
+        DockNode left = new DockNode(new Label("Left"), "Left");
+        DockNode center = new DockNode(new Label("Center"), "Center");
+        DockNode right = new DockNode(new Label("Right"), "Right");
+
+        dockGraph.dock(left, null, DockPosition.CENTER);
+        dockGraph.dock(center, left, DockPosition.RIGHT);
+        dockGraph.dock(right, center, DockPosition.RIGHT);
+
+        DockSplitPane rootSplit = (DockSplitPane) dockGraph.getRoot();
+        rootSplit.setDividerPosition(0, 0.25);
+        rootSplit.setDividerPosition(1, 0.75);
+
+        dockGraph.undock(left);
+
+        assertEquals(2, rootSplit.getChildren().size());
+        assertEquals(1, rootSplit.getDividerPositions().size());
+        assertEquals(0.75, rootSplit.getDividerPositions().get(0).get(), 0.0001);
     }
 
     @Test
