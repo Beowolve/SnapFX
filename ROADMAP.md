@@ -233,6 +233,7 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 **Priority**: 🔵 Low
 
 - ✅ **Control glyph styling via CSS**: Dock/floating control icons are stylesheet-defined (no hardcoded vector icon factory)
+- ✅ **MainDemo application icon branding**: Multi-size SnapFX app icons are wired to the demo stage
 - 💡 **Custom icons**: Replace default icons
 - 💡 **Tab styles**: Different tab appearances
 - 💡 **Header styles**: Customizable node headers
@@ -304,6 +305,7 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 - 📋 **User guide**: Comprehensive usage guide
 - 📋 **Tutorial series**: Step-by-step tutorials
 - 📋 **Example projects**: Real-world examples
+- 📋 **GitHub Pages site**: Full project documentation portal (guides, architecture, API overview)
 - 📋 **Video tutorials**: Screen recordings
 
 **Estimated Time**: 5-7 days

@@ -23,6 +23,7 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -39,6 +40,14 @@ import java.util.List;
  */
 public class MainDemo extends Application {
     public static final String FX_FONT_WEIGHT_BOLD = "-fx-font-weight: bold;";
+    private static final List<String> APP_ICON_RESOURCES = List.of(
+        "/images/16/snapfx.png",
+        "/images/24/snapfx.png",
+        "/images/32/snapfx.png",
+        "/images/48/snapfx.png",
+        "/images/64/snapfx.png",
+        "/images/128/snapfx.png"
+    );
     private SnapFX snapFX;
     private Stage primaryStage;
     private BorderPane mainLayout;
@@ -72,6 +81,7 @@ public class MainDemo extends Application {
 
         stage.setTitle("SnapFX Demo - Docking Framework");
         stage.setScene(new Scene(mainLayout, 1200, 800));
+        applyApplicationIcons(stage);
 
         // Create demo node factory
         demoNodeFactory = new DemoNodeFactory();
@@ -117,6 +127,23 @@ public class MainDemo extends Application {
         // Bring window to front
         stage.toFront();
         stage.requestFocus();
+    }
+
+    static List<String> getAppIconResources() {
+        return APP_ICON_RESOURCES;
+    }
+
+    private void applyApplicationIcons(Stage stage) {
+        if (stage == null) {
+            return;
+        }
+        stage.getIcons().clear();
+        for (String resourcePath : APP_ICON_RESOURCES) {
+            var iconUrl = MainDemo.class.getResource(resourcePath);
+            if (iconUrl != null) {
+                stage.getIcons().add(new Image(iconUrl.toExternalForm()));
+            }
+        }
     }
 
     private MenuBar createMenuBar() {

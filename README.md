@@ -1,5 +1,9 @@
 # SnapFX - Lightweight JavaFX Docking Framework
 
+<p align="center">
+  <img src="src/main/resources/images/snapfx.svg" alt="SnapFX Logo" width="180">
+</p>
+
 A high-performance, lightweight JavaFX docking framework that behaves like native professional software (IntelliJ, Visual Studio).
 
 **Note**: SnapFX is a Java Module (JPMS). Make sure your project is configured accordingly.
@@ -194,7 +198,7 @@ Test coverage:
 - Layout engine
 - Floating window lifecycle and restore behavior
 - Cross-window drag/drop routing
-- Current test status: **112/112 passing**
+- Current test status: **114/114 passing**
 
 ## Demo Application
 

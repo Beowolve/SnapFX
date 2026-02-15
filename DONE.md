@@ -56,7 +56,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (7 test classes, 112 tests)
+### Testing (8 test classes, 114 tests)
 - ✅ `DockGraphTest` (56 tests) - Tree manipulation and algorithms
   - **+11 regression tests** for critical bug fixes
   - Tests for empty container prevention
@@ -74,6 +74,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `DockGraphSplitTargetDockingTest` (1 test) - Split-target docking regression coverage
 - ✅ `DockDragServiceTest` (5 tests) - D&D visibility, tab-hover activation, and float-detach callback behavior
 - ✅ `DockFloatingWindowTest` (2 tests) - Maximized title-bar double-click + drag-restore behavior
+- ✅ `MainDemoTest` (2 tests) - Application icon resources and wiring
 - ✅ All tests passing ✅
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
 - ✅ Mandatory regression tests for all bug fixes
@@ -88,12 +89,14 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `TESTING_POLICY.md` - Testing standards and requirements (NEW 2026-02-10)
 - ✅ README clarifies TitleBarMode.AUTO behavior and tab-only drag handling
 - ✅ README includes a MainDemo screenshot preview near the top
+- ✅ README embeds the SnapFX SVG logo for repository and future GitHub Pages branding
 - ✅ Issue tracking consolidated into STATUS.md; ROADMAP lists planned work only
 - ✅ Fixed markdown encoding artifacts (Unicode icon Mojibake) in roadmap/docs content
 
 ### Resources
 - ✅ `snapfx.css` - Native Modena theme styling
 - ✅ Icon set from Yusuke Kamiyamane (64 icons in 16px size)
+- ✅ SnapFX logo asset set (`svg`, `ico`, `xcf`, and PNG sizes 16/24/32/48/64/128)
 
 ## 🎯 Core Features Implemented
 
@@ -123,6 +126,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **CSS-based Control Glyphs**: Dock/floating control icons are stylesheet-defined; title close glyph is aligned with tab close styling
 - ✅ **Control Button Interaction Fixes**: Tab float and floating-window title-bar buttons no longer lose clicks to drag interception
 - ✅ **Maximized title-bar interaction parity**: Double-click restore and drag-to-restore behavior for floating windows
+- ✅ **MainDemo application icon**: Multi-size SnapFX branding icons are applied to the primary stage
 - ✅ **View Caching**: Performance optimization through view reuse
 
 ### Drag & Drop (Baseline + Critical Bug Fixes)
@@ -223,8 +227,8 @@ In IntelliJ IDEA:
 
 - **Total Java Files**: 36
 - **Production Classes**: 30
-- **Test Classes**: 7
-- **Test Cases**: 112 (all passing ✅)
+- **Test Classes**: 8
+- **Test Cases**: 114 (all passing ✅)
 - **Lines of Code**: ~3,500+ (estimated)
 - **Documentation**: 7 Core Markdown files
 - **Test Coverage**: ~87% (estimated, improved from ~80%)

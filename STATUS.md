@@ -5,7 +5,7 @@
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 112 tests passing (56 + 9 + 21 + 18 + 1 + 5 + 2)  
+✅ **Tests**: All 114 tests passing (56 + 9 + 21 + 18 + 1 + 5 + 2 + 2)  
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully
 
@@ -109,7 +109,8 @@
 - ✅ DockGraphSplitTargetDockingTest (1 test)
 - ✅ DockDragServiceTest (5 tests)
 - ✅ DockFloatingWindowTest (2 tests) - Floating title bar maximize/restore interaction behavior
-- ✅ **112/112 tests passing** ✅ (was 49)
+- ✅ MainDemoTest (2 tests) - Demo app icon resource wiring and availability
+- ✅ **114/114 tests passing** ✅ (was 49)
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Edge case tests** (null inputs, detached nodes, invalid move targets, no-op revision checks)
@@ -131,6 +132,7 @@
 
 ### Documentation (100% ✅)
 - ✅ README.md updated
+- ✅ README now embeds the SnapFX SVG logo from `src/main/resources/images/snapfx.svg`
 - ✅ ARCHITECTURE.md complete and corrected
 - ✅ SETUP.md
 - ✅ PROJECT_SUMMARY.md
@@ -173,16 +175,19 @@
 - Added `DockGraphTest#testDemoLikeLayoutCanUseQuarterHalfQuarterSplit` to verify exact `25/50/25` split ratios can be set programmatically.
 - Added `SnapFXTest` coverage for ratio API behavior (normalized values + invalid input handling).
 - Added `DockLayoutEngineTest` coverage for stylesheet-based control glyph class wiring (title close + tab float button).
-- Test status: **112/112 passing** ✅
+- Test status: **114/114 passing** ✅
 
 ### Documentation
 - Fixed Unicode/Mojibake issues in `ROADMAP.md` (Phase 4.5 Floating Window Snapping icons/priority).
 - Performed repository-wide markdown scan and verified no further encoding artifacts in `*.md` files.
+- Added SnapFX SVG logo to README for shared GitHub/GitHub Pages branding usage.
+- Added roadmap item for a full GitHub Pages documentation portal.
 
 ### UI Styling
 - Removed `DockControlIcons` vector icon usage from dock/floating controls and switched to stylesheet-driven glyph classes.
 - Close buttons now use the same CSS glyph path family as tab close controls for consistent visuals.
 - Updated `docs/images/main-demo.png` after the visual change.
+- MainDemo now applies multi-size SnapFX application icons (16/24/32/48/64/128) from resources.
 
 ### UI Interaction
 - Fixed tab-header float button interactions by preventing drag handlers from hijacking button clicks.
