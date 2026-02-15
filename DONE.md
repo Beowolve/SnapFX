@@ -141,6 +141,8 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **Cross-Window D&D**: Dock between main layout and floating windows
 - ✅ **Topmost-surface D&D targeting**: For overlapping floating/main windows, preview and drop resolve only on the frontmost surface under the cursor
 - ✅ **Floating lock-state control parity**: Floating title-bar controls hide in lock mode and floating window close is blocked while locked
+- ✅ **Single-node floating control cleanup**: Inner dock-node close/float controls are hidden for single-node floating layouts while keeping header drag usability
+- ✅ **Float-from-floating extraction**: Floating layout float actions now detach the selected node into a separate floating window
 - ✅ **Floating close-to-hidden behavior**: Closing floating windows via `X` moves nodes to hidden windows list
 - ✅ **Floating window save/load persistence**: Open floating windows and bounds are restored via layout snapshots
 - ✅ **Floating drag/drop feedback parity**: Floating windows render drop zones and active drop indicator during drag

@@ -346,6 +346,50 @@ class SnapFXTest {
     }
 
     @Test
+    void testRequestFloatForNodeDetachesNodeFromFloatingSubLayout() {
+        DockNode node1 = new DockNode("node1", new Label("Node 1"), "Node 1");
+        DockNode node2 = new DockNode("node2", new Label("Node 2"), "Node 2");
+
+        snapFX.dock(node1, null, DockPosition.CENTER);
+        snapFX.dock(node2, node1, DockPosition.RIGHT);
+
+        DockFloatingWindow floatingWindow = snapFX.floatNode(node1, 300.0, 200.0);
+        snapFX.getDockGraph().undock(node2);
+        floatingWindow.dockNode(node2, node1, DockPosition.CENTER, null);
+
+        assertEquals(1, snapFX.getFloatingWindows().size());
+        assertTrue(floatingWindow.containsNode(node1));
+        assertTrue(floatingWindow.containsNode(node2));
+
+        floatingWindow.requestFloatForNode(node2);
+
+        assertEquals(2, snapFX.getFloatingWindows().size());
+        assertFalse(floatingWindow.containsNode(node2));
+        DockFloatingWindow detachedWindow = snapFX.getFloatingWindows().stream()
+            .filter(window -> window != floatingWindow && window.containsNode(node2))
+            .findFirst()
+            .orElse(null);
+        assertNotNull(detachedWindow);
+        assertTrue(detachedWindow.containsNode(node2));
+        assertTrue(floatingWindow.containsNode(node1));
+    }
+
+    @Test
+    void testRequestFloatForNodeDoesNothingForSingleNodeFloatingWindow() {
+        DockNode node1 = new DockNode("node1", new Label("Node 1"), "Node 1");
+        snapFX.dock(node1, null, DockPosition.CENTER);
+
+        DockFloatingWindow floatingWindow = snapFX.floatNode(node1);
+        assertEquals(1, snapFX.getFloatingWindows().size());
+
+        floatingWindow.requestFloatForNode(node1);
+
+        assertEquals(1, snapFX.getFloatingWindows().size());
+        assertSame(floatingWindow, snapFX.getFloatingWindows().getFirst());
+        assertTrue(floatingWindow.containsNode(node1));
+    }
+
+    @Test
     void testSetRootSplitRatiosAppliesNormalizedValues() {
         DockNode left = new DockNode("left", new Label("Left"), "Left");
         DockNode center = new DockNode("center", new Label("Center"), "Center");

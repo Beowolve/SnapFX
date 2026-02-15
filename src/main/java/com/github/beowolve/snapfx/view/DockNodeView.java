@@ -76,7 +76,7 @@ public class DockNodeView extends VBox {
         floatButton.setFocusTraversable(false);
         floatButton.setOnAction(e -> { });
         floatButton.visibleProperty().bind(dockGraph.lockedProperty().not());
-        floatButton.setManaged(true);
+        floatButton.managedProperty().bind(floatButton.visibleProperty());
 
         closeButton = new Button();
         closeButton.getStyleClass().add("dock-node-close-button");
@@ -88,7 +88,7 @@ public class DockNodeView extends VBox {
             dockNode.closeableProperty()
                 .and(dockGraph.lockedProperty().not())
         );
-        closeButton.setManaged(true);
+        closeButton.managedProperty().bind(closeButton.visibleProperty());
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -187,13 +187,44 @@ public class DockNodeView extends VBox {
         }
         closeButton.visibleProperty().unbind();
         closeButton.visibleProperty().bind(expression);
-        closeButton.setManaged(true);
+        if (closeButton.managedProperty().isBound()) {
+            closeButton.managedProperty().unbind();
+        }
+        closeButton.managedProperty().bind(closeButton.visibleProperty());
     }
 
     public void setCloseButtonVisible(boolean visible) {
         closeButton.visibleProperty().unbind();
         closeButton.setVisible(visible);
-        closeButton.setManaged(true);
+        if (closeButton.managedProperty().isBound()) {
+            closeButton.managedProperty().unbind();
+        }
+        closeButton.setManaged(visible);
+    }
+
+    public void bindFloatButtonVisible(BooleanExpression expression) {
+        if (expression == null) {
+            return;
+        }
+        floatButton.visibleProperty().unbind();
+        floatButton.visibleProperty().bind(expression);
+        if (floatButton.managedProperty().isBound()) {
+            floatButton.managedProperty().unbind();
+        }
+        floatButton.managedProperty().bind(floatButton.visibleProperty());
+    }
+
+    public void setFloatButtonVisible(boolean visible) {
+        floatButton.visibleProperty().unbind();
+        floatButton.setVisible(visible);
+        if (floatButton.managedProperty().isBound()) {
+            floatButton.managedProperty().unbind();
+        }
+        floatButton.setManaged(visible);
+    }
+
+    public boolean isFloatButtonVisible() {
+        return floatButton.isVisible();
     }
 
     public boolean isCloseButtonVisible() {
@@ -227,9 +258,15 @@ public class DockNodeView extends VBox {
         iconPane.getChildren().clear();
 
         closeButton.visibleProperty().unbind();
+        if (closeButton.managedProperty().isBound()) {
+            closeButton.managedProperty().unbind();
+        }
         closeButton.setOnAction(null);
 
         floatButton.visibleProperty().unbind();
+        if (floatButton.managedProperty().isBound()) {
+            floatButton.managedProperty().unbind();
+        }
         floatButton.setOnAction(null);
 
         header.setOnMousePressed(null);

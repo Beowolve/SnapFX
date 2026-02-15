@@ -11,6 +11,7 @@ import com.github.beowolve.snapfx.model.DockTabPane;
 import com.github.beowolve.snapfx.view.DockDropZone;
 import com.github.beowolve.snapfx.view.DockDropZoneType;
 import com.github.beowolve.snapfx.view.DockLayoutEngine;
+import com.github.beowolve.snapfx.view.DockNodeView;
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
@@ -77,6 +78,7 @@ public final class DockFloatingWindow {
     private Runnable onAttachRequested;
     private Consumer<DockFloatingWindow> onWindowClosed;
     private Runnable onWindowActivated;
+    private Consumer<DockNode> onNodeFloatRequest;
 
     private StackPane iconPane;
     private Label titleLabel;
@@ -128,6 +130,7 @@ public final class DockFloatingWindow {
         this.titlePrefix = (titlePrefix == null || titlePrefix.isBlank()) ? "SnapFX" : titlePrefix;
         this.floatingGraph = new DockGraph();
         this.floatingLayoutEngine = new DockLayoutEngine(floatingGraph, dragService);
+        this.floatingLayoutEngine.setOnNodeFloatRequest(this::handleInnerNodeFloatRequest);
         this.layoutContainer = new StackPane();
         this.layoutContainer.getStyleClass().add("dock-floating-layout-container");
         this.dropIndicator = new FloatingDropIndicator();
@@ -312,6 +315,10 @@ public final class DockFloatingWindow {
         this.onWindowActivated = onWindowActivated;
     }
 
+    void setOnNodeFloatRequest(Consumer<DockNode> onNodeFloatRequest) {
+        this.onNodeFloatRequest = onNodeFloatRequest;
+    }
+
     void undockNode(DockNode node) {
         floatingGraph.undock(node);
     }
@@ -322,6 +329,14 @@ public final class DockFloatingWindow {
 
     void moveNode(DockNode node, DockElement target, DockPosition position, Integer tabIndex) {
         floatingGraph.move(node, target, position, tabIndex);
+    }
+
+    void requestFloatForNode(DockNode node) {
+        handleInnerNodeFloatRequest(node);
+    }
+
+    DockNodeView getDockNodeView(DockNode node) {
+        return floatingLayoutEngine.getDockNodeView(node);
     }
 
     DropTarget resolveDropTarget(double screenX, double screenY, DockNode draggedNode) {
@@ -837,6 +852,7 @@ public final class DockFloatingWindow {
         if (layout != null) {
             layoutContainer.getChildren().add(layout);
         }
+        updateInnerNodeActionVisibility();
         updateWindowTitleAndIcon();
     }
 
@@ -1169,6 +1185,33 @@ public final class DockFloatingWindow {
     private void notifyWindowActivated() {
         if (onWindowActivated != null) {
             onWindowActivated.run();
+        }
+    }
+
+    private void handleInnerNodeFloatRequest(DockNode node) {
+        if (node == null || floatingGraph.isLocked()) {
+            return;
+        }
+        if (onNodeFloatRequest != null) {
+            onNodeFloatRequest.accept(node);
+        }
+    }
+
+    private void updateInnerNodeActionVisibility() {
+        boolean showNodeActions = getDockNodes().size() > 1;
+        List<DockNode> nodes = getDockNodes();
+        for (DockNode node : nodes) {
+            DockNodeView nodeView = floatingLayoutEngine.getDockNodeView(node);
+            if (nodeView == null) {
+                continue;
+            }
+            if (showNodeActions) {
+                nodeView.bindFloatButtonVisible(floatingGraph.lockedProperty().not());
+                nodeView.bindCloseButtonVisible(node.closeableProperty().and(floatingGraph.lockedProperty().not()));
+            } else {
+                nodeView.setFloatButtonVisible(false);
+                nodeView.setCloseButtonVisible(false);
+            }
         }
     }
 

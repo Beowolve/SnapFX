@@ -335,9 +335,7 @@ public class SnapFX {
         if (screenX != null || screenY != null) {
             floatingWindow.setPreferredPosition(screenX, screenY);
         }
-        floatingWindow.setOnAttachRequested(() -> attachFloatingWindow(floatingWindow));
-        floatingWindow.setOnWindowClosed(this::handleFloatingWindowClosed);
-        floatingWindow.setOnWindowActivated(() -> promoteFloatingWindowToFront(floatingWindow));
+        configureFloatingWindowCallbacks(floatingWindow);
         floatingWindows.add(floatingWindow);
         if (primaryStage != null) {
             floatingWindow.show(primaryStage);
@@ -487,6 +485,54 @@ public class SnapFX {
         topWindow.dockNode(node, bestTarget.target(), bestTarget.position(), bestTarget.tabIndex());
         topWindow.toFront();
         return true;
+    }
+
+    private void configureFloatingWindowCallbacks(DockFloatingWindow floatingWindow) {
+        if (floatingWindow == null) {
+            return;
+        }
+        floatingWindow.setOnAttachRequested(() -> attachFloatingWindow(floatingWindow));
+        floatingWindow.setOnWindowClosed(this::handleFloatingWindowClosed);
+        floatingWindow.setOnWindowActivated(() -> promoteFloatingWindowToFront(floatingWindow));
+        floatingWindow.setOnNodeFloatRequest(this::floatNodeFromFloatingLayout);
+    }
+
+    private DockFloatingWindow floatNodeFromFloatingLayout(DockNode node) {
+        if (node == null) {
+            return null;
+        }
+
+        DockFloatingWindow sourceWindow = findFloatingWindow(node);
+        if (sourceWindow == null) {
+            return floatNode(node);
+        }
+        if (sourceWindow.getDockNodes().size() <= 1) {
+            sourceWindow.toFront();
+            return sourceWindow;
+        }
+
+        rememberFloatingBoundsForNodes(sourceWindow);
+        sourceWindow.undockNode(node);
+        if (sourceWindow.isEmpty()) {
+            floatingWindows.remove(sourceWindow);
+            sourceWindow.closeWithoutNotification();
+        }
+
+        DockFloatingWindow floatingWindow = new DockFloatingWindow(node, dragService);
+        floatingWindow.getDockGraph().setLocked(dockGraph.isLocked());
+        applyRememberedFloatingBounds(node, floatingWindow);
+        if (sourceWindow.getPreferredX() != null || sourceWindow.getPreferredY() != null) {
+            floatingWindow.setPreferredPosition(
+                sourceWindow.getPreferredX() != null ? sourceWindow.getPreferredX() + 24.0 : null,
+                sourceWindow.getPreferredY() != null ? sourceWindow.getPreferredY() + 24.0 : null
+            );
+        }
+        configureFloatingWindowCallbacks(floatingWindow);
+        floatingWindows.add(floatingWindow);
+        if (primaryStage != null) {
+            floatingWindow.show(primaryStage);
+        }
+        return floatingWindow;
     }
 
     private boolean isMainDropSuppressedByFloatingWindow(Double screenX, Double screenY) {
@@ -844,9 +890,7 @@ public class SnapFX {
         if (isFiniteNumber(snapshot.x()) || isFiniteNumber(snapshot.y())) {
             floatingWindow.setPreferredPosition(snapshot.x(), snapshot.y());
         }
-        floatingWindow.setOnAttachRequested(() -> attachFloatingWindow(floatingWindow));
-        floatingWindow.setOnWindowClosed(this::handleFloatingWindowClosed);
-        floatingWindow.setOnWindowActivated(() -> promoteFloatingWindowToFront(floatingWindow));
+        configureFloatingWindowCallbacks(floatingWindow);
         floatingWindows.add(floatingWindow);
         if (primaryStage != null) {
             floatingWindow.show(primaryStage);

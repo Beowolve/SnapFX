@@ -152,6 +152,8 @@
 - ⚠️ UI: Keyboard shortcuts not implemented
 
 ### Fixed (recent)
+- ✅ 2026-02-15: Floating Window - Inner dock-node close/float controls are hidden for single-node floating layouts to remove redundant actions.
+- ✅ 2026-02-15: Floating Window - Float actions inside floating sub-layouts now detach the selected node into a new floating window.
 - ✅ 2026-02-15: Floating Window - Lock mode now propagates to floating graphs, so floating controls follow the global locked state.
 - ✅ 2026-02-15: Floating Window - Title-bar control icons are hidden in lock mode and close requests are ignored while locked.
 - ✅ 2026-02-15: Drag & Drop - Overlapping surfaces now target only the topmost window under the cursor; main and floating previews are no longer shown simultaneously.
@@ -207,6 +209,8 @@
 - MainDemo now applies multi-size SnapFX application icons (16/24/32/48/64/128) from resources.
 
 ### UI Interaction
+- ✅ Single-node floating windows keep the inner drag title bar but hide redundant inner close/float controls.
+- ✅ Inner float actions in floating sub-layouts now split out the selected node into its own floating window.
 - ✅ Overlapping-window drag targeting now uses topmost-hit precedence: only the frontmost surface under the cursor receives preview and drop.
 - Fixed tab-header float button interactions by preventing drag handlers from hijacking button clicks.
 - Fixed floating-window title-bar control interactions (attach/maximize/restore/close) by removing pressed-event consumption and improving control-target detection.

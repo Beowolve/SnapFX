@@ -1,6 +1,7 @@
 package com.github.beowolve.snapfx;
 
 import com.github.beowolve.snapfx.model.DockNode;
+import com.github.beowolve.snapfx.view.DockNodeView;
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -153,6 +154,19 @@ class DockFloatingWindowTest {
         assertTrue(closeNotified.get());
     }
 
+    @Test
+    void testSingleNodeFloatingLayoutHidesInnerNodeCloseAndFloatButtons() {
+        DockNode node = new DockNode(new Label("Node"), "Node");
+        DockFloatingWindow floatingWindow = new DockFloatingWindow(node);
+
+        invokeRebuildLayout(floatingWindow);
+
+        DockNodeView nodeView = floatingWindow.getDockNodeView(node);
+        assertTrue(nodeView != null);
+        assertFalse(nodeView.isCloseButtonVisible());
+        assertFalse(nodeView.isFloatButtonVisible());
+    }
+
     private boolean invokeTitleBarActionCandidate(DockFloatingWindow floatingWindow, MouseEvent event, Stage stage) {
         try {
             Method method = DockFloatingWindow.class.getDeclaredMethod("isTitleBarActionCandidate", MouseEvent.class, Stage.class);
@@ -190,6 +204,16 @@ class DockFloatingWindowTest {
             return (HBox) method.invoke(floatingWindow, stage);
         } catch (ReflectiveOperationException e) {
             throw new AssertionError("Unable to invoke createTitleBar", e);
+        }
+    }
+
+    private void invokeRebuildLayout(DockFloatingWindow floatingWindow) {
+        try {
+            Method method = DockFloatingWindow.class.getDeclaredMethod("rebuildLayout");
+            method.setAccessible(true);
+            method.invoke(floatingWindow);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Unable to invoke rebuildLayout", e);
         }
     }
 
