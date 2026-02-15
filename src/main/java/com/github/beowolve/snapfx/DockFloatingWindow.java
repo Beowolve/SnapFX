@@ -1,6 +1,7 @@
 package com.github.beowolve.snapfx;
 
 import com.github.beowolve.snapfx.dnd.DockDragService;
+import com.github.beowolve.snapfx.dnd.DockDropVisualizationMode;
 import com.github.beowolve.snapfx.model.DockContainer;
 import com.github.beowolve.snapfx.model.DockElement;
 import com.github.beowolve.snapfx.model.DockGraph;
@@ -24,9 +25,13 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Line;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
@@ -59,6 +64,8 @@ public final class DockFloatingWindow {
     private final DockGraph floatingGraph;
     private final DockLayoutEngine floatingLayoutEngine;
     private final StackPane layoutContainer;
+    private final FloatingDropIndicator dropIndicator;
+    private final FloatingDropZonesOverlay dropZonesOverlay;
 
     private Stage stage;
     private Double preferredX;
@@ -122,6 +129,12 @@ public final class DockFloatingWindow {
         this.floatingLayoutEngine = new DockLayoutEngine(floatingGraph, dragService);
         this.layoutContainer = new StackPane();
         this.layoutContainer.getStyleClass().add("dock-floating-layout-container");
+        this.dropIndicator = new FloatingDropIndicator();
+        this.dropZonesOverlay = new FloatingDropZonesOverlay();
+        this.dropIndicator.setMouseTransparent(true);
+        this.dropIndicator.setManaged(false);
+        this.dropZonesOverlay.setMouseTransparent(true);
+        this.dropZonesOverlay.setManaged(false);
 
         floatingGraph.setRoot(rootElement);
         floatingGraph.revisionProperty().addListener((obs, oldValue, newValue) ->
@@ -290,30 +303,8 @@ public final class DockFloatingWindow {
     }
 
     DropTarget resolveDropTarget(double screenX, double screenY, DockNode draggedNode) {
-        if (stage == null || !stage.isShowing() || stage.getScene() == null || draggedNode == null) {
-            return null;
-        }
-
-        Node sceneRoot = stage.getScene().getRoot();
-        Point2D scenePoint = sceneRoot.screenToLocal(screenX, screenY);
-        if (scenePoint == null) {
-            return null;
-        }
-        Bounds localBounds = sceneRoot.getBoundsInLocal();
-        if (!localBounds.contains(scenePoint)) {
-            return null;
-        }
-
-        List<DockDropZone> zones = floatingLayoutEngine.collectDropZones();
-        if (zones.isEmpty()) {
-            return null;
-        }
-        List<DockDropZone> validZones = filterZonesForDrop(zones, draggedNode);
-        DockDropZone bestZone = floatingLayoutEngine.findBestDropZone(
-            validZones,
-            scenePoint.getX(),
-            scenePoint.getY()
-        );
+        DropZoneResolution resolution = resolveDropZone(screenX, screenY, draggedNode, true);
+        DockDropZone bestZone = resolution.activeZone();
         if (bestZone == null) {
             return null;
         }
@@ -324,6 +315,82 @@ public final class DockFloatingWindow {
             bestZone.getDepth(),
             bestZone.area()
         );
+    }
+
+    void updateDropPreview(
+        DockNode draggedNode,
+        double screenX,
+        double screenY,
+        DockDropVisualizationMode visualizationMode
+    ) {
+        DropZoneResolution resolution = resolveDropZone(screenX, screenY, draggedNode, true);
+        DockDropZone activeZone = resolution.activeZone();
+        List<DockDropZone> validZones = resolution.validZones();
+
+        if (activeZone == null) {
+            clearDropPreview();
+            return;
+        }
+
+        List<DockDropZone> zonesToShow = getZonesForVisualization(validZones, activeZone, visualizationMode);
+        if (zonesToShow.isEmpty()) {
+            dropZonesOverlay.hide();
+        } else {
+            dropZonesOverlay.showZones(zonesToShow);
+        }
+
+        if (visualizationMode == DockDropVisualizationMode.OFF) {
+            dropIndicator.hide();
+            return;
+        }
+        dropIndicator.show(activeZone.getBounds(), activeZone.getInsertLineX());
+    }
+
+    void clearDropPreview() {
+        dropIndicator.hide();
+        dropZonesOverlay.hide();
+    }
+
+    private DropZoneResolution resolveDropZone(
+        double screenX,
+        double screenY,
+        DockNode draggedNode,
+        boolean activateTabHover
+    ) {
+        if (stage == null || !stage.isShowing() || stage.getScene() == null || draggedNode == null) {
+            return DropZoneResolution.empty();
+        }
+
+        Node sceneRoot = stage.getScene().getRoot();
+        Point2D scenePoint = sceneRoot.screenToLocal(screenX, screenY);
+        if (scenePoint == null) {
+            return DropZoneResolution.empty();
+        }
+        Bounds localBounds = sceneRoot.getBoundsInLocal();
+        if (!localBounds.contains(scenePoint)) {
+            return DropZoneResolution.empty();
+        }
+
+        List<DockDropZone> zones = floatingLayoutEngine.collectDropZones();
+        if (zones.isEmpty()) {
+            return DropZoneResolution.empty();
+        }
+        List<DockDropZone> validZones = filterZonesForDrop(zones, draggedNode);
+        DockDropZone activeZone = floatingLayoutEngine.findBestDropZone(
+            validZones,
+            scenePoint.getX(),
+            scenePoint.getY()
+        );
+        if (activateTabHover && activateTabHoverIfNeeded(activeZone)) {
+            zones = floatingLayoutEngine.collectDropZones();
+            validZones = filterZonesForDrop(zones, draggedNode);
+            activeZone = floatingLayoutEngine.findBestDropZone(
+                validZones,
+                scenePoint.getX(),
+                scenePoint.getY()
+            );
+        }
+        return new DropZoneResolution(validZones, activeZone);
     }
 
     private void closeInternal(boolean notify) {
@@ -351,7 +418,12 @@ public final class DockFloatingWindow {
 
         HBox titleBar = createTitleBar(window);
         root.setTop(titleBar);
-        root.setCenter(layoutContainer);
+        StackPane contentStack = new StackPane(layoutContainer, dropZonesOverlay, dropIndicator);
+        dropZonesOverlay.prefWidthProperty().bind(contentStack.widthProperty());
+        dropZonesOverlay.prefHeightProperty().bind(contentStack.heightProperty());
+        dropIndicator.prefWidthProperty().bind(contentStack.widthProperty());
+        dropIndicator.prefHeightProperty().bind(contentStack.heightProperty());
+        root.setCenter(contentStack);
 
         setupResizeHandling(root, window);
 
@@ -569,14 +641,9 @@ public final class DockFloatingWindow {
     }
 
     private void setupResizeHandling(BorderPane root, Stage window) {
-        root.addEventFilter(MouseEvent.MOUSE_MOVED, event -> {
-            if (window.isMaximized() || resizing) {
-                root.setCursor(Cursor.DEFAULT);
-                return;
-            }
-            int mask = resolveResizeMask(event.getScreenX(), event.getScreenY(), window);
-            root.setCursor(resolveCursor(mask));
-        });
+        root.addEventFilter(MouseEvent.MOUSE_ENTERED_TARGET, event -> updateResizeCursor(root, window, event));
+        root.addEventFilter(MouseEvent.MOUSE_MOVED, event -> updateResizeCursor(root, window, event));
+        root.addEventFilter(MouseEvent.MOUSE_EXITED_TARGET, event -> applyCursor(root, window.getScene(), Cursor.DEFAULT));
 
         root.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
             if (window.isMaximized()
@@ -596,6 +663,7 @@ public final class DockFloatingWindow {
                 return;
             }
             performResize(event, window);
+            applyCursor(root, window.getScene(), resolveCursor(activeResizeMask));
         });
 
         root.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> {
@@ -604,8 +672,30 @@ public final class DockFloatingWindow {
             }
             resizing = false;
             activeResizeMask = 0;
-            root.setCursor(Cursor.DEFAULT);
+            updateResizeCursor(root, window, event);
         });
+    }
+
+    private void updateResizeCursor(BorderPane root, Stage window, MouseEvent event) {
+        if (window == null || event == null) {
+            return;
+        }
+        if (window.isMaximized() || resizing) {
+            applyCursor(root, window.getScene(), Cursor.DEFAULT);
+            return;
+        }
+        int mask = resolveResizeMask(event.getScreenX(), event.getScreenY(), window);
+        applyCursor(root, window.getScene(), resolveCursor(mask));
+    }
+
+    private void applyCursor(Node node, Scene scene, Cursor cursor) {
+        Cursor effectiveCursor = cursor == null ? Cursor.DEFAULT : cursor;
+        if (node != null) {
+            node.setCursor(effectiveCursor);
+        }
+        if (scene != null) {
+            scene.setCursor(effectiveCursor);
+        }
     }
 
     private void beginResize(MouseEvent event, Stage window, int mask) {
@@ -804,6 +894,74 @@ public final class DockFloatingWindow {
         return validZones;
     }
 
+    private boolean activateTabHoverIfNeeded(DockDropZone activeZone) {
+        if (activeZone == null || activeZone.getType() != DockDropZoneType.TAB_HEADER) {
+            return false;
+        }
+        if (!(activeZone.getTarget() instanceof DockTabPane targetTabPane)) {
+            return false;
+        }
+        if (targetTabPane.getChildren().isEmpty()) {
+            return false;
+        }
+        Integer tabIndex = activeZone.getTabIndex();
+        if (tabIndex == null) {
+            return false;
+        }
+        int hoveredTabIndex = Math.clamp(tabIndex, 0, targetTabPane.getChildren().size() - 1);
+        if (targetTabPane.getSelectedIndex() == hoveredTabIndex) {
+            return false;
+        }
+        targetTabPane.setSelectedIndex(hoveredTabIndex);
+        return true;
+    }
+
+    private List<DockDropZone> getZonesForVisualization(
+        List<DockDropZone> validZones,
+        DockDropZone activeZone,
+        DockDropVisualizationMode visualizationMode
+    ) {
+        if (visualizationMode == null || visualizationMode == DockDropVisualizationMode.OFF) {
+            return List.of();
+        }
+        if (visualizationMode == DockDropVisualizationMode.ACTIVE_ONLY) {
+            return List.of();
+        }
+        if (visualizationMode == DockDropVisualizationMode.ALL_ZONES) {
+            return validZones;
+        }
+        if (activeZone == null) {
+            return List.of();
+        }
+        if (visualizationMode == DockDropVisualizationMode.SUBTREE) {
+            return filterZonesBySubtree(validZones, activeZone.getTarget());
+        }
+        if (visualizationMode == DockDropVisualizationMode.DEFAULT) {
+            return filterZonesByTarget(validZones, activeZone.getTarget());
+        }
+        return List.of();
+    }
+
+    private List<DockDropZone> filterZonesBySubtree(List<DockDropZone> zones, DockElement subtreeRoot) {
+        List<DockDropZone> result = new ArrayList<>();
+        for (DockDropZone zone : zones) {
+            if (zone.getTarget() != null && isDescendantOf(zone.getTarget(), subtreeRoot)) {
+                result.add(zone);
+            }
+        }
+        return result;
+    }
+
+    private List<DockDropZone> filterZonesByTarget(List<DockDropZone> zones, DockElement target) {
+        List<DockDropZone> result = new ArrayList<>();
+        for (DockDropZone zone : zones) {
+            if (zone.getTarget() == target) {
+                result.add(zone);
+            }
+        }
+        return result;
+    }
+
     private boolean isElementVisibleForInteraction(DockElement element) {
         DockElement current = element;
         while (current != null) {
@@ -862,7 +1020,120 @@ public final class DockFloatingWindow {
         return false;
     }
 
+    private static class FloatingDropIndicator extends Pane {
+        private final Rectangle indicator;
+        private final Line insertLine;
+
+        FloatingDropIndicator() {
+            setMouseTransparent(true);
+            setVisible(false);
+
+            indicator = new Rectangle();
+            indicator.setFill(Color.DODGERBLUE);
+            indicator.setOpacity(0.3);
+            indicator.setStroke(Color.BLUE);
+            indicator.setStrokeWidth(2);
+
+            insertLine = new Line();
+            insertLine.setStroke(Color.web("#ff8a00"));
+            insertLine.setStrokeWidth(3);
+            insertLine.setVisible(false);
+
+            getChildren().addAll(indicator, insertLine);
+        }
+
+        void show(Bounds bounds, Double insertLineX) {
+            if (bounds == null) {
+                hide();
+                return;
+            }
+
+            Point2D topLeft = sceneToLocal(bounds.getMinX(), bounds.getMinY());
+            Point2D bottomRight = sceneToLocal(bounds.getMaxX(), bounds.getMaxY());
+            double x = topLeft.getX();
+            double y = topLeft.getY();
+            double width = Math.max(1, bottomRight.getX() - topLeft.getX());
+            double height = Math.max(1, bottomRight.getY() - topLeft.getY());
+
+            indicator.setX(x);
+            indicator.setY(y);
+            indicator.setWidth(width);
+            indicator.setHeight(height);
+            setVisible(true);
+            toFront();
+
+            if (insertLineX != null) {
+                Point2D lineTop = sceneToLocal(insertLineX, bounds.getMinY());
+                Point2D lineBottom = sceneToLocal(insertLineX, bounds.getMaxY());
+                insertLine.setStartX(lineTop.getX());
+                insertLine.setStartY(lineTop.getY());
+                insertLine.setEndX(lineBottom.getX());
+                insertLine.setEndY(lineBottom.getY());
+                insertLine.setVisible(true);
+            } else {
+                insertLine.setVisible(false);
+            }
+        }
+
+        void hide() {
+            setVisible(false);
+            insertLine.setVisible(false);
+        }
+    }
+
+    private static class FloatingDropZonesOverlay extends Pane {
+        private final List<Rectangle> rectangles = new ArrayList<>();
+
+        FloatingDropZonesOverlay() {
+            setMouseTransparent(true);
+            setVisible(false);
+        }
+
+        void showZones(List<DockDropZone> zones) {
+            getChildren().clear();
+            rectangles.clear();
+            if (zones == null || zones.isEmpty()) {
+                hide();
+                return;
+            }
+
+            for (DockDropZone zone : zones) {
+                Bounds bounds = zone.getBounds();
+                if (bounds == null || bounds.getWidth() <= 0 || bounds.getHeight() <= 0) {
+                    continue;
+                }
+                Point2D topLeft = sceneToLocal(bounds.getMinX(), bounds.getMinY());
+                Point2D bottomRight = sceneToLocal(bounds.getMaxX(), bounds.getMaxY());
+                double x = topLeft.getX();
+                double y = topLeft.getY();
+                double width = Math.max(1, bottomRight.getX() - topLeft.getX());
+                double height = Math.max(1, bottomRight.getY() - topLeft.getY());
+
+                Rectangle rect = new Rectangle(x, y, width, height);
+                rect.setFill(Color.web("#3a7bd5", 0.10));
+                rect.setStroke(Color.web("#3a7bd5", 0.25));
+                rect.setStrokeWidth(1);
+                rectangles.add(rect);
+            }
+
+            if (rectangles.isEmpty()) {
+                hide();
+                return;
+            }
+            getChildren().addAll(rectangles);
+            setVisible(true);
+            toFront();
+        }
+
+        void hide() {
+            setVisible(false);
+            getChildren().clear();
+            rectangles.clear();
+        }
+    }
+
     private void onWindowHidden(Stage hiddenStage) {
+        clearDropPreview();
         if (hiddenStage.isMaximized() && hasRestoreBounds) {
             preferredX = restoreX;
             preferredY = restoreY;
@@ -889,5 +1160,11 @@ public final class DockFloatingWindow {
     }
 
     record DropTarget(DockElement target, DockPosition position, Integer tabIndex, int depth, double area) {
+    }
+
+    private record DropZoneResolution(List<DockDropZone> validZones, DockDropZone activeZone) {
+        private static DropZoneResolution empty() {
+            return new DropZoneResolution(List.of(), null);
+        }
     }
 }

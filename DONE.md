@@ -57,7 +57,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (9 test classes, 119 tests)
+### Testing (9 test classes, 121 tests)
 - ✅ `DockGraphTest` (56 tests) - Tree manipulation and algorithms
   - **+11 regression tests** for critical bug fixes
   - Tests for empty container prevention
@@ -71,7 +71,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `DockLayoutEngineTest` (21 tests) - View creation with TestFX
   - Memory cleanup tests for cache boundedness and undock/rebuild cycles
   - Layout optimization tests for empty/single-child roots
-- ✅ `SnapFXTest` (21 tests) - Hide/Restore + Floating Window API behavior
+- ✅ `SnapFXTest` (23 tests) - Hide/Restore + Floating Window API behavior
 - ✅ `DockGraphSplitTargetDockingTest` (1 test) - Split-target docking regression coverage
 - ✅ `DockDragServiceTest` (5 tests) - D&D visibility, tab-hover activation, and float-detach callback behavior
 - ✅ `DockFloatingWindowTest` (2 tests) - Maximized title-bar double-click + drag-restore behavior
@@ -94,6 +94,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ README embeds the SnapFX SVG logo for repository and future GitHub Pages branding
 - ✅ Issue tracking consolidated into STATUS.md; ROADMAP lists planned work only
 - ✅ Fixed markdown encoding artifacts (Unicode icon Mojibake) in roadmap/docs content
+- ✅ AGENTS collaboration rules now require per-fix commit message body lines and method extraction for multi-statement UI callbacks
 
 ### Resources
 - ✅ `snapfx.css` - Native Modena theme styling
@@ -140,6 +141,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **Cross-Window D&D**: Dock between main layout and floating windows
 - ✅ **Floating close-to-hidden behavior**: Closing floating windows via `X` moves nodes to hidden windows list
 - ✅ **Floating window save/load persistence**: Open floating windows and bounds are restored via layout snapshots
+- ✅ **Floating drag/drop feedback parity**: Floating windows render drop zones and active drop indicator during drag
 - ✅ **Drop Zones**: Detection for SplitPane areas
 - ✅ **Drop zone visualization modes (ALL/SUBTREE/DEFAULT/ACTIVE/OFF)**
 - ✅ **Per-tab insert targeting with visible insert line**
@@ -231,7 +233,7 @@ In IntelliJ IDEA:
 - **Total Java Files**: 38
 - **Production Classes**: 31
 - **Test Classes**: 9
-- **Test Cases**: 119 (all passing ✅)
+- **Test Cases**: 121 (all passing ✅)
 - **Lines of Code**: ~3,500+ (estimated)
 - **Documentation**: 7 Core Markdown files
 - **Test Coverage**: ~87% (estimated, improved from ~80%)

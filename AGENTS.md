@@ -12,6 +12,7 @@ These instructions are shared for all AI agents working on this workspace.
 - Always `git add` new files when preparing a commit.
 - Before creating a commit, always show the proposed commit message to the user and get confirmation.
 - Keep commits minimally mixed: one logical topic/fix per commit; avoid bundling unrelated changes.
+- For fix commits, use a multi-line commit message body with at least one explanation line per fix.
 - If a fixed collaboration rule is agreed with the user, add it to this `AGENTS.md` immediately.
 - Treat `AGENTS.md` as the source of truth for all persistent collaboration rules in this workspace.
 - As soon as a focused, sensible commit is ready, proactively show the proposed commit message without waiting for the user to ask.
@@ -35,5 +36,6 @@ These instructions are shared for all AI agents working on this workspace.
 - Prefer `getFirst()`, `getLast()`, and `isEmpty()` over direct index access in production code when available; tests may use index access for clarity.
 - Use `Math.clamp(...)` for range clamping instead of nested `Math.min(...)` and `Math.max(...)`.
 - Keep function complexity at a reasonable level, aligned with SonarQube guidance (target low cognitive complexity; refactor methods approaching high complexity, e.g. around 15+ cognitive complexity).
+- For UI callback assignments (for example `setOnAction`, `setOnMouseClicked`, `setOnKeyPressed`), extract logic to a named method once the lambda exceeds a single simple statement.
 - Control visuals (dock/floating button icons, glyphs, close symbols) must be defined via stylesheet classes, not hardcoded vector/icon factories in Java code.
 - Keep close-button visuals consistent with tab close styling (same glyph family/path unless explicitly changed by the user).

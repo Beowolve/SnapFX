@@ -65,6 +65,8 @@ public class DockDragService {
     private DockLayoutEngine layoutEngine;
     private Consumer<FloatDetachRequest> onFloatDetachRequest;
     private Consumer<DropRequest> onDropRequest;
+    private Consumer<DragHoverEvent> onDragHover;
+    private Runnable onDragFinished;
 
     public DockDragService(DockGraph dockGraph) {
         this.dockGraph = dockGraph;
@@ -306,6 +308,9 @@ public class DockDragService {
     private void updateDragPosition(MouseEvent event) {
         currentDrag.setMouseX(event.getScreenX());
         currentDrag.setMouseY(event.getScreenY());
+        if (onDragHover != null) {
+            onDragHover.accept(new DragHoverEvent(currentDrag.getDraggedNode(), event.getScreenX(), event.getScreenY()));
+        }
     }
 
     /**
@@ -442,6 +447,9 @@ public class DockDragService {
         // If threshold was never exceeded, this was just a click - cancel drag
         if (!dragThresholdExceeded) {
             currentDrag = null;
+            if (onDragFinished != null) {
+                onDragFinished.run();
+            }
             return;
         }
 
@@ -474,6 +482,9 @@ public class DockDragService {
         currentDrag = null;
         dragThresholdExceeded = false;
         currentDragProperty.set(null);
+        if (onDragFinished != null) {
+            onDragFinished.run();
+        }
     }
 
     /**
@@ -497,6 +508,9 @@ public class DockDragService {
         currentDrag = null;
         dragThresholdExceeded = false;
         currentDragProperty.set(null);
+        if (onDragFinished != null) {
+            onDragFinished.run();
+        }
     }
 
     public boolean isDragging() {
@@ -518,6 +532,14 @@ public class DockDragService {
 
     public void setOnDropRequest(Consumer<DropRequest> onDropRequest) {
         this.onDropRequest = onDropRequest;
+    }
+
+    public void setOnDragHover(Consumer<DragHoverEvent> onDragHover) {
+        this.onDragHover = onDragHover;
+    }
+
+    public void setOnDragFinished(Runnable onDragFinished) {
+        this.onDragFinished = onDragFinished;
     }
 
     public ObjectProperty<DockDragData> currentDragProperty() {
@@ -847,5 +869,8 @@ public class DockDragService {
     }
 
     public record DropRequest(DockNode draggedNode, DockElement target, DockPosition position, Integer tabIndex) {
+    }
+
+    public record DragHoverEvent(DockNode draggedNode, double screenX, double screenY) {
     }
 }

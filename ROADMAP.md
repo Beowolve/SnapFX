@@ -28,7 +28,7 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 | Phase | Status | Completion |
 |-------|--------|------------|
 | Phase 1: Core Stability | ✅ Completed | 100% |
-| Phase 2: Floating Windows | 🚧 In Progress | 92% |
+| Phase 2: Floating Windows | 🚧 In Progress | 94% |
 | Phase 3: User Experience | 🚧 In Progress | 5% |
 | Phase 4: Advanced Features | 📋 Planned | 0% |
 | Phase 5: Themes & Customization | 📋 Planned | 0% |
@@ -36,7 +36,7 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 | Phase 7: Developer Experience | 📋 Planned | 32% |
 | Phase 8: Production Readiness | 📋 Planned | 20% |
 
-**Total Project Completion**: ~61%
+**Total Project Completion**: ~62%
 
 ---
 
@@ -102,6 +102,7 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 
 - ✅ **Maximize/restore**: Custom floating title-bar toggle implemented
 - ✅ **Maximized drag restore**: Dragging the title bar from maximized restores and moves the window
+- ✅ **Floating D&D visual feedback**: Floating windows show drop zones and active drop indicator during drag
 - 📋 **Always on top**: Pin window above main window
 - ✅ **Window decorations**: Custom title bar styling and controls
 - ✅ **Resizable undecorated windows**: Edge/corner resize behavior for floating stages
@@ -409,6 +410,7 @@ If you'd like to contribute to SnapFX:
 4. Implement the feature with tests
 5. Submit a pull request
 6. Update this roadmap when merged
+7. Follow repository collaboration standards in `AGENTS.md` (commit message and callback-structure conventions).
 
 ---
 

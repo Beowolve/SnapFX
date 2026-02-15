@@ -52,6 +52,7 @@ public class SnapFX {
     // Hidden nodes (removed from layout but not destroyed)
     private final ObservableList<DockNode> hiddenNodes;
     private final ObservableList<DockFloatingWindow> floatingWindows;
+    private final ObservableList<DockFloatingWindow> readOnlyFloatingWindows;
 
     private Pane rootContainer; // Container that holds the buildLayout() result
 
@@ -62,9 +63,12 @@ public class SnapFX {
         this.serializer = new DockLayoutSerializer(dockGraph);
         this.hiddenNodes = FXCollections.observableArrayList();
         this.floatingWindows = FXCollections.observableArrayList();
+        this.readOnlyFloatingWindows = FXCollections.unmodifiableObservableList(floatingWindows);
         this.layoutEngine.setOnNodeFloatRequest(node -> floatNode(node));
         this.dragService.setOnDropRequest(this::handleResolvedDropRequest);
         this.dragService.setOnFloatDetachRequest(this::handleUnresolvedDropRequest);
+        this.dragService.setOnDragHover(this::handleDragHover);
+        this.dragService.setOnDragFinished(this::clearFloatingDropPreviews);
 
         // Auto-rebuild view when revision changes (after D&D, dock/undock operations)
         this.dockGraph.revisionProperty().addListener((obs, o, n) -> {
@@ -225,6 +229,7 @@ public class SnapFX {
      * Loads a layout from JSON.
      */
     public void loadLayout(String json) {
+        clearFloatingDropPreviews();
         closeAllFloatingWindows(false);
         LayoutSnapshot snapshot = tryParseLayoutSnapshot(json);
         if (snapshot != null) {
@@ -359,7 +364,16 @@ public class SnapFX {
      * Returns all currently open floating windows.
      */
     public ObservableList<DockFloatingWindow> getFloatingWindows() {
-        return FXCollections.unmodifiableObservableList(floatingWindows);
+        return readOnlyFloatingWindows;
+    }
+
+    /**
+     * Closes all currently open floating windows.
+     *
+     * @param attachBack whether floating nodes should be attached back to the main layout
+     */
+    public void closeFloatingWindows(boolean attachBack) {
+        closeAllFloatingWindows(attachBack);
     }
 
     private void handleResolvedDropRequest(DockDragService.DropRequest request) {
@@ -396,6 +410,31 @@ public class SnapFX {
             return;
         }
         floatNode(request.draggedNode(), request.screenX(), request.screenY());
+    }
+
+    private void handleDragHover(DockDragService.DragHoverEvent hoverEvent) {
+        if (hoverEvent == null || hoverEvent.draggedNode() == null || floatingWindows.isEmpty()) {
+            clearFloatingDropPreviews();
+            return;
+        }
+        DockDropVisualizationMode visualizationMode = dragService.getDropVisualizationMode();
+        for (DockFloatingWindow floatingWindow : floatingWindows) {
+            floatingWindow.updateDropPreview(
+                hoverEvent.draggedNode(),
+                hoverEvent.screenX(),
+                hoverEvent.screenY(),
+                visualizationMode
+            );
+        }
+    }
+
+    private void clearFloatingDropPreviews() {
+        if (floatingWindows.isEmpty()) {
+            return;
+        }
+        for (DockFloatingWindow floatingWindow : floatingWindows) {
+            floatingWindow.clearDropPreview();
+        }
     }
 
     private boolean tryDropIntoFloatingWindow(DockNode node, double screenX, double screenY) {
@@ -628,6 +667,7 @@ public class SnapFX {
     }
 
     private void closeAllFloatingWindows(boolean attachBack) {
+        clearFloatingDropPreviews();
         if (floatingWindows.isEmpty()) {
             return;
         }

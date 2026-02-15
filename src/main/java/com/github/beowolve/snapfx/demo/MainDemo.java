@@ -172,10 +172,7 @@ public class MainDemo extends Application {
 
         MenuItem resetItem = new MenuItem("Reset to Default");
         resetItem.setGraphic(IconUtil.loadIcon("arrow-circle.png"));
-        resetItem.setOnAction(e -> {
-            createDemoLayout();
-            updateDockLayout();
-        });
+        resetItem.setOnAction(e -> resetLayoutToDefault());
 
         CheckMenuItem lockItem = new CheckMenuItem("Lock Layout");
         lockItem.setGraphic(IconUtil.loadIcon("lock.png"));
@@ -418,6 +415,15 @@ public class MainDemo extends Application {
         DockNode tasksNode = demoNodeFactory.createTasksNode();
         snapFX.getDockGraph().dock(tasksNode, consoleNode, DockPosition.CENTER);
         snapFX.setRootSplitRatios(25, 50, 25);
+    }
+
+    private void resetLayoutToDefault() {
+        snapFX.closeFloatingWindows(false);
+        snapFX.getHiddenNodes().clear();
+        createDemoLayout();
+        updateDockLayout();
+        updateHiddenWindowsMenu();
+        updateFloatingMenus();
     }
 
     private void installDebugPanel() {

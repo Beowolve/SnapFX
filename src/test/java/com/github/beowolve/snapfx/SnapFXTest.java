@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -455,6 +456,48 @@ class SnapFXTest {
 
         assertTrue(restored.getFloatingWindows().isEmpty());
         assertNotNull(restored.getDockGraph().getRoot());
+    }
+
+    @Test
+    void testFloatingWindowsListIsStableAndNotifiesListeners() {
+        DockNode nodeMain = new DockNode("nodeMain", new Label("Main"), "Main");
+        DockNode nodeFloat = new DockNode("nodeFloat", new Label("Float"), "Float");
+
+        snapFX.dock(nodeMain, null, DockPosition.CENTER);
+        snapFX.dock(nodeFloat, nodeMain, DockPosition.RIGHT);
+
+        var floatingList = snapFX.getFloatingWindows();
+        assertSame(floatingList, snapFX.getFloatingWindows());
+
+        AtomicInteger additions = new AtomicInteger(0);
+        floatingList.addListener((javafx.collections.ListChangeListener<DockFloatingWindow>) change -> {
+            while (change.next()) {
+                if (change.wasAdded()) {
+                    additions.addAndGet(change.getAddedSize());
+                }
+            }
+        });
+
+        snapFX.floatNode(nodeFloat);
+
+        assertEquals(1, additions.get());
+        assertEquals(1, floatingList.size());
+    }
+
+    @Test
+    void testCloseFloatingWindowsWithoutAttachClearsFloatingList() {
+        DockNode nodeMain = new DockNode("nodeMain", new Label("Main"), "Main");
+        DockNode nodeFloat = new DockNode("nodeFloat", new Label("Float"), "Float");
+
+        snapFX.dock(nodeMain, null, DockPosition.CENTER);
+        snapFX.dock(nodeFloat, nodeMain, DockPosition.RIGHT);
+        snapFX.floatNode(nodeFloat, 450.0, 250.0);
+
+        assertEquals(1, snapFX.getFloatingWindows().size());
+
+        snapFX.closeFloatingWindows(false);
+
+        assertTrue(snapFX.getFloatingWindows().isEmpty());
     }
 
     // Helper method to check if node is in graph

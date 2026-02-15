@@ -5,7 +5,7 @@
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 119 tests passing (56 + 9 + 21 + 21 + 1 + 5 + 2 + 2 + 2)  
+✅ **Tests**: All 121 tests passing (56 + 9 + 21 + 23 + 1 + 5 + 2 + 2 + 2)  
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully
 
@@ -105,13 +105,13 @@
 - ✅ DockGraphTest (56 tests, +11 regression tests)
 - ✅ DockLayoutSerializerTest (9 tests, +1 regression test)
 - ✅ DockLayoutEngineTest (21 tests)
-- ✅ **SnapFXTest (21 tests)** - Hide/Restore + Floating Window API tests
+- ✅ **SnapFXTest (23 tests)** - Hide/Restore + Floating Window API tests
 - ✅ DockGraphSplitTargetDockingTest (1 test)
 - ✅ DockDragServiceTest (5 tests)
 - ✅ DockFloatingWindowTest (2 tests) - Floating title bar maximize/restore interaction behavior
 - ✅ MainDemoTest (2 tests) - Demo app icon resource wiring and availability
 - ✅ AboutDialogTest (2 tests) - About dialog branding resources and credit link targets
-- ✅ **119/119 tests passing** ✅ (was 49)
+- ✅ **121/121 tests passing** ✅ (was 49)
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Edge case tests** (null inputs, detached nodes, invalid move targets, no-op revision checks)
@@ -152,6 +152,10 @@
 - ⚠️ UI: Keyboard shortcuts not implemented
 
 ### Fixed (recent)
+- ✅ 2026-02-15: MainDemo - Floating windows list now updates reliably for all float/attach paths
+- ✅ 2026-02-15: MainDemo - Reset to Default now closes floating windows and clears hidden state
+- ✅ 2026-02-15: Floating Window - Resize cursor updates more consistently on edges/corners
+- ✅ 2026-02-15: Floating Window - Drag & drop visual feedback is now shown inside floating windows
 - ✅ 2026-02-15: Floating Window - Double-click on maximized title bar now restores previous window bounds
 - ✅ 2026-02-15: Floating Window - Dragging a maximized title bar now restores and continues move (Windows-style behavior)
 - ✅ 2026-02-15: UI - Tab float button clicks are no longer intercepted by drag handling
@@ -177,13 +181,14 @@
 - Added `DockGraphTest#testDemoLikeLayoutCanUseQuarterHalfQuarterSplit` to verify exact `25/50/25` split ratios can be set programmatically.
 - Added `SnapFXTest` coverage for ratio API behavior (normalized values + invalid input handling).
 - Added `DockLayoutEngineTest` coverage for stylesheet-based control glyph class wiring (title close + tab float button).
-- Test status: **119/119 passing** ✅
+- Test status: **121/121 passing** ✅
 
 ### Documentation
 - Fixed Unicode/Mojibake issues in `ROADMAP.md` (Phase 4.5 Floating Window Snapping icons/priority).
 - Performed repository-wide markdown scan and verified no further encoding artifacts in `*.md` files.
 - Added SnapFX SVG logo to README for shared GitHub/GitHub Pages branding usage.
 - Added roadmap item for a full GitHub Pages documentation portal.
+- Updated `AGENTS.md` collaboration rules: fix commits require per-fix explanation lines and multi-statement UI callbacks must be extracted to named methods.
 
 ### UI Styling
 - Removed `DockControlIcons` vector icon usage from dock/floating controls and switched to stylesheet-driven glyph classes.
@@ -198,6 +203,11 @@
 - Fixed floating-window title-bar maximize interactions: double-click now toggles restore correctly and dragging from maximized restores first, then moves the window.
 - Refactored MainDemo About dialog into AboutDialog, added dialog/app branding icon wiring, and updated credit links.
 - Added About dialog easter egg animation and new test coverage (`AboutDialogTest`).
+- Fixed floating window tracking list propagation so MainDemo floating menu always reflects open floating windows.
+- Reset to Default in MainDemo now restores startup-like state by closing floating windows and clearing hidden nodes.
+- Added floating-window drag/drop preview overlays (zones + indicator) to match main-layout visual feedback.
+- Improved floating resize cursor updates at edges/corners (including enter/exit transitions).
+- Refactored MainDemo reset action handler into a named method for clearer callback structure.
 
 ### Floating Window Persistence
 - Added snapshot-based `SnapFX.saveLayout()`/`loadLayout()` support for open floating windows.
