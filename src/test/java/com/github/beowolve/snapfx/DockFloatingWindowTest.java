@@ -1,5 +1,6 @@
 package com.github.beowolve.snapfx;
 
+import com.github.beowolve.snapfx.floating.DockFloatingWindow;
 import com.github.beowolve.snapfx.model.DockNode;
 import com.github.beowolve.snapfx.view.DockNodeView;
 import javafx.application.Platform;

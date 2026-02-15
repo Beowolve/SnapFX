@@ -1,5 +1,6 @@
 package com.github.beowolve.snapfx.view;
 
+import com.github.beowolve.snapfx.close.DockCloseSource;
 import com.github.beowolve.snapfx.dnd.DockDragService;
 import com.github.beowolve.snapfx.model.*;
 import javafx.application.Platform;
@@ -134,7 +135,11 @@ class DockLayoutEngineTest extends ApplicationTest {
         dockGraph.dock(node2, node1, DockPosition.CENTER);
 
         AtomicReference<DockNode> closedNode = new AtomicReference<>();
-        layoutEngine.setOnNodeCloseRequest(closedNode::set);
+        AtomicReference<DockCloseSource> closeSource = new AtomicReference<>();
+        layoutEngine.setOnNodeCloseRequest((node, source) -> {
+            closedNode.set(node);
+            closeSource.set(source);
+        });
 
         TabPane tabPane = (TabPane) layoutEngine.buildSceneGraph();
         Tab tab = tabPane.getTabs().get(0);
@@ -143,6 +148,7 @@ class DockLayoutEngineTest extends ApplicationTest {
         tab.getOnCloseRequest().handle(event);
 
         assertEquals(node1, closedNode.get());
+        assertEquals(DockCloseSource.TAB, closeSource.get());
         assertTrue(event.isConsumed());
     }
 
@@ -195,6 +201,33 @@ class DockLayoutEngineTest extends ApplicationTest {
         MouseEvent press = createPrimaryPressEvent(nodeView.getHeader(), closeButton);
         nodeView.getHeader().getOnMousePressed().handle(press);
         assertFalse(dragService.isDragging());
+    }
+
+    @Test
+    void testTitleBarCloseReportsTitleBarSource() {
+        DockNode node = new DockNode(new Label("Test"), "Node 1");
+        dockGraph.setRoot(node);
+
+        AtomicReference<DockNode> closedNode = new AtomicReference<>();
+        AtomicReference<DockCloseSource> closeSource = new AtomicReference<>();
+        layoutEngine.setOnNodeCloseRequest((dockNode, source) -> {
+            closedNode.set(dockNode);
+            closeSource.set(source);
+        });
+
+        DockNodeView nodeView = assertInstanceOf(DockNodeView.class, layoutEngine.buildSceneGraph());
+
+        Button closeButton = nodeView.getHeader().getChildren().stream()
+            .filter(Button.class::isInstance)
+            .map(Button.class::cast)
+            .filter(button -> !button.getStyleClass().contains("dock-node-float-button"))
+            .findFirst()
+            .orElseThrow();
+
+        closeButton.fire();
+
+        assertEquals(node, closedNode.get());
+        assertEquals(DockCloseSource.TITLE_BAR, closeSource.get());
     }
 
     @Test

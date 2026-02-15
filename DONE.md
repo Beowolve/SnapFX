@@ -144,6 +144,8 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **Single-node floating control cleanup**: Inner dock-node close/float controls are hidden for single-node floating layouts while keeping header drag usability
 - ✅ **Float-from-floating extraction**: Floating layout float actions now detach the selected node into a separate floating window
 - ✅ **Floating close-to-hidden behavior**: Closing floating windows via `X` moves nodes to hidden windows list
+- ✅ **Configurable close behavior**: Close requests now support framework-level default behavior selection (`HIDE` or `REMOVE`)
+- ✅ **Source-aware close callbacks**: Close interception and outcome callbacks now cover tab, title-bar, and floating-window close requests consistently
 - ✅ **Floating window save/load persistence**: Open floating windows and bounds are restored via layout snapshots
 - ✅ **Floating drag/drop feedback parity**: Floating windows render drop zones and active drop indicator during drag
 - ✅ **Drop Zones**: Detection for SplitPane areas

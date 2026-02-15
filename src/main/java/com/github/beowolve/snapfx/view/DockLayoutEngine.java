@@ -1,5 +1,6 @@
 package com.github.beowolve.snapfx.view;
 
+import com.github.beowolve.snapfx.close.DockCloseSource;
 import com.github.beowolve.snapfx.dnd.DockDragService;
 import com.github.beowolve.snapfx.model.*;
 import javafx.beans.binding.Bindings;
@@ -23,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
@@ -46,7 +48,7 @@ public class DockLayoutEngine {
 
     private DockCloseButtonMode closeButtonMode = DockCloseButtonMode.BOTH;
     private DockTitleBarMode titleBarMode = DockTitleBarMode.AUTO;
-    private Consumer<DockNode> onNodeCloseRequest;
+    private BiConsumer<DockNode, DockCloseSource> onNodeCloseRequest;
     private Consumer<DockNode> onNodeFloatRequest;
 
     public DockLayoutEngine(DockGraph dockGraph, DockDragService dragService) {
@@ -122,7 +124,7 @@ public class DockLayoutEngine {
         DockNodeView nodeView = new DockNodeView(dockNode, dockGraph, dragService);
 
         // Set close button action
-        nodeView.setOnCloseRequest(() -> handleCloseRequest(dockNode));
+        nodeView.setOnCloseRequest(() -> handleCloseRequest(dockNode, DockCloseSource.TITLE_BAR));
         nodeView.setOnFloatRequest(() -> handleFloatRequest(dockNode));
         applyTitleBarVisibility(nodeView, dockNode);
         applyTitleCloseVisibility(nodeView, dockNode);
@@ -310,7 +312,7 @@ public class DockLayoutEngine {
             setupTabDragHandlers(tab, dockNode);
             bindTabCloseable(tab, dockNode);
             tab.setOnCloseRequest(event -> {
-                handleCloseRequest(dockNode);
+                handleCloseRequest(dockNode, DockCloseSource.TAB);
                 event.consume();
             });
         } else {
@@ -482,9 +484,9 @@ public class DockLayoutEngine {
         };
     }
 
-    private void handleCloseRequest(DockNode dockNode) {
+    private void handleCloseRequest(DockNode dockNode, DockCloseSource source) {
         if (onNodeCloseRequest != null) {
-            onNodeCloseRequest.accept(dockNode);
+            onNodeCloseRequest.accept(dockNode, source);
         } else {
             dockGraph.undock(dockNode);
         }
@@ -957,8 +959,21 @@ public class DockLayoutEngine {
      * Sets the action to be performed when a node close is requested.
      * @param onNodeCloseRequest The action to set
      */
-    public void setOnNodeCloseRequest(Consumer<DockNode> onNodeCloseRequest) {
+    public void setOnNodeCloseRequest(BiConsumer<DockNode, DockCloseSource> onNodeCloseRequest) {
         this.onNodeCloseRequest = onNodeCloseRequest;
+    }
+
+    /**
+     * Legacy close hook retained for compatibility.
+     * Prefer {@link #setOnNodeCloseRequest(BiConsumer)} for source-aware handling.
+     */
+    @Deprecated(forRemoval = false)
+    public void setOnNodeCloseRequest(Consumer<DockNode> onNodeCloseRequest) {
+        if (onNodeCloseRequest == null) {
+            this.onNodeCloseRequest = null;
+            return;
+        }
+        this.onNodeCloseRequest = (dockNode, source) -> onNodeCloseRequest.accept(dockNode);
     }
 
     public void setOnNodeFloatRequest(Consumer<DockNode> onNodeFloatRequest) {

@@ -1,7 +1,13 @@
 package com.github.beowolve.snapfx;
 
+import com.github.beowolve.snapfx.close.DockCloseBehavior;
+import com.github.beowolve.snapfx.close.DockCloseDecision;
+import com.github.beowolve.snapfx.close.DockCloseRequest;
+import com.github.beowolve.snapfx.close.DockCloseResult;
+import com.github.beowolve.snapfx.close.DockCloseSource;
 import com.github.beowolve.snapfx.dnd.DockDragService;
 import com.github.beowolve.snapfx.dnd.DockDropVisualizationMode;
+import com.github.beowolve.snapfx.floating.DockFloatingWindow;
 import com.github.beowolve.snapfx.model.*;
 import com.github.beowolve.snapfx.persistence.DockLayoutSerializer;
 import com.github.beowolve.snapfx.persistence.DockNodeFactory;
@@ -27,6 +33,7 @@ import javafx.stage.Stage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Main API class for the SnapFX docking framework.
@@ -53,6 +60,10 @@ public class SnapFX {
     private final ObservableList<DockNode> hiddenNodes;
     private final ObservableList<DockFloatingWindow> floatingWindows;
     private final ObservableList<DockFloatingWindow> readOnlyFloatingWindows;
+    private DockCloseBehavior defaultCloseBehavior = DockCloseBehavior.HIDE;
+    private Function<DockCloseRequest, DockCloseDecision> onCloseRequest;
+    private Consumer<DockCloseResult> onCloseHandled;
+    private Consumer<DockNode> legacyNodeCloseRequest;
 
     private Pane rootContainer; // Container that holds the buildLayout() result
 
@@ -64,6 +75,7 @@ public class SnapFX {
         this.hiddenNodes = FXCollections.observableArrayList();
         this.floatingWindows = FXCollections.observableArrayList();
         this.readOnlyFloatingWindows = FXCollections.unmodifiableObservableList(floatingWindows);
+        this.layoutEngine.setOnNodeCloseRequest(this::handleDockNodeCloseRequest);
         this.layoutEngine.setOnNodeFloatRequest(node -> floatNode(node));
         this.dragService.setOnDropRequest(this::handleResolvedDropRequest);
         this.dragService.setOnFloatDetachRequest(this::handleUnresolvedDropRequest);
@@ -271,6 +283,39 @@ public class SnapFX {
         }
 
         hiddenNodes.add(node);
+    }
+
+    /**
+     * Removes a DockNode from layout/floating windows without adding it to the hidden list.
+     */
+    public void remove(DockNode node) {
+        if (node == null) {
+            return;
+        }
+
+        hiddenNodes.remove(node);
+        DockFloatingWindow floatingWindow = findFloatingWindow(node);
+        if (floatingWindow != null) {
+            rememberFloatingBoundsForNodes(floatingWindow);
+            floatingWindow.undockNode(node);
+            if (floatingWindow.isEmpty()) {
+                floatingWindows.remove(floatingWindow);
+                floatingWindow.closeWithoutNotification();
+            }
+            return;
+        }
+
+        if (isInGraph(node)) {
+            dockGraph.undock(node);
+        }
+    }
+
+    /**
+     * Programmatically requests a close action for a DockNode.
+     * The request is processed using the configured close behavior and callbacks.
+     */
+    public void close(DockNode node) {
+        handleDockNodeCloseRequest(node, DockCloseSource.TITLE_BAR);
     }
 
     /**
@@ -492,8 +537,10 @@ public class SnapFX {
             return;
         }
         floatingWindow.setOnAttachRequested(() -> attachFloatingWindow(floatingWindow));
+        floatingWindow.setOnCloseRequested(() -> handleFloatingWindowCloseRequested(floatingWindow));
         floatingWindow.setOnWindowClosed(this::handleFloatingWindowClosed);
         floatingWindow.setOnWindowActivated(() -> promoteFloatingWindowToFront(floatingWindow));
+        floatingWindow.setOnNodeCloseRequest(this::handleDockNodeCloseRequest);
         floatingWindow.setOnNodeFloatRequest(this::floatNodeFromFloatingLayout);
     }
 
@@ -533,6 +580,95 @@ public class SnapFX {
             floatingWindow.show(primaryStage);
         }
         return floatingWindow;
+    }
+
+    private void handleDockNodeCloseRequest(DockNode node, DockCloseSource source) {
+        if (node == null) {
+            return;
+        }
+
+        DockCloseSource closeSource = source == null ? DockCloseSource.TITLE_BAR : source;
+        DockCloseRequest request = new DockCloseRequest(
+            closeSource,
+            List.of(node),
+            findFloatingWindow(node),
+            defaultCloseBehavior
+        );
+        processCloseRequest(request);
+    }
+
+    private boolean handleFloatingWindowCloseRequested(DockFloatingWindow floatingWindow) {
+        if (floatingWindow == null) {
+            return false;
+        }
+
+        List<DockNode> nodes = new ArrayList<>(floatingWindow.getDockNodes());
+        if (nodes.isEmpty()) {
+            return true;
+        }
+
+        DockCloseRequest request = new DockCloseRequest(
+            DockCloseSource.FLOATING_WINDOW,
+            nodes,
+            floatingWindow,
+            defaultCloseBehavior
+        );
+        processCloseRequest(request);
+        return false;
+    }
+
+    private void processCloseRequest(DockCloseRequest request) {
+        if (request == null || request.nodes().isEmpty()) {
+            return;
+        }
+
+        if (legacyNodeCloseRequest != null && request.nodes().size() == 1 && request.source() != DockCloseSource.FLOATING_WINDOW) {
+            legacyNodeCloseRequest.accept(request.nodes().getFirst());
+            return;
+        }
+
+        DockCloseDecision decision = DockCloseDecision.DEFAULT;
+        if (onCloseRequest != null) {
+            DockCloseDecision resolved = onCloseRequest.apply(request);
+            if (resolved != null) {
+                decision = resolved;
+            }
+        }
+
+        if (decision == DockCloseDecision.CANCEL) {
+            fireCloseHandled(request, null, true);
+            return;
+        }
+
+        DockCloseBehavior behavior = switch (decision) {
+            case HIDE -> DockCloseBehavior.HIDE;
+            case REMOVE -> DockCloseBehavior.REMOVE;
+            case DEFAULT -> request.defaultBehavior();
+            case CANCEL -> null;
+        };
+
+        if (behavior == null) {
+            fireCloseHandled(request, null, true);
+            return;
+        }
+
+        if (behavior == DockCloseBehavior.HIDE) {
+            for (DockNode node : request.nodes()) {
+                hide(node);
+            }
+        } else {
+            for (DockNode node : request.nodes()) {
+                remove(node);
+            }
+        }
+        fireCloseHandled(request, behavior, false);
+    }
+
+    private void fireCloseHandled(DockCloseRequest request, DockCloseBehavior appliedBehavior, boolean canceled) {
+        if (onCloseHandled == null || request == null) {
+            return;
+        }
+        onCloseHandled.accept(new DockCloseResult(request, appliedBehavior, canceled));
     }
 
     private boolean isMainDropSuppressedByFloatingWindow(Double screenX, Double screenY) {
@@ -666,8 +802,31 @@ public class SnapFX {
         return primaryStage;
     }
 
+    public void setDefaultCloseBehavior(DockCloseBehavior defaultCloseBehavior) {
+        if (defaultCloseBehavior != null) {
+            this.defaultCloseBehavior = defaultCloseBehavior;
+        }
+    }
+
+    public DockCloseBehavior getDefaultCloseBehavior() {
+        return defaultCloseBehavior;
+    }
+
+    public void setOnCloseRequest(Function<DockCloseRequest, DockCloseDecision> handler) {
+        this.onCloseRequest = handler;
+    }
+
+    public void setOnCloseHandled(Consumer<DockCloseResult> handler) {
+        this.onCloseHandled = handler;
+    }
+
+    /**
+     * Legacy close hook retained for compatibility.
+     * Prefer {@link #setOnCloseRequest(Function)} for source-aware close handling.
+     */
+    @Deprecated(forRemoval = false)
     public void setOnNodeCloseRequest(Consumer<DockNode> handler) {
-        layoutEngine.setOnNodeCloseRequest(handler);
+        legacyNodeCloseRequest = handler;
     }
 
     public int getDockNodeCount(String id) {

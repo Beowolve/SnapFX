@@ -152,6 +152,9 @@
 - ⚠️ UI: Keyboard shortcuts not implemented
 
 ### Fixed (recent)
+- ✅ 2026-02-15: Close API - Added configurable default close behavior (`HIDE`/`REMOVE`) with `HIDE` as the unchanged default.
+- ✅ 2026-02-15: Close API - Added source-aware close callbacks (`setOnCloseRequest`, `setOnCloseHandled`) for tab/title/floating close interception.
+- ✅ 2026-02-15: Close handling - Floating-window `X` close now uses the same close decision pipeline as node/tab/title-bar close actions.
 - ✅ 2026-02-15: Floating Window - Inner dock-node close/float controls are hidden for single-node floating layouts to remove redundant actions.
 - ✅ 2026-02-15: Floating Window - Float actions inside floating sub-layouts now detach the selected node into a new floating window.
 - ✅ 2026-02-15: Floating Window - Lock mode now propagates to floating graphs, so floating controls follow the global locked state.
@@ -209,6 +212,8 @@
 - MainDemo now applies multi-size SnapFX application icons (16/24/32/48/64/128) from resources.
 
 ### UI Interaction
+- ✅ Close behavior is now centrally configurable (`HIDE`/`REMOVE`) and consistently applied to docked, tabbed, and floating close actions.
+- ✅ Close requests now expose source-aware callback hooks for pre-close decisions and post-close outcome handling.
 - ✅ Single-node floating windows keep the inner drag title bar but hide redundant inner close/float controls.
 - ✅ Inner float actions in floating sub-layouts now split out the selected node into its own floating window.
 - ✅ Overlapping-window drag targeting now uses topmost-hit precedence: only the frontmost surface under the cursor receives preview and drop.

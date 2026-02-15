@@ -1,5 +1,10 @@
 package com.github.beowolve.snapfx;
 
+import com.github.beowolve.snapfx.close.DockCloseBehavior;
+import com.github.beowolve.snapfx.close.DockCloseDecision;
+import com.github.beowolve.snapfx.close.DockCloseResult;
+import com.github.beowolve.snapfx.close.DockCloseSource;
+import com.github.beowolve.snapfx.floating.DockFloatingWindow;
 import com.github.beowolve.snapfx.model.DockNode;
 import com.github.beowolve.snapfx.model.DockPosition;
 import com.github.beowolve.snapfx.model.DockSplitPane;
@@ -11,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -179,26 +185,25 @@ class SnapFXTest {
     }
 
     /**
-     * Test that close request handler correctly calls hide().
-     * This ensures the bug is fixed where close button didn't add nodes to hidden list.
+     * Test that close requests use configured callbacks and still resolve to hide by default.
      */
     @Test
     void testCloseRequestHandlerCallsHide() {
         DockNode node1 = new DockNode("node1", new Label("Node 1"), "Node 1");
         snapFX.dock(node1, null, DockPosition.CENTER);
 
-        // Set up close handler to call hide (like MainDemo does)
-        snapFX.setOnNodeCloseRequest(node -> snapFX.hide(node));
+        AtomicReference<DockCloseSource> sourceRef = new AtomicReference<>();
+        snapFX.setOnCloseRequest(request -> {
+            sourceRef.set(request.source());
+            return DockCloseDecision.DEFAULT;
+        });
 
-        // Build layout to ensure views are created with correct handler
-        snapFX.buildLayout();
-
-        // Simulate close request (in real app, this would be triggered by close button)
-        snapFX.hide(node1);
+        snapFX.close(node1);
 
         // Verify node is in hidden list
         assertEquals(1, snapFX.getHiddenNodes().size());
         assertTrue(snapFX.getHiddenNodes().contains(node1));
+        assertEquals(DockCloseSource.TITLE_BAR, sourceRef.get());
     }
 
     @Test
@@ -247,6 +252,102 @@ class SnapFXTest {
         assertFalse(isInGraph(snapFX, node1));
         assertEquals(1, snapFX.getHiddenNodes().size());
         assertTrue(snapFX.getHiddenNodes().contains(node1));
+    }
+
+    @Test
+    void testProgrammaticCloseUsesHideBehaviorByDefault() {
+        DockNode node1 = new DockNode("node1", new Label("Node 1"), "Node 1");
+        DockNode node2 = new DockNode("node2", new Label("Node 2"), "Node 2");
+
+        snapFX.dock(node1, null, DockPosition.CENTER);
+        snapFX.dock(node2, node1, DockPosition.RIGHT);
+
+        snapFX.close(node1);
+
+        assertFalse(isInGraph(snapFX, node1));
+        assertEquals(1, snapFX.getHiddenNodes().size());
+        assertTrue(snapFX.getHiddenNodes().contains(node1));
+    }
+
+    @Test
+    void testProgrammaticCloseUsesRemoveBehaviorWhenConfigured() {
+        DockNode node1 = new DockNode("node1", new Label("Node 1"), "Node 1");
+        DockNode node2 = new DockNode("node2", new Label("Node 2"), "Node 2");
+
+        snapFX.dock(node1, null, DockPosition.CENTER);
+        snapFX.dock(node2, node1, DockPosition.RIGHT);
+        snapFX.setDefaultCloseBehavior(DockCloseBehavior.REMOVE);
+
+        snapFX.close(node1);
+
+        assertFalse(isInGraph(snapFX, node1));
+        assertTrue(snapFX.getHiddenNodes().isEmpty());
+    }
+
+    @Test
+    void testProgrammaticCloseCanBeCancelledByCallback() {
+        DockNode node1 = new DockNode("node1", new Label("Node 1"), "Node 1");
+        DockNode node2 = new DockNode("node2", new Label("Node 2"), "Node 2");
+
+        snapFX.dock(node1, null, DockPosition.CENTER);
+        snapFX.dock(node2, node1, DockPosition.RIGHT);
+        snapFX.setOnCloseRequest(request -> DockCloseDecision.CANCEL);
+
+        snapFX.close(node1);
+
+        assertTrue(isInGraph(snapFX, node1));
+        assertTrue(snapFX.getHiddenNodes().isEmpty());
+    }
+
+    @Test
+    void testFloatingWindowCloseUsesRemoveBehaviorWhenConfigured() {
+        DockNode node1 = new DockNode("node1", new Label("Node 1"), "Node 1");
+        DockNode node2 = new DockNode("node2", new Label("Node 2"), "Node 2");
+
+        snapFX.dock(node1, null, DockPosition.CENTER);
+        snapFX.dock(node2, node1, DockPosition.RIGHT);
+        snapFX.setDefaultCloseBehavior(DockCloseBehavior.REMOVE);
+
+        DockFloatingWindow floatingWindow = snapFX.floatNode(node1);
+        floatingWindow.close();
+
+        assertTrue(snapFX.getFloatingWindows().isEmpty());
+        assertTrue(snapFX.getHiddenNodes().isEmpty());
+        assertFalse(isInGraph(snapFX, node1));
+    }
+
+    @Test
+    void testFloatingWindowCloseCanBeCancelledByCallback() {
+        DockNode node1 = new DockNode("node1", new Label("Node 1"), "Node 1");
+        DockNode node2 = new DockNode("node2", new Label("Node 2"), "Node 2");
+
+        snapFX.dock(node1, null, DockPosition.CENTER);
+        snapFX.dock(node2, node1, DockPosition.RIGHT);
+        DockFloatingWindow floatingWindow = snapFX.floatNode(node1);
+        snapFX.setOnCloseRequest(request -> DockCloseDecision.CANCEL);
+
+        floatingWindow.close();
+
+        assertEquals(1, snapFX.getFloatingWindows().size());
+        assertTrue(floatingWindow.containsNode(node1));
+        assertTrue(snapFX.getHiddenNodes().isEmpty());
+    }
+
+    @Test
+    void testCloseHandledCallbackReceivesResult() {
+        DockNode node1 = new DockNode("node1", new Label("Node 1"), "Node 1");
+        snapFX.dock(node1, null, DockPosition.CENTER);
+
+        AtomicReference<DockCloseResult> resultRef = new AtomicReference<>();
+        snapFX.setOnCloseHandled(resultRef::set);
+
+        snapFX.close(node1);
+
+        DockCloseResult result = resultRef.get();
+        assertNotNull(result);
+        assertEquals(DockCloseSource.TITLE_BAR, result.request().source());
+        assertEquals(DockCloseBehavior.HIDE, result.appliedBehavior());
+        assertFalse(result.canceled());
     }
 
     @Test

@@ -15,8 +15,10 @@ module com.github.beowolve.snapfx {
 
     // Export public API packages
     exports com.github.beowolve.snapfx;
+    exports com.github.beowolve.snapfx.close;
     exports com.github.beowolve.snapfx.model;
     exports com.github.beowolve.snapfx.view;
+    exports com.github.beowolve.snapfx.floating;
     exports com.github.beowolve.snapfx.dnd;
     exports com.github.beowolve.snapfx.persistence;
     exports com.github.beowolve.snapfx.debug;

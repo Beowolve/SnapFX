@@ -1,10 +1,11 @@
 package com.github.beowolve.snapfx.demo;
 
-import com.github.beowolve.snapfx.DockFloatingWindow;
 import com.github.beowolve.snapfx.SnapFX;
+import com.github.beowolve.snapfx.close.DockCloseBehavior;
 import com.github.beowolve.snapfx.debug.DockDebugOverlay;
 import com.github.beowolve.snapfx.debug.DockGraphDebugView;
 import com.github.beowolve.snapfx.dnd.DockDropVisualizationMode;
+import com.github.beowolve.snapfx.floating.DockFloatingWindow;
 import com.github.beowolve.snapfx.model.DockContainer;
 import com.github.beowolve.snapfx.model.DockElement;
 import com.github.beowolve.snapfx.model.DockNode;
@@ -88,8 +89,8 @@ public class MainDemo extends Application {
         // Setup node factory for proper save/load across sessions
         setupNodeFactory();
 
-        // Set close handler to hide instead of remove (BEFORE creating layout)
-        snapFX.setOnNodeCloseRequest(node -> snapFX.hide(node));
+        // Keep default close behavior explicit for demo clarity
+        snapFX.setDefaultCloseBehavior(DockCloseBehavior.HIDE);
 
         // Set drop visualization mode
         snapFX.setDropVisualizationMode(DockDropVisualizationMode.DEFAULT);
