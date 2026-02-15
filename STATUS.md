@@ -184,6 +184,7 @@
 - ✅ 2026-02-15: Release - Integrated `git-cliff` (`cliff.toml`) to generate grouped release notes from commits between tags.
 - ✅ 2026-02-15: CI/Release - Tracked `gradlew` with executable mode (`100755`) so Linux runners can execute the Gradle wrapper without permission errors.
 - ✅ 2026-02-15: CI/Release - JavaFX tests now run via `xvfb-run -a` to avoid headless Linux toolkit initialization failures (`Platform.startup`).
+- ✅ 2026-02-15: Build/Test - Removed obsolete `--add-opens/--add-exports` JavaFX test JVM args that caused "Unknown module: javafx.graphics" warnings in classpath-based test runs.
 - ✅ 2026-02-15: Floating Window - Double-click on maximized title bar now restores previous window bounds
 - ✅ 2026-02-15: Floating Window - Dragging a maximized title bar now restores and continues move (Windows-style behavior)
 - ✅ 2026-02-15: UI - Tab float button clicks are no longer intercepted by drag handling

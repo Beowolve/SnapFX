@@ -66,12 +66,6 @@ application {
 // Configure test task - tests run on classpath
 tasks.test {
     useJUnitPlatform()
-
-    // Only need JavaFX internal access for TestFX
-    jvmArgs(
-        "--add-opens", "javafx.graphics/com.sun.javafx.application=ALL-UNNAMED",
-        "--add-exports", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED"
-    )
 }
 
 tasks.register<JavaExec>("captureMainDemoScreenshot") {

@@ -346,6 +346,7 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 - ✅ **Release notes automation**: `git-cliff` now generates tag-based release notes used as GitHub Release body
 - ✅ **Wrapper execution hardening**: `gradlew` is tracked as executable (`100755`) for Linux runner compatibility
 - ✅ **Headless JavaFX CI stability**: CI/release workflows run Gradle tests via `xvfb-run -a` to support JavaFX toolkit initialization on Linux runners
+- ✅ **Test JVM arg cleanup**: Removed obsolete JavaFX `--add-opens/--add-exports` flags to avoid classpath-run warning noise
 - 📋 **Maven Central**: Publish to Maven Central
 - 📋 **jlink support**: Create custom runtime images
 - 📋 **jpackage support**: Native installers
