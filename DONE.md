@@ -215,6 +215,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Tracked `gradlew` as executable (`100755`) so Linux CI/release runners can execute the Gradle wrapper reliably.
 - ✅ Added `xvfb-run -a` to CI/release Gradle test execution so JavaFX tests run reliably on headless Linux runners.
 - ✅ Removed obsolete JavaFX test `--add-opens/--add-exports` JVM args to eliminate classpath-mode "Unknown module: javafx.graphics" warnings.
+- ✅ Updated Gradle test JVM wiring so required JavaFX runtime jars are loaded via module path with TestFX access flags (`--add-exports`/`--add-opens`), eliminating unnamed-module warnings and reflective-access stack traces.
 - ✅ **Gradle Build**: Modern Kotlin DSL build script
 - ✅ **Module Configuration**: Java 21 module support
 - ✅ **JavaFX Integration**: JavaFX Gradle plugin
