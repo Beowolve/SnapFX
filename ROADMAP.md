@@ -201,12 +201,12 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 ---
 
 ### 4.5 Floating Window Snapping
-**Priority**: ðŸŸ¢ Medium
+**Priority**: 🟢 Medium
 
-- ðŸ“‹ **Window-to-window snapping**: Snap floating windows to each other while moving
-- ðŸ“‹ **Snap to main docking area**: Magnetic alignment at main layout borders
-- ðŸ“‹ **Configurable snap distance**: API/property to tune sensitivity
-- ðŸ“‹ **Visual snap guides**: Alignment indicator lines while dragging
+- 📋 **Window-to-window snapping**: Snap floating windows to each other while moving
+- 📋 **Snap to main docking area**: Magnetic alignment at main layout borders
+- 📋 **Configurable snap distance**: API/property to tune sensitivity
+- 📋 **Visual snap guides**: Alignment indicator lines while dragging
 
 **Estimated Time**: 2-3 days
 

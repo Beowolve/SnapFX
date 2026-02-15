@@ -88,6 +88,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ README clarifies TitleBarMode.AUTO behavior and tab-only drag handling
 - ✅ README includes a MainDemo screenshot preview near the top
 - ✅ Issue tracking consolidated into STATUS.md; ROADMAP lists planned work only
+- ✅ Fixed markdown encoding artifacts (Unicode icon Mojibake) in roadmap/docs content
 
 ### Resources
 - ✅ `snapfx.css` - Native Modena theme styling

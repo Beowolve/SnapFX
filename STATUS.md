@@ -168,6 +168,10 @@
 - Added `SnapFXTest` coverage for ratio API behavior (normalized values + invalid input handling).
 - Test status: **105/105 passing** ✅
 
+### Documentation
+- Fixed Unicode/Mojibake issues in `ROADMAP.md` (Phase 4.5 Floating Window Snapping icons/priority).
+- Performed repository-wide markdown scan and verified no further encoding artifacts in `*.md` files.
+
 ## Recent Changes (2026-02-14)
 
 ### Floating Window Expansion (Phase 2)
