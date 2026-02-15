@@ -5,7 +5,7 @@
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 114 tests passing (56 + 9 + 21 + 18 + 1 + 5 + 2 + 2)  
+✅ **Tests**: All 116 tests passing (56 + 9 + 21 + 18 + 1 + 5 + 2 + 2 + 2)  
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully
 
@@ -110,7 +110,8 @@
 - ✅ DockDragServiceTest (5 tests)
 - ✅ DockFloatingWindowTest (2 tests) - Floating title bar maximize/restore interaction behavior
 - ✅ MainDemoTest (2 tests) - Demo app icon resource wiring and availability
-- ✅ **114/114 tests passing** ✅ (was 49)
+- ✅ AboutDialogTest (2 tests) - About dialog branding resources and credit link targets
+- ✅ **116/116 tests passing** ✅ (was 49)
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Edge case tests** (null inputs, detached nodes, invalid move targets, no-op revision checks)
@@ -126,7 +127,8 @@
 - ✅ Lock/unlock layout
 - ✅ Save/Load layout
 - ✅ Hidden nodes menu
-- ✅ About dialog with icon credits
+- ✅ About dialog extracted into dedicated class with dynamic version info, large logo branding, and icon credits
+- ✅ About dialog easter egg animation (triple-click logo)
 - ✅ Debug view toggle
 - ✅ Settings tab for live layout options (title bar, close buttons, drop visualization, lock)
 
@@ -146,7 +148,7 @@
 ### Open
 - ⚠️ Performance: Benchmark trend tracking for large layouts not implemented
 - ⚠️ Memory: Automated heap profiling in CI not implemented
-- ⚠️ UI: Animations missing
+- ⚠️ UI: Global interaction animations missing (only About dialog easter egg animation exists)
 - ⚠️ UI: Keyboard shortcuts not implemented
 
 ### Fixed (recent)
@@ -175,7 +177,7 @@
 - Added `DockGraphTest#testDemoLikeLayoutCanUseQuarterHalfQuarterSplit` to verify exact `25/50/25` split ratios can be set programmatically.
 - Added `SnapFXTest` coverage for ratio API behavior (normalized values + invalid input handling).
 - Added `DockLayoutEngineTest` coverage for stylesheet-based control glyph class wiring (title close + tab float button).
-- Test status: **114/114 passing** ✅
+- Test status: **116/116 passing** ✅
 
 ### Documentation
 - Fixed Unicode/Mojibake issues in `ROADMAP.md` (Phase 4.5 Floating Window Snapping icons/priority).
@@ -194,6 +196,8 @@
 - Fixed floating-window title-bar control interactions (attach/maximize/restore/close) by removing pressed-event consumption and improving control-target detection.
 - Closing a floating window via `X` now moves its nodes to hidden windows instead of auto-attaching back to the layout.
 - Fixed floating-window title-bar maximize interactions: double-click now toggles restore correctly and dragging from maximized restores first, then moves the window.
+- Refactored MainDemo About dialog into AboutDialog, added dialog/app branding icon wiring, and updated credit links.
+- Added About dialog easter egg animation and new test coverage (`AboutDialogTest`).
 
 ## Recent Changes (2026-02-14)
 

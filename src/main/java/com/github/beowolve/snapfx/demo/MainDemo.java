@@ -2,7 +2,6 @@ package com.github.beowolve.snapfx.demo;
 
 import com.github.beowolve.snapfx.DockFloatingWindow;
 import com.github.beowolve.snapfx.SnapFX;
-import com.github.beowolve.snapfx.BuildInfo;
 import com.github.beowolve.snapfx.debug.DockDebugOverlay;
 import com.github.beowolve.snapfx.debug.DockGraphDebugView;
 import com.github.beowolve.snapfx.dnd.DockDropVisualizationMode;
@@ -222,7 +221,7 @@ public class MainDemo extends Application {
 
         MenuItem aboutItem = new MenuItem("About...");
         aboutItem.setGraphic(IconUtil.loadIcon("question.png"));
-        aboutItem.setOnAction(e -> showAboutDialog());
+        aboutItem.setOnAction(e -> AboutDialog.show(primaryStage, getHostServices()::showDocument));
 
         helpMenu.getItems().add(aboutItem);
 
@@ -230,67 +229,6 @@ public class MainDemo extends Application {
         return menuBar;
     }
 
-
-    /**
-     * Show the About dialog with license information.
-     */
-    private void showAboutDialog() {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("About SnapFX");
-        alert.setHeaderText("SnapFX Docking Framework");
-
-        // Create content with hyperlinks
-        VBox content = new VBox(10);
-        content.setPadding(new Insets(10));
-
-        Label versionLabel = new Label("Version " + BuildInfo.getVersion());
-        versionLabel.setStyle(FX_FONT_WEIGHT_BOLD);
-
-        Label descriptionLabel = new Label(
-            "A high-performance, lightweight JavaFX docking framework\n" +
-            "designed for professional IDE-like applications."
-        );
-        descriptionLabel.setWrapText(true);
-
-        Separator separator = new Separator();
-
-        Label licenseTitle = new Label("Icon Credits:");
-        licenseTitle.setStyle(FX_FONT_WEIGHT_BOLD);
-
-        // Create clickable hyperlinks for license information
-        HBox licenseBox = new HBox(5);
-        licenseBox.setAlignment(Pos.CENTER_LEFT);
-
-        Label licenseText1 = new Label("Some icons by ");
-
-        Hyperlink authorLink = new Hyperlink("Yusuke Kamiyamane");
-        authorLink.setOnAction(e -> getHostServices().showDocument("http://p.yusukekamiyamane.com/"));
-
-        Label licenseText2 = new Label(". Licensed under a ");
-
-        Hyperlink licenseLink = new Hyperlink("Creative Commons Attribution 3.0 License");
-        licenseLink.setOnAction(e -> getHostServices().showDocument("http://creativecommons.org/licenses/by/3.0/deed.de"));
-
-        Label licenseText3 = new Label(".");
-
-        FlowPane flowPane = new FlowPane(5, 5);
-        flowPane.getChildren().addAll(
-            licenseText1, authorLink, licenseText2, licenseLink, licenseText3
-        );
-
-        content.getChildren().addAll(
-            versionLabel,
-            descriptionLabel,
-            separator,
-            licenseTitle,
-            flowPane
-        );
-
-        alert.getDialogPane().setContent(content);
-        alert.getDialogPane().setPrefWidth(500);
-
-        alert.showAndWait();
-    }
 
     private void updateHiddenWindowsMenu() {
         hiddenWindowsMenu.getItems().clear();

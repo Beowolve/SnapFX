@@ -67,10 +67,10 @@ public class MainDemoScreenshotGenerator extends Application {
             if (!writeOk) {
                 throw new IOException("No ImageIO writer found for PNG.");
             }
-            System.out.println("MainDemo preview updated: " + outputPath);
+            System.out.println("MainDemo preview updated: " + outputPath);  // NOSONAR - part of build process, no need for logging framework
         } catch (Exception ex) {
             captureFailed = true;
-            ex.printStackTrace(System.err);
+            ex.printStackTrace(System.err); // NOSONAR - part of build process, no need for logging framework
         } finally {
             Platform.exit();
         }

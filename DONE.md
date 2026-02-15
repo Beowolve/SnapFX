@@ -6,7 +6,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 
 ## ✅ What Has Been Completed
 
-### Core Framework (21 classes)
+### Core Framework (22 classes)
 
 #### Model Layer (7 classes)
 - ✅ `DockGraph` - Central data structure for the docking system
@@ -45,10 +45,11 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `DockFloatingWindow` - Floating dock host with custom title bar, resize handling, and subtree support
 - ✅ Split ratio API in `SnapFX` (`setRootSplitRatios(...)`, `setSplitRatios(...)`)
 
-#### Demo (3 classes)
+#### Demo (4 classes)
 - ✅ `MainDemo` - Full IDE-like layout with all features
 - ✅ `SimpleExample` - Minimal usage example
 - ✅ `DockNodeFactory` - Helper for creating demo nodes
+- ✅ `AboutDialog` - Dedicated About dialog with branding, credits, and easter egg animation
 - ✅ `Settings tab` - Live layout options in the debug panel
 
 ### Module System
@@ -56,7 +57,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (8 test classes, 114 tests)
+### Testing (9 test classes, 116 tests)
 - ✅ `DockGraphTest` (56 tests) - Tree manipulation and algorithms
   - **+11 regression tests** for critical bug fixes
   - Tests for empty container prevention
@@ -75,6 +76,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `DockDragServiceTest` (5 tests) - D&D visibility, tab-hover activation, and float-detach callback behavior
 - ✅ `DockFloatingWindowTest` (2 tests) - Maximized title-bar double-click + drag-restore behavior
 - ✅ `MainDemoTest` (2 tests) - Application icon resources and wiring
+- ✅ `AboutDialogTest` (2 tests) - About dialog resources and credit link targets
 - ✅ All tests passing ✅
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
 - ✅ Mandatory regression tests for all bug fixes
@@ -183,7 +185,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **Toolbar**: Add/remove panel buttons
 - ✅ **Context Actions**: Save, Load, Reset layout
 - ✅ **Hidden Nodes Menu**: Restore closed nodes
-- ✅ **About Dialog**: Credits and license information
+- ✅ **About Dialog**: Dedicated class with dynamic version text, large SnapFX branding, credit links, and easter egg animation
 - ✅ **Debug View**: Tree visualization with export
 - ✅ **D&D Activity Log**: Real-time logging of all drag & drop actions with color-coding
 
@@ -225,10 +227,10 @@ In IntelliJ IDEA:
 
 ## 📊 Statistics
 
-- **Total Java Files**: 36
-- **Production Classes**: 30
-- **Test Classes**: 8
-- **Test Cases**: 114 (all passing ✅)
+- **Total Java Files**: 38
+- **Production Classes**: 31
+- **Test Classes**: 9
+- **Test Cases**: 116 (all passing ✅)
 - **Lines of Code**: ~3,500+ (estimated)
 - **Documentation**: 7 Core Markdown files
 - **Test Coverage**: ~87% (estimated, improved from ~80%)
@@ -270,3 +272,4 @@ See [ROADMAP.md](ROADMAP.md) for planned features and improvements.
 **License**: Educational/Demo Purpose  
 **Developed**: 2026-02  
 **Last Update**: 2026-02-15
+

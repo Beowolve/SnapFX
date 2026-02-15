@@ -29,14 +29,14 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 |-------|--------|------------|
 | Phase 1: Core Stability | ✅ Completed | 100% |
 | Phase 2: Floating Windows | 🚧 In Progress | 85% |
-| Phase 3: User Experience | 📋 Planned | 0% |
+| Phase 3: User Experience | 🚧 In Progress | 5% |
 | Phase 4: Advanced Features | 📋 Planned | 0% |
 | Phase 5: Themes & Customization | 📋 Planned | 0% |
 | Phase 6: Performance & Polish | 📋 Planned | 0% |
 | Phase 7: Developer Experience | 📋 Planned | 32% |
 | Phase 8: Production Readiness | 📋 Planned | 20% |
 
-**Total Project Completion**: ~59%
+**Total Project Completion**: ~60%
 
 ---
 
@@ -141,6 +141,7 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 ### 3.3 Animations
 **Priority**: 🟡 Low
 
+- ✅ Completed: Demo About dialog easter egg animation (triple-click logo trigger on SnapFX branding).
 - 💡 **Smooth docking**: Fade in/out when adding/removing nodes
 - 💡 **Tab switching**: Slide animation
 - 💡 **Splitter adjustment**: Smooth resize
@@ -413,3 +414,4 @@ If you'd like to contribute to SnapFX:
 
 **Maintained by**: SnapFX Development Team  
 **Questions?**: Open an issue on GitHub
+
