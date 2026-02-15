@@ -1,5 +1,8 @@
 package com.github.beowolve.snapfx;
 
+import com.github.beowolve.snapfx.floating.DockFloatingPinButtonMode;
+import com.github.beowolve.snapfx.floating.DockFloatingPinLockedBehavior;
+import com.github.beowolve.snapfx.floating.DockFloatingPinSource;
 import com.github.beowolve.snapfx.floating.DockFloatingWindow;
 import com.github.beowolve.snapfx.model.DockNode;
 import com.github.beowolve.snapfx.view.DockNodeView;
@@ -24,6 +27,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DockFloatingWindowTest {
@@ -112,32 +116,90 @@ class DockFloatingWindowTest {
             DockFloatingWindow floatingWindow = new DockFloatingWindow(new DockNode(new Label("Node"), "Node"));
             HBox titleBar = invokeCreateTitleBar(floatingWindow, new Stage());
 
-            var controlButtons = titleBar.getChildren().stream()
+            var standardControlButtons = titleBar.getChildren().stream()
                 .filter(Button.class::isInstance)
                 .map(Button.class::cast)
                 .filter(button -> button.getStyleClass().contains("dock-window-control-button"))
+                .filter(button -> !button.getStyleClass().contains("dock-window-pin-button"))
                 .toList();
 
-            assertEquals(3, controlButtons.size());
-            controlButtons.forEach(button -> {
+            assertEquals(3, standardControlButtons.size());
+            standardControlButtons.forEach(button -> {
                 assertTrue(button.isVisible());
                 assertTrue(button.isManaged());
             });
 
             floatingWindow.getDockGraph().setLocked(true);
-            controlButtons.forEach(button -> {
+            standardControlButtons.forEach(button -> {
                 assertFalse(button.isVisible());
                 assertFalse(button.isManaged());
                 assertTrue(button.isDisable());
             });
 
             floatingWindow.getDockGraph().setLocked(false);
-            controlButtons.forEach(button -> {
+            standardControlButtons.forEach(button -> {
                 assertTrue(button.isVisible());
                 assertTrue(button.isManaged());
                 assertFalse(button.isDisable());
             });
         });
+    }
+
+    @Test
+    void testPinButtonCanBeHiddenWhileLockedInAutoMode() {
+        runOnFxThreadAndWait(() -> {
+            DockFloatingWindow floatingWindow = new DockFloatingWindow(new DockNode(new Label("Node"), "Node"));
+            floatingWindow.setPinButtonMode(DockFloatingPinButtonMode.AUTO);
+            floatingWindow.setPinLockedBehavior(DockFloatingPinLockedBehavior.HIDE_BUTTON);
+
+            HBox titleBar = invokeCreateTitleBar(floatingWindow, new Stage());
+            Button pinButton = findPinButton(titleBar);
+            assertNotNull(pinButton);
+            assertTrue(pinButton.isVisible());
+            assertTrue(pinButton.isManaged());
+
+            floatingWindow.getDockGraph().setLocked(true);
+            assertFalse(pinButton.isVisible());
+            assertFalse(pinButton.isManaged());
+
+            floatingWindow.getDockGraph().setLocked(false);
+            assertTrue(pinButton.isVisible());
+            assertTrue(pinButton.isManaged());
+        });
+    }
+
+    @Test
+    void testPinButtonRemainsVisibleInAlwaysModeWhileLocked() {
+        runOnFxThreadAndWait(() -> {
+            DockFloatingWindow floatingWindow = new DockFloatingWindow(new DockNode(new Label("Node"), "Node"));
+            floatingWindow.setPinButtonMode(DockFloatingPinButtonMode.ALWAYS);
+            floatingWindow.setPinLockedBehavior(DockFloatingPinLockedBehavior.HIDE_BUTTON);
+
+            HBox titleBar = invokeCreateTitleBar(floatingWindow, new Stage());
+            Button pinButton = findPinButton(titleBar);
+            assertNotNull(pinButton);
+
+            floatingWindow.getDockGraph().setLocked(true);
+            assertTrue(pinButton.isVisible());
+            assertTrue(pinButton.isManaged());
+        });
+    }
+
+    @Test
+    void testAlwaysOnTopCallbackReceivesApiSource() {
+        DockFloatingWindow floatingWindow = new DockFloatingWindow(new DockNode(new Label("Node"), "Node"));
+        AtomicReference<Boolean> state = new AtomicReference<>();
+        AtomicReference<DockFloatingPinSource> source = new AtomicReference<>();
+        floatingWindow.setOnAlwaysOnTopChanged((alwaysOnTop, eventSource) -> {
+            state.set(alwaysOnTop);
+            source.set(eventSource);
+        });
+
+        floatingWindow.setAlwaysOnTop(false, DockFloatingPinSource.API);
+
+        assertEquals(Boolean.FALSE, state.get());
+        assertEquals(DockFloatingPinSource.API, source.get());
+        assertFalse(floatingWindow.isAlwaysOnTop());
     }
 
     @Test
@@ -226,6 +288,15 @@ class DockFloatingWindowTest {
         } catch (ReflectiveOperationException e) {
             throw new AssertionError("Unable to read dragOffsetY", e);
         }
+    }
+
+    private Button findPinButton(HBox titleBar) {
+        return titleBar.getChildren().stream()
+            .filter(Button.class::isInstance)
+            .map(Button.class::cast)
+            .filter(button -> button.getStyleClass().contains("dock-window-pin-button"))
+            .findFirst()
+            .orElse(null);
     }
 
     private MouseEvent createMouseEvent(

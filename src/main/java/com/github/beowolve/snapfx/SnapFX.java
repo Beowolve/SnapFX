@@ -7,6 +7,10 @@ import com.github.beowolve.snapfx.close.DockCloseResult;
 import com.github.beowolve.snapfx.close.DockCloseSource;
 import com.github.beowolve.snapfx.dnd.DockDragService;
 import com.github.beowolve.snapfx.dnd.DockDropVisualizationMode;
+import com.github.beowolve.snapfx.floating.DockFloatingPinButtonMode;
+import com.github.beowolve.snapfx.floating.DockFloatingPinChangeEvent;
+import com.github.beowolve.snapfx.floating.DockFloatingPinLockedBehavior;
+import com.github.beowolve.snapfx.floating.DockFloatingPinSource;
 import com.github.beowolve.snapfx.floating.DockFloatingWindow;
 import com.github.beowolve.snapfx.model.*;
 import com.github.beowolve.snapfx.persistence.DockLayoutSerializer;
@@ -48,6 +52,7 @@ public class SnapFX {
     private static final String SNAPSHOT_FLOATING_Y_KEY = "y";
     private static final String SNAPSHOT_FLOATING_WIDTH_KEY = "width";
     private static final String SNAPSHOT_FLOATING_HEIGHT_KEY = "height";
+    private static final String SNAPSHOT_FLOATING_ALWAYS_ON_TOP_KEY = "alwaysOnTop";
 
     private final DockGraph dockGraph;
     private final DockLayoutEngine layoutEngine;
@@ -64,6 +69,11 @@ public class SnapFX {
     private Function<DockCloseRequest, DockCloseDecision> onCloseRequest;
     private Consumer<DockCloseResult> onCloseHandled;
     private Consumer<DockNode> legacyNodeCloseRequest;
+    private DockFloatingPinButtonMode floatingPinButtonMode = DockFloatingPinButtonMode.AUTO;
+    private boolean defaultFloatingAlwaysOnTop = true;
+    private boolean allowFloatingPinToggle = true;
+    private DockFloatingPinLockedBehavior floatingPinLockedBehavior = DockFloatingPinLockedBehavior.ALLOW;
+    private Consumer<DockFloatingPinChangeEvent> onFloatingPinChanged;
 
     private Pane rootContainer; // Container that holds the buildLayout() result
 
@@ -381,6 +391,12 @@ public class SnapFX {
             floatingWindow.setPreferredPosition(screenX, screenY);
         }
         configureFloatingWindowCallbacks(floatingWindow);
+        Boolean initialAlwaysOnTop = node.getLastFloatingAlwaysOnTop();
+        applyFloatingWindowInitialAlwaysOnTop(
+            floatingWindow,
+            initialAlwaysOnTop,
+            initialAlwaysOnTop != null ? DockFloatingPinSource.API : DockFloatingPinSource.WINDOW_CREATE_DEFAULT
+        );
         floatingWindows.add(floatingWindow);
         if (primaryStage != null) {
             floatingWindow.show(primaryStage);
@@ -542,6 +558,47 @@ public class SnapFX {
         floatingWindow.setOnWindowActivated(() -> promoteFloatingWindowToFront(floatingWindow));
         floatingWindow.setOnNodeCloseRequest(this::handleDockNodeCloseRequest);
         floatingWindow.setOnNodeFloatRequest(this::floatNodeFromFloatingLayout);
+        floatingWindow.setOnAlwaysOnTopChanged((alwaysOnTop, source) ->
+            handleFloatingPinChanged(floatingWindow, alwaysOnTop, source)
+        );
+        applyFloatingPinSettings(floatingWindow);
+    }
+
+    private void applyFloatingPinSettings(DockFloatingWindow floatingWindow) {
+        if (floatingWindow == null) {
+            return;
+        }
+        floatingWindow.setPinButtonMode(floatingPinButtonMode);
+        floatingWindow.setPinToggleEnabled(allowFloatingPinToggle);
+        floatingWindow.setPinLockedBehavior(floatingPinLockedBehavior);
+    }
+
+    private void applyFloatingWindowInitialAlwaysOnTop(
+        DockFloatingWindow floatingWindow,
+        Boolean initialValue,
+        DockFloatingPinSource source
+    ) {
+        if (floatingWindow == null) {
+            return;
+        }
+        boolean resolved = initialValue != null ? initialValue : defaultFloatingAlwaysOnTop;
+        floatingWindow.setAlwaysOnTop(resolved, source);
+    }
+
+    private void handleFloatingPinChanged(
+        DockFloatingWindow floatingWindow,
+        boolean alwaysOnTop,
+        DockFloatingPinSource source
+    ) {
+        if (floatingWindow == null) {
+            return;
+        }
+        rememberFloatingAlwaysOnTopForNodes(floatingWindow);
+        if (onFloatingPinChanged == null) {
+            return;
+        }
+        DockFloatingPinSource effectiveSource = source == null ? DockFloatingPinSource.API : source;
+        onFloatingPinChanged.accept(new DockFloatingPinChangeEvent(floatingWindow, alwaysOnTop, effectiveSource));
     }
 
     private DockFloatingWindow floatNodeFromFloatingLayout(DockNode node) {
@@ -575,6 +632,11 @@ public class SnapFX {
             );
         }
         configureFloatingWindowCallbacks(floatingWindow);
+        applyFloatingWindowInitialAlwaysOnTop(
+            floatingWindow,
+            sourceWindow.isAlwaysOnTop(),
+            DockFloatingPinSource.API
+        );
         floatingWindows.add(floatingWindow);
         if (primaryStage != null) {
             floatingWindow.show(primaryStage);
@@ -710,6 +772,9 @@ public class SnapFX {
         if (node.getLastFloatingX() != null || node.getLastFloatingY() != null) {
             floatingWindow.setPreferredPosition(node.getLastFloatingX(), node.getLastFloatingY());
         }
+        if (node.getLastFloatingAlwaysOnTop() != null) {
+            floatingWindow.setAlwaysOnTop(node.getLastFloatingAlwaysOnTop(), DockFloatingPinSource.API);
+        }
     }
 
     private void rememberFloatingBoundsForNodes(DockFloatingWindow floatingWindow) {
@@ -717,11 +782,21 @@ public class SnapFX {
             return;
         }
         floatingWindow.captureCurrentBounds();
+        rememberFloatingAlwaysOnTopForNodes(floatingWindow);
         for (DockNode node : floatingWindow.getDockNodes()) {
             node.setLastFloatingX(floatingWindow.getPreferredX());
             node.setLastFloatingY(floatingWindow.getPreferredY());
             node.setLastFloatingWidth(floatingWindow.getPreferredWidth());
             node.setLastFloatingHeight(floatingWindow.getPreferredHeight());
+        }
+    }
+
+    private void rememberFloatingAlwaysOnTopForNodes(DockFloatingWindow floatingWindow) {
+        if (floatingWindow == null) {
+            return;
+        }
+        for (DockNode node : floatingWindow.getDockNodes()) {
+            node.setLastFloatingAlwaysOnTop(floatingWindow.isAlwaysOnTop());
         }
     }
 
@@ -818,6 +893,88 @@ public class SnapFX {
 
     public void setOnCloseHandled(Consumer<DockCloseResult> handler) {
         this.onCloseHandled = handler;
+    }
+
+    /**
+     * Controls pin-button visibility behavior for all floating windows.
+     */
+    public void setFloatingPinButtonMode(DockFloatingPinButtonMode mode) {
+        floatingPinButtonMode = mode == null ? DockFloatingPinButtonMode.AUTO : mode;
+        for (DockFloatingWindow floatingWindow : floatingWindows) {
+            floatingWindow.setPinButtonMode(floatingPinButtonMode);
+        }
+    }
+
+    /**
+     * Returns the current global pin-button mode.
+     */
+    public DockFloatingPinButtonMode getFloatingPinButtonMode() {
+        return floatingPinButtonMode;
+    }
+
+    /**
+     * Sets the default always-on-top state for newly created floating windows.
+     */
+    public void setDefaultFloatingAlwaysOnTop(boolean defaultAlwaysOnTop) {
+        this.defaultFloatingAlwaysOnTop = defaultAlwaysOnTop;
+    }
+
+    /**
+     * Returns the default always-on-top state for newly created floating windows.
+     */
+    public boolean isDefaultFloatingAlwaysOnTop() {
+        return defaultFloatingAlwaysOnTop;
+    }
+
+    /**
+     * Enables or disables user pin toggling in floating title bars.
+     */
+    public void setAllowFloatingPinToggle(boolean allowPinToggle) {
+        allowFloatingPinToggle = allowPinToggle;
+        for (DockFloatingWindow floatingWindow : floatingWindows) {
+            floatingWindow.setPinToggleEnabled(allowFloatingPinToggle);
+        }
+    }
+
+    /**
+     * Returns whether user pin toggling is enabled in floating title bars.
+     */
+    public boolean isAllowFloatingPinToggle() {
+        return allowFloatingPinToggle;
+    }
+
+    /**
+     * Sets lock-mode behavior for pin controls in floating windows.
+     */
+    public void setFloatingPinLockedBehavior(DockFloatingPinLockedBehavior behavior) {
+        floatingPinLockedBehavior = behavior == null ? DockFloatingPinLockedBehavior.ALLOW : behavior;
+        for (DockFloatingWindow floatingWindow : floatingWindows) {
+            floatingWindow.setPinLockedBehavior(floatingPinLockedBehavior);
+        }
+    }
+
+    /**
+     * Returns lock-mode behavior for floating pin controls.
+     */
+    public DockFloatingPinLockedBehavior getFloatingPinLockedBehavior() {
+        return floatingPinLockedBehavior;
+    }
+
+    /**
+     * Sets callback for floating pin-state changes.
+     */
+    public void setOnFloatingPinChanged(Consumer<DockFloatingPinChangeEvent> handler) {
+        onFloatingPinChanged = handler;
+    }
+
+    /**
+     * Sets always-on-top for an open floating window.
+     */
+    public void setFloatingWindowAlwaysOnTop(DockFloatingWindow floatingWindow, boolean alwaysOnTop) {
+        if (floatingWindow == null || !floatingWindows.contains(floatingWindow)) {
+            return;
+        }
+        floatingWindow.setAlwaysOnTop(alwaysOnTop, DockFloatingPinSource.API);
     }
 
     /**
@@ -1008,6 +1165,7 @@ public class SnapFX {
             addOptionalNumber(floatingData, SNAPSHOT_FLOATING_Y_KEY, floatingWindow.getPreferredY());
             floatingData.addProperty(SNAPSHOT_FLOATING_WIDTH_KEY, floatingWindow.getPreferredWidth());
             floatingData.addProperty(SNAPSHOT_FLOATING_HEIGHT_KEY, floatingWindow.getPreferredHeight());
+            floatingData.addProperty(SNAPSHOT_FLOATING_ALWAYS_ON_TOP_KEY, floatingWindow.isAlwaysOnTop());
             floatingArray.add(floatingData);
         }
         return floatingArray;
@@ -1050,6 +1208,11 @@ public class SnapFX {
             floatingWindow.setPreferredPosition(snapshot.x(), snapshot.y());
         }
         configureFloatingWindowCallbacks(floatingWindow);
+        applyFloatingWindowInitialAlwaysOnTop(
+            floatingWindow,
+            snapshot.alwaysOnTop(),
+            snapshot.alwaysOnTop() != null ? DockFloatingPinSource.LAYOUT_LOAD : DockFloatingPinSource.WINDOW_CREATE_DEFAULT
+        );
         floatingWindows.add(floatingWindow);
         if (primaryStage != null) {
             floatingWindow.show(primaryStage);
@@ -1090,7 +1253,8 @@ public class SnapFX {
                         readOptionalFiniteDouble(floatingJson, SNAPSHOT_FLOATING_X_KEY),
                         readOptionalFiniteDouble(floatingJson, SNAPSHOT_FLOATING_Y_KEY),
                         readOptionalFiniteDouble(floatingJson, SNAPSHOT_FLOATING_WIDTH_KEY),
-                        readOptionalFiniteDouble(floatingJson, SNAPSHOT_FLOATING_HEIGHT_KEY)
+                        readOptionalFiniteDouble(floatingJson, SNAPSHOT_FLOATING_HEIGHT_KEY),
+                        readOptionalBoolean(floatingJson, SNAPSHOT_FLOATING_ALWAYS_ON_TOP_KEY)
                     ));
                 }
             }
@@ -1145,6 +1309,17 @@ public class SnapFX {
         return parsed;
     }
 
+    private Boolean readOptionalBoolean(JsonObject object, String key) {
+        if (object == null || key == null || !object.has(key)) {
+            return null;
+        }
+        JsonElement value = object.get(key);
+        if (value == null || !value.isJsonPrimitive() || !value.getAsJsonPrimitive().isBoolean()) {
+            return null;
+        }
+        return value.getAsBoolean();
+    }
+
     private boolean isFinitePositive(Double value) {
         return isFiniteNumber(value) && value > 0.0;
     }
@@ -1156,6 +1331,13 @@ public class SnapFX {
     private record LayoutSnapshot(JsonObject mainLayout, List<FloatingWindowSnapshot> floatingWindows) {
     }
 
-    private record FloatingWindowSnapshot(JsonObject layout, Double x, Double y, Double width, Double height) {
+    private record FloatingWindowSnapshot(
+        JsonObject layout,
+        Double x,
+        Double y,
+        Double width,
+        Double height,
+        Boolean alwaysOnTop
+    ) {
     }
 }

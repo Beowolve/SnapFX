@@ -8,6 +8,9 @@ import com.github.beowolve.snapfx.close.DockCloseResult;
 import com.github.beowolve.snapfx.debug.DockDebugOverlay;
 import com.github.beowolve.snapfx.debug.DockGraphDebugView;
 import com.github.beowolve.snapfx.dnd.DockDropVisualizationMode;
+import com.github.beowolve.snapfx.floating.DockFloatingPinButtonMode;
+import com.github.beowolve.snapfx.floating.DockFloatingPinChangeEvent;
+import com.github.beowolve.snapfx.floating.DockFloatingPinLockedBehavior;
 import com.github.beowolve.snapfx.floating.DockFloatingWindow;
 import com.github.beowolve.snapfx.model.DockContainer;
 import com.github.beowolve.snapfx.model.DockElement;
@@ -48,6 +51,7 @@ import java.util.Optional;
  * Shows a typical IDE-like layout with sidebar, editor, and console.
  */
 public class MainDemo extends Application {
+    private static final System.Logger LOGGER = System.getLogger(MainDemo.class.getName());
     public static final String FX_FONT_WEIGHT_BOLD = "-fx-font-weight: bold;";
     private static final String DIRTY_TITLE_SUFFIX = " *";
     private static final List<String> APP_ICON_RESOURCES = List.of(
@@ -124,6 +128,11 @@ public class MainDemo extends Application {
 
         // Set title bar mode to auto (show only when needed)
         snapFX.setTitleBarMode(DockTitleBarMode.AUTO);
+        snapFX.setFloatingPinButtonMode(DockFloatingPinButtonMode.AUTO);
+        snapFX.setAllowFloatingPinToggle(true);
+        snapFX.setDefaultFloatingAlwaysOnTop(true);
+        snapFX.setFloatingPinLockedBehavior(DockFloatingPinLockedBehavior.ALLOW);
+        snapFX.setOnFloatingPinChanged(this::handleFloatingPinChanged);
 
         // Create dock layout (after handler is set)
         createDemoLayout();
@@ -493,6 +502,18 @@ public class MainDemo extends Application {
         }
     }
 
+    private void onFloatingPinButtonModeChanged(DockFloatingPinButtonMode mode) {
+        if (mode != null) {
+            snapFX.setFloatingPinButtonMode(mode);
+        }
+    }
+
+    private void onFloatingPinLockedBehaviorChanged(DockFloatingPinLockedBehavior behavior) {
+        if (behavior != null) {
+            snapFX.setFloatingPinLockedBehavior(behavior);
+        }
+    }
+
     /**
      * Creates the demo layout with fixed node IDs for persistence.
      */
@@ -611,9 +632,37 @@ public class MainDemo extends Application {
         lockCheckBox.selectedProperty().bindBidirectional(lockLayoutProperty);
         grid.addRow(3, new Label("Layout Lock"), lockCheckBox);
 
+        ComboBox<DockFloatingPinButtonMode> pinButtonMode = new ComboBox<>();
+        pinButtonMode.getItems().setAll(DockFloatingPinButtonMode.values());
+        pinButtonMode.setMaxWidth(Double.MAX_VALUE);
+        pinButtonMode.setValue(snapFX.getFloatingPinButtonMode());
+        pinButtonMode.valueProperty().addListener((obs, oldVal, newVal) -> onFloatingPinButtonModeChanged(newVal));
+        grid.addRow(4, new Label("Floating Pin Button"), pinButtonMode);
+
+        CheckBox allowPinToggleCheckBox = new CheckBox("Allow pin toggle in title bar");
+        allowPinToggleCheckBox.setSelected(snapFX.isAllowFloatingPinToggle());
+        allowPinToggleCheckBox.selectedProperty().addListener((obs, oldVal, newVal) ->
+            snapFX.setAllowFloatingPinToggle(Boolean.TRUE.equals(newVal))
+        );
+        grid.addRow(5, new Label("Floating Pin Toggle"), allowPinToggleCheckBox);
+
+        CheckBox defaultPinnedCheckBox = new CheckBox("New floating windows start pinned");
+        defaultPinnedCheckBox.setSelected(snapFX.isDefaultFloatingAlwaysOnTop());
+        defaultPinnedCheckBox.selectedProperty().addListener((obs, oldVal, newVal) ->
+            snapFX.setDefaultFloatingAlwaysOnTop(Boolean.TRUE.equals(newVal))
+        );
+        grid.addRow(6, new Label("Default Pinned"), defaultPinnedCheckBox);
+
+        ComboBox<DockFloatingPinLockedBehavior> pinLockedBehavior = new ComboBox<>();
+        pinLockedBehavior.getItems().setAll(DockFloatingPinLockedBehavior.values());
+        pinLockedBehavior.setMaxWidth(Double.MAX_VALUE);
+        pinLockedBehavior.setValue(snapFX.getFloatingPinLockedBehavior());
+        pinLockedBehavior.valueProperty().addListener((obs, oldVal, newVal) -> onFloatingPinLockedBehaviorChanged(newVal));
+        grid.addRow(7, new Label("Pin in Lock Mode"), pinLockedBehavior);
+
         CheckBox promptEditorCloseCheckBox = new CheckBox("Prompt for unsaved editors");
         promptEditorCloseCheckBox.selectedProperty().bindBidirectional(promptOnEditorCloseProperty);
-        grid.addRow(4, new Label("Close Hook"), promptEditorCloseCheckBox);
+        grid.addRow(8, new Label("Close Hook"), promptEditorCloseCheckBox);
 
         Label hint = new Label("Changes apply immediately. Dirty editors are marked with '*'.");
 
@@ -727,6 +776,19 @@ public class MainDemo extends Application {
         for (DockNode node : result.request().nodes()) {
             removeEditorNodeState(node);
         }
+    }
+
+    private void handleFloatingPinChanged(DockFloatingPinChangeEvent event) {
+        if (event == null) {
+            return;
+        }
+        LOGGER.log(
+            System.Logger.Level.INFO,
+            "Floating pin changed: window={0}, source={1}, alwaysOnTop={2}",
+            event.window().getId(),
+            event.source(),
+            event.alwaysOnTop()
+        );
     }
 
     private boolean shouldPromptBeforeClose(DockNode node) {

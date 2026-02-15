@@ -14,6 +14,7 @@ import com.github.beowolve.snapfx.view.DockDropZoneType;
 import com.github.beowolve.snapfx.view.DockLayoutEngine;
 import com.github.beowolve.snapfx.view.DockNodeView;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
@@ -90,6 +91,8 @@ public final class DockFloatingWindow {
     private Label titleLabel;
     private Button maximizeButton;
     private Tooltip maximizeTooltip;
+    private Button pinButton;
+    private Tooltip pinTooltip;
 
     private double dragOffsetX;
     private double dragOffsetY;
@@ -107,6 +110,11 @@ public final class DockFloatingWindow {
     private double resizeStartWindowY;
     private double resizeStartWindowWidth;
     private double resizeStartWindowHeight;
+    private boolean alwaysOnTop = true;
+    private DockFloatingPinButtonMode pinButtonMode = DockFloatingPinButtonMode.AUTO;
+    private DockFloatingPinLockedBehavior pinLockedBehavior = DockFloatingPinLockedBehavior.ALLOW;
+    private boolean pinToggleEnabled = true;
+    private BiConsumer<Boolean, DockFloatingPinSource> onAlwaysOnTopChanged;
 
     public DockFloatingWindow(DockNode dockNode) {
         this((DockElement) dockNode, "SnapFX", null);
@@ -159,6 +167,7 @@ public final class DockFloatingWindow {
                 }
             })
         );
+        floatingGraph.lockedProperty().addListener((obs, oldValue, newValue) -> updatePinButtonVisibility());
     }
 
     private static DockNode findFirstDockNode(DockElement element) {
@@ -337,6 +346,83 @@ public final class DockFloatingWindow {
         this.onNodeFloatRequest = onNodeFloatRequest;
     }
 
+    /**
+     * Returns whether the window is currently configured as always-on-top.
+     */
+    public boolean isAlwaysOnTop() {
+        if (stage != null) {
+            return stage.isAlwaysOnTop();
+        }
+        return alwaysOnTop;
+    }
+
+    /**
+     * Sets always-on-top and marks the change as API-driven.
+     */
+    public void setAlwaysOnTop(boolean value) {
+        setAlwaysOnTop(value, DockFloatingPinSource.API);
+    }
+
+    /**
+     * Sets always-on-top with an explicit change source.
+     */
+    public void setAlwaysOnTop(boolean value, DockFloatingPinSource source) {
+        DockFloatingPinSource effectiveSource = source == null ? DockFloatingPinSource.API : source;
+        applyAlwaysOnTop(value, effectiveSource);
+    }
+
+    /**
+     * Returns the pin-button visibility mode.
+     */
+    public DockFloatingPinButtonMode getPinButtonMode() {
+        return pinButtonMode;
+    }
+
+    /**
+     * Sets the pin-button visibility mode.
+     */
+    public void setPinButtonMode(DockFloatingPinButtonMode mode) {
+        pinButtonMode = mode == null ? DockFloatingPinButtonMode.AUTO : mode;
+        updatePinButtonVisibility();
+    }
+
+    /**
+     * Returns whether users may toggle always-on-top from the title bar.
+     */
+    public boolean isPinToggleEnabled() {
+        return pinToggleEnabled;
+    }
+
+    /**
+     * Enables or disables title-bar pin toggling.
+     */
+    public void setPinToggleEnabled(boolean enabled) {
+        pinToggleEnabled = enabled;
+        updatePinButtonVisibility();
+    }
+
+    /**
+     * Returns the lock-mode behavior used for the pin button.
+     */
+    public DockFloatingPinLockedBehavior getPinLockedBehavior() {
+        return pinLockedBehavior;
+    }
+
+    /**
+     * Sets how the pin button behaves while the layout is locked.
+     */
+    public void setPinLockedBehavior(DockFloatingPinLockedBehavior behavior) {
+        pinLockedBehavior = behavior == null ? DockFloatingPinLockedBehavior.ALLOW : behavior;
+        updatePinButtonVisibility();
+    }
+
+    /**
+     * Sets a callback that is invoked when always-on-top changes.
+     */
+    public void setOnAlwaysOnTopChanged(BiConsumer<Boolean, DockFloatingPinSource> onAlwaysOnTopChanged) {
+        this.onAlwaysOnTopChanged = onAlwaysOnTopChanged;
+    }
+
     public void undockNode(DockNode node) {
         floatingGraph.undock(node);
     }
@@ -489,6 +575,7 @@ public final class DockFloatingWindow {
             scene.getStylesheets().addAll(ownerStage.getScene().getStylesheets());
         }
         window.setScene(scene);
+        window.setAlwaysOnTop(alwaysOnTop);
         applyWindowPosition(window, ownerStage);
 
         window.focusedProperty().addListener((obs, oldValue, newValue) -> {
@@ -544,6 +631,8 @@ public final class DockFloatingWindow {
         );
         maximizeButton.setTooltip(maximizeTooltip);
 
+        pinButton = createPinButton(window);
+
         Button closeButton = createControlButton(
             "dock-control-icon-close",
             "Close floating window",
@@ -551,7 +640,7 @@ public final class DockFloatingWindow {
             "dock-window-close-button"
         );
 
-        titleBar.getChildren().addAll(iconPane, titleLabel, spacer, attachButton, maximizeButton, closeButton);
+        titleBar.getChildren().addAll(iconPane, titleLabel, spacer, attachButton, pinButton, maximizeButton, closeButton);
         setupTitleBarDrag(titleBar, window);
         return titleBar;
     }
@@ -578,6 +667,83 @@ public final class DockFloatingWindow {
             e.consume();
         });
         return button;
+    }
+
+    private Button createPinButton(Stage window) {
+        pinTooltip = new Tooltip();
+        Button button = new Button();
+        pinButton = button;
+        button.getStyleClass().addAll("dock-node-close-button", "dock-window-control-button", "dock-window-pin-button");
+        button.setFocusTraversable(false);
+        button.setTooltip(pinTooltip);
+        button.setOnAction(this::onPinButtonAction);
+        updatePinButtonState();
+        updatePinButtonVisibility();
+        if (window != null) {
+            window.setAlwaysOnTop(alwaysOnTop);
+        }
+        return button;
+    }
+
+    private void onPinButtonAction(ActionEvent event) {
+        if (!canTogglePinFromButton()) {
+            event.consume();
+            return;
+        }
+        applyAlwaysOnTop(!isAlwaysOnTop(), DockFloatingPinSource.USER);
+        event.consume();
+    }
+
+    private boolean canTogglePinFromButton() {
+        if (!pinToggleEnabled || pinButtonMode == DockFloatingPinButtonMode.NEVER) {
+            return false;
+        }
+        if (floatingGraph.isLocked() && pinLockedBehavior == DockFloatingPinLockedBehavior.HIDE_BUTTON) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean shouldShowPinButton() {
+        if (!pinToggleEnabled || pinButtonMode == DockFloatingPinButtonMode.NEVER) {
+            return false;
+        }
+        if (pinButtonMode == DockFloatingPinButtonMode.ALWAYS) {
+            return true;
+        }
+        return !(floatingGraph.isLocked() && pinLockedBehavior == DockFloatingPinLockedBehavior.HIDE_BUTTON);
+    }
+
+    private void updatePinButtonVisibility() {
+        if (pinButton == null) {
+            return;
+        }
+        boolean visible = shouldShowPinButton();
+        pinButton.setVisible(visible);
+        pinButton.setManaged(visible);
+    }
+
+    private void updatePinButtonState() {
+        if (pinButton == null) {
+            return;
+        }
+        boolean pinned = isAlwaysOnTop();
+        pinButton.setGraphic(createControlIcon(pinned ? "dock-control-icon-pin-on" : "dock-control-icon-pin-off"));
+        if (pinTooltip != null) {
+            pinTooltip.setText(pinned ? "Disable always on top" : "Enable always on top");
+        }
+    }
+
+    private void applyAlwaysOnTop(boolean value, DockFloatingPinSource source) {
+        boolean previous = isAlwaysOnTop();
+        alwaysOnTop = value;
+        if (stage != null) {
+            stage.setAlwaysOnTop(value);
+        }
+        updatePinButtonState();
+        if (previous != value && onAlwaysOnTopChanged != null) {
+            onAlwaysOnTopChanged.accept(value, source);
+        }
     }
 
     private Region createControlIcon(String styleClass) {
@@ -1281,6 +1447,10 @@ public final class DockFloatingWindow {
         if (iconPane != null) {
             iconPane.getChildren().clear();
         }
+        pinButton = null;
+        pinTooltip = null;
+        maximizeButton = null;
+        maximizeTooltip = null;
 
         stage = null;
         resizing = false;

@@ -4,6 +4,10 @@ import com.github.beowolve.snapfx.close.DockCloseBehavior;
 import com.github.beowolve.snapfx.close.DockCloseDecision;
 import com.github.beowolve.snapfx.close.DockCloseResult;
 import com.github.beowolve.snapfx.close.DockCloseSource;
+import com.github.beowolve.snapfx.floating.DockFloatingPinButtonMode;
+import com.github.beowolve.snapfx.floating.DockFloatingPinChangeEvent;
+import com.github.beowolve.snapfx.floating.DockFloatingPinLockedBehavior;
+import com.github.beowolve.snapfx.floating.DockFloatingPinSource;
 import com.github.beowolve.snapfx.floating.DockFloatingWindow;
 import com.github.beowolve.snapfx.model.DockNode;
 import com.github.beowolve.snapfx.model.DockPosition;
@@ -375,6 +379,7 @@ class SnapFXTest {
         snapFX.dock(node2, node1, DockPosition.RIGHT);
 
         snapFX.floatNode(node1, 420.0, 210.0);
+        snapFX.setFloatingWindowAlwaysOnTop(snapFX.getFloatingWindows().getFirst(), false);
         snapFX.hide(node1);
 
         assertTrue(snapFX.getFloatingWindows().isEmpty());
@@ -389,6 +394,7 @@ class SnapFXTest {
         assertTrue(restoredWindow.containsNode(node1));
         assertEquals(420.0, restoredWindow.getPreferredX(), 0.0001);
         assertEquals(210.0, restoredWindow.getPreferredY(), 0.0001);
+        assertFalse(restoredWindow.isAlwaysOnTop());
     }
 
     @Test
@@ -400,6 +406,7 @@ class SnapFXTest {
         snapFX.dock(node2, node1, DockPosition.RIGHT);
 
         DockFloatingWindow floatingWindow = snapFX.floatNode(node1, 333.0, 144.0);
+        snapFX.setFloatingWindowAlwaysOnTop(floatingWindow, false);
         floatingWindow.close();
 
         assertTrue(snapFX.getFloatingWindows().isEmpty());
@@ -414,6 +421,7 @@ class SnapFXTest {
         assertTrue(restoredWindow.containsNode(node1));
         assertEquals(333.0, restoredWindow.getPreferredX(), 0.0001);
         assertEquals(144.0, restoredWindow.getPreferredY(), 0.0001);
+        assertFalse(restoredWindow.isAlwaysOnTop());
     }
 
     @Test
@@ -532,6 +540,60 @@ class SnapFXTest {
     }
 
     @Test
+    void testDefaultFloatingAlwaysOnTopAppliesToNewWindow() {
+        DockNode nodeMain = new DockNode("nodeMain", new Label("Main"), "Main");
+        DockNode nodeFloat = new DockNode("nodeFloat", new Label("Float"), "Float");
+
+        snapFX.dock(nodeMain, null, DockPosition.CENTER);
+        snapFX.dock(nodeFloat, nodeMain, DockPosition.RIGHT);
+        snapFX.setDefaultFloatingAlwaysOnTop(false);
+
+        DockFloatingWindow floatingWindow = snapFX.floatNode(nodeFloat);
+
+        assertNotNull(floatingWindow);
+        assertFalse(floatingWindow.isAlwaysOnTop());
+    }
+
+    @Test
+    void testFloatingWindowAlwaysOnTopCanBeChangedViaApiAndEmitsEvent() {
+        DockNode nodeMain = new DockNode("nodeMain", new Label("Main"), "Main");
+        DockNode nodeFloat = new DockNode("nodeFloat", new Label("Float"), "Float");
+
+        snapFX.dock(nodeMain, null, DockPosition.CENTER);
+        snapFX.dock(nodeFloat, nodeMain, DockPosition.RIGHT);
+
+        AtomicReference<DockFloatingPinChangeEvent> eventRef = new AtomicReference<>();
+        snapFX.setOnFloatingPinChanged(eventRef::set);
+
+        DockFloatingWindow floatingWindow = snapFX.floatNode(nodeFloat);
+        snapFX.setFloatingWindowAlwaysOnTop(floatingWindow, false);
+
+        DockFloatingPinChangeEvent event = eventRef.get();
+        assertNotNull(event);
+        assertEquals(floatingWindow, event.window());
+        assertFalse(event.alwaysOnTop());
+        assertEquals(DockFloatingPinSource.API, event.source());
+    }
+
+    @Test
+    void testFloatingPinSettingsApplyToOpenWindows() {
+        DockNode nodeMain = new DockNode("nodeMain", new Label("Main"), "Main");
+        DockNode nodeFloat = new DockNode("nodeFloat", new Label("Float"), "Float");
+
+        snapFX.dock(nodeMain, null, DockPosition.CENTER);
+        snapFX.dock(nodeFloat, nodeMain, DockPosition.RIGHT);
+        DockFloatingWindow floatingWindow = snapFX.floatNode(nodeFloat);
+
+        snapFX.setFloatingPinButtonMode(DockFloatingPinButtonMode.ALWAYS);
+        snapFX.setAllowFloatingPinToggle(false);
+        snapFX.setFloatingPinLockedBehavior(DockFloatingPinLockedBehavior.HIDE_BUTTON);
+
+        assertEquals(DockFloatingPinButtonMode.ALWAYS, floatingWindow.getPinButtonMode());
+        assertFalse(floatingWindow.isPinToggleEnabled());
+        assertEquals(DockFloatingPinLockedBehavior.HIDE_BUTTON, floatingWindow.getPinLockedBehavior());
+    }
+
+    @Test
     void testSaveLayoutWithFloatingWindowIncludesSnapshotSection() {
         DockNode nodeMain = new DockNode("nodeMain", new Label("Main"), "Main");
         DockNode nodeFloat = new DockNode("nodeFloat", new Label("Float"), "Float");
@@ -547,6 +609,7 @@ class SnapFXTest {
         assertTrue(json.contains("\"mainLayout\""));
         assertTrue(json.contains("\"floatingWindows\""));
         assertTrue(json.contains("\"layout\""));
+        assertTrue(json.contains("\"alwaysOnTop\""));
     }
 
     @Test
@@ -560,6 +623,7 @@ class SnapFXTest {
 
         DockFloatingWindow floatingWindow = snapFX.floatNode(nodeFloat, 333.0, 144.0);
         floatingWindow.setPreferredSize(610.0, 390.0);
+        snapFX.setFloatingWindowAlwaysOnTop(floatingWindow, false);
 
         String json = snapFX.saveLayout();
 
@@ -573,6 +637,7 @@ class SnapFXTest {
         assertEquals(144.0, restoredWindow.getPreferredY(), 0.0001);
         assertEquals(610.0, restoredWindow.getPreferredWidth(), 0.0001);
         assertEquals(390.0, restoredWindow.getPreferredHeight(), 0.0001);
+        assertFalse(restoredWindow.isAlwaysOnTop());
 
         List<DockNode> floatingNodes = restoredWindow.getDockNodes();
         assertEquals(1, floatingNodes.size());

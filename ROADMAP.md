@@ -112,7 +112,7 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 - ✅ **Float-from-floating detach**: Float actions inside floating sub-layouts create a new floating window for the selected node
 - ✅ **Configurable close behavior**: Close behavior is centrally configurable (`HIDE`/`REMOVE`) with `HIDE` as default
 - ✅ **Close callback hooks**: Source-aware close callbacks now support interception/outcome handling for tab, title-bar, and floating-window close requests
-- 📋 **Always on top**: Pin window above main window
+- ✅ **Always on top / pinning**: Floating windows now support configurable pin-button visibility (`ALWAYS`/`AUTO`/`NEVER`), default pinned state, lock-mode behavior, and persisted always-on-top snapshots
 - ✅ **Window decorations**: Custom title bar styling and controls
 - ✅ **Resizable undecorated windows**: Edge/corner resize behavior for floating stages
 - ✅ **Tab-level float action**: Float button available in tab headers

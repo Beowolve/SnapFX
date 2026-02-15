@@ -131,6 +131,8 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **Maximized title-bar interaction parity**: Double-click restore and drag-to-restore behavior for floating windows
 - ✅ **MainDemo application icon**: Multi-size SnapFX branding icons are applied to the primary stage
 - ✅ **MainDemo layout menu icons**: Hidden/Floating menu actions now show dock-node icons when available
+- ✅ **Floating pin configuration**: Pin button mode (`ALWAYS`/`AUTO`/`NEVER`), default pinned state, lock behavior, and toggle enablement are configurable via API
+- ✅ **Floating pin persistence + events**: Always-on-top state is persisted in floating layout snapshots and exposed through source-aware pin change callbacks
 - ✅ **View Caching**: Performance optimization through view reuse
 
 ### Drag & Drop (Baseline + Critical Bug Fixes)

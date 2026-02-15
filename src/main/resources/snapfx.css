@@ -64,6 +64,14 @@
     -fx-shape: "M1 4H9v8H1ZM2 5v6H8V5ZM4 4V1h8V9H9V8h2V2H5V4Z";
 }
 
+.dock-control-icon-pin-on {
+    -fx-shape: "M4 1Q6 0 8 1 9 2 7 3l.2 2Q11 8 6.5 8L6 12 5.5 8Q1 8 4.8 5L5 3Q3 2 4 1z";
+}
+
+.dock-control-icon-pin-off {
+    -fx-shape: "m6 1q2.2.1 3.5 2 .4 1.4-1.9 1.2L6.8 6q1.8 4.5-2.1 2.2l-2.4 3.2 1.6-3.7q-3.9-2.2.9-2.9L6 3.2Q4.8 1.3 6.1 1z";
+}
+
 .dock-node-close-button:hover {
     -fx-background-color: derive(-fx-background, -8%);
 }

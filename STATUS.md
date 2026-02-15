@@ -169,6 +169,8 @@
 - ✅ 2026-02-15: MainDemo - Reset to Default now closes floating windows and clears hidden state
 - ✅ 2026-02-15: Floating Window - Resize cursor updates more consistently on edges/corners
 - ✅ 2026-02-15: Floating Window - Drag & drop visual feedback is now shown inside floating windows
+- ✅ 2026-02-15: Floating Window - Pin button behavior is now configurable (`ALWAYS`/`AUTO`/`NEVER`) with default pinned state, lock-mode policy, and optional user-toggle disable.
+- ✅ 2026-02-15: Persistence - Floating window always-on-top state is now serialized/restored and exposed through source-aware pin change callbacks.
 - ✅ 2026-02-15: Floating Window - Double-click on maximized title bar now restores previous window bounds
 - ✅ 2026-02-15: Floating Window - Dragging a maximized title bar now restores and continues move (Windows-style behavior)
 - ✅ 2026-02-15: UI - Tab float button clicks are no longer intercepted by drag handling
@@ -195,6 +197,7 @@
 - ✅ MainDemo now demonstrates close-hook customization by intercepting close events and applying editor-specific save prompts.
 - ✅ MainDemo file menu now includes demo editor file operations (open/save/save-as) backed by `SerializableEditor`.
 - ✅ MainDemo layout-related menus now show copied dock-node icons for hidden, float, and floating-attach actions.
+- ✅ MainDemo settings now expose floating pin options (button mode, lock policy, default pinned state, toggle enablement).
 - Added `SnapFX` API methods `setRootSplitRatios(...)` and `setSplitRatios(...)` to configure split pane ratios programmatically.
 - Switched `MainDemo` to the new API so the default root split ratio is configured via `snapFX.setRootSplitRatios(25, 50, 25)`.
 
@@ -203,7 +206,7 @@
 - Added `DockGraphTest#testDemoLikeLayoutCanUseQuarterHalfQuarterSplit` to verify exact `25/50/25` split ratios can be set programmatically.
 - Added `SnapFXTest` coverage for ratio API behavior (normalized values + invalid input handling).
 - Added `DockLayoutEngineTest` coverage for stylesheet-based control glyph class wiring (title close + tab float button).
-- Test status: **121/121 passing** ✅
+- Test status: **155/155 passing** ✅
 
 ### Documentation
 - Fixed Unicode/Mojibake issues in `ROADMAP.md` (Phase 4.5 Floating Window Snapping icons/priority).
@@ -225,6 +228,7 @@
 - ✅ Close requests now expose source-aware callback hooks for pre-close decisions and post-close outcome handling.
 - ✅ Single-node floating windows keep the inner drag title bar but hide redundant inner close/float controls.
 - ✅ Inner float actions in floating sub-layouts now split out the selected node into its own floating window.
+- ✅ Floating title bars now support configurable pin toggles and emit source-aware pin-change events (`USER`, `API`, `LAYOUT_LOAD`, `WINDOW_CREATE_DEFAULT`).
 - ✅ Overlapping-window drag targeting now uses topmost-hit precedence: only the frontmost surface under the cursor receives preview and drop.
 - Fixed tab-header float button interactions by preventing drag handlers from hijacking button clicks.
 - Fixed floating-window title-bar control interactions (attach/maximize/restore/close) by removing pressed-event consumption and improving control-target detection.

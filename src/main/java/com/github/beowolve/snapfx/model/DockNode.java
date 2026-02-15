@@ -37,6 +37,7 @@ public class DockNode implements DockElement {
     private Double lastFloatingY;
     private Double lastFloatingWidth;
     private Double lastFloatingHeight;
+    private Boolean lastFloatingAlwaysOnTop;
     private HiddenRestoreTarget hiddenRestoreTarget = HiddenRestoreTarget.DOCKED;
 
     /**
@@ -205,6 +206,20 @@ public class DockNode implements DockElement {
 
     public void setLastFloatingHeight(Double lastFloatingHeight) {
         this.lastFloatingHeight = lastFloatingHeight;
+    }
+
+    /**
+     * Returns the last known floating always-on-top state for this node.
+     */
+    public Boolean getLastFloatingAlwaysOnTop() {
+        return lastFloatingAlwaysOnTop;
+    }
+
+    /**
+     * Sets the last known floating always-on-top state for this node.
+     */
+    public void setLastFloatingAlwaysOnTop(Boolean lastFloatingAlwaysOnTop) {
+        this.lastFloatingAlwaysOnTop = lastFloatingAlwaysOnTop;
     }
 
     public HiddenRestoreTarget getHiddenRestoreTarget() {
