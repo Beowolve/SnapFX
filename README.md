@@ -194,7 +194,7 @@ Test coverage:
 - Layout engine
 - Floating window lifecycle and restore behavior
 - Cross-window drag/drop routing
-- Current test status: **107/107 passing**
+- Current test status: **112/112 passing**
 
 ## Demo Application
 

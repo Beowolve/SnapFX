@@ -56,8 +56,8 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (6 test classes, 107 tests)
-- ✅ `DockGraphTest` (55 tests) - Tree manipulation and algorithms
+### Testing (7 test classes, 112 tests)
+- ✅ `DockGraphTest` (56 tests) - Tree manipulation and algorithms
   - **+11 regression tests** for critical bug fixes
   - Tests for empty container prevention
   - Tests for target invalidation during move
@@ -70,9 +70,10 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `DockLayoutEngineTest` (21 tests) - View creation with TestFX
   - Memory cleanup tests for cache boundedness and undock/rebuild cycles
   - Layout optimization tests for empty/single-child roots
-- ✅ `SnapFXTest` (16 tests) - Hide/Restore + Floating Window API behavior
+- ✅ `SnapFXTest` (18 tests) - Hide/Restore + Floating Window API behavior
 - ✅ `DockGraphSplitTargetDockingTest` (1 test) - Split-target docking regression coverage
 - ✅ `DockDragServiceTest` (5 tests) - D&D visibility, tab-hover activation, and float-detach callback behavior
+- ✅ `DockFloatingWindowTest` (2 tests) - Maximized title-bar double-click + drag-restore behavior
 - ✅ All tests passing ✅
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
 - ✅ Mandatory regression tests for all bug fixes
@@ -121,6 +122,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **Close Button Options**: Toggle tab/title close buttons, keep tab close always visible, align styling, and hide the title bar when desired
 - ✅ **CSS-based Control Glyphs**: Dock/floating control icons are stylesheet-defined; title close glyph is aligned with tab close styling
 - ✅ **Control Button Interaction Fixes**: Tab float and floating-window title-bar buttons no longer lose clicks to drag interception
+- ✅ **Maximized title-bar interaction parity**: Double-click restore and drag-to-restore behavior for floating windows
 - ✅ **View Caching**: Performance optimization through view reuse
 
 ### Drag & Drop (Baseline + Critical Bug Fixes)
@@ -221,8 +223,8 @@ In IntelliJ IDEA:
 
 - **Total Java Files**: 36
 - **Production Classes**: 30
-- **Test Classes**: 6
-- **Test Cases**: 107 (all passing ✅) - +13 regression tests
+- **Test Classes**: 7
+- **Test Cases**: 112 (all passing ✅)
 - **Lines of Code**: ~3,500+ (estimated)
 - **Documentation**: 7 Core Markdown files
 - **Test Coverage**: ~87% (estimated, improved from ~80%)

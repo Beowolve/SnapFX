@@ -101,6 +101,7 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 **Priority**: 🟢 Medium
 
 - ✅ **Maximize/restore**: Custom floating title-bar toggle implemented
+- ✅ **Maximized drag restore**: Dragging the title bar from maximized restores and moves the window
 - 📋 **Always on top**: Pin window above main window
 - ✅ **Window decorations**: Custom title bar styling and controls
 - ✅ **Resizable undecorated windows**: Edge/corner resize behavior for floating stages

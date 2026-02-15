@@ -415,7 +415,17 @@ public final class DockFloatingWindow {
 
     private void setupTitleBarDrag(HBox titleBar, Stage window) {
         titleBar.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
-            if (!isTitleDragCandidate(event, window)) {
+            if (!isTitleBarActionCandidate(event, window)) {
+                return;
+            }
+            if (window.isMaximized()) {
+                ensureRestoreBounds(window);
+                double width = window.getWidth();
+                double pointerRatio = width > 0 ? event.getX() / width : 0.5;
+                pointerRatio = Math.clamp(pointerRatio, 0.0, 1.0);
+                dragOffsetX = restoreWidth * pointerRatio;
+                double titleBarHeight = titleBar.getHeight() > 0 ? titleBar.getHeight() : 32.0;
+                dragOffsetY = Math.clamp(event.getY(), 0.0, titleBarHeight);
                 return;
             }
             dragOffsetX = event.getScreenX() - window.getX();
@@ -423,15 +433,18 @@ public final class DockFloatingWindow {
         });
 
         titleBar.addEventFilter(MouseEvent.MOUSE_DRAGGED, event -> {
-            if (!isTitleDragCandidate(event, window) || window.isMaximized()) {
+            if (!isTitleBarActionCandidate(event, window)) {
                 return;
+            }
+            if (window.isMaximized()) {
+                restoreWindowForDrag(window, event, titleBar);
             }
             window.setX(event.getScreenX() - dragOffsetX);
             window.setY(event.getScreenY() - dragOffsetY);
         });
 
         titleBar.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
-            if (!isTitleDragCandidate(event, window)
+            if (!isTitleBarActionCandidate(event, window)
                 || event.getButton() != MouseButton.PRIMARY
                 || event.getClickCount() != 2) {
                 return;
@@ -440,9 +453,8 @@ public final class DockFloatingWindow {
         });
     }
 
-    private boolean isTitleDragCandidate(MouseEvent event, Stage window) {
+    private boolean isTitleBarActionCandidate(MouseEvent event, Stage window) {
         return !resizing
-            && !window.isMaximized()
             && !isInteractiveControlTarget(event.getTarget())
             && resolveResizeMask(event.getScreenX(), event.getScreenY(), window) == 0;
     }
@@ -470,6 +482,27 @@ public final class DockFloatingWindow {
             window.setMaximized(true);
         }
         updateMaximizeButtonState(window);
+    }
+
+    private void ensureRestoreBounds(Stage window) {
+        if (hasRestoreBounds) {
+            return;
+        }
+        double fallbackWidth = preferredWidth > 0 ? preferredWidth : DEFAULT_WIDTH;
+        double fallbackHeight = preferredHeight > 0 ? preferredHeight : DEFAULT_HEIGHT;
+        restoreWidth = Math.max(MIN_WINDOW_WIDTH, fallbackWidth);
+        restoreHeight = Math.max(MIN_WINDOW_HEIGHT, fallbackHeight);
+        restoreX = window.getX();
+        restoreY = window.getY();
+        hasRestoreBounds = true;
+    }
+
+    private void restoreWindowForDrag(Stage window, MouseEvent event, HBox titleBar) {
+        ensureRestoreBounds(window);
+        window.setMaximized(false);
+        restoreWindowBounds(window);
+        double titleBarHeight = titleBar.getHeight() > 0 ? titleBar.getHeight() : 32.0;
+        dragOffsetY = Math.clamp(event.getY(), 0.0, titleBarHeight);
     }
 
     private void rememberRestoreBounds(Stage window) {

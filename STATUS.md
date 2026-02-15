@@ -5,7 +5,7 @@
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 107 tests passing (55 + 9 + 21 + 16 + 1 + 5)  
+✅ **Tests**: All 112 tests passing (56 + 9 + 21 + 18 + 1 + 5 + 2)  
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully
 
@@ -102,13 +102,14 @@
 - ✅ Documentation updated
 
 ### Testing (100% ✅)
-- ✅ DockGraphTest (55 tests, +11 regression tests)
+- ✅ DockGraphTest (56 tests, +11 regression tests)
 - ✅ DockLayoutSerializerTest (9 tests, +1 regression test)
 - ✅ DockLayoutEngineTest (21 tests)
-- ✅ **SnapFXTest (16 tests)** - Hide/Restore + Floating Window API tests
+- ✅ **SnapFXTest (18 tests)** - Hide/Restore + Floating Window API tests
 - ✅ DockGraphSplitTargetDockingTest (1 test)
 - ✅ DockDragServiceTest (5 tests)
-- ✅ **107/107 tests passing** ✅ (was 49)
+- ✅ DockFloatingWindowTest (2 tests) - Floating title bar maximize/restore interaction behavior
+- ✅ **112/112 tests passing** ✅ (was 49)
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Edge case tests** (null inputs, detached nodes, invalid move targets, no-op revision checks)
@@ -147,6 +148,8 @@
 - ⚠️ UI: Keyboard shortcuts not implemented
 
 ### Fixed (recent)
+- ✅ 2026-02-15: Floating Window - Double-click on maximized title bar now restores previous window bounds
+- ✅ 2026-02-15: Floating Window - Dragging a maximized title bar now restores and continues move (Windows-style behavior)
 - ✅ 2026-02-15: UI - Tab float button clicks are no longer intercepted by drag handling
 - ✅ 2026-02-15: Floating Window - Close (`X`) now moves floating nodes to hidden windows list
 - ✅ 2026-02-15: Floating Window - Maximize/restore title-bar buttons are clickable again
@@ -170,7 +173,7 @@
 - Added `DockGraphTest#testDemoLikeLayoutCanUseQuarterHalfQuarterSplit` to verify exact `25/50/25` split ratios can be set programmatically.
 - Added `SnapFXTest` coverage for ratio API behavior (normalized values + invalid input handling).
 - Added `DockLayoutEngineTest` coverage for stylesheet-based control glyph class wiring (title close + tab float button).
-- Test status: **107/107 passing** ✅
+- Test status: **112/112 passing** ✅
 
 ### Documentation
 - Fixed Unicode/Mojibake issues in `ROADMAP.md` (Phase 4.5 Floating Window Snapping icons/priority).
@@ -185,6 +188,7 @@
 - Fixed tab-header float button interactions by preventing drag handlers from hijacking button clicks.
 - Fixed floating-window title-bar control interactions (attach/maximize/restore/close) by removing pressed-event consumption and improving control-target detection.
 - Closing a floating window via `X` now moves its nodes to hidden windows instead of auto-attaching back to the layout.
+- Fixed floating-window title-bar maximize interactions: double-click now toggles restore correctly and dragging from maximized restores first, then moves the window.
 
 ## Recent Changes (2026-02-14)
 
