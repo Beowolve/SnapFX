@@ -152,6 +152,8 @@
 - ⚠️ UI: Keyboard shortcuts not implemented
 
 ### Fixed (recent)
+- ✅ 2026-02-15: Floating Window - Lock mode now propagates to floating graphs, so floating controls follow the global locked state.
+- ✅ 2026-02-15: Floating Window - Title-bar control icons are hidden in lock mode and close requests are ignored while locked.
 - ✅ 2026-02-15: Drag & Drop - Overlapping surfaces now target only the topmost window under the cursor; main and floating previews are no longer shown simultaneously.
 - ✅ 2026-02-15: Drag & Drop - Drops over overlapping floating/main windows now resolve to the topmost floating window instead of the covered main layout.
 - ✅ 2026-02-15: Build - `runSimpleExample` now launches in module mode (`mainModule` + `mainClass`) so JavaFX runtime components are loaded reliably.

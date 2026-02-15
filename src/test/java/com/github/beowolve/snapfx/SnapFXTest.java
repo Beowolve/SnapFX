@@ -500,6 +500,29 @@ class SnapFXTest {
         assertTrue(snapFX.getFloatingWindows().isEmpty());
     }
 
+    @Test
+    void testSetLockedPropagatesToFloatingWindowsAndBlocksClose() {
+        DockNode nodeMain = new DockNode("nodeMain", new Label("Main"), "Main");
+        DockNode nodeFloat = new DockNode("nodeFloat", new Label("Float"), "Float");
+
+        snapFX.dock(nodeMain, null, DockPosition.CENTER);
+        snapFX.dock(nodeFloat, nodeMain, DockPosition.RIGHT);
+        DockFloatingWindow floatingWindow = snapFX.floatNode(nodeFloat);
+
+        snapFX.setLocked(true);
+
+        assertTrue(floatingWindow.getDockGraph().isLocked());
+        floatingWindow.close();
+        assertEquals(1, snapFX.getFloatingWindows().size());
+        assertTrue(snapFX.getHiddenNodes().isEmpty());
+
+        snapFX.setLocked(false);
+        assertFalse(floatingWindow.getDockGraph().isLocked());
+        floatingWindow.close();
+        assertTrue(snapFX.getFloatingWindows().isEmpty());
+        assertTrue(snapFX.getHiddenNodes().contains(nodeFloat));
+    }
+
     // Helper method to check if node is in graph
     private boolean isInGraph(SnapFX snapFX, DockNode node) {
         return findInGraph(snapFX.getDockGraph().getRoot(), node);

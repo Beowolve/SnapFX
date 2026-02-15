@@ -104,6 +104,7 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 - ✅ **Maximized drag restore**: Dragging the title bar from maximized restores and moves the window
 - ✅ **Floating D&D visual feedback**: Floating windows show drop zones and active drop indicator during drag
 - ✅ **Topmost overlap targeting**: In overlapping floating/main windows, preview and drop target only the frontmost surface under cursor
+- ✅ **Locked-mode floating controls**: Floating title-bar controls now hide in locked mode and close is blocked while locked
 - 📋 **Always on top**: Pin window above main window
 - ✅ **Window decorations**: Custom title bar styling and controls
 - ✅ **Resizable undecorated windows**: Edge/corner resize behavior for floating stages

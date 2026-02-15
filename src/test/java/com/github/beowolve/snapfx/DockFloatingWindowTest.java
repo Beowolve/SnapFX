@@ -3,6 +3,7 @@ package com.github.beowolve.snapfx;
 import com.github.beowolve.snapfx.model.DockNode;
 import javafx.application.Platform;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
@@ -16,6 +17,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -102,6 +104,55 @@ class DockFloatingWindowTest {
         });
     }
 
+    @Test
+    void testFloatingWindowControlButtonsAreHiddenWhenLocked() {
+        runOnFxThreadAndWait(() -> {
+            DockFloatingWindow floatingWindow = new DockFloatingWindow(new DockNode(new Label("Node"), "Node"));
+            HBox titleBar = invokeCreateTitleBar(floatingWindow, new Stage());
+
+            var controlButtons = titleBar.getChildren().stream()
+                .filter(Button.class::isInstance)
+                .map(Button.class::cast)
+                .filter(button -> button.getStyleClass().contains("dock-window-control-button"))
+                .toList();
+
+            assertEquals(3, controlButtons.size());
+            controlButtons.forEach(button -> {
+                assertTrue(button.isVisible());
+                assertTrue(button.isManaged());
+            });
+
+            floatingWindow.getDockGraph().setLocked(true);
+            controlButtons.forEach(button -> {
+                assertFalse(button.isVisible());
+                assertFalse(button.isManaged());
+                assertTrue(button.isDisable());
+            });
+
+            floatingWindow.getDockGraph().setLocked(false);
+            controlButtons.forEach(button -> {
+                assertTrue(button.isVisible());
+                assertTrue(button.isManaged());
+                assertFalse(button.isDisable());
+            });
+        });
+    }
+
+    @Test
+    void testCloseIsIgnoredWhileFloatingWindowIsLocked() {
+        DockFloatingWindow floatingWindow = new DockFloatingWindow(new DockNode(new Label("Node"), "Node"));
+        AtomicBoolean closeNotified = new AtomicBoolean(false);
+        floatingWindow.setOnWindowClosed(window -> closeNotified.set(true));
+
+        floatingWindow.getDockGraph().setLocked(true);
+        floatingWindow.close();
+        assertFalse(closeNotified.get());
+
+        floatingWindow.getDockGraph().setLocked(false);
+        floatingWindow.close();
+        assertTrue(closeNotified.get());
+    }
+
     private boolean invokeTitleBarActionCandidate(DockFloatingWindow floatingWindow, MouseEvent event, Stage stage) {
         try {
             Method method = DockFloatingWindow.class.getDeclaredMethod("isTitleBarActionCandidate", MouseEvent.class, Stage.class);
@@ -129,6 +180,16 @@ class DockFloatingWindowTest {
             method.invoke(floatingWindow, stage, event, titleBar);
         } catch (ReflectiveOperationException e) {
             throw new AssertionError("Unable to invoke restoreWindowForDrag", e);
+        }
+    }
+
+    private HBox invokeCreateTitleBar(DockFloatingWindow floatingWindow, Stage stage) {
+        try {
+            Method method = DockFloatingWindow.class.getDeclaredMethod("createTitleBar", Stage.class);
+            method.setAccessible(true);
+            return (HBox) method.invoke(floatingWindow, stage);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Unable to invoke createTitleBar", e);
         }
     }
 

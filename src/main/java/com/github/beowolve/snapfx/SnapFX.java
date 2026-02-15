@@ -184,6 +184,9 @@ public class SnapFX {
      */
     public void setLocked(boolean locked) {
         dockGraph.setLocked(locked);
+        for (DockFloatingWindow floatingWindow : floatingWindows) {
+            floatingWindow.getDockGraph().setLocked(locked);
+        }
     }
 
     @SuppressWarnings("unused")
@@ -327,6 +330,7 @@ public class SnapFX {
         }
 
         DockFloatingWindow floatingWindow = new DockFloatingWindow(node, dragService);
+        floatingWindow.getDockGraph().setLocked(dockGraph.isLocked());
         applyRememberedFloatingBounds(node, floatingWindow);
         if (screenX != null || screenY != null) {
             floatingWindow.setPreferredPosition(screenX, screenY);
@@ -827,6 +831,7 @@ public class SnapFX {
         }
 
         DockFloatingWindow floatingWindow = new DockFloatingWindow(floatingRoot, dragService);
+        floatingWindow.getDockGraph().setLocked(dockGraph.isLocked());
         if (isFinitePositive(snapshot.width()) || isFinitePositive(snapshot.height())) {
             double width = isFinitePositive(snapshot.width())
                 ? snapshot.width()

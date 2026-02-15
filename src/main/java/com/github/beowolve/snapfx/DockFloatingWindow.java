@@ -290,6 +290,9 @@ public final class DockFloatingWindow {
     }
 
     public void close() {
+        if (floatingGraph.isLocked()) {
+            return;
+        }
         closeInternal(true);
     }
 
@@ -518,10 +521,17 @@ public final class DockFloatingWindow {
         button.getStyleClass().addAll("dock-node-close-button", "dock-window-control-button", styleClass);
         button.setGraphic(createControlIcon(iconStyleClass));
         button.setFocusTraversable(false);
+        button.visibleProperty().bind(floatingGraph.lockedProperty().not());
+        button.managedProperty().bind(button.visibleProperty());
+        button.disableProperty().bind(floatingGraph.lockedProperty());
         if (tooltipText != null && !tooltipText.isBlank()) {
             button.setTooltip(new Tooltip(tooltipText));
         }
         button.setOnAction(e -> {
+            if (floatingGraph.isLocked()) {
+                e.consume();
+                return;
+            }
             if (action != null) {
                 action.run();
             }
