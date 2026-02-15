@@ -152,6 +152,8 @@
 - ⚠️ UI: Keyboard shortcuts not implemented
 
 ### Fixed (recent)
+- ✅ 2026-02-15: Build - `runSimpleExample` now launches in module mode (`mainModule` + `mainClass`) so JavaFX runtime components are loaded reliably.
+- ✅ 2026-02-15: Demo - `SimpleExample` stylesheet resolution now supports both module-resource and classpath-resource lookup paths.
 - ✅ 2026-02-15: MainDemo - Floating windows list now updates reliably for all float/attach paths
 - ✅ 2026-02-15: MainDemo - Reset to Default now closes floating windows and clears hidden state
 - ✅ 2026-02-15: Floating Window - Resize cursor updates more consistently on edges/corners
@@ -172,6 +174,10 @@
 - ✅ 2026-02-10: Layout - Nested TabPanes can occur (verified OK)
 
 ## Recent Changes (2026-02-15)
+
+### Example Runtime
+- ✅ Updated `SimpleExample` to use `System.Logger` for CSS-missing warnings without introducing a direct logging framework dependency.
+- ✅ Added modular Gradle run task wiring for `runSimpleExample` so it starts with JavaFX runtime modules and packaged resources.
 
 ### Demo Layout
 - Added `SnapFX` API methods `setRootSplitRatios(...)` and `setSplitRatios(...)` to configure split pane ratios programmatically.

@@ -193,6 +193,8 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **D&D Activity Log**: Real-time logging of all drag & drop actions with color-coding
 
 ### Build & Deployment
+- ✅ Completed `runSimpleExample` Gradle task for launching `SimpleExample` with JavaFX module runtime support.
+- ✅ `SimpleExample` now logs a warning through `System.Logger` when `snapfx.css` is missing, without requiring a logging framework dependency.
 - ✅ **Gradle Build**: Modern Kotlin DSL build script
 - ✅ **Module Configuration**: Java 21 module support
 - ✅ **JavaFX Integration**: JavaFX Gradle plugin
@@ -214,6 +216,9 @@ SnapFX has been fully implemented with core functionality and is production-read
 
 # Run the demo application
 ./gradlew run
+
+# Run the simple example
+./gradlew runSimpleExample
 
 # Run tests
 ./gradlew test

@@ -85,3 +85,12 @@ tasks.register<JavaExec>("captureMainDemoScreenshot") {
         ?: "docs/images/main-demo.png"
     args(layout.projectDirectory.file(outputPath).asFile.absolutePath)
 }
+
+tasks.register<JavaExec>("runSimpleExample") {
+    group = "application"
+    description = "Runs SimpleExample via module launch (includes JavaFX runtime + snapfx.css)"
+
+    mainModule.set("com.github.beowolve.snapfx")
+    mainClass.set("com.github.beowolve.snapfx.demo.SimpleExample")
+    classpath = sourceSets.main.get().runtimeClasspath
+}

@@ -315,6 +315,7 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 ---
 
 ### 7.3 Tooling
+- ✅ Completed: `runSimpleExample` task for launching `SimpleExample` with JavaFX module runtime wiring.
 **Priority**: 🔵 Low
 
 - 💡 **Layout designer**: Visual layout editor
