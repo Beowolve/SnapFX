@@ -30,7 +30,7 @@ jobs:
         run: git fetch --force --tags
 
       - name: Build and test
-        run: ./gradlew --no-daemon clean test distZip distTar
+        run: xvfb-run -a ./gradlew --no-daemon clean test distZip distTar
 
       - name: Generate release notes (git-cliff)
         id: git-cliff
