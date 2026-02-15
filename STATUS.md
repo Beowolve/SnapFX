@@ -5,7 +5,7 @@
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 101 tests passing (54 + 9 + 19 + 13 + 1 + 5)  
+✅ **Tests**: All 105 tests passing (55 + 9 + 19 + 16 + 1 + 5)  
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully
 
@@ -102,13 +102,13 @@
 - ✅ Documentation updated
 
 ### Testing (100% ✅)
-- ✅ DockGraphTest (54 tests, +11 regression tests)
+- ✅ DockGraphTest (55 tests, +11 regression tests)
 - ✅ DockLayoutSerializerTest (9 tests, +1 regression test)
 - ✅ DockLayoutEngineTest (19 tests)
-- ✅ **SnapFXTest (13 tests)** - Hide/Restore + Floating Window API tests
+- ✅ **SnapFXTest (16 tests)** - Hide/Restore + Floating Window API tests
 - ✅ DockGraphSplitTargetDockingTest (1 test)
 - ✅ DockDragServiceTest (5 tests)
-- ✅ **101/101 tests passing** ✅ (was 49)
+- ✅ **105/105 tests passing** ✅ (was 49)
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Edge case tests** (null inputs, detached nodes, invalid move targets, no-op revision checks)
@@ -156,6 +156,17 @@
 - ✅ 2026-02-10: Drag & Drop - D&D stops working completely after first drop
 - ✅ 2026-02-10: Drag & Drop - Empty containers remain after complex D&D operations
 - ✅ 2026-02-10: Layout - Nested TabPanes can occur (verified OK)
+
+## Recent Changes (2026-02-15)
+
+### Demo Layout
+- Added `SnapFX` API methods `setRootSplitRatios(...)` and `setSplitRatios(...)` to configure split pane ratios programmatically.
+- Switched `MainDemo` to the new API so the default root split ratio is configured via `snapFX.setRootSplitRatios(25, 50, 25)`.
+
+### Testing
+- Added `DockGraphTest#testDemoLikeLayoutCanUseQuarterHalfQuarterSplit` to verify exact `25/50/25` split ratios can be set programmatically.
+- Added `SnapFXTest` coverage for ratio API behavior (normalized values + invalid input handling).
+- Test status: **105/105 passing** ✅
 
 ## Recent Changes (2026-02-14)
 

@@ -452,6 +452,7 @@ public class MainDemo extends Application {
         // 5. Tasks (as tab next to Console)
         DockNode tasksNode = demoNodeFactory.createTasksNode();
         snapFX.getDockGraph().dock(tasksNode, consoleNode, DockPosition.CENTER);
+        snapFX.setRootSplitRatios(25, 50, 25);
     }
 
     private void installDebugPanel() {

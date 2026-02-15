@@ -585,6 +585,37 @@ class DockGraphTest {
         assertTrue(remainingDivider > 0.0 && remainingDivider < 1.0);
     }
 
+    @Test
+    void testDemoLikeLayoutCanUseQuarterHalfQuarterSplit() {
+        DockNode project = new DockNode(new Label("Project"), "Project");
+        DockNode editor = new DockNode(new Label("Editor"), "Editor");
+        DockNode properties = new DockNode(new Label("Properties"), "Properties");
+        DockNode console = new DockNode(new Label("Console"), "Console");
+        DockNode tasks = new DockNode(new Label("Tasks"), "Tasks");
+
+        dockGraph.dock(project, null, DockPosition.CENTER);
+        dockGraph.dock(editor, project, DockPosition.RIGHT);
+        dockGraph.dock(properties, editor, DockPosition.RIGHT);
+        dockGraph.dock(console, editor, DockPosition.BOTTOM);
+        dockGraph.dock(tasks, console, DockPosition.CENTER);
+
+        DockSplitPane rootSplit = assertInstanceOf(DockSplitPane.class, dockGraph.getRoot());
+        assertEquals(Orientation.HORIZONTAL, rootSplit.getOrientation());
+        assertEquals(3, rootSplit.getChildren().size());
+        assertEquals(2, rootSplit.getDividerPositions().size());
+
+        rootSplit.setDividerPosition(0, 0.25);
+        rootSplit.setDividerPosition(1, 0.75);
+
+        double firstDivider = rootSplit.getDividerPositions().get(0).get();
+        double secondDivider = rootSplit.getDividerPositions().get(1).get();
+
+        assertEquals(0.25, firstDivider, 0.0001);
+        assertEquals(0.75, secondDivider, 0.0001);
+        assertEquals(0.5, secondDivider - firstDivider, 0.0001);
+        assertEquals(0.25, 1.0 - secondDivider, 0.0001);
+    }
+
     // ========== TabPane Optimization and Flattening Tests ==========
 
     @Test

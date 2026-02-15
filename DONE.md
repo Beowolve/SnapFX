@@ -43,6 +43,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 #### API (2 classes)
 - ✅ `SnapFX` - Main facade providing simple, fluent API
 - ✅ `DockFloatingWindow` - Floating dock host with custom title bar, resize handling, and subtree support
+- ✅ Split ratio API in `SnapFX` (`setRootSplitRatios(...)`, `setSplitRatios(...)`)
 
 #### Demo (3 classes)
 - ✅ `MainDemo` - Full IDE-like layout with all features
@@ -55,8 +56,8 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (6 test classes, 101 tests)
-- ✅ `DockGraphTest` (54 tests) - Tree manipulation and algorithms
+### Testing (6 test classes, 105 tests)
+- ✅ `DockGraphTest` (55 tests) - Tree manipulation and algorithms
   - **+11 regression tests** for critical bug fixes
   - Tests for empty container prevention
   - Tests for target invalidation during move
@@ -69,7 +70,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `DockLayoutEngineTest` (19 tests) - View creation with TestFX
   - Memory cleanup tests for cache boundedness and undock/rebuild cycles
   - Layout optimization tests for empty/single-child roots
-- ✅ `SnapFXTest` (13 tests) - Hide/Restore + Floating Window API behavior
+- ✅ `SnapFXTest` (16 tests) - Hide/Restore + Floating Window API behavior
 - ✅ `DockGraphSplitTargetDockingTest` (1 test) - Split-target docking regression coverage
 - ✅ `DockDragServiceTest` (5 tests) - D&D visibility, tab-hover activation, and float-detach callback behavior
 - ✅ All tests passing ✅
@@ -217,7 +218,7 @@ In IntelliJ IDEA:
 - **Total Java Files**: 36
 - **Production Classes**: 30
 - **Test Classes**: 6
-- **Test Cases**: 101 (all passing ✅) - +13 regression tests
+- **Test Cases**: 105 (all passing ✅) - +13 regression tests
 - **Lines of Code**: ~3,500+ (estimated)
 - **Documentation**: 7 Core Markdown files
 - **Test Coverage**: ~87% (estimated, improved from ~80%)
@@ -258,5 +259,4 @@ See [ROADMAP.md](ROADMAP.md) for planned features and improvements.
 **Status**: Production-ready for basic use cases  
 **License**: Educational/Demo Purpose  
 **Developed**: 2026-02  
-**Last Update**: 2026-02-14
-
+**Last Update**: 2026-02-15

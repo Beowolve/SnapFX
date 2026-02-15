@@ -69,6 +69,7 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 - ✅ **Smart divider positioning**: Better initial divider positions
 - ✅ **Empty layout handling**: Proper behavior when graph is empty
 - ✅ **Single node optimization**: Skip unnecessary containers
+- ✅ **Demo baseline split ratio preset**: MainDemo primary three-pane split initializes as `25% | 50% | 25%`
 
 **Estimated Time**: Completed
 
@@ -283,6 +284,7 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 ### 7.1 API Improvements
 **Priority**: 🟢 Medium
 
+- ✅ **Split ratio API**: Configure split pane ratios directly via `SnapFX.setRootSplitRatios(...)` / `setSplitRatios(...)`
 - 📋 **Builder pattern**: Fluent API for layout construction
 - 📋 **Event API**: Listen to layout changes
 - 📋 **Validation API**: Check layout validity
@@ -406,4 +408,3 @@ If you'd like to contribute to SnapFX:
 
 **Maintained by**: SnapFX Development Team  
 **Questions?**: Open an issue on GitHub
-

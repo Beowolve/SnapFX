@@ -2,6 +2,7 @@ package com.github.beowolve.snapfx;
 
 import com.github.beowolve.snapfx.model.DockNode;
 import com.github.beowolve.snapfx.model.DockPosition;
+import com.github.beowolve.snapfx.model.DockSplitPane;
 import com.github.beowolve.snapfx.model.DockTabPane;
 import javafx.application.Platform;
 import javafx.scene.control.Label;
@@ -287,6 +288,47 @@ class SnapFXTest {
 
         assertEquals(321.0, secondFloat.getPreferredX(), 0.0001);
         assertEquals(222.0, secondFloat.getPreferredY(), 0.0001);
+    }
+
+    @Test
+    void testSetRootSplitRatiosAppliesNormalizedValues() {
+        DockNode left = new DockNode("left", new Label("Left"), "Left");
+        DockNode center = new DockNode("center", new Label("Center"), "Center");
+        DockNode right = new DockNode("right", new Label("Right"), "Right");
+
+        snapFX.dock(left, null, DockPosition.CENTER);
+        snapFX.dock(center, left, DockPosition.RIGHT);
+        snapFX.dock(right, center, DockPosition.RIGHT);
+
+        assertTrue(snapFX.setRootSplitRatios(25, 50, 25));
+
+        DockSplitPane rootSplit = assertInstanceOf(DockSplitPane.class, snapFX.getDockGraph().getRoot());
+        assertEquals(0.25, rootSplit.getDividerPositions().get(0).get(), 0.0001);
+        assertEquals(0.75, rootSplit.getDividerPositions().get(1).get(), 0.0001);
+    }
+
+    @Test
+    void testSetRootSplitRatiosReturnsFalseWhenRootIsNotSplit() {
+        DockNode onlyNode = new DockNode("single", new Label("Single"), "Single");
+        snapFX.dock(onlyNode, null, DockPosition.CENTER);
+
+        assertFalse(snapFX.setRootSplitRatios(1, 1));
+    }
+
+    @Test
+    void testSetRootSplitRatiosRejectsInvalidInput() {
+        DockNode left = new DockNode("left", new Label("Left"), "Left");
+        DockNode center = new DockNode("center", new Label("Center"), "Center");
+        DockNode right = new DockNode("right", new Label("Right"), "Right");
+
+        snapFX.dock(left, null, DockPosition.CENTER);
+        snapFX.dock(center, left, DockPosition.RIGHT);
+        snapFX.dock(right, center, DockPosition.RIGHT);
+
+        assertFalse(snapFX.setRootSplitRatios(1, 1));
+        assertFalse(snapFX.setRootSplitRatios(1, 0, 1));
+        assertFalse(snapFX.setRootSplitRatios(1, Double.NaN, 1));
+        assertFalse(snapFX.setRootSplitRatios(1, Double.POSITIVE_INFINITY, 1));
     }
 
     // Helper method to check if node is in graph

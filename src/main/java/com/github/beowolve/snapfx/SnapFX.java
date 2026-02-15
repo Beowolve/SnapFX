@@ -514,6 +514,67 @@ public class SnapFX {
         return dockGraph.getDockNodeCount(id);
     }
 
+    /**
+     * Sets the pane ratios of the root split pane.
+     * <p>
+     * Ratios are normalized automatically, so both {@code (0.25, 0.5, 0.25)}
+     * and {@code (25, 50, 25)} are valid inputs.
+     * </p>
+     *
+     * @param paneRatios Ratios for each pane of the root split pane
+     * @return {@code true} if ratios were applied; {@code false} if the root is not a split pane
+     * or if input validation failed
+     */
+    public boolean setRootSplitRatios(double... paneRatios) {
+        DockElement root = dockGraph.getRoot();
+        if (!(root instanceof DockSplitPane rootSplit)) {
+            return false;
+        }
+        return setSplitRatios(rootSplit, paneRatios);
+    }
+
+    /**
+     * Sets the pane ratios of a specific split pane.
+     * <p>
+     * The number of ratios must match the number of split children.
+     * </p>
+     *
+     * @param splitPane Split pane to configure
+     * @param paneRatios Ratios for each pane in the split pane
+     * @return {@code true} if ratios were applied; {@code false} if validation failed
+     */
+    public boolean setSplitRatios(DockSplitPane splitPane, double... paneRatios) {
+        if (splitPane == null || paneRatios == null) {
+            return false;
+        }
+
+        int paneCount = splitPane.getChildren().size();
+        if (paneCount < 2 || paneRatios.length != paneCount) {
+            return false;
+        }
+
+        double sum = 0.0;
+        for (double ratio : paneRatios) {
+            if (!Double.isFinite(ratio) || ratio <= 0.0) {
+                return false;
+            }
+            sum += ratio;
+        }
+
+        if (sum <= 0.0) {
+            return false;
+        }
+
+        double cumulative = 0.0;
+        for (int i = 0; i < paneRatios.length - 1; i++) {
+            cumulative += paneRatios[i] / sum;
+            splitPane.setDividerPosition(i, cumulative);
+        }
+
+        requestRebuild();
+        return true;
+    }
+
     private DockFloatingWindow findFloatingWindow(DockNode node) {
         if (node == null) {
             return null;
