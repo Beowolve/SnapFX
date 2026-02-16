@@ -1,6 +1,6 @@
 # SnapFX Development Roadmap
 
-**Last Updated**: 2026-02-15
+**Last Updated**: 2026-02-16
 
 This document tracks all planned features, improvements, and bug fixes for SnapFX. Items are marked as they are completed and new features are added as they are identified.
 This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
@@ -45,14 +45,14 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 ### 1.1 Drag & Drop Improvements
 **Priority**: 🔴 Critical
 
-- No planned items; see `STATUS.md` for fixed issues.
+- 📋 No planned items; see `STATUS.md` for fixed issues.
 
 ---
 
 ### 1.2 Debug & Monitoring
 **Priority**: 🟡 High
 
-- No planned items; see `STATUS.md` for fixed issues.
+- 📋 No planned items; see `STATUS.md` for fixed issues.
 
 ### 1.3 Testing & Quality Assurance  
 **Priority**: 🟡 High
@@ -77,7 +77,7 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 ### 1.5 UI Bug Fixes
 **Priority**: 🟡 High
 
-- No planned items; see `STATUS.md` for fixed issues.
+- 📋 No planned items; see `STATUS.md` for fixed issues.
 
 ---
 
@@ -313,21 +313,26 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 ### 7.2 Documentation
 **Priority**: 🟡 High
 
+- ✅ **Documentation ownership baseline**: Scope split clarified (`STATUS` current, `ROADMAP` planned, `DONE` completed, `TESTING_POLICY` rules-only)
+- ✅ **Minimal-diff editing baseline**: collaboration rules now require targeted edits over full-file rewrites whenever smaller diffs are sufficient
+- ✅ **Unicode icon readability baseline**: `\u...` icon constants in doc consistency tests now include inline rendered-icon comments
+- ✅ **License wording baseline**: README/SETUP now state MIT licensing and explicit personal/commercial use positioning
 - 📋 **API documentation**: Complete JavaDoc
 - 📋 **User guide**: Comprehensive usage guide
 - 📋 **Tutorial series**: Step-by-step tutorials
 - 📋 **Example projects**: Real-world examples
 - 📋 **GitHub Pages site**: Full project documentation portal (guides, architecture, API overview)
 - 📋 **Video tutorials**: Screen recordings
+- 📋 **Doc consistency guardrails**: Keep markdown consistency tests aligned with documentation scope rules
 
 **Estimated Time**: 5-7 days
 
 ---
 
 ### 7.3 Tooling
-- ✅ Completed: `runSimpleExample` task for launching `SimpleExample` with JavaFX module runtime wiring.
 **Priority**: 🔵 Low
 
+- ✅ Completed: `runSimpleExample` task for launching `SimpleExample` with JavaFX module runtime wiring.
 - 💡 **Layout designer**: Visual layout editor
 - 💡 **FXML support**: Alternative to programmatic API
 - 💡 **CSS inspector**: Debug styling issues

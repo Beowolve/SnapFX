@@ -161,4 +161,6 @@ SnapFX/
 
 ## License
 
-This project is created for educational purposes.
+This project is licensed under the MIT License.
+
+SnapFX is intended for personal and commercial use, including large applications.

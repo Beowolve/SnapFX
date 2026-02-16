@@ -12,6 +12,19 @@ A high-performance, lightweight JavaFX docking framework that behaves like nativ
 
 ![MainDemo App Screenshot](docs/images/main-demo.png)
 
+## Documentation Map
+
+| File | Purpose |
+|------|---------|
+| `README.md` | Entry point, feature overview, and quick start |
+| `SETUP.md` | Local development environment setup |
+| `ARCHITECTURE.md` | Technical architecture and design |
+| `STATUS.md` | Current state, open issues, and latest changes |
+| `ROADMAP.md` | Planned work and future priorities |
+| `DONE.md` | Completed milestones and delivered capabilities |
+| `TESTING_POLICY.md` | Stable testing rules and quality gates |
+| `AGENTS.md` | Collaboration and workflow rules for AI agents |
+
 ## Features
 
 ### Core Architecture
@@ -312,7 +325,9 @@ Optional push:
 
 ## License
 
-This project is a demo framework for educational purposes.
+This project is licensed under the MIT License.
+
+SnapFX is intended for personal and commercial use, including large applications.
 
 ## Contribution
 

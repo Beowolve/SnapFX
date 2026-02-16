@@ -1,8 +1,8 @@
 # SnapFX Framework - Completed Features
 
-**Last Updated**: 2026-02-15
+**Last Updated**: 2026-02-16
 
-SnapFX has been fully implemented with core functionality and is production-ready for basic use cases.
+SnapFX has been fully implemented with core functionality and is production-ready for large applications.
 
 ## ✅ What Has Been Completed
 
@@ -57,7 +57,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (12 test classes, 155 tests)
+### Testing (12 test classes, 160 tests)
 - ✅ `DockGraphTest` (56 tests) - Tree manipulation and algorithms
   - **+11 regression tests** for critical bug fixes
   - Tests for empty container prevention
@@ -79,25 +79,31 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `AboutDialogTest` (2 tests) - About dialog resources and credit link targets
 - ✅ `EditorCloseDecisionPolicyTest` (5 tests) - Deterministic close-decision behavior for dirty editor nodes
 - ✅ `SimpleExampleTest` (2 tests) - Stylesheet resource resolution behavior
-- ✅ `MarkdownDocumentationConsistencyTest` (5 tests) - Documentation consistency guardrails
+- ✅ `MarkdownDocumentationConsistencyTest` (10 tests) - Documentation consistency guardrails
 - ✅ All tests passing ✅
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
 - ✅ Mandatory regression tests for all bug fixes
 
-### Documentation (7 files)
+### Documentation (8 files)
 - ✅ `README.md` - Project overview and quick start
 - ✅ `SETUP.md` - Development environment setup
 - ✅ `ARCHITECTURE.md` - Complete architecture documentation
 - ✅ `STATUS.md` - Current project status
 - ✅ `ROADMAP.md` - Future development plans
 - ✅ `DONE.md` - Completed features (this file)
-- ✅ `TESTING_POLICY.md` - Testing standards and requirements (NEW 2026-02-10)
+- ✅ `TESTING_POLICY.md` - Stable testing rules and quality gates (policy-only)
+- ✅ `AGENTS.md` - Persistent collaboration rules and workflow constraints
 - ✅ README clarifies TitleBarMode.AUTO behavior and tab-only drag handling
 - ✅ README includes a MainDemo screenshot preview near the top
 - ✅ README embeds the SnapFX SVG logo for repository and future GitHub Pages branding
+- ✅ README now includes a documentation map that defines ownership and purpose of each core markdown file
+- ✅ README and SETUP license sections now state MIT licensing with explicit personal/commercial use support
 - ✅ Issue tracking consolidated into STATUS.md; ROADMAP lists planned work only
 - ✅ Fixed markdown encoding artifacts (Unicode icon Mojibake) in roadmap/docs content
+- ✅ Documentation scope is now explicit: `STATUS` = current, `ROADMAP` = planned, `DONE` = completed, `TESTING_POLICY` = rules-only
 - ✅ AGENTS collaboration rules now require per-fix commit message body lines and method extraction for multi-statement UI callbacks
+- ✅ AGENTS collaboration rules now require minimal-diff edits across all file changes, plus inline rendered-icon comments for `\u...` icon constants
+- ✅ Markdown documentation consistency tests now keep Unicode icon constants readable via inline icon comments
 
 ### Resources
 - ✅ `snapfx.css` - Native Modena theme styling
@@ -260,7 +266,7 @@ In IntelliJ IDEA:
 - **Total Java Files**: 38
 - **Production Classes**: 31
 - **Test Classes**: 12
-- **Test Cases**: 155 (all passing ✅)
+- **Test Cases**: 160 (all passing ✅)
 - **Lines of Code**: ~3,500+ (estimated)
 - **Documentation**: 7 Core Markdown files
 - **Test Coverage**: ~87% (estimated, improved from ~80%)
@@ -298,8 +304,8 @@ See [ROADMAP.md](ROADMAP.md) for planned features and improvements.
 ---
 
 **Version**: Git-derived via `gradle-jgitver` (tag-based)  
-**Status**: Production-ready for basic use cases  
-**License**: Educational/Demo Purpose  
+**Status**: Production-ready for large applications  
+**License**: MIT (personal and commercial use)  
 **Developed**: 2026-02  
-**Last Update**: 2026-02-15
+**Last Update**: 2026-02-16
 

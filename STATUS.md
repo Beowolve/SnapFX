@@ -1,15 +1,22 @@
 # Project Status
 
-**Last Updated**: 2026-02-15
+**Last Updated**: 2026-02-16
 
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 155 tests passing (latest full suite)  
+✅ **Tests**: All 160 tests passing (latest full suite)  
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully  
 ✅ **CI Automation**: GitHub Actions workflows added for push/PR tests and tag-triggered releases  
 ✅ **Release Notes Automation**: `git-cliff` generates tag-based GitHub Release notes
+
+## Documentation Scope
+
+- ✅ `STATUS.md` tracks only the current state: build health, current capabilities, open issues, and latest changes.
+- ✅ `ROADMAP.md` tracks planned work only.
+- ✅ `DONE.md` tracks completed milestones and delivered capabilities.
+- ✅ `TESTING_POLICY.md` defines stable testing rules only (no temporal test statistics).
 
 ## Implementation Progress
 
@@ -116,9 +123,9 @@
 - ✅ MainDemoTest (4 tests) - Demo app icon resource wiring and menu icon behavior
 - ✅ EditorCloseDecisionPolicyTest (5 tests) - Deterministic close-decision policy checks
 - ✅ SimpleExampleTest (2 tests) - Stylesheet resource resolution behavior
-- ✅ MarkdownDocumentationConsistencyTest (5 tests) - Markdown consistency guardrails
+- ✅ MarkdownDocumentationConsistencyTest (10 tests) - Markdown consistency guardrails
 - ✅ AboutDialogTest (2 tests) - About dialog branding resources and credit link targets
-- ✅ **155/155 tests passing** ✅ (was 49)
+- ✅ **160/160 tests passing** ✅ (was 49)
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Edge case tests** (null inputs, detached nodes, invalid move targets, no-op revision checks)
@@ -203,6 +210,17 @@
 - ✅ 2026-02-10: Drag & Drop - Empty containers remain after complex D&D operations
 - ✅ 2026-02-10: Layout - Nested TabPanes can occur (verified OK)
 
+## Recent Changes (2026-02-16)
+
+### Documentation
+- ✅ Reworked `TESTING_POLICY.md` into a policy-only document with stable rules, quality gates, and merge criteria.
+- ✅ Added a documentation map table to `README.md` for faster orientation and clearer document ownership.
+- ✅ Extended `MarkdownDocumentationConsistencyTest` to enforce document-scope separation and stable testing-policy structure.
+- ✅ Aligned `STATUS.md`, `DONE.md`, and `ROADMAP.md` with clearer documentation responsibilities.
+- ✅ Added inline rendered-icon comments for `\u...` icon constants in `MarkdownDocumentationConsistencyTest` for developer readability.
+- ✅ Updated `AGENTS.md` with a persistent collaboration rule for minimal-diff edits across all file changes.
+- ✅ Updated license wording across docs to MIT with explicit personal/commercial use positioning.
+
 ## Recent Changes (2026-02-15)
 
 ### Example Runtime
@@ -226,7 +244,7 @@
 - Added `DockGraphTest#testDemoLikeLayoutCanUseQuarterHalfQuarterSplit` to verify exact `25/50/25` split ratios can be set programmatically.
 - Added `SnapFXTest` coverage for ratio API behavior (normalized values + invalid input handling).
 - Added `DockLayoutEngineTest` coverage for stylesheet-based control glyph class wiring (title close + tab float button).
-- Test status: **155/155 passing** ✅
+- Test status: **160/160 passing** ✅
 
 ### Documentation
 - Fixed Unicode/Mojibake issues in `ROADMAP.md` (Phase 4.5 Floating Window Snapping icons/priority).
@@ -439,13 +457,10 @@ See [ROADMAP.md](ROADMAP.md) for detailed future development plans.
 
 ## Documentation Policy
 
-**Core Documentation Files** (permanent):
-- **STATUS.md** - Current project status, recent changes, known issues
-- **ROADMAP.md** - Future development plans, phases, completion tracking
-- **DONE.md** - Completed features and achievements
-- **ARCHITECTURE.md** - Technical architecture and design
-- **README.md** - Project overview, quick start, usage
-- **SETUP.md** - Development environment setup
-
-**Policy**: All updates, features, and bug fixes are documented in these 6 files only. No additional feature-specific MD files are created.
+- ✅ Core documentation files: `README.md`, `SETUP.md`, `ARCHITECTURE.md`, `STATUS.md`, `ROADMAP.md`, `DONE.md`, `TESTING_POLICY.md`, `AGENTS.md`.
+- ✅ Responsibility split: `STATUS.md` = current status and open issues.
+- ✅ Responsibility split: `ROADMAP.md` = planned work.
+- ✅ Responsibility split: `DONE.md` = completed work.
+- ✅ Responsibility split: `TESTING_POLICY.md` = stable testing rules.
+- ⚠️ Avoid additional feature-specific markdown logs when information already belongs in one of the core files.
 
