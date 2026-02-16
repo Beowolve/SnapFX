@@ -4,6 +4,7 @@ import com.github.beowolve.snapfx.close.DockCloseBehavior;
 import com.github.beowolve.snapfx.close.DockCloseDecision;
 import com.github.beowolve.snapfx.close.DockCloseResult;
 import com.github.beowolve.snapfx.close.DockCloseSource;
+import com.github.beowolve.snapfx.dnd.DockDragService;
 import com.github.beowolve.snapfx.floating.DockFloatingPinButtonMode;
 import com.github.beowolve.snapfx.floating.DockFloatingPinChangeEvent;
 import com.github.beowolve.snapfx.floating.DockFloatingPinLockedBehavior;
@@ -32,6 +33,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -656,6 +658,35 @@ class SnapFXTest {
     }
 
     @Test
+    void testUnresolvedDropFromFloatingSubLayoutDetachesNodeToNewFloatingWindow() {
+        DockNode node1 = new DockNode("node1", new Label("Node 1"), "Node 1");
+        DockNode node2 = new DockNode("node2", new Label("Node 2"), "Node 2");
+
+        snapFX.dock(node1, null, DockPosition.CENTER);
+        snapFX.dock(node2, node1, DockPosition.RIGHT);
+
+        DockFloatingWindow floatingWindow = snapFX.floatNode(node1, 300.0, 200.0);
+        snapFX.getDockGraph().undock(node2);
+        floatingWindow.dockNode(node2, node1, DockPosition.CENTER, null);
+
+        assertEquals(1, snapFX.getFloatingWindows().size());
+        assertTrue(floatingWindow.containsNode(node1));
+        assertTrue(floatingWindow.containsNode(node2));
+
+        assertTrue(requestFloatDetach(snapFX, node2, 900.0, 700.0));
+
+        assertEquals(2, snapFX.getFloatingWindows().size());
+        assertFalse(floatingWindow.containsNode(node2));
+        DockFloatingWindow detachedWindow = snapFX.getFloatingWindows().stream()
+            .filter(window -> window != floatingWindow && window.containsNode(node2))
+            .findFirst()
+            .orElse(null);
+        assertNotNull(detachedWindow);
+        assertTrue(detachedWindow.containsNode(node2));
+        assertTrue(floatingWindow.containsNode(node1));
+    }
+
+    @Test
     void testSetRootSplitRatiosAppliesNormalizedValues() {
         DockNode left = new DockNode("left", new Label("Left"), "Left");
         DockNode center = new DockNode("center", new Label("Center"), "Center");
@@ -1061,6 +1092,24 @@ class SnapFXTest {
     private TabPane buildRootTabPane(SnapFX framework) {
         var root = assertInstanceOf(javafx.scene.layout.StackPane.class, framework.buildLayout());
         return assertInstanceOf(TabPane.class, root.getChildren().getFirst());
+    }
+
+    private boolean requestFloatDetach(SnapFX framework, DockNode node, double screenX, double screenY) {
+        try {
+            Method requestFloatDetach = DockDragService.class.getDeclaredMethod(
+                "requestFloatDetach",
+                DockNode.class,
+                double.class,
+                double.class
+            );
+            requestFloatDetach.setAccessible(true);
+            return (boolean) requestFloatDetach.invoke(framework.getDragService(), node, screenX, screenY);
+        } catch (ReflectiveOperationException exception) {
+            Throwable cause = exception.getCause();
+            String detail = cause != null ? cause.toString() : exception.toString();
+            fail("Failed to request float detach via drag service reflection: " + detail);
+            return false;
+        }
     }
 
     // Helper method to check if node is in graph

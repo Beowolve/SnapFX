@@ -59,7 +59,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (13 test classes, 219 tests)
+### Testing (13 test classes, 220 tests)
 - ✅ `DockGraphTest` (56 tests) - Tree manipulation and algorithms
   - **+11 regression tests** for critical bug fixes
   - Tests for empty container prevention
@@ -73,7 +73,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `DockLayoutEngineTest` (32 tests) - View creation with TestFX, context-menu interaction coverage, representative container-tab title/icon behavior, float-availability policy checks, header-context-menu dismiss-on-press regression coverage, and tiny-bounds drop-zone clamp regression coverage
   - Memory cleanup tests for cache boundedness and undock/rebuild cycles
   - Layout optimization tests for empty/single-child roots
-- ✅ `SnapFXTest` (49 tests) - Hide/Restore + Floating Window API behavior, configurable shortcut behavior, invalid-load failure handling, persistence edge-case coverage for complex floating snapshots, and unknown-type layout recovery
+- ✅ `SnapFXTest` (50 tests) - Hide/Restore + Floating Window API behavior, configurable shortcut behavior, invalid-load failure handling, persistence edge-case coverage for complex floating snapshots, unknown-type layout recovery, and unresolved floating-sub-layout D&D detach coverage
 - ✅ `DockGraphSplitTargetDockingTest` (1 test) - Split-target docking regression coverage
 - ✅ `DockDragServiceTest` (8 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, and ESC drag-cancel handling
 - ✅ `DockFloatingWindowTest` (24 tests) - Floating title-bar controls, context-menu behavior (attach/pin icons + attach action), pin behavior, icon rendering/sync regression coverage, single-node float-menu policy, maximize/restore interaction behavior, scene-level drag continuity (including release/reset and non-primary guard behavior), resize-min constraints, and interactive-target cursor reliability
@@ -84,7 +84,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `SimpleExampleTest` (2 tests) - Stylesheet resource resolution behavior
 - ✅ `MarkdownDocumentationConsistencyTest` (12 tests) - Documentation consistency guardrails
 - ✅ CI flake guard for critical interaction suites (`SnapFXTest`, `DockFloatingWindowTest`, `DockDragServiceTest`) runs 3x per CI execution
-- ✅ All tests passing (219/219) ✅
+- ✅ All tests passing (220/220) ✅
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
 - ✅ Mandatory regression tests for all bug fixes
 
@@ -175,7 +175,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **Topmost-surface D&D targeting**: For overlapping floating/main windows, preview and drop resolve only on the frontmost surface under the cursor
 - ✅ **Floating lock-state control parity**: Floating title-bar controls hide in lock mode and floating window close is blocked while locked
 - ✅ **Single-node floating control cleanup**: Inner dock-node close/float controls are hidden for single-node floating layouts while keeping header drag usability
-- ✅ **Float-from-floating extraction**: Floating layout float actions now detach the selected node into a separate floating window
+- ✅ **Float-from-floating extraction parity**: Floating layout float actions and unresolved D&D releases now both detach the selected node into a separate floating window
 - ✅ **Floating close-to-hidden behavior**: Closing floating windows via `X` moves nodes to hidden windows list
 - ✅ **Configurable close behavior**: Close requests now support framework-level default behavior selection (`HIDE` or `REMOVE`)
 - ✅ **Source-aware close callbacks**: Close interception and outcome callbacks now cover tab, title-bar, and floating-window close requests consistently

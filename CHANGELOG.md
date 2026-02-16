@@ -7,7 +7,7 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 ## Unreleased
 
 ### Build and Test
-- ✅ Added serializer/API regression tests for layout-load failures (`blank`, malformed JSON, missing required fields, invalid tab index), expanded floating-title-bar drag continuity coverage (release/reset + non-primary guards), resize-min/cursor reliability coverage, persistence edge-case coverage for complex floating snapshots plus unknown-node placeholder diagnostics, unsupported-type recovery/custom-fallback coverage (including SnapFX + DemoNodeFactory integration), dock-node-header context-menu dismiss-on-press regression coverage, and a CI flake guard that reruns critical interaction suites 3x; full suite now runs with 219 tests.
+- ✅ Added serializer/API regression tests for layout-load failures (`blank`, malformed JSON, missing required fields, invalid tab index), expanded floating-title-bar drag continuity coverage (release/reset + non-primary guards), resize-min/cursor reliability coverage, persistence edge-case coverage for complex floating snapshots plus unknown-node placeholder diagnostics, unsupported-type recovery/custom-fallback coverage (including SnapFX + DemoNodeFactory integration), dock-node-header context-menu dismiss-on-press regression coverage, unresolved floating-sub-layout D&D detach regression coverage, and a CI flake guard that reruns critical interaction suites 3x; full suite now runs with 220 tests.
 
 ### Framework and UI
 - ✅ Added `DockLayoutLoadException` with JSON-location context for deserialization failures.
@@ -20,6 +20,7 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Floating resize now respects effective stage/content minimum constraints and applies resize cursors reliably over interactive targets.
 - ✅ MainDemo error dialogs are now owner-aware and attach to the primary stage when available (better multi-monitor behavior).
 - ✅ Unknown/unsupported serialized node types now recover without aborting layout load: `DockLayoutSerializer` routes them through `DockNodeFactory` fallback hooks and otherwise inserts framework diagnostic placeholders (including node-id and JSON-path context).
+- ✅ Unresolved D&D releases from multi-node floating sub-layouts now detach the dragged node into a new floating window (matching float-button/context-menu behavior).
 
 ### Documentation
 - ✅ Updated README/ARCHITECTURE persistence examples to show `loadLayout(...)` / `deserialize(...)` error handling with `DockLayoutLoadException`.

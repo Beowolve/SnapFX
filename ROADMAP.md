@@ -109,7 +109,7 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 - ✅ **Topmost overlap targeting**: In overlapping floating/main windows, preview and drop target only the frontmost surface under cursor
 - ✅ **Locked-mode floating controls**: Floating title-bar controls now hide in locked mode and close is blocked while locked
 - ✅ **Single-node inner control cleanup**: Inner dock-node close/float controls are hidden for single-node floating layouts
-- ✅ **Float-from-floating detach**: Float actions inside floating sub-layouts create a new floating window for the selected node
+- ✅ **Float-from-floating detach parity**: Float actions and unresolved D&D releases inside floating sub-layouts create a new floating window for the selected node
 - ✅ **Configurable close behavior**: Close behavior is centrally configurable (`HIDE`/`REMOVE`) with `HIDE` as default
 - ✅ **Close callback hooks**: Source-aware close callbacks now support interception/outcome handling for tab, title-bar, and floating-window close requests
 - ✅ **Always on top / pinning**: Floating windows now support configurable pin-button visibility (`ALWAYS`/`AUTO`/`NEVER`), default pinned state, lock-mode behavior, and persisted always-on-top snapshots

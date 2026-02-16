@@ -920,6 +920,11 @@ public class SnapFX {
         if (tryDropIntoFloatingWindow(request.draggedNode(), request.screenX(), request.screenY())) {
             return;
         }
+        DockFloatingWindow sourceWindow = findFloatingWindow(request.draggedNode());
+        if (sourceWindow != null && sourceWindow.getDockNodes().size() > 1) {
+            floatNodeFromFloatingLayout(request.draggedNode(), request.screenX(), request.screenY());
+            return;
+        }
         floatNode(request.draggedNode(), request.screenX(), request.screenY());
     }
 
@@ -1057,13 +1062,17 @@ public class SnapFX {
     }
 
     private DockFloatingWindow floatNodeFromFloatingLayout(DockNode node) {
+        return floatNodeFromFloatingLayout(node, null, null);
+    }
+
+    private DockFloatingWindow floatNodeFromFloatingLayout(DockNode node, Double screenX, Double screenY) {
         if (node == null) {
             return null;
         }
 
         DockFloatingWindow sourceWindow = findFloatingWindow(node);
         if (sourceWindow == null) {
-            return floatNode(node);
+            return floatNode(node, screenX, screenY);
         }
         if (sourceWindow.getDockNodes().size() <= 1) {
             sourceWindow.toFront();
@@ -1079,7 +1088,9 @@ public class SnapFX {
         DockFloatingWindow floatingWindow = new DockFloatingWindow(node, dragService);
         floatingWindow.getDockGraph().setLocked(dockGraph.isLocked());
         applyRememberedFloatingBounds(node, floatingWindow);
-        if (sourceWindow.getPreferredX() != null || sourceWindow.getPreferredY() != null) {
+        if (screenX != null || screenY != null) {
+            floatingWindow.setPreferredPosition(screenX, screenY);
+        } else if (sourceWindow.getPreferredX() != null || sourceWindow.getPreferredY() != null) {
             floatingWindow.setPreferredPosition(
                 sourceWindow.getPreferredX() != null ? sourceWindow.getPreferredX() + 24.0 : null,
                 sourceWindow.getPreferredY() != null ? sourceWindow.getPreferredY() + 24.0 : null

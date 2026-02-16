@@ -5,7 +5,7 @@
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 219 tests passing (latest full suite)
+✅ **Tests**: All 220 tests passing (latest full suite)
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully  
 ✅ **CI Automation**: GitHub Actions workflows added for push/PR tests and tag-triggered releases  
@@ -58,6 +58,7 @@
 - ✅ Splitter positions preserved on no-op edge drops
 - ✅ Ghost overlay stays visible outside the main window (transparent utility stage)
 - ✅ Unresolved drops always trigger floating fallback (not only outside main scene)
+- ✅ Unresolved drops from multi-node floating layouts now detach the dragged node into a separate floating window (matching float-button/context-menu behavior)
 - ✅ Main layout drops accept drags originating from floating windows
 - ✅ Escape cancels active drag reliably, including while the mouse button remains pressed
 - ✅ Drop-zone sizing now guards tiny bounds so drag hover never throws `Math.clamp` min/max-order exceptions
@@ -139,7 +140,7 @@
 - ✅ DockGraphTest (56 tests, +11 regression tests)
 - ✅ DockLayoutSerializerTest (16 tests) - Includes strict load-failure diagnostics for blank content, malformed JSON, missing required fields, invalid tab selection metadata, unknown-node placeholder diagnostics, and unsupported-type recovery with optional factory custom fallback
 - ✅ DockLayoutEngineTest (32 tests) - Includes tab/header/splitter context-menu coverage, representative container-tab title/icon behavior, float-availability policy checks, header-context-menu dismiss-on-press regression coverage, and tiny-bounds drop-zone clamp regression coverage
-- ✅ **SnapFXTest (49 tests)** - Hide/Restore + Floating Window API tests plus configurable shortcut behavior, invalid-load failure handling, persistence edge-case coverage for complex floating snapshots, and unknown-type layout recovery
+- ✅ **SnapFXTest (50 tests)** - Hide/Restore + Floating Window API tests plus configurable shortcut behavior, invalid-load failure handling, persistence edge-case coverage for complex floating snapshots, unknown-type layout recovery, and unresolved floating-sub-layout D&D detach behavior
 - ✅ DockGraphSplitTargetDockingTest (1 test)
 - ✅ DockDragServiceTest (8 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, and ESC drag-cancel handling
 - ✅ DockFloatingWindowTest (24 tests) - Floating title bar controls, context menu behavior (attach/pin icons + attach action), pin behavior, icon rendering/sync regression coverage, single-node float-menu policy, maximize/restore interaction behavior, scene-level drag continuity (including release/reset and non-primary guard behavior), resize-min constraints, and interactive-target cursor reliability
@@ -149,7 +150,7 @@
 - ✅ SimpleExampleTest (2 tests) - Stylesheet resource resolution behavior
 - ✅ MarkdownDocumentationConsistencyTest (12 tests) - Markdown consistency guardrails
 - ✅ AboutDialogTest (2 tests) - About dialog branding resources and credit link targets
-- ✅ **219/219 tests passing** ✅
+- ✅ **220/220 tests passing** ✅
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Edge case tests** (null inputs, detached nodes, invalid move targets, no-op revision checks)
