@@ -5,7 +5,7 @@
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 199 tests passing (latest full suite)
+✅ **Tests**: All 201 tests passing (latest full suite)
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully  
 ✅ **CI Automation**: GitHub Actions workflows added for push/PR tests and tag-triggered releases  
@@ -107,6 +107,7 @@
 - ✅ Source-aware floating pin change callbacks plus always-on-top snapshot persistence
 - ✅ Floating title-bar context menu with `Attach to Layout` and always-on-top toggle (icon parity with title-bar controls)
 - ✅ Floating title-bar icon sync follows active tab changes in floating tab layouts
+- ✅ Floating window title-bar drag now continues while cursor leaves the title bar (scene-level drag tracking)
 
 ### Debug Tools (100% ✅)
 - ✅ DockGraphDebugView
@@ -134,13 +135,13 @@
 - ✅ **SnapFXTest (46 tests)** - Hide/Restore + Floating Window API tests plus configurable shortcut behavior and invalid-load failure handling
 - ✅ DockGraphSplitTargetDockingTest (1 test)
 - ✅ DockDragServiceTest (8 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, and ESC drag-cancel handling
-- ✅ DockFloatingWindowTest (16 tests) - Floating title bar controls, context menu behavior (attach/pin icons + attach action), pin behavior, icon rendering/sync regression coverage, single-node float-menu policy, and maximize/restore interaction behavior
+- ✅ DockFloatingWindowTest (18 tests) - Floating title bar controls, context menu behavior (attach/pin icons + attach action), pin behavior, icon rendering/sync regression coverage, single-node float-menu policy, maximize/restore interaction behavior, and scene-level drag continuity
 - ✅ MainDemoTest (7 tests) - Demo app icon resource wiring, menu icon behavior, demo shortcut wiring, and load-error message formatting
 - ✅ EditorCloseDecisionPolicyTest (5 tests) - Deterministic close-decision policy checks
 - ✅ SimpleExampleTest (2 tests) - Stylesheet resource resolution behavior
 - ✅ MarkdownDocumentationConsistencyTest (12 tests) - Markdown consistency guardrails
 - ✅ AboutDialogTest (2 tests) - About dialog branding resources and credit link targets
-- ✅ **199/199 tests passing** ✅
+- ✅ **201/201 tests passing** ✅
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Edge case tests** (null inputs, detached nodes, invalid move targets, no-op revision checks)

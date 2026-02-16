@@ -100,6 +100,7 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 - ✅ **MainDemo layout menu icon parity**: Hidden/Floating menu entries display dock-node icons when available
 - ✅ **Maximize/restore**: Custom floating title-bar toggle implemented
 - ✅ **Maximized drag restore**: Dragging the title bar from maximized restores and moves the window
+- ✅ **Title-bar drag continuity**: Floating window drag continues even when the cursor leaves the title bar during a pressed drag
 - ✅ **Floating D&D visual feedback**: Floating windows show drop zones and active drop indicator during drag
 - ✅ **Topmost overlap targeting**: In overlapping floating/main windows, preview and drop target only the frontmost surface under cursor
 - ✅ **Locked-mode floating controls**: Floating title-bar controls now hide in locked mode and close is blocked while locked

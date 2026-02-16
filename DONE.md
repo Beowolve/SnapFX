@@ -59,7 +59,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (12 test classes, 199 tests)
+### Testing (12 test classes, 201 tests)
 - ✅ `DockGraphTest` (56 tests) - Tree manipulation and algorithms
   - **+11 regression tests** for critical bug fixes
   - Tests for empty container prevention
@@ -76,7 +76,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `SnapFXTest` (46 tests) - Hide/Restore + Floating Window API behavior, configurable shortcut behavior, and invalid-load failure handling
 - ✅ `DockGraphSplitTargetDockingTest` (1 test) - Split-target docking regression coverage
 - ✅ `DockDragServiceTest` (8 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, and ESC drag-cancel handling
-- ✅ `DockFloatingWindowTest` (16 tests) - Floating title-bar controls, context-menu behavior (attach/pin icons + attach action), pin behavior, icon rendering/sync regression coverage, single-node float-menu policy, and maximize/restore interaction behavior
+- ✅ `DockFloatingWindowTest` (18 tests) - Floating title-bar controls, context-menu behavior (attach/pin icons + attach action), pin behavior, icon rendering/sync regression coverage, single-node float-menu policy, maximize/restore interaction behavior, and scene-level drag continuity when leaving the title bar
 - ✅ `MainDemoTest` (7 tests) - Application icon resources, menu icon behavior, demo shortcut wiring, and load-error message formatting
 - ✅ `AboutDialogTest` (2 tests) - About dialog resources and credit link targets
 - ✅ `EditorCloseDecisionPolicyTest` (5 tests) - Deterministic close-decision behavior for dirty editor nodes
@@ -284,4 +284,3 @@ See [ROADMAP.md](ROADMAP.md) for planned features and improvements.
 **License**: MIT (personal and commercial use)  
 **Developed**: 2026-02  
 **Last Update**: 2026-02-16
-

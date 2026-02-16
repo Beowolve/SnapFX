@@ -106,6 +106,7 @@ public final class DockFloatingWindow {
 
     private double dragOffsetX;
     private double dragOffsetY;
+    private boolean titleBarDragActive;
     private double restoreX;
     private double restoreY;
     private double restoreWidth = DEFAULT_WIDTH;
@@ -603,6 +604,7 @@ public final class DockFloatingWindow {
         if (ownerStage != null && ownerStage.getScene() != null) {
             scene.getStylesheets().addAll(ownerStage.getScene().getStylesheets());
         }
+        setupTitleBarDrag(titleBar, window, scene);
         window.setScene(scene);
         window.setAlwaysOnTop(alwaysOnTop);
         applyWindowPosition(window, ownerStage);
@@ -666,7 +668,6 @@ public final class DockFloatingWindow {
         );
 
         titleBar.getChildren().addAll(iconPane, titleLabel, spacer, attachButton, pinButton, maximizeButton, closeButton);
-        setupTitleBarDrag(titleBar, window);
         installTitleBarContextMenu(titleBar);
         return titleBar;
     }
@@ -840,44 +841,68 @@ public final class DockFloatingWindow {
         return icon;
     }
 
-    private void setupTitleBarDrag(HBox titleBar, Stage window) {
-        titleBar.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
-            if (!isTitleBarActionCandidate(event, window)) {
-                return;
-            }
-            if (window.isMaximized()) {
-                ensureRestoreBounds(window);
-                double width = window.getWidth();
-                double pointerRatio = width > 0 ? event.getX() / width : 0.5;
-                pointerRatio = Math.clamp(pointerRatio, 0.0, 1.0);
-                dragOffsetX = restoreWidth * pointerRatio;
-                double titleBarHeight = titleBar.getHeight() > 0 ? titleBar.getHeight() : 32.0;
-                dragOffsetY = Math.clamp(event.getY(), 0.0, titleBarHeight);
-                return;
-            }
-            dragOffsetX = event.getScreenX() - window.getX();
-            dragOffsetY = event.getScreenY() - window.getY();
-        });
+    private void setupTitleBarDrag(HBox titleBar, Stage window, Scene scene) {
+        if (titleBar == null || window == null || scene == null) {
+            return;
+        }
+        titleBar.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> onTitleBarMousePressed(event, window, titleBar));
+        scene.addEventFilter(MouseEvent.MOUSE_DRAGGED, event -> onSceneMouseDragged(event, window, titleBar));
+        scene.addEventFilter(MouseEvent.MOUSE_RELEASED, this::onSceneMouseReleased);
+        titleBar.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> onTitleBarMouseClicked(event, window));
+    }
 
-        titleBar.addEventFilter(MouseEvent.MOUSE_DRAGGED, event -> {
-            if (!isTitleBarActionCandidate(event, window)) {
-                return;
-            }
-            if (window.isMaximized()) {
-                restoreWindowForDrag(window, event, titleBar);
-            }
-            window.setX(event.getScreenX() - dragOffsetX);
-            window.setY(event.getScreenY() - dragOffsetY);
-        });
+    private void onTitleBarMousePressed(MouseEvent event, Stage window, HBox titleBar) {
+        titleBarDragActive = false;
+        if (!isPrimaryTitleBarPress(event, window)) {
+            return;
+        }
+        titleBarDragActive = true;
+        if (window.isMaximized()) {
+            ensureRestoreBounds(window);
+            double width = window.getWidth();
+            double pointerRatio = width > 0 ? event.getX() / width : 0.5;
+            pointerRatio = Math.clamp(pointerRatio, 0.0, 1.0);
+            dragOffsetX = restoreWidth * pointerRatio;
+            double titleBarHeight = titleBar.getHeight() > 0 ? titleBar.getHeight() : 32.0;
+            dragOffsetY = Math.clamp(event.getY(), 0.0, titleBarHeight);
+            return;
+        }
+        dragOffsetX = event.getScreenX() - window.getX();
+        dragOffsetY = event.getScreenY() - window.getY();
+    }
 
-        titleBar.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
-            if (!isTitleBarActionCandidate(event, window)
-                || event.getButton() != MouseButton.PRIMARY
-                || event.getClickCount() != 2) {
-                return;
-            }
-            toggleMaximize(window);
-        });
+    private void onSceneMouseDragged(MouseEvent event, Stage window, HBox titleBar) {
+        if (!titleBarDragActive || resizing) {
+            return;
+        }
+        if (!event.isPrimaryButtonDown()) {
+            titleBarDragActive = false;
+            return;
+        }
+        if (window.isMaximized()) {
+            restoreWindowForDrag(window, event, titleBar);
+        }
+        window.setX(event.getScreenX() - dragOffsetX);
+        window.setY(event.getScreenY() - dragOffsetY);
+    }
+
+    private void onSceneMouseReleased(MouseEvent event) {
+        titleBarDragActive = false;
+    }
+
+    private void onTitleBarMouseClicked(MouseEvent event, Stage window) {
+        if (!isTitleBarActionCandidate(event, window)
+            || event.getButton() != MouseButton.PRIMARY
+            || event.getClickCount() != 2) {
+            return;
+        }
+        toggleMaximize(window);
+    }
+
+    private boolean isPrimaryTitleBarPress(MouseEvent event, Stage window) {
+        return event != null
+            && event.getButton() == MouseButton.PRIMARY
+            && isTitleBarActionCandidate(event, window);
     }
 
     private boolean isTitleBarActionCandidate(MouseEvent event, Stage window) {
