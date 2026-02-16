@@ -6,6 +6,10 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 
 ## Unreleased
 
+No changes yet.
+
+## v0.2.5 - 2026-02-16
+
 ### Build and Test
 - ✅ Added serializer/API regression tests for layout-load failures (`blank`, malformed JSON, missing required fields, invalid tab index), expanded floating-title-bar drag continuity coverage (release/reset + non-primary guards), resize-min/cursor reliability coverage, persistence edge-case coverage for complex floating snapshots plus unknown-node placeholder diagnostics, unsupported-type recovery/custom-fallback coverage (including SnapFX + DemoNodeFactory integration), dock-node-header context-menu dismiss-on-press regression coverage, unresolved floating-sub-layout D&D detach regression coverage, and floating-window snapping coverage (engine scoring, overlap-aware candidate generation, drag edge snapping, adjacent-edge alignment, main-window parity checks including shadow-inset compensation, and API propagation/validation); full suite now runs with 234 tests.
 
