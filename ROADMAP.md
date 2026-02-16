@@ -2,16 +2,25 @@
 
 **Last Updated**: 2026-02-16
 
-This document tracks all planned features, improvements, and bug fixes for SnapFX. Items are marked as they are completed and new features are added as they are identified.
-This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
+This document tracks planned and proposed work for SnapFX.
+This roadmap lists planned work only; completed/fixed history is tracked in `CHANGELOG.md`.
 
-## Version Track
+---
 
-- Version source: `gradle-jgitver` (Git tags + commit distance)
-- Local fallback without tags: `0.0.0-<distance>-<branch>`
-- Current roadmap milestone: `0.3` (User Experience)
-- Latest milestone tag target: `v0.2.0`
-- Next milestone target: `v0.3.0` (Phase 3 baseline)
+## Overall Progress
+
+| Phase | Status | Completion |
+|-------|--------|------------|
+| Phase 1: Core Stability | ✅ Completed | 100% |
+| Phase 2: Floating Windows | ✅ Completed | 100% |
+| Phase 3: User Experience | 🚧 In Progress | 12% |
+| Phase 4: Advanced Features | 📋 Planned | 0% |
+| Phase 5: Themes & Customization | 📋 Planned | 0% |
+| Phase 6: Performance & Polish | 📋 Planned | 0% |
+| Phase 7: Developer Experience | 📋 Planned | 45% |
+| Phase 8: Production Readiness | 📋 Planned | 25% |
+
+**Total Project Completion**: ~66%
 
 ## Legend
 
@@ -23,36 +32,19 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 
 ---
 
-## Overall Progress
-
-| Phase | Status | Completion |
-|-------|--------|------------|
-| Phase 1: Core Stability | ✅ Completed | 100% |
-| Phase 2: Floating Windows | ✅ Completed | 100% |
-| Phase 3: User Experience | 🚧 In Progress | 8% |
-| Phase 4: Advanced Features | 📋 Planned | 0% |
-| Phase 5: Themes & Customization | 📋 Planned | 0% |
-| Phase 6: Performance & Polish | 📋 Planned | 0% |
-| Phase 7: Developer Experience | 📋 Planned | 32% |
-| Phase 8: Production Readiness | 📋 Planned | 20% |
-
-**Total Project Completion**: ~63%
-
----
-
 ## Phase 1: Core Stability
 
 ### 1.1 Drag & Drop Improvements
 **Priority**: 🔴 Critical
 
-- 📋 No planned items; see `STATUS.md` for fixed issues.
+- 📋 No planned items; see `CHANGELOG.md` for completed fixes.
 
 ---
 
 ### 1.2 Debug & Monitoring
 **Priority**: 🟡 High
 
-- 📋 No planned items; see `STATUS.md` for fixed issues.
+- 📋 No planned items; see `CHANGELOG.md` for completed fixes.
 
 ### 1.3 Testing & Quality Assurance  
 **Priority**: 🟡 High
@@ -77,7 +69,7 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 ### 1.5 UI Bug Fixes
 **Priority**: 🟡 High
 
-- 📋 No planned items; see `STATUS.md` for fixed issues.
+- 📋 No planned items; see `CHANGELOG.md` for completed fixes.
 
 ---
 
@@ -319,6 +311,10 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 - ✅ **License wording baseline**: README/SETUP now state MIT licensing and explicit personal/commercial use positioning
 - ✅ **README consumer-focus baseline**: Quick Start now focuses on SnapFX usage, without generic Gradle/module templates or repository workflow sections
 - ✅ **Maintainer docs baseline**: Collaboration/release workflow is now documented in `CONTRIBUTING.md` and `RELEASING.md`
+- ✅ **Versioned changelog baseline**: Historical changes are now consolidated in `CHANGELOG.md` and grouped by release tags
+- ✅ **Status scope baseline**: `STATUS.md` now keeps only current state and open issues; completed/fixed history is maintained in `CHANGELOG.md`
+- ✅ **Roadmap signal baseline**: Overall progress is now the first section, legend follows directly below, and version-track metadata was removed
+- 📋 **Roadmap structure cleanup**: Keep each subsection as one block (`Priority` + open/planned items) and move detailed completed history to `CHANGELOG.md` / `DONE.md`
 - 📋 **API documentation**: Complete JavaDoc
 - 📋 **User guide**: Comprehensive usage guide
 - 📋 **Tutorial series**: Step-by-step tutorials
@@ -416,11 +412,13 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 ## How to Update This Roadmap
 
 1. **Feature Complete**: Change status from 📋 to ✅
+   - Also capture release-relevant details in `CHANGELOG.md` under the correct tag section.
 2. **Started Work**: Change status from 📋 to 🚧
 3. **New Feature**: Add to appropriate phase or Future Ideas
 4. **Priority Change**: Update priority emoji (🔴🟡🟢🔵)
 5. **Blocked**: Change status to ❌ and document reason
 6. **Update Date**: Update "Last Updated" at the top
+   - Recalculate `Overall Progress` phase percentages and `Total Project Completion` when status mix changes.
 
 ---
 

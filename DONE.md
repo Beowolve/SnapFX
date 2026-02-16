@@ -57,7 +57,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (12 test classes, 161 tests)
+### Testing (12 test classes, 162 tests)
 - ✅ `DockGraphTest` (56 tests) - Tree manipulation and algorithms
   - **+11 regression tests** for critical bug fixes
   - Tests for empty container prevention
@@ -79,18 +79,19 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `AboutDialogTest` (2 tests) - About dialog resources and credit link targets
 - ✅ `EditorCloseDecisionPolicyTest` (5 tests) - Deterministic close-decision behavior for dirty editor nodes
 - ✅ `SimpleExampleTest` (2 tests) - Stylesheet resource resolution behavior
-- ✅ `MarkdownDocumentationConsistencyTest` (11 tests) - Documentation consistency guardrails
+- ✅ `MarkdownDocumentationConsistencyTest` (12 tests) - Documentation consistency guardrails
 - ✅ All tests passing ✅
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
 - ✅ Mandatory regression tests for all bug fixes
 
-### Documentation (10 files)
+### Documentation (11 files)
 - ✅ `README.md` - Project overview and quick start
 - ✅ `SETUP.md` - Development environment setup
 - ✅ `ARCHITECTURE.md` - Complete architecture documentation
 - ✅ `STATUS.md` - Current project status
 - ✅ `ROADMAP.md` - Future development plans
 - ✅ `DONE.md` - Completed features (this file)
+- ✅ `CHANGELOG.md` - Versioned release history grouped by tags
 - ✅ `TESTING_POLICY.md` - Stable testing rules and quality gates (policy-only)
 - ✅ `CONTRIBUTING.md` - Collaboration workflow, branch strategy, and PR quality gates
 - ✅ `RELEASING.md` - Maintainer release/versioning/tag and CI release flow
@@ -103,6 +104,11 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ README quick start is now framework-focused and excludes generic Gradle/module setup templates
 - ✅ README no longer includes repository-maintainer workflow sections (Versioning/Branch Strategy/CI/CD)
 - ✅ Removed README maintainer workflow sections are now documented in dedicated `CONTRIBUTING.md` and `RELEASING.md` guides
+- ✅ Historical project changes are now consolidated into `CHANGELOG.md` with release-tag grouping
+- ✅ `STATUS.md` now keeps open issues only; completed/fixed history is maintained in `CHANGELOG.md`
+- ✅ `ROADMAP.md` version-track section removed; overall progress is now first and legend follows directly for faster status scanning
+- ✅ `STATUS.md` wording now avoids historical delta suffixes in current-state bullets (for example `was ...` / `improved from ...`)
+- ✅ `ROADMAP.md` update instructions now include recalculating phase percentages and total completion
 - ✅ Issue tracking consolidated into STATUS.md; ROADMAP lists planned work only
 - ✅ Fixed markdown encoding artifacts (Unicode icon Mojibake) in roadmap/docs content
 - ✅ Documentation scope is now explicit: `STATUS` = current, `ROADMAP` = planned, `DONE` = completed, `TESTING_POLICY` = rules-only
@@ -233,48 +239,6 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **JavaFX Integration**: JavaFX Gradle plugin
 - ✅ **Test Configuration**: JUnit 5 + TestFX setup
 - ✅ **Distribution**: Tar and Zip archives
-
-## 🚀 How to Run
-
-### Requirements
-- Java 21 (LTS) or higher
-- JavaFX 21
-- Gradle 9.0+ (included via wrapper)
-
-### Commands
-
-```bash
-# Build the project
-./gradlew clean build
-
-# Run the demo application
-./gradlew run
-
-# Run the simple example
-./gradlew runSimpleExample
-
-# Run tests
-./gradlew test
-
-# Create distribution
-./gradlew distZip
-```
-
-### IDE Setup
-In IntelliJ IDEA:
-1. Open project folder
-2. Gradle should auto-import
-3. Run `MainDemo.java` → Run (Shift+F10)
-
-## 📊 Statistics
-
-- **Total Java Files**: 38
-- **Production Classes**: 31
-- **Test Classes**: 12
-- **Test Cases**: 161 (all passing ✅)
-- **Lines of Code**: ~3,500+ (estimated)
-- **Documentation**: 10 Core Markdown files
-- **Test Coverage**: ~87% (estimated, improved from ~80%)
 
 ## 🎓 Key Achievements
 

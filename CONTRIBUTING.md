@@ -24,10 +24,12 @@ This guide is for contributors working on framework code, tests, documentation, 
 3. Run tests locally:
    - `./gradlew test`
 4. Update documentation affected by the change.
-5. Keep documentation ownership clear:
+5. For release-relevant changes, add or adjust the `CHANGELOG.md` entry in `Unreleased`.
+6. Keep documentation ownership clear:
    - `STATUS.md` = current state
    - `ROADMAP.md` = planned work
    - `DONE.md` = completed work
+   - `CHANGELOG.md` = versioned historical changes
    - `TESTING_POLICY.md` = stable testing rules
 
 ## Commit Conventions
@@ -44,6 +46,7 @@ This guide is for contributors working on framework code, tests, documentation, 
 - [ ] Tests are added/updated as needed.
 - [ ] `./gradlew test` passes.
 - [ ] `STATUS.md`, `DONE.md`, and `ROADMAP.md` are updated if required.
+- [ ] `CHANGELOG.md` is updated for release-visible changes.
 - [ ] Other affected docs are updated (`README.md`, `SETUP.md`, etc.).
 - [ ] MainDemo visual changes include updated preview image (`docs/images/main-demo.png`) regenerated with `./scripts/update-main-demo-preview.ps1`.
 

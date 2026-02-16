@@ -6,6 +6,7 @@ These instructions are shared for all AI agents working on this workspace.
 - Always add or update unit tests for new behavior, bug fixes, or refactors.
 - Always run unit tests after code changes when possible (`./gradlew test`).
 - Always update `STATUS.md`, `DONE.md`, and `ROADMAP.md` after changes.
+- Keep `CHANGELOG.md` up to date for release-visible changes (`Unreleased` during development, grouped by tags for releases).
 - Update other `*.md` files if the change affects their content or accuracy.
 - Keep changes scoped and avoid unrelated edits.
 - After successful changes, prepare a small, focused commit (stage relevant files and propose a commit message).
@@ -23,6 +24,7 @@ These instructions are shared for all AI agents working on this workspace.
 - Use tag-driven releases (`vX.Y.Z`) as the only release source of truth; do not create tags per commit.
 - Branch workflow policy: while base implementation is ongoing, work directly on `main`; once `develop` exists, integrate features into `develop` and cut release tags from `main` after merge.
 - Status documentation consistency rule: in `STATUS.md`, `DONE.md`, and `ROADMAP.md`, status bullets must always include a status icon prefix (`✅`, `🚧`, `📋`, `💡`, `❌`, `⚠️`), never plain `- Added/Updated/Completed/...`.
+- Change-history rule: `STATUS.md` should stay current-state focused; versioned historical details belong in `CHANGELOG.md`.
 - Markdown encoding rule: preserve UTF-8 and avoid shell text-rewrite commands that can alter Unicode; prefer `apply_patch` for markdown edits.
 - Diff minimization rule: for all file changes, prefer minimal targeted edits and avoid full-file rewrites when smaller diffs are sufficient; only rewrite entire files when explicitly requested or technically required.
 - Unicode escape readability rule: when icon constants use `\u...` notation in code, add an inline comment showing the rendered icon.

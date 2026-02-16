@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MarkdownDocumentationConsistencyTest {
-    private static final List<String> STATUS_DOCS = List.of("STATUS.md", "DONE.md", "ROADMAP.md");
+    private static final List<String> STATUS_DOCS = List.of("STATUS.md", "DONE.md", "ROADMAP.md", "CHANGELOG.md");
 
     private static final String ICON_CHECKMARK = "\u2705"; // ✅
     private static final String ICON_IN_PROGRESS = "\uD83D\uDEA7"; // 🚧
@@ -44,6 +44,7 @@ class MarkdownDocumentationConsistencyTest {
     );
 
     private static final List<String> CHECKMARK_PREFIXES = List.of("- " + ICON_CHECKMARK + " ");
+    private static final List<String> WARNING_PREFIXES = List.of("- " + ICON_WARNING + " ");
 
     @Test
     void testStatusDocumentationContainsNoKnownMojibakeMarkers() throws IOException {
@@ -59,25 +60,30 @@ class MarkdownDocumentationConsistencyTest {
     }
 
     @Test
-    void testStatusMdFixedRecentBulletsUseCheckmarkIcon() throws IOException {
+    void testStatusMdOpenBulletsUseWarningIcon() throws IOException {
         String content = readProjectFile("STATUS.md");
         assertAllBulletsUsePrefixes(
             "STATUS.md",
-            "### Fixed (recent)",
+            "### Open",
             content,
-            CHECKMARK_PREFIXES
+            WARNING_PREFIXES
         );
     }
 
     @Test
-    void testStatusMdExampleRuntimeBulletsUseCheckmarkIcon() throws IOException {
+    void testStatusMdContainsNoDoneChangeLogSections() throws IOException {
         String content = readProjectFile("STATUS.md");
-        assertAllBulletsUsePrefixes(
-            "STATUS.md",
-            "### Example Runtime",
-            content,
-            CHECKMARK_PREFIXES
-        );
+        assertNotContains(content, "### Fixed (recent)", "STATUS.md must not contain fixed history section");
+        assertNotContains(content, "## Latest Changes", "STATUS.md must not contain changelog-style latest changes section");
+        assertNotContains(content, "## Change History", "STATUS.md must not contain changelog history section");
+    }
+
+    @Test
+    void testStatusMdContainsNoHistoricalDeltaSuffixes() throws IOException {
+        String content = readProjectFile("STATUS.md");
+        assertNotContains(content, "(was ", "STATUS.md must not include historical test-count delta suffixes");
+        assertNotContains(content, "improved from ~", "STATUS.md must not include historical coverage delta suffixes");
+        assertNotContains(content, "(Fixed:", "STATUS.md must not include fixed-date history markers");
     }
 
     @Test
@@ -132,9 +138,10 @@ class MarkdownDocumentationConsistencyTest {
 
         assertContains(statusContent, "## Documentation Scope", "STATUS.md missing documentation scope section");
         assertContains(statusContent, "`ROADMAP.md` tracks planned work only.", "STATUS.md missing planned-work ownership note");
+        assertContains(statusContent, "`CHANGELOG.md` tracks versioned historical changes grouped by tags.", "STATUS.md missing changelog ownership note");
         assertContains(
             roadmapContent,
-            "This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.",
+            "This roadmap lists planned work only; completed/fixed history is tracked in `CHANGELOG.md`.",
             "ROADMAP.md missing planned-only ownership statement"
         );
         assertContains(
@@ -148,6 +155,13 @@ class MarkdownDocumentationConsistencyTest {
     void testRoadmapContainsNoRecentChangesSections() throws IOException {
         String content = readProjectFile("ROADMAP.md");
         assertNotContains(content, "## Recent Changes", "ROADMAP.md should not contain recent change logs");
+        assertNotContains(content, "## Version Track", "ROADMAP.md should not contain version-track section");
+        assertNotContains(content, "see `STATUS.md` for fixed issues", "ROADMAP.md should route fixed history to CHANGELOG.md");
+        assertContains(
+            content,
+            "Recalculate `Overall Progress` phase percentages and `Total Project Completion` when status mix changes.",
+            "ROADMAP.md should document progress-percentage update rule"
+        );
     }
 
     @Test
@@ -155,7 +169,8 @@ class MarkdownDocumentationConsistencyTest {
         String content = readProjectFile("README.md");
         assertContains(content, "## Documentation Map", "README.md missing documentation map section");
         assertContains(content, "| `TESTING_POLICY.md` | Stable testing rules and quality gates |", "README.md missing testing policy map row");
-        assertContains(content, "| `STATUS.md` | Current state, open issues, and latest changes |", "README.md missing status map row");
+        assertContains(content, "| `STATUS.md` | Current state and open issues |", "README.md missing status map row");
+        assertContains(content, "| `CHANGELOG.md` | Versioned release history grouped by tags |", "README.md missing changelog map row");
         assertContains(content, "| `CONTRIBUTING.md` | Contribution workflow, branch strategy, and PR checklist |", "README.md missing contributing map row");
         assertContains(content, "| `RELEASING.md` | Maintainer release process, versioning, tags, and CI release flow |", "README.md missing releasing map row");
     }

@@ -27,6 +27,7 @@ Inspect the resolved version:
 - Run full test suite:
   - `./gradlew test`
 - Verify documentation updates for user-visible changes.
+- Ensure `CHANGELOG.md` contains an up-to-date `Unreleased` section for the release scope.
 
 ## Tag and Publish
 
@@ -59,3 +60,4 @@ Optional push using helper:
 
 - Release notes are generated with `git-cliff` (`cliff.toml`).
 - Notes are grouped by commit prefix between tags.
+- Keep `CHANGELOG.md` aligned with tagged releases by moving `Unreleased` entries into the new tag section.

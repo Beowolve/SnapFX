@@ -19,9 +19,10 @@ A high-performance, lightweight JavaFX docking framework that behaves like nativ
 | `README.md` | Entry point, feature overview, and quick start |
 | `SETUP.md` | Local development environment setup |
 | `ARCHITECTURE.md` | Technical architecture and design |
-| `STATUS.md` | Current state, open issues, and latest changes |
+| `STATUS.md` | Current state and open issues |
 | `ROADMAP.md` | Planned work and future priorities |
 | `DONE.md` | Completed milestones and delivered capabilities |
+| `CHANGELOG.md` | Versioned release history grouped by tags |
 | `TESTING_POLICY.md` | Stable testing rules and quality gates |
 | `CONTRIBUTING.md` | Contribution workflow, branch strategy, and PR checklist |
 | `RELEASING.md` | Maintainer release process, versioning, tags, and CI release flow |
@@ -132,47 +133,19 @@ snapFX.loadLayout(json); // Factory recreates nodes from IDs
 
 ## Architecture
 
-### Model Layer
-- `DockElement`: Base interface for all dock elements
-- `DockNode`: Wrapper for dockable nodes
-- `DockContainer`: Interface for containers (SplitPane, TabPane)
-- `DockSplitPane`: Split container with smart flattening
-- `DockTabPane`: Tab container with auto-hide
-- `DockGraph`: Central data structure
-
-### View Layer
-- `DockLayoutEngine`: Converts model -> scene graph
-- `DockNodeView`: Visual representation of a DockNode
-
-### Drag & Drop
-- `DockDragService`: Central D&D service
-- `DockDragData`: Transfer object for D&D operations
-
-### Persistence
-- `DockLayoutSerializer`: JSON serialization/deserialization
-- `DockNodeFactory`: Factory interface for node recreation (cross-session)
+Technical internals and component structure are documented in `ARCHITECTURE.md`.
 
 ## Testing
 
-The framework includes comprehensive tests:
+Run the full test suite:
 
 ```bash
-# Run tests
 ./gradlew test
-
-# With more output
-./gradlew test --info
 ```
 
-Test coverage:
-- Tree manipulation (add/move/remove)
-- Smart flattening
-- Auto-cleanup
-- Serialization/deserialization
-- Layout engine
-- Floating window lifecycle and restore behavior
-- Cross-window drag/drop routing
-- Current test status: **161/161 passing**
+Testing rules and merge gates are defined in `TESTING_POLICY.md`.
+Current health and validation snapshots are tracked in `STATUS.md`.
+Versioned release history per tag is tracked in `CHANGELOG.md`.
 
 ## Demo Application
 
@@ -225,14 +198,7 @@ DockNode tasks = snapFX.dock(tasksList, "Tasks", console, DockPosition.CENTER);
 
 ## Roadmap
 
-- [x] **Core drag & drop**: Hit-testing, zone detection, and tab insert targeting
-- [x] **Floating windows (core)**: External stage lifecycle + custom controls
-- [x] **Floating windows (D&D)**: Main <-> floating docking and multi-node floating layouts
-- [x] **Drag preview**: Snapshot ghost overlay
-- [ ] **Animations**: Smooth transitions
-- [ ] **Keyboard shortcuts**: Layout navigation
-- [ ] **Context menus**: Right-click options
-- [ ] **Perspectives**: Predefined layouts
+Planned work is tracked in `ROADMAP.md`.
 
 ## License
 
@@ -248,37 +214,14 @@ For maintainer release/versioning/tag flow, see `RELEASING.md`.
 
 ## Documentation
 
-Each class is documented. See JavaDoc in the source files.
-
-### Key Concepts
-
-**Smart flattening**: Prevents unnecessary nesting
-```java
-// Automatically optimized:
-SplitPane(H) { SplitPane(H) { A, B }, C }
-// Becomes:
-SplitPane(H) { A, B, C }
-```
-
-**Auto-cleanup**: Empty containers remove themselves automatically
-```java
-// After removing the last tab:
-TabPane { Tab1 } -> Tab1 (TabPane removed)
-```
-
-**Locked mode**: Prevents layout changes
-```java
-snapFX.setLocked(true);
-// No D&D, no close buttons, tabs only visible when >1
-```
+See JavaDoc in the source files and `ARCHITECTURE.md` for detailed framework internals.
 
 ## Technology Stack
 
-- **Java 21** (LTS)
-- **JavaFX 21**
-- **Gson 2.10.1** (JSON)
-- **JUnit 5** (testing)
-- **TestFX 4.0.18** (UI testing)
+- **Java 21+**
+- **JavaFX 21+**
+- **Gson** (JSON serialization)
+- **JUnit 5 / TestFX** (testing)
 - **Gradle** (build)
 
 ## Support

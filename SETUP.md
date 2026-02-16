@@ -118,7 +118,7 @@ For GUI tests with TestFX:
 ### Gradle wrapper missing
 If `gradlew.bat` is missing:
 ```bash
-gradle wrapper --gradle-version 8.5
+gradle wrapper --gradle-version 9.0
 ```
 
 ## Development
