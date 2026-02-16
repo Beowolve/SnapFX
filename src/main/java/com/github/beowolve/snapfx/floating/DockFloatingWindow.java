@@ -218,6 +218,23 @@ public final class DockFloatingWindow {
         return stage != null && stage.isShowing();
     }
 
+    /**
+     * Returns the current scene of this floating window, or {@code null} when not shown.
+     */
+    public Scene getScene() {
+        if (stage == null) {
+            return null;
+        }
+        return stage.getScene();
+    }
+
+    /**
+     * Returns whether the given scene belongs to this floating window.
+     */
+    public boolean ownsScene(Scene scene) {
+        return scene != null && stage != null && stage.getScene() == scene;
+    }
+
     public boolean containsScreenPoint(double screenX, double screenY) {
         if (stage == null || !stage.isShowing() || stage.getScene() == null) {
             return false;

@@ -19,6 +19,8 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
@@ -32,6 +34,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.event.EventHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,6 +72,8 @@ public class DockDragService {
     private Consumer<DragHoverEvent> onDragHover;
     private Runnable onDragFinished;
     private BiPredicate<Double, Double> suppressMainDropAtScreenPoint;
+    private final EventHandler<KeyEvent> dragCancelKeyHandler = this::handleDragCancelKeyPressed;
+    private final List<Scene> dragCancelScenes = new ArrayList<>();
 
     public DockDragService(DockGraph dockGraph) {
         this.dockGraph = dockGraph;
@@ -227,6 +232,11 @@ public class DockDragService {
         currentDrag = new DockDragData(node);
         currentDrag.setMouseX(dragStartX);
         currentDrag.setMouseY(dragStartY);
+        Scene sourceScene = null;
+        if (event.getSource() instanceof Node sourceNode) {
+            sourceScene = sourceNode.getScene();
+        }
+        registerDragCancelKeyHandlers(sourceScene);
     }
 
     /**
@@ -453,6 +463,7 @@ public class DockDragService {
 
         // If threshold was never exceeded, this was just a click - cancel drag
         if (!dragThresholdExceeded) {
+            unregisterDragCancelKeyHandlers();
             currentDrag = null;
             if (onDragFinished != null) {
                 onDragFinished.run();
@@ -486,6 +497,7 @@ public class DockDragService {
             requestFloatDetach(dragged, event.getScreenX(), event.getScreenY());
         }
 
+        unregisterDragCancelKeyHandlers();
         currentDrag = null;
         dragThresholdExceeded = false;
         currentDragProperty.set(null);
@@ -512,6 +524,7 @@ public class DockDragService {
             dropZonesOverlay.hide();
         }
 
+        unregisterDragCancelKeyHandlers();
         currentDrag = null;
         dragThresholdExceeded = false;
         currentDragProperty.set(null);
@@ -888,5 +901,39 @@ public class DockDragService {
     }
 
     public record DragHoverEvent(DockNode draggedNode, double screenX, double screenY) {
+    }
+
+    private void registerDragCancelKeyHandlers(Scene sourceScene) {
+        unregisterDragCancelKeyHandlers();
+        addDragCancelKeyHandler(sourceScene);
+        if (mainStage != null && mainStage.getScene() != null) {
+            addDragCancelKeyHandler(mainStage.getScene());
+        }
+        if (ghostStage != null && ghostStage.getScene() != null) {
+            addDragCancelKeyHandler(ghostStage.getScene());
+        }
+    }
+
+    private void addDragCancelKeyHandler(Scene scene) {
+        if (scene == null || dragCancelScenes.contains(scene)) {
+            return;
+        }
+        scene.addEventFilter(KeyEvent.KEY_PRESSED, dragCancelKeyHandler);
+        dragCancelScenes.add(scene);
+    }
+
+    private void unregisterDragCancelKeyHandlers() {
+        for (Scene scene : new ArrayList<>(dragCancelScenes)) {
+            scene.removeEventFilter(KeyEvent.KEY_PRESSED, dragCancelKeyHandler);
+        }
+        dragCancelScenes.clear();
+    }
+
+    private void handleDragCancelKeyPressed(KeyEvent event) {
+        if (event == null || event.getCode() != KeyCode.ESCAPE || currentDrag == null) {
+            return;
+        }
+        cancelDrag();
+        event.consume();
     }
 }

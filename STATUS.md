@@ -5,7 +5,7 @@
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 162 tests passing (latest full suite)  
+✅ **Tests**: All 174 tests passing (latest full suite)  
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully  
 ✅ **CI Automation**: GitHub Actions workflows added for push/PR tests and tag-triggered releases  
@@ -54,6 +54,7 @@
 - ✅ Ghost overlay stays visible outside the main window (transparent utility stage)
 - ✅ Unresolved drops always trigger floating fallback (not only outside main scene)
 - ✅ Main layout drops accept drags originating from floating windows
+- ✅ Escape cancels active drag reliably, including while the mouse button remains pressed
 
 ### Persistence (100% ✅)
 - ✅ JSON serialization (Gson)
@@ -69,6 +70,12 @@
 - ✅ Disable drag & drop when locked
 - ✅ Hide close buttons
 - ✅ Tab auto-hide (single tab)
+
+### Keyboard Shortcuts (Framework Baseline ✅)
+- ✅ Configurable shortcut API in `SnapFX` (`setShortcut`, `clearShortcut`, `resetShortcutsToDefaults`, `getShortcuts`)
+- ✅ Default framework shortcuts: `Ctrl+W` (close active node), `Ctrl+Tab` (next tab), `Ctrl+Shift+Tab` (previous tab), `Escape` (cancel drag), `Ctrl+Shift+P` (toggle active floating always-on-top)
+- ✅ `Ctrl+Shift+P` now resolves the active floating window and works from both main and floating scenes
+- ✅ MainDemo provides app-level `F11` fullscreen shortcut example (outside framework defaults)
 
 ### Hidden Nodes Manager (100% ✅)
 - ✅ Close nodes without deletion
@@ -117,16 +124,16 @@
 - ✅ DockGraphTest (56 tests, +11 regression tests)
 - ✅ DockLayoutSerializerTest (9 tests, +1 regression test)
 - ✅ DockLayoutEngineTest (22 tests)
-- ✅ **SnapFXTest (35 tests)** - Hide/Restore + Floating Window API tests
+- ✅ **SnapFXTest (44 tests)** - Hide/Restore + Floating Window API tests plus configurable shortcut behavior
 - ✅ DockGraphSplitTargetDockingTest (1 test)
-- ✅ DockDragServiceTest (6 tests)
+- ✅ DockDragServiceTest (8 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, and ESC drag-cancel handling
 - ✅ DockFloatingWindowTest (8 tests) - Floating title bar controls, pin behavior, and maximize/restore interaction behavior
-- ✅ MainDemoTest (4 tests) - Demo app icon resource wiring and menu icon behavior
+- ✅ MainDemoTest (5 tests) - Demo app icon resource wiring, menu icon behavior, and demo shortcut wiring
 - ✅ EditorCloseDecisionPolicyTest (5 tests) - Deterministic close-decision policy checks
 - ✅ SimpleExampleTest (2 tests) - Stylesheet resource resolution behavior
 - ✅ MarkdownDocumentationConsistencyTest (12 tests) - Markdown consistency guardrails
 - ✅ AboutDialogTest (2 tests) - About dialog branding resources and credit link targets
-- ✅ **162/162 tests passing** ✅
+- ✅ **174/174 tests passing** ✅
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Edge case tests** (null inputs, detached nodes, invalid move targets, no-op revision checks)
@@ -164,14 +171,13 @@
 - ⚠️ Performance: Benchmark trend tracking for large layouts not implemented
 - ⚠️ Memory: Automated heap profiling in CI not implemented
 - ⚠️ UI: Global interaction animations missing (only About dialog easter egg animation exists; tracked in `ROADMAP.md` Phase 3.3)
-- ⚠️ UI: Keyboard shortcuts not implemented (tracked in `ROADMAP.md` Phase 3.1)
 - ⚠️ UI: Context menus for advanced actions (including floating always-on-top toggle) not implemented (tracked in `ROADMAP.md` Phase 3.2)
 
 ## Next Steps
 
 See [ROADMAP.md](ROADMAP.md) for detailed future development plans.
 
-**Priority**: Continue Phase 3 user-experience backlog (shortcuts, context menus, interaction polish).
+**Priority**: Continue Phase 3 user-experience backlog (context menus and interaction polish).
 
 ---
 

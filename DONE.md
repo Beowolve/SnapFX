@@ -6,7 +6,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 
 ## ✅ What Has Been Completed
 
-### Core Framework (22 classes)
+### Core Framework (23 classes)
 
 #### Model Layer (7 classes)
 - ✅ `DockGraph` - Central data structure for the docking system
@@ -40,10 +40,12 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `Color-coded entries` - Visual differentiation of event types
 - ✅ `Export integration` - Log included in snapshot export
 
-#### API (2 classes)
+#### API (3 classes)
 - ✅ `SnapFX` - Main facade providing simple, fluent API
+- ✅ `DockShortcutAction` - Built-in framework shortcut action enum (`CLOSE_ACTIVE_NODE`, `NEXT_TAB`, `PREVIOUS_TAB`, `CANCEL_DRAG`, `TOGGLE_ACTIVE_FLOATING_ALWAYS_ON_TOP`)
 - ✅ `DockFloatingWindow` - Floating dock host with custom title bar, resize handling, and subtree support
 - ✅ Split ratio API in `SnapFX` (`setRootSplitRatios(...)`, `setSplitRatios(...)`)
+- ✅ Configurable shortcut API in `SnapFX` (`setShortcut(...)`, `clearShortcut(...)`, `resetShortcutsToDefaults(...)`, `getShortcuts()`)
 
 #### Demo (4 classes)
 - ✅ `MainDemo` - Full IDE-like layout with all features
@@ -57,7 +59,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (12 test classes, 162 tests)
+### Testing (12 test classes, 174 tests)
 - ✅ `DockGraphTest` (56 tests) - Tree manipulation and algorithms
   - **+11 regression tests** for critical bug fixes
   - Tests for empty container prevention
@@ -71,11 +73,11 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `DockLayoutEngineTest` (22 tests) - View creation with TestFX
   - Memory cleanup tests for cache boundedness and undock/rebuild cycles
   - Layout optimization tests for empty/single-child roots
-- ✅ `SnapFXTest` (35 tests) - Hide/Restore + Floating Window API behavior
+- ✅ `SnapFXTest` (44 tests) - Hide/Restore + Floating Window API behavior plus configurable shortcut behavior
 - ✅ `DockGraphSplitTargetDockingTest` (1 test) - Split-target docking regression coverage
-- ✅ `DockDragServiceTest` (6 tests) - D&D visibility, tab-hover activation, and float-detach callback behavior
+- ✅ `DockDragServiceTest` (8 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, and ESC drag-cancel handling
 - ✅ `DockFloatingWindowTest` (8 tests) - Floating title-bar controls, pin behavior, and maximize/restore interaction behavior
-- ✅ `MainDemoTest` (4 tests) - Application icon resources, menu icon copy behavior, and wiring
+- ✅ `MainDemoTest` (5 tests) - Application icon resources, menu icon behavior, and demo shortcut wiring
 - ✅ `AboutDialogTest` (2 tests) - About dialog resources and credit link targets
 - ✅ `EditorCloseDecisionPolicyTest` (5 tests) - Deterministic close-decision behavior for dirty editor nodes
 - ✅ `SimpleExampleTest` (2 tests) - Stylesheet resource resolution behavior
@@ -161,6 +163,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **Global Ghost Overlay**: Visible across window boundaries via transparent utility stage
 - ✅ **Ghost Overlay Offset**: Positioned away from cursor to keep drop targets visible
 - ✅ **Unresolved Drop Fallback**: Non-drop-zone releases trigger floating behavior
+- ✅ **Escape Drag Cancel Reliability**: Active drag now cancels reliably even while mouse is still held
 - ✅ **Cross-Window D&D**: Dock between main layout and floating windows
 - ✅ **Topmost-surface D&D targeting**: For overlapping floating/main windows, preview and drop resolve only on the frontmost surface under the cursor
 - ✅ **Floating lock-state control parity**: Floating title-bar controls hide in lock mode and floating window close is blocked while locked
@@ -253,7 +256,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 ### User Experience
 - ✅ Intuitive drag & drop
 - ✅ Visual feedback
-- ✅ Keyboard-friendly (partially)
+- ✅ Keyboard-friendly baseline: framework shortcut API with defaults (`Ctrl+W`, `Ctrl+Tab`, `Ctrl+Shift+Tab`, `Escape`, `Ctrl+Shift+P`) plus app-level `F11` fullscreen example in MainDemo
 - ✅ Native look and feel
 - ✅ Debug tools for troubleshooting
 
@@ -268,7 +271,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 
 See [ROADMAP.md](ROADMAP.md) for planned features and improvements.
 
-**Current Priority**: Focus on Phase 3 user-experience backlog (shortcuts, context menus, interaction polish).
+**Current Priority**: Focus on Phase 3 user-experience backlog (context menus and interaction polish).
 
 ---
 

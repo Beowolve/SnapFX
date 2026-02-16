@@ -24,18 +24,32 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import com.github.beowolve.snapfx.view.DockCloseButtonMode;
 import com.github.beowolve.snapfx.view.DockLayoutEngine;
+import com.github.beowolve.snapfx.view.DockNodeView;
 import com.github.beowolve.snapfx.view.DockTitleBarMode;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -53,13 +67,38 @@ public class SnapFX {
     private static final String SNAPSHOT_FLOATING_WIDTH_KEY = "width";
     private static final String SNAPSHOT_FLOATING_HEIGHT_KEY = "height";
     private static final String SNAPSHOT_FLOATING_ALWAYS_ON_TOP_KEY = "alwaysOnTop";
+    private static final KeyCombination DEFAULT_SHORTCUT_CLOSE_ACTIVE_NODE = new KeyCodeCombination(
+        KeyCode.W,
+        KeyCombination.SHORTCUT_DOWN
+    );
+    private static final KeyCombination DEFAULT_SHORTCUT_NEXT_TAB = new KeyCodeCombination(
+        KeyCode.TAB,
+        KeyCombination.SHORTCUT_DOWN
+    );
+    private static final KeyCombination DEFAULT_SHORTCUT_PREVIOUS_TAB = new KeyCodeCombination(
+        KeyCode.TAB,
+        KeyCombination.SHORTCUT_DOWN,
+        KeyCombination.SHIFT_DOWN
+    );
+    private static final KeyCombination DEFAULT_SHORTCUT_CANCEL_DRAG = new KeyCodeCombination(KeyCode.ESCAPE);
+    private static final KeyCombination DEFAULT_SHORTCUT_TOGGLE_ACTIVE_FLOATING_PIN = new KeyCodeCombination(
+        KeyCode.P,
+        KeyCombination.SHORTCUT_DOWN,
+        KeyCombination.SHIFT_DOWN
+    );
 
     private final DockGraph dockGraph;
     private final DockLayoutEngine layoutEngine;
     private final DockDragService dragService;
     private final DockLayoutSerializer serializer;
+    private final EnumMap<DockShortcutAction, KeyCombination> shortcuts;
+    private final EventHandler<KeyEvent> shortcutKeyEventFilter;
+    private final ChangeListener<Scene> rootContainerSceneListener;
+    private final Map<DockFloatingWindow, Scene> floatingShortcutScenes;
     private Stage primaryStage;
     private DockNodeFactory nodeFactory;
+    private Scene shortcutScene;
+    private DockFloatingWindow activeFloatingWindow;
 
     // Hidden nodes (removed from layout but not destroyed)
     private final ObservableList<DockNode> hiddenNodes;
@@ -82,9 +121,14 @@ public class SnapFX {
         this.dragService = new DockDragService(dockGraph);
         this.layoutEngine = new DockLayoutEngine(dockGraph, dragService);
         this.serializer = new DockLayoutSerializer(dockGraph);
+        this.shortcuts = new EnumMap<>(DockShortcutAction.class);
+        this.shortcutKeyEventFilter = this::handleShortcutKeyPressed;
+        this.rootContainerSceneListener = (obs, oldScene, newScene) -> rebindShortcutScene(newScene);
+        this.floatingShortcutScenes = new HashMap<>();
         this.hiddenNodes = FXCollections.observableArrayList();
         this.floatingWindows = FXCollections.observableArrayList();
         this.readOnlyFloatingWindows = FXCollections.unmodifiableObservableList(floatingWindows);
+        resetShortcutsToDefaults();
         this.layoutEngine.setOnNodeCloseRequest(this::handleDockNodeCloseRequest);
         this.layoutEngine.setOnNodeFloatRequest(node -> floatNode(node));
         this.dragService.setOnDropRequest(this::handleResolvedDropRequest);
@@ -119,6 +163,7 @@ public class SnapFX {
         dragService.setLayoutEngine(layoutEngine);
         for (DockFloatingWindow floatingWindow : floatingWindows) {
             floatingWindow.show(primaryStage);
+            bindFloatingShortcutScene(floatingWindow);
         }
     }
 
@@ -173,12 +218,14 @@ public class SnapFX {
         // Wrap in a container that we can update
         if (rootContainer == null) {
             rootContainer = new StackPane();
+            rootContainer.sceneProperty().addListener(rootContainerSceneListener);
         }
 
         rootContainer.getChildren().clear();
         if (layout != null) {
             rootContainer.getChildren().add(layout);
         }
+        rebindShortcutScene(rootContainer.getScene());
 
         return rootContainer;
     }
@@ -199,6 +246,392 @@ public class SnapFX {
         if (rootContainer != null) {
             Platform.runLater(this::rebuildRootView);
         }
+    }
+
+    /**
+     * Restores the default framework shortcut mapping.
+     *
+     * <p>Default bindings:</p>
+     * <ul>
+     *   <li>{@code Ctrl+W}: {@link DockShortcutAction#CLOSE_ACTIVE_NODE}</li>
+     *   <li>{@code Ctrl+Tab}: {@link DockShortcutAction#NEXT_TAB}</li>
+     *   <li>{@code Ctrl+Shift+Tab}: {@link DockShortcutAction#PREVIOUS_TAB}</li>
+     *   <li>{@code Escape}: {@link DockShortcutAction#CANCEL_DRAG}</li>
+     *   <li>{@code Ctrl+Shift+P}: {@link DockShortcutAction#TOGGLE_ACTIVE_FLOATING_ALWAYS_ON_TOP}</li>
+     * </ul>
+     */
+    public void resetShortcutsToDefaults() {
+        shortcuts.clear();
+        shortcuts.put(DockShortcutAction.CLOSE_ACTIVE_NODE, DEFAULT_SHORTCUT_CLOSE_ACTIVE_NODE);
+        shortcuts.put(DockShortcutAction.NEXT_TAB, DEFAULT_SHORTCUT_NEXT_TAB);
+        shortcuts.put(DockShortcutAction.PREVIOUS_TAB, DEFAULT_SHORTCUT_PREVIOUS_TAB);
+        shortcuts.put(DockShortcutAction.CANCEL_DRAG, DEFAULT_SHORTCUT_CANCEL_DRAG);
+        shortcuts.put(DockShortcutAction.TOGGLE_ACTIVE_FLOATING_ALWAYS_ON_TOP, DEFAULT_SHORTCUT_TOGGLE_ACTIVE_FLOATING_PIN);
+    }
+
+    /**
+     * Assigns or removes a key binding for a built-in shortcut action.
+     *
+     * @param action Shortcut action to configure
+     * @param keyCombination Key combination to assign, or {@code null} to remove the binding
+     */
+    public void setShortcut(DockShortcutAction action, KeyCombination keyCombination) {
+        if (action == null) {
+            return;
+        }
+        if (keyCombination == null) {
+            shortcuts.remove(action);
+            return;
+        }
+
+        shortcuts.entrySet().removeIf(entry ->
+            entry.getKey() != action && entry.getValue().equals(keyCombination)
+        );
+        shortcuts.put(action, keyCombination);
+    }
+
+    /**
+     * Removes the key binding for a shortcut action.
+     */
+    public void clearShortcut(DockShortcutAction action) {
+        setShortcut(action, null);
+    }
+
+    /**
+     * Returns the configured key binding for a shortcut action.
+     */
+    public KeyCombination getShortcut(DockShortcutAction action) {
+        if (action == null) {
+            return null;
+        }
+        return shortcuts.get(action);
+    }
+
+    /**
+     * Returns a snapshot of all currently configured shortcut bindings.
+     */
+    public Map<DockShortcutAction, KeyCombination> getShortcuts() {
+        return Collections.unmodifiableMap(new EnumMap<>(shortcuts));
+    }
+
+    private void rebindShortcutScene(Scene scene) {
+        if (shortcutScene == scene) {
+            return;
+        }
+        if (shortcutScene != null) {
+            shortcutScene.removeEventFilter(KeyEvent.KEY_PRESSED, shortcutKeyEventFilter);
+        }
+        shortcutScene = scene;
+        if (shortcutScene != null) {
+            shortcutScene.addEventFilter(KeyEvent.KEY_PRESSED, shortcutKeyEventFilter);
+        }
+    }
+
+    private void bindFloatingShortcutScene(DockFloatingWindow floatingWindow) {
+        if (floatingWindow == null) {
+            return;
+        }
+        Scene scene = floatingWindow.getScene();
+        Scene previousScene = floatingShortcutScenes.get(floatingWindow);
+        if (previousScene == scene) {
+            return;
+        }
+        if (previousScene != null) {
+            previousScene.removeEventFilter(KeyEvent.KEY_PRESSED, shortcutKeyEventFilter);
+        }
+        if (scene == null) {
+            floatingShortcutScenes.remove(floatingWindow);
+            return;
+        }
+        scene.addEventFilter(KeyEvent.KEY_PRESSED, shortcutKeyEventFilter);
+        floatingShortcutScenes.put(floatingWindow, scene);
+    }
+
+    private void unbindFloatingShortcutScene(DockFloatingWindow floatingWindow) {
+        if (floatingWindow == null) {
+            return;
+        }
+        Scene scene = floatingShortcutScenes.remove(floatingWindow);
+        if (scene == null) {
+            return;
+        }
+        scene.removeEventFilter(KeyEvent.KEY_PRESSED, shortcutKeyEventFilter);
+    }
+
+    private void handleShortcutKeyPressed(KeyEvent event) {
+        if (event == null || event.getEventType() != KeyEvent.KEY_PRESSED) {
+            return;
+        }
+        DockShortcutAction action = resolveShortcutAction(event);
+        if (action == null) {
+            return;
+        }
+        if (executeShortcutAction(action, event.getTarget())) {
+            event.consume();
+        }
+    }
+
+    private DockShortcutAction resolveShortcutAction(KeyEvent event) {
+        for (Map.Entry<DockShortcutAction, KeyCombination> entry : shortcuts.entrySet()) {
+            KeyCombination combination = entry.getValue();
+            if (combination != null && combination.match(event)) {
+                return entry.getKey();
+            }
+        }
+        return null;
+    }
+
+    boolean executeShortcutAction(DockShortcutAction action, Object eventTarget) {
+        if (action == null) {
+            return false;
+        }
+        return switch (action) {
+            case CLOSE_ACTIVE_NODE -> closeActiveDockNode(eventTarget);
+            case NEXT_TAB -> selectTabRelative(1, eventTarget);
+            case PREVIOUS_TAB -> selectTabRelative(-1, eventTarget);
+            case CANCEL_DRAG -> cancelActiveDrag();
+            case TOGGLE_ACTIVE_FLOATING_ALWAYS_ON_TOP -> toggleActiveFloatingAlwaysOnTop(eventTarget);
+        };
+    }
+
+    private boolean closeActiveDockNode(Object eventTarget) {
+        if (dockGraph.isLocked()) {
+            return false;
+        }
+        DockNode activeNode = resolveActiveDockNode(eventTarget);
+        if (activeNode == null || !activeNode.isCloseable()) {
+            return false;
+        }
+        handleDockNodeCloseRequest(activeNode, DockCloseSource.TITLE_BAR);
+        return true;
+    }
+
+    private boolean selectTabRelative(int direction, Object eventTarget) {
+        TabPane activeTabPane = resolveActiveTabPane(eventTarget);
+        if (activeTabPane == null || activeTabPane.getTabs().size() < 2) {
+            return false;
+        }
+
+        int tabCount = activeTabPane.getTabs().size();
+        int selectedIndex = activeTabPane.getSelectionModel().getSelectedIndex();
+        if (selectedIndex < 0) {
+            selectedIndex = 0;
+        }
+        int nextIndex = Math.floorMod(selectedIndex + direction, tabCount);
+        activeTabPane.getSelectionModel().select(nextIndex);
+
+        Tab selectedTab = activeTabPane.getSelectionModel().getSelectedItem();
+        if (selectedTab != null && selectedTab.getContent() != null) {
+            selectedTab.getContent().requestFocus();
+        }
+        return true;
+    }
+
+    private boolean cancelActiveDrag() {
+        if (!dragService.isDragging()) {
+            return false;
+        }
+        dragService.cancelDrag();
+        return true;
+    }
+
+    private boolean toggleActiveFloatingAlwaysOnTop(Object eventTarget) {
+        DockFloatingWindow activeWindow = resolveActiveFloatingWindow(eventTarget);
+        if (activeWindow == null) {
+            return false;
+        }
+        activeWindow.setAlwaysOnTop(!activeWindow.isAlwaysOnTop(), DockFloatingPinSource.API);
+        return true;
+    }
+
+    private DockNode resolveActiveDockNode(Object eventTarget) {
+        Node targetNode = resolveNodeFromEventTarget(eventTarget);
+        DockNode nodeFromTarget = resolveDockNodeFromHierarchy(targetNode);
+        if (nodeFromTarget != null) {
+            return nodeFromTarget;
+        }
+
+        Node focusedNode = resolveFocusedNode(eventTarget);
+        DockNode nodeFromFocus = resolveDockNodeFromHierarchy(focusedNode);
+        if (nodeFromFocus != null) {
+            return nodeFromFocus;
+        }
+
+        return resolveSelectedDockNode(dockGraph.getRoot());
+    }
+
+    private DockNode resolveDockNodeFromHierarchy(Node node) {
+        Node current = node;
+        while (current != null) {
+            if (current instanceof DockNodeView dockNodeView) {
+                return dockNodeView.getDockNode();
+            }
+            if (current instanceof TabPane tabPane) {
+                DockNode selectedNode = resolveDockNodeFromSelectedTab(tabPane);
+                if (selectedNode != null) {
+                    return selectedNode;
+                }
+            }
+            current = current.getParent();
+        }
+        return null;
+    }
+
+    private DockNode resolveDockNodeFromSelectedTab(TabPane tabPane) {
+        if (tabPane == null) {
+            return null;
+        }
+        Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
+        if (selectedTab == null) {
+            return null;
+        }
+        Object tabNode = selectedTab.getProperties().get(DockLayoutEngine.TAB_DOCK_NODE_KEY);
+        if (tabNode instanceof DockNode dockNode) {
+            return dockNode;
+        }
+        if (selectedTab.getContent() != null) {
+            return resolveDockNodeFromHierarchy(selectedTab.getContent());
+        }
+        return null;
+    }
+
+    private DockNode resolveSelectedDockNode(DockElement element) {
+        if (element == null) {
+            return null;
+        }
+        if (element instanceof DockNode dockNode) {
+            return dockNode;
+        }
+        if (element instanceof DockTabPane tabPane) {
+            if (tabPane.getChildren().isEmpty()) {
+                return null;
+            }
+            int selectedIndex = Math.clamp(tabPane.getSelectedIndex(), 0, tabPane.getChildren().size() - 1);
+            return resolveSelectedDockNode(tabPane.getChildren().get(selectedIndex));
+        }
+        if (element instanceof DockContainer container && !container.getChildren().isEmpty()) {
+            return resolveSelectedDockNode(container.getChildren().getFirst());
+        }
+        return null;
+    }
+
+    private TabPane resolveActiveTabPane(Object eventTarget) {
+        Node targetNode = resolveNodeFromEventTarget(eventTarget);
+        TabPane tabPaneFromTarget = findTabPaneInHierarchy(targetNode);
+        if (tabPaneFromTarget != null) {
+            return tabPaneFromTarget;
+        }
+
+        Node focusedNode = resolveFocusedNode(eventTarget);
+        TabPane tabPaneFromFocus = findTabPaneInHierarchy(focusedNode);
+        if (tabPaneFromFocus != null) {
+            return tabPaneFromFocus;
+        }
+
+        return findFirstTabPane(rootContainer);
+    }
+
+    private Node resolveNodeFromEventTarget(Object eventTarget) {
+        if (eventTarget instanceof Node node) {
+            return node;
+        }
+        if (eventTarget instanceof Scene scene) {
+            return scene.getFocusOwner();
+        }
+        return null;
+    }
+
+    private Node resolveFocusedNode(Object eventTarget) {
+        if (eventTarget instanceof Node node && node.getScene() != null) {
+            return node.getScene().getFocusOwner();
+        }
+        if (eventTarget instanceof Scene scene) {
+            return scene.getFocusOwner();
+        }
+        if (shortcutScene != null) {
+            return shortcutScene.getFocusOwner();
+        }
+        return null;
+    }
+
+    private DockFloatingWindow resolveActiveFloatingWindow(Object eventTarget) {
+        DockFloatingWindow fromEventScene = resolveFloatingWindowByScene(resolveSceneFromEventTarget(eventTarget));
+        if (fromEventScene != null) {
+            return fromEventScene;
+        }
+
+        DockFloatingWindow fromFocusedScene = resolveFloatingWindowByScene(resolveSceneFromNode(resolveFocusedNode(eventTarget)));
+        if (fromFocusedScene != null) {
+            return fromFocusedScene;
+        }
+
+        if (activeFloatingWindow != null && floatingWindows.contains(activeFloatingWindow)) {
+            return activeFloatingWindow;
+        }
+
+        if (floatingWindows.isEmpty()) {
+            return null;
+        }
+        return floatingWindows.getLast();
+    }
+
+    private DockFloatingWindow resolveFloatingWindowByScene(Scene scene) {
+        if (scene == null || floatingWindows.isEmpty()) {
+            return null;
+        }
+        for (DockFloatingWindow floatingWindow : floatingWindows) {
+            if (floatingWindow != null && floatingWindow.ownsScene(scene)) {
+                return floatingWindow;
+            }
+        }
+        return null;
+    }
+
+    private Scene resolveSceneFromEventTarget(Object eventTarget) {
+        if (eventTarget instanceof Scene scene) {
+            return scene;
+        }
+        if (eventTarget instanceof Node node) {
+            return node.getScene();
+        }
+        return null;
+    }
+
+    private Scene resolveSceneFromNode(Node node) {
+        if (node == null) {
+            return null;
+        }
+        return node.getScene();
+    }
+
+    private TabPane findTabPaneInHierarchy(Node node) {
+        Node current = node;
+        while (current != null) {
+            if (current instanceof TabPane tabPane) {
+                return tabPane;
+            }
+            current = current.getParent();
+        }
+        return null;
+    }
+
+    private TabPane findFirstTabPane(Node root) {
+        if (root == null) {
+            return null;
+        }
+        if (root instanceof TabPane tabPane) {
+            return tabPane;
+        }
+        if (!(root instanceof Parent parent)) {
+            return null;
+        }
+        for (Node child : parent.getChildrenUnmodifiable()) {
+            TabPane childTabPane = findFirstTabPane(child);
+            if (childTabPane != null) {
+                return childTabPane;
+            }
+        }
+        return null;
     }
 
     /**
@@ -281,8 +714,7 @@ public class SnapFX {
             floatingWindow.undockNode(node);
             node.setHiddenRestoreTarget(DockNode.HiddenRestoreTarget.FLOATING);
             if (floatingWindow.isEmpty()) {
-                floatingWindows.remove(floatingWindow);
-                floatingWindow.closeWithoutNotification();
+                removeFloatingWindowSilently(floatingWindow);
             }
         } else if (isInGraph(node)) {
             rememberLastKnownPlacement(node);
@@ -309,8 +741,7 @@ public class SnapFX {
             rememberFloatingBoundsForNodes(floatingWindow);
             floatingWindow.undockNode(node);
             if (floatingWindow.isEmpty()) {
-                floatingWindows.remove(floatingWindow);
-                floatingWindow.closeWithoutNotification();
+                removeFloatingWindowSilently(floatingWindow);
             }
             return;
         }
@@ -364,6 +795,8 @@ public class SnapFX {
         if (existingWindow != null) {
             existingWindow.setPreferredPosition(screenX, screenY);
             existingWindow.show(primaryStage);
+            bindFloatingShortcutScene(existingWindow);
+            activeFloatingWindow = existingWindow;
             return existingWindow;
         }
 
@@ -378,8 +811,7 @@ public class SnapFX {
             if (sourceFloatingWindow != null) {
                 sourceFloatingWindow.undockNode(node);
                 if (sourceFloatingWindow.isEmpty()) {
-                    floatingWindows.remove(sourceFloatingWindow);
-                    sourceFloatingWindow.closeWithoutNotification();
+                    removeFloatingWindowSilently(sourceFloatingWindow);
                 }
             }
         }
@@ -400,7 +832,9 @@ public class SnapFX {
         floatingWindows.add(floatingWindow);
         if (primaryStage != null) {
             floatingWindow.show(primaryStage);
+            bindFloatingShortcutScene(floatingWindow);
         }
+        activeFloatingWindow = floatingWindow;
         return floatingWindow;
     }
 
@@ -412,6 +846,10 @@ public class SnapFX {
             return;
         }
 
+        unbindFloatingShortcutScene(floatingWindow);
+        if (activeFloatingWindow == floatingWindow) {
+            activeFloatingWindow = null;
+        }
         floatingWindow.closeWithoutNotification();
         rememberFloatingBoundsForNodes(floatingWindow);
 
@@ -460,8 +898,7 @@ public class SnapFX {
         sourceWindow.undockNode(draggedNode);
         if (sourceWindow.isEmpty()) {
             rememberFloatingBoundsForNodes(sourceWindow);
-            floatingWindows.remove(sourceWindow);
-            sourceWindow.closeWithoutNotification();
+            removeFloatingWindowSilently(sourceWindow);
         }
 
         dockGraph.dock(draggedNode, request.target(), request.position(), request.tabIndex());
@@ -537,8 +974,7 @@ public class SnapFX {
             rememberFloatingBoundsForNodes(sourceWindow);
             sourceWindow.undockNode(node);
             if (sourceWindow.isEmpty()) {
-                floatingWindows.remove(sourceWindow);
-                sourceWindow.closeWithoutNotification();
+                removeFloatingWindowSilently(sourceWindow);
             }
         }
 
@@ -554,8 +990,18 @@ public class SnapFX {
         }
         floatingWindow.setOnAttachRequested(() -> attachFloatingWindow(floatingWindow));
         floatingWindow.setOnCloseRequested(() -> handleFloatingWindowCloseRequested(floatingWindow));
-        floatingWindow.setOnWindowClosed(this::handleFloatingWindowClosed);
-        floatingWindow.setOnWindowActivated(() -> promoteFloatingWindowToFront(floatingWindow));
+        floatingWindow.setOnWindowClosed(window -> {
+            unbindFloatingShortcutScene(window);
+            if (activeFloatingWindow == window) {
+                activeFloatingWindow = null;
+            }
+            handleFloatingWindowClosed(window);
+        });
+        floatingWindow.setOnWindowActivated(() -> {
+            bindFloatingShortcutScene(floatingWindow);
+            activeFloatingWindow = floatingWindow;
+            promoteFloatingWindowToFront(floatingWindow);
+        });
         floatingWindow.setOnNodeCloseRequest(this::handleDockNodeCloseRequest);
         floatingWindow.setOnNodeFloatRequest(this::floatNodeFromFloatingLayout);
         floatingWindow.setOnAlwaysOnTopChanged((alwaysOnTop, source) ->
@@ -618,8 +1064,7 @@ public class SnapFX {
         rememberFloatingBoundsForNodes(sourceWindow);
         sourceWindow.undockNode(node);
         if (sourceWindow.isEmpty()) {
-            floatingWindows.remove(sourceWindow);
-            sourceWindow.closeWithoutNotification();
+            removeFloatingWindowSilently(sourceWindow);
         }
 
         DockFloatingWindow floatingWindow = new DockFloatingWindow(node, dragService);
@@ -640,7 +1085,9 @@ public class SnapFX {
         floatingWindows.add(floatingWindow);
         if (primaryStage != null) {
             floatingWindow.show(primaryStage);
+            bindFloatingShortcutScene(floatingWindow);
         }
+        activeFloatingWindow = floatingWindow;
         return floatingWindow;
     }
 
@@ -1072,8 +1519,7 @@ public class SnapFX {
             if (attachBack) {
                 attachFloatingWindow(floatingWindow);
             } else {
-                floatingWindows.remove(floatingWindow);
-                floatingWindow.closeWithoutNotification();
+                removeFloatingWindowSilently(floatingWindow);
             }
         }
     }
@@ -1081,6 +1527,9 @@ public class SnapFX {
     private void handleFloatingWindowClosed(DockFloatingWindow floatingWindow) {
         if (floatingWindow == null || !floatingWindows.remove(floatingWindow)) {
             return;
+        }
+        if (activeFloatingWindow == floatingWindow) {
+            activeFloatingWindow = null;
         }
         rememberFloatingBoundsForNodes(floatingWindow);
         List<DockNode> nodes = new ArrayList<>(floatingWindow.getDockNodes());
@@ -1091,6 +1540,17 @@ public class SnapFX {
                 hiddenNodes.add(node);
             }
         }
+    }
+
+    private void removeFloatingWindowSilently(DockFloatingWindow floatingWindow) {
+        if (floatingWindow == null || !floatingWindows.remove(floatingWindow)) {
+            return;
+        }
+        unbindFloatingShortcutScene(floatingWindow);
+        if (activeFloatingWindow == floatingWindow) {
+            activeFloatingWindow = null;
+        }
+        floatingWindow.closeWithoutNotification();
     }
 
     private void rememberLastKnownPlacement(DockNode node) {
@@ -1216,6 +1676,7 @@ public class SnapFX {
         floatingWindows.add(floatingWindow);
         if (primaryStage != null) {
             floatingWindow.show(primaryStage);
+            bindFloatingShortcutScene(floatingWindow);
         }
     }
 

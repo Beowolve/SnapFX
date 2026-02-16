@@ -9,10 +9,17 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.layout.StackPane;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 class MainDemoTest {
     @Test
@@ -55,5 +62,21 @@ class MainDemoTest {
     void testCopyMenuIconReturnsNullForUnsupportedIconType() {
         Node copiedNode = MainDemo.copyMenuIcon(new javafx.scene.layout.Region());
         assertNull(copiedNode);
+    }
+
+    @Test
+    void testConfigureDemoShortcutsRegistersF11Accelerator() {
+        Scene scene = new Scene(new StackPane(), 300, 200);
+        AtomicInteger invocationCounter = new AtomicInteger(0);
+
+        MainDemo.configureDemoShortcuts(scene, invocationCounter::incrementAndGet);
+
+        KeyCodeCombination f11 = new KeyCodeCombination(KeyCode.F11);
+        Runnable f11Action = scene.getAccelerators().get(f11);
+        assertNotNull(f11Action);
+
+        f11Action.run();
+        assertEquals(1, invocationCounter.get());
+        assertTrue(scene.getAccelerators().containsKey(f11));
     }
 }

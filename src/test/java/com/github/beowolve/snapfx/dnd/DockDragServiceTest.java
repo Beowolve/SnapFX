@@ -8,9 +8,17 @@ import com.github.beowolve.snapfx.model.DockTabPane;
 import com.github.beowolve.snapfx.view.DockDropZone;
 import com.github.beowolve.snapfx.view.DockDropZoneType;
 import javafx.application.Platform;
+import javafx.event.Event;
 import javafx.geometry.BoundingBox;
 import javafx.geometry.Orientation;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.PickResult;
+import javafx.scene.layout.StackPane;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -155,5 +163,59 @@ class DockDragServiceTest {
 
         dragService.setSuppressMainDropAtScreenPoint(null);
         assertFalse(dragService.shouldSuppressMainDropAt(120.0, 80.0));
+    }
+
+    @Test
+    void testEscapeKeyCancelsActiveDrag() {
+        Scene scene = new Scene(new StackPane(), 300, 200);
+        DockNode dragged = new DockNode(new Label("Dragged"), "Dragged");
+
+        dragService.startDrag(dragged, createPrimaryPressEvent(scene));
+        assertTrue(dragService.isDragging());
+
+        KeyEvent escape = new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.ESCAPE, false, false, false, false);
+        Event.fireEvent(scene, escape);
+
+        assertFalse(dragService.isDragging());
+    }
+
+    @Test
+    void testNonEscapeKeyDoesNotCancelActiveDrag() {
+        Scene scene = new Scene(new StackPane(), 300, 200);
+        DockNode dragged = new DockNode(new Label("Dragged"), "Dragged");
+
+        dragService.startDrag(dragged, createPrimaryPressEvent(scene));
+        assertTrue(dragService.isDragging());
+
+        KeyEvent enter = new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.ENTER, false, false, false, false);
+        Event.fireEvent(scene, enter);
+
+        assertTrue(dragService.isDragging());
+    }
+
+    private MouseEvent createPrimaryPressEvent(Scene scene) {
+        var source = scene.getRoot();
+        return new MouseEvent(
+            source,
+            source,
+            MouseEvent.MOUSE_PRESSED,
+            0,
+            0,
+            120,
+            90,
+            MouseButton.PRIMARY,
+            1,
+            false,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            true,
+            false,
+            false,
+            new PickResult(source, 0, 0)
+        );
     }
 }

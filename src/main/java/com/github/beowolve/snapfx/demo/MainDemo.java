@@ -32,6 +32,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -106,6 +108,7 @@ public class MainDemo extends Application {
 
         stage.setTitle("SnapFX Demo - Docking Framework");
         stage.setScene(new Scene(mainLayout, 1200, 800));
+        configureDemoShortcuts(stage.getScene(), this::toggleFullscreen);
         applyApplicationIcons(stage);
 
         // Create demo node factory
@@ -162,8 +165,22 @@ public class MainDemo extends Application {
         stage.requestFocus();
     }
 
+    private void toggleFullscreen() {
+        if (primaryStage == null) {
+            return;
+        }
+        primaryStage.setFullScreen(!primaryStage.isFullScreen());
+    }
+
     static List<String> getAppIconResources() {
         return APP_ICON_RESOURCES;
+    }
+
+    static void configureDemoShortcuts(Scene scene, Runnable toggleFullscreenAction) {
+        if (scene == null || toggleFullscreenAction == null) {
+            return;
+        }
+        scene.getAccelerators().put(new KeyCodeCombination(KeyCode.F11), toggleFullscreenAction);
     }
 
     private void applyApplicationIcons(Stage stage) {

@@ -13,8 +13,15 @@ import com.github.beowolve.snapfx.model.DockNode;
 import com.github.beowolve.snapfx.model.DockPosition;
 import com.github.beowolve.snapfx.model.DockSplitPane;
 import com.github.beowolve.snapfx.model.DockTabPane;
+import javafx.event.Event;
 import javafx.application.Platform;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.TabPane;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,6 +52,150 @@ class SnapFXTest {
     @BeforeEach
     void setUp() {
         snapFX = new SnapFX();
+    }
+
+    @Test
+    void testDefaultShortcutBindingsAreConfigured() {
+        assertEquals(
+            new KeyCodeCombination(KeyCode.W, KeyCombination.SHORTCUT_DOWN),
+            snapFX.getShortcut(DockShortcutAction.CLOSE_ACTIVE_NODE)
+        );
+        assertEquals(
+            new KeyCodeCombination(KeyCode.TAB, KeyCombination.SHORTCUT_DOWN),
+            snapFX.getShortcut(DockShortcutAction.NEXT_TAB)
+        );
+        assertEquals(
+            new KeyCodeCombination(KeyCode.TAB, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN),
+            snapFX.getShortcut(DockShortcutAction.PREVIOUS_TAB)
+        );
+        assertEquals(
+            new KeyCodeCombination(KeyCode.ESCAPE),
+            snapFX.getShortcut(DockShortcutAction.CANCEL_DRAG)
+        );
+        assertEquals(
+            new KeyCodeCombination(KeyCode.P, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN),
+            snapFX.getShortcut(DockShortcutAction.TOGGLE_ACTIVE_FLOATING_ALWAYS_ON_TOP)
+        );
+    }
+
+    @Test
+    void testSetShortcutRemovesDuplicateBindingFromPreviousAction() {
+        KeyCodeCombination ctrlW = new KeyCodeCombination(KeyCode.W, KeyCombination.SHORTCUT_DOWN);
+
+        snapFX.setShortcut(DockShortcutAction.NEXT_TAB, ctrlW);
+
+        assertNull(snapFX.getShortcut(DockShortcutAction.CLOSE_ACTIVE_NODE));
+        assertEquals(ctrlW, snapFX.getShortcut(DockShortcutAction.NEXT_TAB));
+    }
+
+    @Test
+    void testResetShortcutsToDefaultsRestoresRemovedBinding() {
+        snapFX.clearShortcut(DockShortcutAction.CLOSE_ACTIVE_NODE);
+        assertNull(snapFX.getShortcut(DockShortcutAction.CLOSE_ACTIVE_NODE));
+
+        snapFX.resetShortcutsToDefaults();
+
+        assertEquals(
+            new KeyCodeCombination(KeyCode.W, KeyCombination.SHORTCUT_DOWN),
+            snapFX.getShortcut(DockShortcutAction.CLOSE_ACTIVE_NODE)
+        );
+    }
+
+    @Test
+    void testShortcutActionCloseActiveNodeUsesSelectedTab() {
+        DockNode node1 = new DockNode("node1", new Label("Node 1"), "Node 1");
+        DockNode node2 = new DockNode("node2", new Label("Node 2"), "Node 2");
+
+        snapFX.dock(node1, null, DockPosition.CENTER);
+        snapFX.dock(node2, node1, DockPosition.CENTER);
+
+        TabPane tabPane = buildRootTabPane(snapFX);
+        tabPane.getSelectionModel().select(0);
+
+        assertTrue(snapFX.executeShortcutAction(DockShortcutAction.CLOSE_ACTIVE_NODE, tabPane));
+        assertTrue(snapFX.getHiddenNodes().contains(node1));
+        assertFalse(snapFX.getHiddenNodes().contains(node2));
+    }
+
+    @Test
+    void testShortcutActionCyclesTabsForwardAndBackward() {
+        DockNode node1 = new DockNode("node1", new Label("Node 1"), "Node 1");
+        DockNode node2 = new DockNode("node2", new Label("Node 2"), "Node 2");
+
+        snapFX.dock(node1, null, DockPosition.CENTER);
+        snapFX.dock(node2, node1, DockPosition.CENTER);
+
+        TabPane tabPane = buildRootTabPane(snapFX);
+        tabPane.getSelectionModel().select(0);
+
+        assertTrue(snapFX.executeShortcutAction(DockShortcutAction.NEXT_TAB, tabPane));
+        assertEquals(1, tabPane.getSelectionModel().getSelectedIndex());
+
+        assertTrue(snapFX.executeShortcutAction(DockShortcutAction.PREVIOUS_TAB, tabPane));
+        assertEquals(0, tabPane.getSelectionModel().getSelectedIndex());
+    }
+
+    @Test
+    void testShortcutKeyEventUsesCustomBinding() {
+        DockNode node1 = new DockNode("node1", new Label("Node 1"), "Node 1");
+        DockNode node2 = new DockNode("node2", new Label("Node 2"), "Node 2");
+
+        snapFX.dock(node1, null, DockPosition.CENTER);
+        snapFX.dock(node2, node1, DockPosition.CENTER);
+        snapFX.setShortcut(
+            DockShortcutAction.CLOSE_ACTIVE_NODE,
+            new KeyCodeCombination(KeyCode.Q, KeyCombination.SHORTCUT_DOWN)
+        );
+
+        Scene scene = new Scene(snapFX.buildLayout(), 640, 480);
+
+        KeyEvent ctrlW = new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.W, false, true, false, false);
+        Event.fireEvent(scene, ctrlW);
+        assertTrue(snapFX.getHiddenNodes().isEmpty());
+
+        KeyEvent ctrlQ = new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.Q, false, true, false, false);
+        Event.fireEvent(scene, ctrlQ);
+        assertEquals(1, snapFX.getHiddenNodes().size());
+    }
+
+    @Test
+    void testShortcutActionToggleActiveFloatingAlwaysOnTop() {
+        DockNode nodeMain = new DockNode("nodeMain", new Label("Main"), "Main");
+        DockNode nodeFloat = new DockNode("nodeFloat", new Label("Float"), "Float");
+
+        snapFX.dock(nodeMain, null, DockPosition.CENTER);
+        snapFX.dock(nodeFloat, nodeMain, DockPosition.RIGHT);
+
+        DockFloatingWindow floatingWindow = snapFX.floatNode(nodeFloat);
+        assertTrue(floatingWindow.isAlwaysOnTop());
+
+        assertTrue(snapFX.executeShortcutAction(DockShortcutAction.TOGGLE_ACTIVE_FLOATING_ALWAYS_ON_TOP, null));
+        assertFalse(floatingWindow.isAlwaysOnTop());
+
+        assertTrue(snapFX.executeShortcutAction(DockShortcutAction.TOGGLE_ACTIVE_FLOATING_ALWAYS_ON_TOP, null));
+        assertTrue(floatingWindow.isAlwaysOnTop());
+    }
+
+    @Test
+    void testShortcutActionToggleActiveFloatingAlwaysOnTopReturnsFalseWhenNoWindowExists() {
+        assertFalse(snapFX.executeShortcutAction(DockShortcutAction.TOGGLE_ACTIVE_FLOATING_ALWAYS_ON_TOP, null));
+    }
+
+    @Test
+    void testShortcutKeyEventToggleActiveFloatingAlwaysOnTopUsesDefaultBinding() {
+        DockNode nodeMain = new DockNode("nodeMain", new Label("Main"), "Main");
+        DockNode nodeFloat = new DockNode("nodeFloat", new Label("Float"), "Float");
+
+        snapFX.dock(nodeMain, null, DockPosition.CENTER);
+        snapFX.dock(nodeFloat, nodeMain, DockPosition.RIGHT);
+        DockFloatingWindow floatingWindow = snapFX.floatNode(nodeFloat);
+        assertTrue(floatingWindow.isAlwaysOnTop());
+
+        Scene scene = new Scene(snapFX.buildLayout(), 640, 480);
+        KeyEvent ctrlShiftP = new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.P, true, true, false, false);
+        Event.fireEvent(scene, ctrlShiftP);
+
+        assertFalse(floatingWindow.isAlwaysOnTop());
     }
 
     /**
@@ -731,6 +882,11 @@ class SnapFXTest {
         floatingWindow.close();
         assertTrue(snapFX.getFloatingWindows().isEmpty());
         assertTrue(snapFX.getHiddenNodes().contains(nodeFloat));
+    }
+
+    private TabPane buildRootTabPane(SnapFX framework) {
+        var root = assertInstanceOf(javafx.scene.layout.StackPane.class, framework.buildLayout());
+        return assertInstanceOf(TabPane.class, root.getChildren().getFirst());
     }
 
     // Helper method to check if node is in graph

@@ -38,6 +38,7 @@ public class DockLayoutEngine {
     private final StackPane emptyLayoutView;
     private static final String CLEANUP_TASKS_KEY = "snapfx.cleanupTasks";
     private static final String TAB_CLEANUP_KEY = "snapfx.tabCleanup";
+    public static final String TAB_DOCK_NODE_KEY = "snapfx.tabDockNode";
     private static final double DROP_ZONE_RATIO = 0.30;
     private static final double DROP_ZONE_MIN_PX = 40.0;
     private static final double DROP_ZONE_MAX_RATIO = 0.45;
@@ -307,6 +308,7 @@ public class DockLayoutEngine {
             TabHeader tabHeader = createTabHeader(dockNode);
             tab.setGraphic(tabHeader.node());
             tab.getProperties().put(TAB_CLEANUP_KEY, tabHeader.cleanup());
+            tab.getProperties().put(TAB_DOCK_NODE_KEY, dockNode);
             tab.textProperty().bind(dockNode.titleProperty());
             tab.getStyleClass().add("dock-tab-graphic");
             setupTabDragHandlers(tab, dockNode);

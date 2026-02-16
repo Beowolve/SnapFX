@@ -10,6 +10,14 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Removed obsolete JavaFX test JVM module flags that caused classpath/module warning noise (`24ac0bc`).
 - ✅ Stabilized JavaFX module-path test runtime without FXML assumptions (`e8197a9`).
 - ✅ Migrated plugin/dependency versions to `gradle/libs.versions.toml` and reduced duplicated build configuration (`517b5db`).
+- ✅ Expanded shortcut and demo-accelerator coverage in unit tests; full suite now runs with 174 tests.
+
+### Framework and UI
+- ✅ Added configurable framework keyboard shortcut API in `SnapFX` (`setShortcut`, `clearShortcut`, `resetShortcutsToDefaults`, `getShortcuts`).
+- ✅ Added default shortcut actions for `Ctrl+W`, `Ctrl+Tab`, `Ctrl+Shift+Tab`, `Escape`, and `Ctrl+Shift+P` with active tab/node/floating-window resolution.
+- ✅ Added app-level `F11` fullscreen shortcut wiring in `MainDemo` (kept outside framework defaults).
+- ✅ Hardened ESC drag cancellation in `DockDragService` so active drags cancel even while mouse is still pressed.
+- ✅ Bound shortcut key filters to floating-window scenes so framework shortcuts also trigger while floating windows are focused.
 
 ### Documentation
 - ✅ Split repository workflow content out of `README.md` into dedicated `CONTRIBUTING.md` and `RELEASING.md` (`6f93d0a`).
@@ -17,6 +25,7 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Refocused `STATUS.md` to open-issues-only tracking and moved completed-history logging fully to `CHANGELOG.md`.
 - ✅ Removed roadmap version-track metadata, moved overall progress to the top, and aligned roadmap fixed-item references to `CHANGELOG.md`.
 - ✅ Removed historical delta suffixes from `STATUS.md` current-state bullets and added roadmap update guidance for progress-percentage recalculation.
+- ✅ Updated README/STATUS/DONE/ROADMAP to reflect shortcut API baseline, app-level shortcut separation, and current test totals.
 
 ## v0.2.3 - 2026-02-16
 

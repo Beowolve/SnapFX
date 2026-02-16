@@ -45,6 +45,7 @@ A high-performance, lightweight JavaFX docking framework that behaves like nativ
 - **Quick Float Actions**: Float buttons in title bars and tab headers
 - **Resizable Floating Windows**: Resize from edges and corners (undecorated behavior)
 - **Locked Mode**: Lock the layout; no D&D; no close buttons
+- **Configurable Keyboard Shortcuts**: Default actions (`Ctrl+W`, `Ctrl+Tab`, `Ctrl+Shift+Tab`, `Escape`, `Ctrl+Shift+P`) can be remapped or disabled via API
 - **Title Bar Modes**: ALWAYS/NEVER/AUTO; AUTO hides title bars for tabbed nodes to save space, so those nodes are moved via tabs only (pairs well with compact/locked layouts)
 
 ### Persistence
@@ -109,6 +110,12 @@ snapFX.getDockGraph().dock(tasks, console, DockPosition.CENTER);
 // Lock layout
 snapFX.setLocked(true);
 
+// Override framework shortcut defaults (or clear with snapFX.clearShortcut(...))
+snapFX.setShortcut(
+    DockShortcutAction.CLOSE_ACTIVE_NODE,
+    new KeyCodeCombination(KeyCode.Q, KeyCombination.SHORTCUT_DOWN)
+);
+
 // Move a node to a floating window and attach it back later
 DockFloatingWindow floating = snapFX.floatNode(console);
 snapFX.attachFloatingWindow(floating);
@@ -161,6 +168,7 @@ The demo shows:
 - Save/load layout
 - Multiple tabs
 - Floating/attach workflows from menu, title bars, and tab headers
+- App-level `F11` fullscreen shortcut example
 
 ### Update Preview Screenshot
 

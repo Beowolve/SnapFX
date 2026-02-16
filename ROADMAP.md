@@ -13,14 +13,14 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 |-------|--------|------------|
 | Phase 1: Core Stability | ✅ Completed | 100% |
 | Phase 2: Floating Windows | ✅ Completed | 100% |
-| Phase 3: User Experience | 🚧 In Progress | 12% |
+| Phase 3: User Experience | 🚧 In Progress | 36% |
 | Phase 4: Advanced Features | 📋 Planned | 0% |
 | Phase 5: Themes & Customization | 📋 Planned | 0% |
 | Phase 6: Performance & Polish | 📋 Planned | 0% |
 | Phase 7: Developer Experience | 📋 Planned | 45% |
 | Phase 8: Production Readiness | 📋 Planned | 25% |
 
-**Total Project Completion**: ~66%
+**Total Project Completion**: ~69%
 
 ## Legend
 
@@ -118,15 +118,17 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 ### 3.1 Keyboard Shortcuts
 **Priority**: 🟢 Medium
 
-- 📋 **Ctrl+W**: Close current tab/node
-- 📋 **Ctrl+Tab**: Switch between tabs
-- 📋 **Ctrl+Shift+Tab**: Switch tabs backwards
-- 📋 **Alt+1..9**: Focus specific panel
-- 📋 **F11**: Toggle fullscreen
-- 📋 **Escape**: Cancel drag operation
-- 📋 **Ctrl+Shift+P**: Toggle always-on-top for the active floating window
+- ✅ **Framework shortcut API**: `SnapFX` now supports configurable key mappings (`setShortcut`, `clearShortcut`, `resetShortcutsToDefaults`, `getShortcuts`)
+- ✅ **Ctrl+W**: Close active dock node (default mapping, fully configurable)
+- ✅ **Ctrl+Tab**: Switch to next tab (default mapping, fully configurable)
+- ✅ **Ctrl+Shift+Tab**: Switch to previous tab (default mapping, fully configurable)
+- ✅ **Escape**: Cancel active drag operation (default mapping, fully configurable)
+- ✅ **Escape reliability**: Active drag cancellation now works even while the mouse button is still held
+- ✅ **Ctrl+Shift+P**: Toggle active floating window always-on-top (default mapping, fully configurable)
+- ✅ **F11 (MainDemo)**: Fullscreen toggle implemented at application level (kept out of framework defaults)
+- 💡 **Alt+1..9**: Keep as app-level panel-focus pattern; intentionally not built into framework defaults
 
-**Estimated Time**: 1 day
+**Estimated Time**: Completed (framework baseline)
 
 ### 3.2 Context Menus
 **Priority**: 🟢 Medium
