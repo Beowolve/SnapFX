@@ -6,6 +6,10 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 
 ## Unreleased
 
+- 📋 No unreleased changes yet.
+
+## v0.2.4 - 2026-02-16
+
 ### Build and Test
 - ✅ Removed obsolete JavaFX test JVM module flags that caused classpath/module warning noise (`24ac0bc`).
 - ✅ Stabilized JavaFX module-path test runtime without FXML assumptions (`e8197a9`).
