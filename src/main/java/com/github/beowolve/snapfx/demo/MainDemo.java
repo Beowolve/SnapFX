@@ -38,6 +38,7 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 
 import java.io.File;
 import java.io.IOException;
@@ -1085,11 +1086,19 @@ public class MainDemo extends Application {
         return "Error while loading:\n" + exception.toDisplayMessage();
     }
 
-    private void showError(String message) {
+    static Alert createErrorAlert(String message, Window owner) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Error");
         alert.setHeaderText(null);
         alert.setContentText(message);
+        if (owner != null && owner.getScene() != null) {
+            alert.initOwner(owner);
+        }
+        return alert;
+    }
+
+    private void showError(String message) {
+        Alert alert = createErrorAlert(message, primaryStage);
         alert.showAndWait();
     }
 

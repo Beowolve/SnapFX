@@ -1,29 +1,46 @@
 package com.github.beowolve.snapfx.demo;
 
 import com.github.beowolve.snapfx.persistence.DockLayoutLoadException;
+import javafx.application.Platform;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeAll;
 
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 class MainDemoTest {
+    @BeforeAll
+    static void initJavaFX() {
+        try {
+            Platform.startup(() -> {});
+        } catch (IllegalStateException ignored) {
+            // JavaFX is already running.
+        }
+    }
+
     @Test
     void testAppIconResourceListContainsAllExpectedSizes() {
         List<String> resources = MainDemo.getAppIconResources();
@@ -90,5 +107,50 @@ class MainDemoTest {
     void testBuildLayoutLoadErrorMessageHandlesNullException() {
         String message = MainDemo.buildLayoutLoadErrorMessage(null);
         assertTrue(message.contains("unknown error"));
+    }
+
+    @Test
+    void testCreateErrorAlertUsesProvidedOwner() {
+        runOnFxThreadAndWait(() -> {
+            Stage owner = new Stage();
+            owner.setScene(new Scene(new StackPane(), 100, 100));
+            Alert alert = MainDemo.createErrorAlert("Error message", owner);
+            assertSame(owner, alert.getOwner());
+        });
+    }
+
+    @Test
+    void testCreateErrorAlertWithoutOwner() {
+        runOnFxThreadAndWait(() -> {
+            Alert alert = MainDemo.createErrorAlert("Error message", null);
+            assertNull(alert.getOwner());
+        });
+    }
+
+    private void runOnFxThreadAndWait(Runnable action) {
+        if (Platform.isFxApplicationThread()) {
+            action.run();
+            return;
+        }
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<Throwable> error = new AtomicReference<>();
+        Platform.runLater(() -> {
+            try {
+                action.run();
+            } catch (Throwable throwable) {
+                error.set(throwable);
+            } finally {
+                latch.countDown();
+            }
+        });
+        try {
+            assertTrue(latch.await(5, TimeUnit.SECONDS), "Timed out waiting for JavaFX thread");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new AssertionError("Interrupted while waiting for JavaFX thread", e);
+        }
+        if (error.get() != null) {
+            throw new AssertionError("JavaFX action failed", error.get());
+        }
     }
 }
