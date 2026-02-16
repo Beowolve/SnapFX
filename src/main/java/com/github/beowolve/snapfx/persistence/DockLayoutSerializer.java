@@ -189,62 +189,169 @@ public class DockLayoutSerializer {
             case "DockNode" -> deserializeDockNode(data, path);
             case "DockSplitPane" -> deserializeSplitPane(data, path);
             case "DockTabPane" -> deserializeTabPane(data, path);
-            default -> throw loadError("Unsupported element type '" + data.type + "'.", path + ".type");
+            default -> deserializeUnknownElement(data, path);
         };
     }
 
     private DockNode deserializeDockNode(ElementData data, String path) throws DockLayoutLoadException {
-        if (isBlank(data.id)) {
+        return deserializeDockNode(data, path, null);
+    }
+
+    private DockNode deserializeUnknownElement(ElementData data, String path) throws DockLayoutLoadException {
+        if (data.children != null && data.children.length > 0) {
+            throw loadError(
+                "Unsupported container element type '" + data.type + "'.",
+                path + ".type"
+            );
+        }
+        return deserializeDockNode(data, path, data.type);
+    }
+
+    private DockNode deserializeDockNode(ElementData data, String path, String unsupportedType) throws DockLayoutLoadException {
+        boolean strictFields = isBlank(unsupportedType);
+        if (strictFields && isBlank(data.id)) {
             throw missingFieldError(path + ".id");
         }
-        if (isBlank(data.title)) {
+        if (strictFields && isBlank(data.title)) {
             throw missingFieldError(path + ".title");
         }
 
-        // Try factory first (recommended for cross-session persistence)
-        if (nodeFactory != null && data.dockNodeId != null) {
-            // Use dockNodeId for factory (type-based)
-            DockNode node = nodeFactory.createNode(data.dockNodeId);
+        String resolvedDockNodeId = resolveDockNodeId(data, unsupportedType);
+        String resolvedTitle = resolveNodeTitle(data, resolvedDockNodeId, unsupportedType);
+        String resolvedLayoutId = isBlank(data.id) ? null : data.id;
+        String typePath = isBlank(unsupportedType) ? path : path + ".type";
+
+        DockNode node = createNodeViaFactory(
+            data,
+            path,
+            unsupportedType,
+            typePath,
+            resolvedDockNodeId,
+            resolvedLayoutId,
+            resolvedTitle
+        );
+        if (node != null) {
+            return node;
+        }
+
+        if (!isBlank(data.id)) {
+            node = nodeRegistry.get(data.id);
             if (node != null) {
-                // Restore layoutId (unique instance ID)
-                if (data.id != null) {
-                    node.setLayoutId(data.id);
-                }
-
-                // Update properties from saved data
-                node.setTitle(data.title);
-                node.setCloseable(data.closeable);
-
-                // Restore content data if available
-                if (data.contentData != null && node.getContent() instanceof DockNodeContentSerializer serializer) {
-                    try {
-                        serializer.deserializeContent(data.contentData);
-                    } catch (RuntimeException e) {
-                        throw loadError("DockNode content could not be deserialized: " + e.getMessage(),
-                            path + ".contentData", e);
-                    }
-                }
-
+                applyRestoredNodeState(node, resolvedLayoutId, resolvedTitle, data.closeable);
                 return node;
             }
         }
 
-        // Fallback: look up in registry (for backward compatibility)
-        DockNode node = nodeRegistry.get(data.id);
-        if (node != null) {
-            node.setTitle(data.title);
-            node.setCloseable(data.closeable);
-            return node;
+        Label placeholder = new Label(
+            buildPlaceholderMessage(unsupportedType, resolvedDockNodeId, resolvedLayoutId, typePath)
+        );
+        node = new DockNode(resolvedDockNodeId, placeholder, resolvedTitle);
+        applyRestoredNodeState(node, resolvedLayoutId, resolvedTitle, data.closeable);
+        return node;
+    }
+
+    private DockNode createNodeViaFactory(
+        ElementData data,
+        String path,
+        String unsupportedType,
+        String typePath,
+        String resolvedDockNodeId,
+        String resolvedLayoutId,
+        String resolvedTitle
+    ) throws DockLayoutLoadException {
+        if (nodeFactory == null) {
+            return null;
         }
 
-        // Last resort: create placeholder node
-        // This happens when neither factory nor registry provides the node
-        Label placeholder = new Label("Node: " + data.title);
-        node = new DockNode(data.id, placeholder, data.title);
-        node.setCloseable(data.closeable);
+        DockNode node = null;
+        if (!isBlank(resolvedDockNodeId)) {
+            node = nodeFactory.createNode(resolvedDockNodeId);
+        }
+        if (node == null && !isBlank(unsupportedType)) {
+            node = nodeFactory.createUnknownNode(
+                new DockNodeFactory.UnknownElementContext(
+                    unsupportedType,
+                    resolvedDockNodeId,
+                    resolvedLayoutId,
+                    resolvedTitle,
+                    typePath
+                )
+            );
+        }
+        if (node == null) {
+            return null;
+        }
 
-
+        applyRestoredNodeState(node, resolvedLayoutId, resolvedTitle, data.closeable);
+        restoreNodeContentData(node, data.contentData, path);
         return node;
+    }
+
+    private void applyRestoredNodeState(DockNode node, String layoutId, String title, boolean closeable) {
+        if (node == null) {
+            return;
+        }
+        if (!isBlank(layoutId)) {
+            node.setLayoutId(layoutId);
+        }
+        if (!isBlank(title)) {
+            node.setTitle(title);
+        }
+        node.setCloseable(closeable);
+    }
+
+    private void restoreNodeContentData(DockNode node, JsonObject contentData, String path) throws DockLayoutLoadException {
+        if (node == null || contentData == null || !(node.getContent() instanceof DockNodeContentSerializer serializer)) {
+            return;
+        }
+        try {
+            serializer.deserializeContent(contentData);
+        } catch (RuntimeException e) {
+            throw loadError("DockNode content could not be deserialized: " + e.getMessage(),
+                path + ".contentData", e);
+        }
+    }
+
+    private String resolveDockNodeId(ElementData data, String unsupportedType) {
+        if (!isBlank(data.dockNodeId)) {
+            return data.dockNodeId;
+        }
+        if (!isBlank(data.id)) {
+            return data.id;
+        }
+        if (!isBlank(unsupportedType)) {
+            return "unknown:" + unsupportedType;
+        }
+        return "unknown";
+    }
+
+    private String resolveNodeTitle(ElementData data, String resolvedDockNodeId, String unsupportedType) {
+        if (!isBlank(data.title)) {
+            return data.title;
+        }
+        if (isBlank(unsupportedType)) {
+            return "Untitled";
+        }
+        if (!isBlank(resolvedDockNodeId)) {
+            return "Unavailable Node (" + resolvedDockNodeId + ")";
+        }
+        return "Unavailable Node";
+    }
+
+    private String buildPlaceholderMessage(
+        String unsupportedType,
+        String resolvedDockNodeId,
+        String resolvedLayoutId,
+        String typePath
+    ) {
+        String savedType = isBlank(unsupportedType) ? "DockNode" : unsupportedType;
+        String nodeId = isBlank(resolvedDockNodeId) ? "<unknown>" : resolvedDockNodeId;
+        String layoutId = isBlank(resolvedLayoutId) ? "<unknown>" : resolvedLayoutId;
+        return "Unavailable node restored as placeholder.\n"
+            + "Saved type: " + savedType + "\n"
+            + "Node ID: " + nodeId + "\n"
+            + "Layout ID: " + layoutId + "\n"
+            + "JSON path: " + typePath;
     }
 
     private DockSplitPane deserializeSplitPane(ElementData data, String path) throws DockLayoutLoadException {

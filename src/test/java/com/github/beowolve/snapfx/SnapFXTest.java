@@ -911,6 +911,59 @@ class SnapFXTest {
     }
 
     @Test
+    void testLoadLayoutWithUnknownDockNodeTypeCreatesPlaceholderInsteadOfThrowing() throws DockLayoutLoadException {
+        String json = """
+            {
+              "mainLayout": {
+                "locked": false,
+                "layoutIdCounter": 9,
+                "root": {
+                  "id": "split-root",
+                  "type": "DockSplitPane",
+                  "orientation": "VERTICAL",
+                  "children": [
+                    {
+                      "id": "dock-6",
+                      "dockNodeId": "consolePanel!",
+                      "type": "DockNode!!!",
+                      "title": "Console",
+                      "closeable": true
+                    },
+                    {
+                      "id": "dock-5",
+                      "dockNodeId": "tasks",
+                      "type": "DockNode",
+                      "title": "Tasks",
+                      "closeable": true
+                    }
+                  ],
+                  "dividerPositions": [
+                    0.3
+                  ]
+                }
+              },
+              "floatingWindows": []
+            }
+            """;
+        snapFX.setNodeFactory(nodeId -> "tasks".equals(nodeId) ? createFactoryNode(nodeId) : null);
+
+        snapFX.loadLayout(json);
+
+        DockSplitPane root = assertInstanceOf(DockSplitPane.class, snapFX.getDockGraph().getRoot());
+        DockNode placeholderNode = assertInstanceOf(DockNode.class, root.getChildren().getFirst());
+        assertEquals("consolePanel!", placeholderNode.getDockNodeId());
+        Label placeholderLabel = assertInstanceOf(Label.class, placeholderNode.getContent());
+        assertTrue(
+            placeholderLabel.getText().contains("DockNode!!!"),
+            "Unexpected placeholder text: " + placeholderLabel.getText()
+        );
+        assertTrue(
+            placeholderLabel.getText().contains("$.root.children[0].type"),
+            "Unexpected placeholder text: " + placeholderLabel.getText()
+        );
+    }
+
+    @Test
     void testLoadLayoutThrowsForInvalidJsonAndKeepsCurrentLayout() {
         DockNode node = new DockNode("node1", new Label("Node 1"), "Node 1");
         snapFX.dock(node, null, DockPosition.CENTER);

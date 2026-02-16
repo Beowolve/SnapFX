@@ -20,12 +20,24 @@ public final class DemoNodeFactory implements DockNodeFactory {
 
     private static final String MAIN_JAVA = "Main.java";
     private static final String PROPERTIES = "Properties";
+    private static final String UNAVAILABLE_NODE = "Unavailable Node";
+    private final boolean useFrameworkUnknownNodePlaceholder;
 
     /**
      * Creates a new DemoNodeFactory.
      */
     public DemoNodeFactory() {
-        // No initialization required
+        this(true);
+    }
+
+    /**
+     * Creates a new DemoNodeFactory with configurable unknown-node fallback behavior.
+     *
+     * @param useFrameworkUnknownNodePlaceholder {@code true} to use SnapFX built-in placeholders,
+     *                                           {@code false} to return demo-specific fallback nodes
+     */
+    public DemoNodeFactory(boolean useFrameworkUnknownNodePlaceholder) {
+        this.useFrameworkUnknownNodePlaceholder = useFrameworkUnknownNodePlaceholder;
     }
 
     /**
@@ -50,6 +62,26 @@ public final class DemoNodeFactory implements DockNodeFactory {
             case CONSOLE_PANEL -> createConsolePanelNode();
             case GENERIC_PANEL -> createGenericPanelNode("Panel");
         };
+    }
+
+    @Override
+    public DockNode createUnknownNode(UnknownElementContext context) {
+        if (useFrameworkUnknownNodePlaceholder || context == null) {
+            return null;
+        }
+        String resolvedDockNodeId = context.dockNodeId() == null || context.dockNodeId().isBlank()
+            ? "unknown"
+            : context.dockNodeId();
+        String resolvedTitle = context.title() == null || context.title().isBlank()
+            ? UNAVAILABLE_NODE
+            : context.title();
+        Label content = new Label(
+            "Demo fallback node\n"
+                + "Saved type: " + context.elementType() + "\n"
+                + "Node ID: " + resolvedDockNodeId + "\n"
+                + "JSON path: " + context.jsonPath()
+        );
+        return new DockNode(resolvedDockNodeId, content, resolvedTitle);
     }
 
     /**

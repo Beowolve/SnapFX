@@ -5,7 +5,7 @@
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 205 tests passing (latest full suite)
+✅ **Tests**: All 218 tests passing (latest full suite)
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully  
 ✅ **CI Automation**: GitHub Actions workflows added for push/PR tests and tag-triggered releases  
@@ -65,6 +65,7 @@
 - ✅ JSON serialization (Gson)
 - ✅ DockLayoutSerializer
 - ✅ Typed load-failure diagnostics via `DockLayoutLoadException` (with JSON location context)
+- ✅ Unknown/unsupported serialized node types now recover without load failure: factory fallback can provide a custom node, otherwise SnapFX inserts a diagnostic placeholder
 - ✅ **DockNodeFactory pattern** - Factory for node recreation
 - ✅ **Custom Node IDs** - User-defined stable IDs
 - ✅ Save/Load functionality across sessions
@@ -109,6 +110,10 @@
 - ✅ Floating title-bar context menu with `Attach to Layout` and always-on-top toggle (icon parity with title-bar controls)
 - ✅ Floating title-bar icon sync follows active tab changes in floating tab layouts
 - ✅ Floating window title-bar drag now continues while cursor leaves the title bar (scene-level drag tracking)
+- ✅ Floating title-bar press now hides visible title-bar context menus for consistent outside-click close behavior
+- ✅ Maximized floating windows now require a deliberate drag threshold before restore-on-drag triggers
+- ✅ Floating resize now respects effective minimum constraints from stage/content minimum sizes
+- ✅ Resize cursors now apply reliably near edges over interactive content targets (for example console text areas)
 
 ### Debug Tools (100% ✅)
 - ✅ DockGraphDebugView
@@ -131,18 +136,19 @@
 
 ### Testing (100% ✅)
 - ✅ DockGraphTest (56 tests, +11 regression tests)
-- ✅ DockLayoutSerializerTest (13 tests) - Includes strict load-failure diagnostics for blank content, malformed JSON, missing required fields, and invalid tab selection metadata
+- ✅ DockLayoutSerializerTest (16 tests) - Includes strict load-failure diagnostics for blank content, malformed JSON, missing required fields, invalid tab selection metadata, unknown-node placeholder diagnostics, and unsupported-type recovery with optional factory custom fallback
 - ✅ DockLayoutEngineTest (31 tests) - Includes tab/header/splitter context-menu coverage, representative container-tab title/icon behavior, float-availability policy checks, and tiny-bounds drop-zone clamp regression coverage
-- ✅ **SnapFXTest (48 tests)** - Hide/Restore + Floating Window API tests plus configurable shortcut behavior, invalid-load failure handling, and persistence edge-case coverage for complex floating snapshots
+- ✅ **SnapFXTest (49 tests)** - Hide/Restore + Floating Window API tests plus configurable shortcut behavior, invalid-load failure handling, persistence edge-case coverage for complex floating snapshots, and unknown-type layout recovery
 - ✅ DockGraphSplitTargetDockingTest (1 test)
 - ✅ DockDragServiceTest (8 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, and ESC drag-cancel handling
-- ✅ DockFloatingWindowTest (20 tests) - Floating title bar controls, context menu behavior (attach/pin icons + attach action), pin behavior, icon rendering/sync regression coverage, single-node float-menu policy, maximize/restore interaction behavior, and scene-level drag continuity (including release/reset and non-primary guard behavior)
-- ✅ MainDemoTest (7 tests) - Demo app icon resource wiring, menu icon behavior, demo shortcut wiring, and load-error message formatting
+- ✅ DockFloatingWindowTest (24 tests) - Floating title bar controls, context menu behavior (attach/pin icons + attach action), pin behavior, icon rendering/sync regression coverage, single-node float-menu policy, maximize/restore interaction behavior, scene-level drag continuity (including release/reset and non-primary guard behavior), resize-min constraints, and interactive-target cursor reliability
+- ✅ MainDemoTest (9 tests) - Demo app icon resource wiring, menu icon behavior, demo shortcut wiring, load-error message formatting, and owner-aware error-alert behavior
+- ✅ DemoNodeFactoryTest (3 tests) - Unknown-node fallback strategy coverage (framework placeholder vs. custom demo fallback node) plus SnapFX integration coverage for unsupported-type recovery with the default demo factory
 - ✅ EditorCloseDecisionPolicyTest (5 tests) - Deterministic close-decision policy checks
 - ✅ SimpleExampleTest (2 tests) - Stylesheet resource resolution behavior
 - ✅ MarkdownDocumentationConsistencyTest (12 tests) - Markdown consistency guardrails
 - ✅ AboutDialogTest (2 tests) - About dialog branding resources and credit link targets
-- ✅ **205/205 tests passing** ✅
+- ✅ **218/218 tests passing** ✅
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Edge case tests** (null inputs, detached nodes, invalid move targets, no-op revision checks)
@@ -157,7 +163,8 @@
 - ✅ Toolbar with add/remove functions
 - ✅ Lock/unlock layout
 - ✅ Save/Load layout
-- ✅ Invalid layout loads now show user-facing error details in MainDemo (including JSON path context)
+- ✅ Invalid layout loads show user-facing error details in MainDemo (including JSON path context), while unknown serialized node types recover in-place via placeholders without error popups
+- ✅ MainDemo error dialogs are owner-aware and attach to the primary stage when available
 - ✅ Hidden nodes menu
 - ✅ About dialog extracted into dedicated class with dynamic version info, large logo branding, and icon credits
 - ✅ About dialog easter egg animation (triple-click logo)

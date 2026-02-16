@@ -292,4 +292,95 @@ class DockLayoutSerializerTest {
         assertEquals("$.root.selectedIndex", exception.getLocation());
         assertTrue(exception.getMessage().contains("out of range"));
     }
+
+    @Test
+    void testDeserializeUnknownFactoryNodeUsesPlaceholderWithNodeIdHint() throws DockLayoutLoadException {
+        String json = """
+            {
+              "locked": false,
+              "layoutIdCounter": 4,
+              "root": {
+                "id": "layout-node-1",
+                "dockNodeId": "unknownEditorType",
+                "type": "DockNode",
+                "title": "Recovered Editor",
+                "closeable": true
+              }
+            }
+            """;
+
+        DockGraph graph = new DockGraph();
+        DockLayoutSerializer serializerWithFactory = new DockLayoutSerializer(graph);
+        serializerWithFactory.setNodeFactory(nodeId -> null);
+
+        serializerWithFactory.deserialize(json);
+
+        DockNode placeholderNode = assertInstanceOf(DockNode.class, graph.getRoot());
+        assertEquals("Recovered Editor", placeholderNode.getTitle());
+        Label placeholderContent = assertInstanceOf(Label.class, placeholderNode.getContent());
+        assertTrue(placeholderContent.getText().contains("unknownEditorType"));
+    }
+
+    @Test
+    void testDeserializeUnknownDockNodeElementTypeFallsBackToPlaceholder() throws DockLayoutLoadException {
+        String json = """
+            {
+              "locked": false,
+              "layoutIdCounter": 4,
+              "root": {
+                "id": "layout-node-1",
+                "dockNodeId": "consolePanel!",
+                "type": "DockNode!!!",
+                "title": "Console",
+                "closeable": true
+              }
+            }
+            """;
+
+        serializer.setNodeFactory(nodeId -> null);
+
+        serializer.deserialize(json);
+
+        DockNode placeholderNode = assertInstanceOf(DockNode.class, dockGraph.getRoot());
+        assertEquals("Console", placeholderNode.getTitle());
+        Label placeholderContent = assertInstanceOf(Label.class, placeholderNode.getContent());
+        assertTrue(placeholderContent.getText().contains("DockNode!!!"));
+    }
+
+    @Test
+    void testDeserializeUnknownDockNodeElementTypeCanUseFactoryCustomFallback() throws DockLayoutLoadException {
+        String json = """
+            {
+              "locked": false,
+              "layoutIdCounter": 4,
+              "root": {
+                "id": "layout-node-1",
+                "dockNodeId": "consolePanel!",
+                "type": "DockNode!!!",
+                "title": "Console",
+                "closeable": true
+              }
+            }
+            """;
+        serializer.setNodeFactory(new DockNodeFactory() {
+            @Override
+            public DockNode createNode(String nodeId) {
+                return null;
+            }
+
+            @Override
+            public DockNode createUnknownNode(UnknownElementContext context) {
+                Label content = new Label("Custom unknown node fallback");
+                return new DockNode("customUnknown", content, "Custom");
+            }
+        });
+
+        serializer.deserialize(json);
+
+        DockNode restoredNode = assertInstanceOf(DockNode.class, dockGraph.getRoot());
+        assertEquals("Console", restoredNode.getTitle());
+        Label content = assertInstanceOf(Label.class, restoredNode.getContent());
+        assertEquals("Custom unknown node fallback", content.getText());
+        assertEquals("customUnknown", restoredNode.getDockNodeId());
+    }
 }

@@ -47,5 +47,37 @@ public interface DockNodeFactory {
      * @return A DockNode with the specified ID and recreated content, or null if the ID is unknown
      */
     DockNode createNode(String nodeId);
+
+    /**
+     * Optional hook for unsupported serialized element types.
+     *
+     * <p>The serializer invokes this callback when it encounters an unknown element
+     * type in the saved layout (for example "DockNode!!!"). Returning {@code null}
+     * keeps the framework default behavior and inserts the built-in placeholder node.</p>
+     *
+     * @param context Details about the unsupported element and its JSON location
+     * @return Custom replacement node, or {@code null} to use the framework placeholder
+     */
+    default DockNode createUnknownNode(UnknownElementContext context) {
+        return null;
+    }
+
+    /**
+     * Context passed to {@link #createUnknownNode(UnknownElementContext)}.
+     *
+     * @param elementType unsupported serialized element type
+     * @param dockNodeId serialized DockNode type ID (may be {@code null})
+     * @param layoutId serialized layout ID (may be {@code null})
+     * @param title serialized title (may be {@code null})
+     * @param jsonPath JSON path of the unsupported type field
+     */
+    record UnknownElementContext(
+        String elementType,
+        String dockNodeId,
+        String layoutId,
+        String title,
+        String jsonPath
+    ) {
+    }
 }
 

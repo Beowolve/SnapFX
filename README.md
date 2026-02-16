@@ -130,6 +130,10 @@ snapFX.setNodeFactory(nodeId -> switch(nodeId) {
     default -> null;
 });
 
+// Optional: implement DockNodeFactory#createUnknownNode(...) when you want
+// a custom fallback for unsupported/corrupted serialized element types.
+// Returning null keeps the built-in SnapFX placeholder behavior.
+
 // Save/load layout (works across application restarts)
 String json = snapFX.saveLayout();
 Files.writeString(Path.of("layout.json"), json);

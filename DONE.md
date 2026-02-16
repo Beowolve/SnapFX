@@ -59,7 +59,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (12 test classes, 205 tests)
+### Testing (13 test classes, 218 tests)
 - ✅ `DockGraphTest` (56 tests) - Tree manipulation and algorithms
   - **+11 regression tests** for critical bug fixes
   - Tests for empty container prevention
@@ -68,22 +68,23 @@ SnapFX has been fully implemented with core functionality and is production-read
   - Tests for flattening logic
   - Performance stress tests for large layouts (50+ nodes)
   - Edge case tests for null/no-op/detached-target handling
-- ✅ `DockLayoutSerializerTest` (13 tests) - Persistence functionality and strict load-failure diagnostics for blank content, malformed JSON, missing required fields, and invalid tab selection metadata
+- ✅ `DockLayoutSerializerTest` (16 tests) - Persistence functionality and strict load-failure diagnostics for blank content, malformed JSON, missing required fields, invalid tab selection metadata, unknown-node placeholder diagnostics, and unsupported-type recovery with optional factory custom fallback
   - **+1 regression test** for locked state synchronization (2026-02-10)
 - ✅ `DockLayoutEngineTest` (31 tests) - View creation with TestFX, context-menu interaction coverage, representative container-tab title/icon behavior, float-availability policy checks, and tiny-bounds drop-zone clamp regression coverage
   - Memory cleanup tests for cache boundedness and undock/rebuild cycles
   - Layout optimization tests for empty/single-child roots
-- ✅ `SnapFXTest` (48 tests) - Hide/Restore + Floating Window API behavior, configurable shortcut behavior, invalid-load failure handling, and persistence edge-case coverage for complex floating snapshots
+- ✅ `SnapFXTest` (49 tests) - Hide/Restore + Floating Window API behavior, configurable shortcut behavior, invalid-load failure handling, persistence edge-case coverage for complex floating snapshots, and unknown-type layout recovery
 - ✅ `DockGraphSplitTargetDockingTest` (1 test) - Split-target docking regression coverage
 - ✅ `DockDragServiceTest` (8 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, and ESC drag-cancel handling
-- ✅ `DockFloatingWindowTest` (20 tests) - Floating title-bar controls, context-menu behavior (attach/pin icons + attach action), pin behavior, icon rendering/sync regression coverage, single-node float-menu policy, maximize/restore interaction behavior, and scene-level drag continuity (including release/reset and non-primary guard behavior)
-- ✅ `MainDemoTest` (7 tests) - Application icon resources, menu icon behavior, demo shortcut wiring, and load-error message formatting
+- ✅ `DockFloatingWindowTest` (24 tests) - Floating title-bar controls, context-menu behavior (attach/pin icons + attach action), pin behavior, icon rendering/sync regression coverage, single-node float-menu policy, maximize/restore interaction behavior, scene-level drag continuity (including release/reset and non-primary guard behavior), resize-min constraints, and interactive-target cursor reliability
+- ✅ `MainDemoTest` (9 tests) - Application icon resources, menu icon behavior, demo shortcut wiring, load-error message formatting, and owner-aware error-alert behavior
+- ✅ `DemoNodeFactoryTest` (3 tests) - Unknown-node fallback strategy coverage (framework placeholder vs. demo custom fallback), plus SnapFX integration coverage for unsupported-type recovery with the default demo factory
 - ✅ `AboutDialogTest` (2 tests) - About dialog resources and credit link targets
 - ✅ `EditorCloseDecisionPolicyTest` (5 tests) - Deterministic close-decision behavior for dirty editor nodes
 - ✅ `SimpleExampleTest` (2 tests) - Stylesheet resource resolution behavior
 - ✅ `MarkdownDocumentationConsistencyTest` (12 tests) - Documentation consistency guardrails
 - ✅ CI flake guard for critical interaction suites (`SnapFXTest`, `DockFloatingWindowTest`, `DockDragServiceTest`) runs 3x per CI execution
-- ✅ All tests passing ✅
+- ✅ All tests passing (218/218) ✅
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
 - ✅ Mandatory regression tests for all bug fixes
 
@@ -207,6 +208,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 ### Persistence
 - ✅ **JSON Serialization**: Save complete layout structure
 - ✅ **JSON Deserialization**: Restore layout from JSON
+- ✅ **Unsupported-type layout recovery**: Unknown serialized node types no longer abort loading; they recover via factory custom fallback or framework placeholder diagnostics
 - ✅ **Custom Node IDs**: Stable, user-defined IDs (2026-02-10)
 - ✅ **DockNodeFactory pattern**: Factory for node recreation (2026-02-10)
 - ✅ **Cross-session support**: Works across application restarts (2026-02-10)

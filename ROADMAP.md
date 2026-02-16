@@ -75,6 +75,7 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 
 - ✅ **Container tab title/icon UX**: Tabs containing nested split/tab layouts now derive title/icon from a representative DockNode (`Title +N`) instead of showing container class names
 - ✅ **Layout-load diagnostics UX**: Invalid layout files now return typed `DockLayoutLoadException` failures with JSON path context, and MainDemo surfaces the details in an error dialog
+- ✅ **Unknown-type layout recovery UX**: Corrupted/unsupported serialized node types now recover via factory custom fallback or framework placeholder diagnostics without aborting full layout load
 - 📋 No planned items; see `CHANGELOG.md` for completed fixes.
 
 ---
@@ -116,6 +117,11 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 - ✅ **Resizable undecorated windows**: Edge/corner resize behavior for floating stages
 - ✅ **Tab-level float action**: Float button available in tab headers
 - ✅ **Floating title-bar icon reliability**: Title-bar icons now stay visible across dock/header/tab views and track active tab selection
+- ✅ **Floating title-bar context-menu dismiss behavior**: Context menu now hides immediately when clicking the title bar outside the menu
+- ✅ **Maximized restore drag threshold**: Restore-on-drag from maximized requires deliberate pointer movement
+- ✅ **Adaptive resize minimum constraints**: Floating resize honors effective stage/content minimum sizes
+- ✅ **Interactive-target resize cursor reliability**: Edge resize cursors now apply consistently over content controls (for example console text areas)
+- ✅ **Owner-aware MainDemo error alerts**: Error dialogs attach to the primary stage for better multi-monitor usability
 
 **Estimated Time**: Completed
 
