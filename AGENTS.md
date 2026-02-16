@@ -4,6 +4,8 @@ These instructions are shared for all AI agents working on this workspace.
 
 ## Core Workflow
 - Always add or update unit tests for new behavior, bug fixes, or refactors.
+- For bug fixes, first add or update a test that reproduces the issue and verify it fails before implementing the fix.
+- Exception: if a bug is only reproducible via user interaction and cannot be automated yet, document manual reproduction/verification steps and add or improve logging so the failure path is observable.
 - Always run unit tests after code changes when possible (`./gradlew test`).
 - Always update `STATUS.md`, `DONE.md`, and `ROADMAP.md` after changes.
 - Keep `CHANGELOG.md` up to date for release-visible changes (`Unreleased` during development, grouped by tags for releases).
