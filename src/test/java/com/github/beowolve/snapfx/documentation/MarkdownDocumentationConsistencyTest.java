@@ -156,6 +156,27 @@ class MarkdownDocumentationConsistencyTest {
         assertContains(content, "## Documentation Map", "README.md missing documentation map section");
         assertContains(content, "| `TESTING_POLICY.md` | Stable testing rules and quality gates |", "README.md missing testing policy map row");
         assertContains(content, "| `STATUS.md` | Current state, open issues, and latest changes |", "README.md missing status map row");
+        assertContains(content, "| `CONTRIBUTING.md` | Contribution workflow, branch strategy, and PR checklist |", "README.md missing contributing map row");
+        assertContains(content, "| `RELEASING.md` | Maintainer release process, versioning, tags, and CI release flow |", "README.md missing releasing map row");
+    }
+
+    @Test
+    void testReadmeQuickStartIsFrameworkFocused() throws IOException {
+        String content = readProjectFile("README.md");
+        assertContains(content, "## Quick Start", "README.md missing quick start section");
+        assertContains(
+            content,
+            "Maven Central dependency coordinates will be documented here once the first Maven Central release is published.",
+            "README.md quick start should include Maven Central placeholder note"
+        );
+        assertNotContains(content, "### Gradle Setup", "README.md quick start must not include generic Gradle setup template");
+        assertNotContains(content, "### Module Configuration", "README.md quick start must not include generic module template");
+        assertNotContains(content, "## Versioning", "README.md must not include repository-maintainer versioning workflow");
+        assertNotContains(content, "## Branch Strategy", "README.md must not include repository branch workflow details");
+        assertNotContains(content, "## CI/CD", "README.md must not include repository CI/CD workflow details");
+        assertContains(content, "## Contributing", "README.md missing contributing section");
+        assertContains(content, "see `CONTRIBUTING.md`.", "README.md should link to CONTRIBUTING.md");
+        assertContains(content, "see `RELEASING.md`.", "README.md should link to RELEASING.md");
     }
 
     private String readProjectFile(String fileName) throws IOException {

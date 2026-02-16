@@ -5,7 +5,7 @@
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 160 tests passing (latest full suite)  
+✅ **Tests**: All 161 tests passing (latest full suite)  
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully  
 ✅ **CI Automation**: GitHub Actions workflows added for push/PR tests and tag-triggered releases  
@@ -123,9 +123,9 @@
 - ✅ MainDemoTest (4 tests) - Demo app icon resource wiring and menu icon behavior
 - ✅ EditorCloseDecisionPolicyTest (5 tests) - Deterministic close-decision policy checks
 - ✅ SimpleExampleTest (2 tests) - Stylesheet resource resolution behavior
-- ✅ MarkdownDocumentationConsistencyTest (10 tests) - Markdown consistency guardrails
+- ✅ MarkdownDocumentationConsistencyTest (11 tests) - Markdown consistency guardrails
 - ✅ AboutDialogTest (2 tests) - About dialog branding resources and credit link targets
-- ✅ **160/160 tests passing** ✅ (was 49)
+- ✅ **161/161 tests passing** ✅ (was 49)
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Edge case tests** (null inputs, detached nodes, invalid move targets, no-op revision checks)
@@ -156,6 +156,8 @@
 - ✅ MODULE_MIGRATION_SUMMARY.md
 - ✅ TABPANE_TESTS.md
 - ✅ DONE.md
+- ✅ CONTRIBUTING.md (collaboration workflow and PR expectations)
+- ✅ RELEASING.md (maintainer release/versioning/tag flow)
 
 ## Issues
 
@@ -220,6 +222,10 @@
 - ✅ Added inline rendered-icon comments for `\u...` icon constants in `MarkdownDocumentationConsistencyTest` for developer readability.
 - ✅ Updated `AGENTS.md` with a persistent collaboration rule for minimal-diff edits across all file changes.
 - ✅ Updated license wording across docs to MIT with explicit personal/commercial use positioning.
+- ✅ Refocused README Quick Start on SnapFX usage and removed generic Gradle/module setup templates.
+- ✅ Removed repository-maintainer workflow sections (Versioning/Branch Strategy/CI/CD) from README to keep it framework-consumer focused.
+- ✅ Added CONTRIBUTING.md for collaboration workflow, branch strategy, and PR quality gates.
+- ✅ Added RELEASING.md for maintainer release/versioning/tag and CI release automation flow.
 
 ## Recent Changes (2026-02-15)
 
@@ -244,7 +250,7 @@
 - Added `DockGraphTest#testDemoLikeLayoutCanUseQuarterHalfQuarterSplit` to verify exact `25/50/25` split ratios can be set programmatically.
 - Added `SnapFXTest` coverage for ratio API behavior (normalized values + invalid input handling).
 - Added `DockLayoutEngineTest` coverage for stylesheet-based control glyph class wiring (title close + tab float button).
-- Test status: **160/160 passing** ✅
+- Test status: **161/161 passing** ✅
 
 ### Documentation
 - Fixed Unicode/Mojibake issues in `ROADMAP.md` (Phase 4.5 Floating Window Snapping icons/priority).
@@ -457,7 +463,7 @@ See [ROADMAP.md](ROADMAP.md) for detailed future development plans.
 
 ## Documentation Policy
 
-- ✅ Core documentation files: `README.md`, `SETUP.md`, `ARCHITECTURE.md`, `STATUS.md`, `ROADMAP.md`, `DONE.md`, `TESTING_POLICY.md`, `AGENTS.md`.
+- ✅ Core documentation files: `README.md`, `SETUP.md`, `ARCHITECTURE.md`, `STATUS.md`, `ROADMAP.md`, `DONE.md`, `TESTING_POLICY.md`, `CONTRIBUTING.md`, `RELEASING.md`, `AGENTS.md`.
 - ✅ Responsibility split: `STATUS.md` = current status and open issues.
 - ✅ Responsibility split: `ROADMAP.md` = planned work.
 - ✅ Responsibility split: `DONE.md` = completed work.

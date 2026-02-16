@@ -317,6 +317,8 @@ This roadmap lists planned work only; fixed issues are tracked in `STATUS.md`.
 - ✅ **Minimal-diff editing baseline**: collaboration rules now require targeted edits over full-file rewrites whenever smaller diffs are sufficient
 - ✅ **Unicode icon readability baseline**: `\u...` icon constants in doc consistency tests now include inline rendered-icon comments
 - ✅ **License wording baseline**: README/SETUP now state MIT licensing and explicit personal/commercial use positioning
+- ✅ **README consumer-focus baseline**: Quick Start now focuses on SnapFX usage, without generic Gradle/module templates or repository workflow sections
+- ✅ **Maintainer docs baseline**: Collaboration/release workflow is now documented in `CONTRIBUTING.md` and `RELEASING.md`
 - 📋 **API documentation**: Complete JavaDoc
 - 📋 **User guide**: Comprehensive usage guide
 - 📋 **Tutorial series**: Step-by-step tutorials

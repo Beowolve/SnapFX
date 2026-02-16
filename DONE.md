@@ -57,7 +57,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (12 test classes, 160 tests)
+### Testing (12 test classes, 161 tests)
 - ✅ `DockGraphTest` (56 tests) - Tree manipulation and algorithms
   - **+11 regression tests** for critical bug fixes
   - Tests for empty container prevention
@@ -79,12 +79,12 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `AboutDialogTest` (2 tests) - About dialog resources and credit link targets
 - ✅ `EditorCloseDecisionPolicyTest` (5 tests) - Deterministic close-decision behavior for dirty editor nodes
 - ✅ `SimpleExampleTest` (2 tests) - Stylesheet resource resolution behavior
-- ✅ `MarkdownDocumentationConsistencyTest` (10 tests) - Documentation consistency guardrails
+- ✅ `MarkdownDocumentationConsistencyTest` (11 tests) - Documentation consistency guardrails
 - ✅ All tests passing ✅
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
 - ✅ Mandatory regression tests for all bug fixes
 
-### Documentation (8 files)
+### Documentation (10 files)
 - ✅ `README.md` - Project overview and quick start
 - ✅ `SETUP.md` - Development environment setup
 - ✅ `ARCHITECTURE.md` - Complete architecture documentation
@@ -92,12 +92,17 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `ROADMAP.md` - Future development plans
 - ✅ `DONE.md` - Completed features (this file)
 - ✅ `TESTING_POLICY.md` - Stable testing rules and quality gates (policy-only)
+- ✅ `CONTRIBUTING.md` - Collaboration workflow, branch strategy, and PR quality gates
+- ✅ `RELEASING.md` - Maintainer release/versioning/tag and CI release flow
 - ✅ `AGENTS.md` - Persistent collaboration rules and workflow constraints
 - ✅ README clarifies TitleBarMode.AUTO behavior and tab-only drag handling
 - ✅ README includes a MainDemo screenshot preview near the top
 - ✅ README embeds the SnapFX SVG logo for repository and future GitHub Pages branding
 - ✅ README now includes a documentation map that defines ownership and purpose of each core markdown file
 - ✅ README and SETUP license sections now state MIT licensing with explicit personal/commercial use support
+- ✅ README quick start is now framework-focused and excludes generic Gradle/module setup templates
+- ✅ README no longer includes repository-maintainer workflow sections (Versioning/Branch Strategy/CI/CD)
+- ✅ Removed README maintainer workflow sections are now documented in dedicated `CONTRIBUTING.md` and `RELEASING.md` guides
 - ✅ Issue tracking consolidated into STATUS.md; ROADMAP lists planned work only
 - ✅ Fixed markdown encoding artifacts (Unicode icon Mojibake) in roadmap/docs content
 - ✅ Documentation scope is now explicit: `STATUS` = current, `ROADMAP` = planned, `DONE` = completed, `TESTING_POLICY` = rules-only
@@ -266,9 +271,9 @@ In IntelliJ IDEA:
 - **Total Java Files**: 38
 - **Production Classes**: 31
 - **Test Classes**: 12
-- **Test Cases**: 160 (all passing ✅)
+- **Test Cases**: 161 (all passing ✅)
 - **Lines of Code**: ~3,500+ (estimated)
-- **Documentation**: 7 Core Markdown files
+- **Documentation**: 10 Core Markdown files
 - **Test Coverage**: ~87% (estimated, improved from ~80%)
 
 ## 🎓 Key Achievements
