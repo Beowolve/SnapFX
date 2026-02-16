@@ -346,9 +346,11 @@ public class DockLayoutEngine {
         ContextMenu contextMenu = new ContextMenu();
 
         MenuItem floatItem = new MenuItem("Float");
+        floatItem.setGraphic(createControlIcon("dock-control-icon-float"));
         floatItem.setOnAction(e -> handleFloatRequest(dockNode));
 
         MenuItem closeItem = new MenuItem("Close");
+        closeItem.setGraphic(createControlIcon("dock-control-icon-close"));
         closeItem.setOnAction(e -> handleCloseRequest(dockNode, DockCloseSource.TITLE_BAR));
 
         contextMenu.setOnShowing(e -> updateHeaderContextMenuState(floatItem, closeItem, dockNode));
@@ -368,6 +370,7 @@ public class DockLayoutEngine {
         ContextMenu contextMenu = new ContextMenu();
 
         MenuItem closeItem = new MenuItem("Close");
+        closeItem.setGraphic(createControlIcon("dock-control-icon-close"));
         closeItem.setOnAction(e -> handleCloseRequest(dockNode, DockCloseSource.TAB));
 
         MenuItem closeOthersItem = new MenuItem("Close Others");
@@ -377,6 +380,7 @@ public class DockLayoutEngine {
         closeAllItem.setOnAction(e -> closeTabNodes(collectClosableNodes(ownerTabPane)));
 
         MenuItem floatItem = new MenuItem("Float");
+        floatItem.setGraphic(createControlIcon("dock-control-icon-float"));
         floatItem.setOnAction(e -> handleFloatRequest(dockNode));
 
         SeparatorMenuItem separator = new SeparatorMenuItem();

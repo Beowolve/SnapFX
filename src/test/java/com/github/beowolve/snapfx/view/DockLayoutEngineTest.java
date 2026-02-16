@@ -172,6 +172,8 @@ class DockLayoutEngineTest extends ApplicationTest {
         assertTrue(itemLabels.contains("Close Others"));
         assertTrue(itemLabels.contains("Close All"));
         assertTrue(itemLabels.contains("Float"));
+        assertMenuItemHasIcon(contextMenu, "Close", "dock-control-icon-close");
+        assertMenuItemHasIcon(contextMenu, "Float", "dock-control-icon-float");
     }
 
     @Test
@@ -386,6 +388,8 @@ class DockLayoutEngineTest extends ApplicationTest {
             .filter(item -> "Float".equals(item.getText()))
             .findFirst()
             .orElseThrow();
+        assertMenuItemHasIcon(headerContextMenu, "Close", "dock-control-icon-close");
+        assertMenuItemHasIcon(headerContextMenu, "Float", "dock-control-icon-float");
         floatItem.fire();
 
         assertEquals(node, floatedNode.get());
@@ -640,6 +644,17 @@ class DockLayoutEngineTest extends ApplicationTest {
         if (contextMenu.getOnShowing() != null) {
             contextMenu.getOnShowing().handle(null);
         }
+    }
+
+    private void assertMenuItemHasIcon(ContextMenu contextMenu, String itemText, String iconClass) {
+        MenuItem menuItem = contextMenu.getItems().stream()
+            .filter(item -> itemText.equals(item.getText()))
+            .findFirst()
+            .orElseThrow();
+        Node graphic = menuItem.getGraphic();
+        assertNotNull(graphic, () -> "Missing graphic for menu item: " + itemText);
+        assertTrue(graphic.getStyleClass().contains(iconClass),
+            () -> "Menu item '" + itemText + "' missing icon class: " + iconClass);
     }
 
     private MouseEvent createPrimaryPressEvent(Node source, Node target) {

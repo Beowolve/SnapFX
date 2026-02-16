@@ -35,7 +35,7 @@
 - ✅ Bidirectional property bindings
 - ✅ View caching
 - ✅ CSS styling (Modena theme)
-- ✅ Context menus for tab headers, dock-node headers, and split panes (with float-action availability policy support)
+- ✅ Context menus for tab headers, dock-node headers, and split panes (with float-action availability policy support and close/float icon parity)
 
 ### Drag & Drop (100% ✅)
 - ✅ DockDragService implementation

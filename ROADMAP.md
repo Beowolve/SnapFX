@@ -132,9 +132,9 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 ### 3.2 Context Menus
 **Priority**: 🟢 Medium
 
-- ✅ **Right-click on tab**: Close, Close Others, Close All, Float
+- ✅ **Right-click on tab**: Close, Close Others, Close All, Float (with control-glyph icons for close/float)
 - ✅ **Right-click on splitter**: Reset splitter ratios to balanced layout
-- ✅ **Right-click on header**: Float and Close actions for dock-node headers
+- ✅ **Right-click on header**: Float and Close actions for dock-node headers (with control-glyph icons)
 - ✅ **Right-click on floating title bar**: `Attach to Layout` and toggle "Always on Top"
 - 📋 **Customizable menu items**: API for adding custom actions
 

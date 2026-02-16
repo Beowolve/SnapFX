@@ -155,7 +155,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **MainDemo layout menu icons**: Hidden/Floating menu actions now show dock-node icons when available
 - ✅ **Floating pin configuration**: Pin button mode (`ALWAYS`/`AUTO`/`NEVER`), default pinned state, lock behavior, and toggle enablement are configurable via API
 - ✅ **Floating pin persistence + events**: Always-on-top state is persisted in floating layout snapshots and exposed through source-aware pin change callbacks
-- ✅ **Context menu baseline**: Right-click actions for tabs, splitters, dock-node headers, and floating title bars are implemented (including `Attach to Layout` and always-on-top toggle with control-icon parity)
+- ✅ **Context menu baseline**: Right-click actions for tabs, splitters, dock-node headers, and floating title bars are implemented (including `Attach to Layout`, always-on-top toggle, and control-icon parity for attach/pin/close/float actions)
 - ✅ **Floating single-node float policy parity**: Float context action is hidden for single-node floating layouts, matching button visibility behavior
 - ✅ **View Caching**: Performance optimization through view reuse
 

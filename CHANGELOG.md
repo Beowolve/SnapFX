@@ -20,6 +20,7 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Bound shortcut key filters to floating-window scenes so framework shortcuts also trigger while floating windows are focused.
 - ✅ Added context menus for tabs, dock-node headers, split panes, and floating title bars (including `Attach to Layout` plus always-on-top toggle with control-icon parity).
 - ✅ Added floating float-action availability policy so single-node floating layouts hide the `Float` context action (matching existing button behavior).
+- ✅ Added close/float control-glyph icons to dock-node and tab context-menu actions for visual parity with header/tab buttons.
 
 ### Documentation
 - ✅ Split repository workflow content out of `README.md` into dedicated `CONTRIBUTING.md` and `RELEASING.md` (`6f93d0a`).
