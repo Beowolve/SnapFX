@@ -5,7 +5,7 @@
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 174 tests passing (latest full suite)  
+✅ **Tests**: All 186 tests passing (latest full suite)  
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully  
 ✅ **CI Automation**: GitHub Actions workflows added for push/PR tests and tag-triggered releases  
@@ -35,6 +35,7 @@
 - ✅ Bidirectional property bindings
 - ✅ View caching
 - ✅ CSS styling (Modena theme)
+- ✅ Context menus for tab headers, dock-node headers, and split panes (with float-action availability policy support)
 
 ### Drag & Drop (100% ✅)
 - ✅ DockDragService implementation
@@ -100,6 +101,7 @@
 - ✅ Save/load persistence for floating windows, including floating snapshot restore on layout load
 - ✅ Configurable floating pin controls (`ALWAYS`/`AUTO`/`NEVER`) with default always-on-top and lock-mode behavior
 - ✅ Source-aware floating pin change callbacks plus always-on-top snapshot persistence
+- ✅ Floating title-bar context menu with `Attach to Layout` and always-on-top toggle (icon parity with title-bar controls)
 
 ### Debug Tools (100% ✅)
 - ✅ DockGraphDebugView
@@ -123,17 +125,17 @@
 ### Testing (100% ✅)
 - ✅ DockGraphTest (56 tests, +11 regression tests)
 - ✅ DockLayoutSerializerTest (9 tests, +1 regression test)
-- ✅ DockLayoutEngineTest (22 tests)
+- ✅ DockLayoutEngineTest (28 tests) - Includes tab/header/splitter context-menu coverage and float-availability policy checks
 - ✅ **SnapFXTest (44 tests)** - Hide/Restore + Floating Window API tests plus configurable shortcut behavior
 - ✅ DockGraphSplitTargetDockingTest (1 test)
 - ✅ DockDragServiceTest (8 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, and ESC drag-cancel handling
-- ✅ DockFloatingWindowTest (8 tests) - Floating title bar controls, pin behavior, and maximize/restore interaction behavior
+- ✅ DockFloatingWindowTest (14 tests) - Floating title bar controls, context menu behavior (attach/pin icons + attach action), pin behavior, single-node float-menu policy, and maximize/restore interaction behavior
 - ✅ MainDemoTest (5 tests) - Demo app icon resource wiring, menu icon behavior, and demo shortcut wiring
 - ✅ EditorCloseDecisionPolicyTest (5 tests) - Deterministic close-decision policy checks
 - ✅ SimpleExampleTest (2 tests) - Stylesheet resource resolution behavior
 - ✅ MarkdownDocumentationConsistencyTest (12 tests) - Markdown consistency guardrails
 - ✅ AboutDialogTest (2 tests) - About dialog branding resources and credit link targets
-- ✅ **174/174 tests passing** ✅
+- ✅ **186/186 tests passing** ✅
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Edge case tests** (null inputs, detached nodes, invalid move targets, no-op revision checks)
@@ -171,13 +173,13 @@
 - ⚠️ Performance: Benchmark trend tracking for large layouts not implemented
 - ⚠️ Memory: Automated heap profiling in CI not implemented
 - ⚠️ UI: Global interaction animations missing (only About dialog easter egg animation exists; tracked in `ROADMAP.md` Phase 3.3)
-- ⚠️ UI: Context menus for advanced actions (including floating always-on-top toggle) not implemented (tracked in `ROADMAP.md` Phase 3.2)
+- ⚠️ UI: Context-menu extensibility API for custom menu items is not implemented yet (tracked in `ROADMAP.md` Phase 3.2)
 
 ## Next Steps
 
 See [ROADMAP.md](ROADMAP.md) for detailed future development plans.
 
-**Priority**: Continue Phase 3 user-experience backlog (context menus and interaction polish).
+**Priority**: Continue Phase 3 user-experience backlog (customizable context-menu API and interaction polish).
 
 ---
 

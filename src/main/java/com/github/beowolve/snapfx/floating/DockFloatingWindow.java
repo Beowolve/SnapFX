@@ -22,8 +22,13 @@ import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
@@ -93,6 +98,7 @@ public final class DockFloatingWindow {
     private Tooltip maximizeTooltip;
     private Button pinButton;
     private Tooltip pinTooltip;
+    private ContextMenu titleBarContextMenu;
 
     private double dragOffsetX;
     private double dragOffsetY;
@@ -146,6 +152,7 @@ public final class DockFloatingWindow {
         this.floatingLayoutEngine = new DockLayoutEngine(floatingGraph, dragService);
         this.floatingLayoutEngine.setOnNodeCloseRequest(this::handleInnerNodeCloseRequest);
         this.floatingLayoutEngine.setOnNodeFloatRequest(this::handleInnerNodeFloatRequest);
+        this.floatingLayoutEngine.setCanFloatNodePredicate(node -> getDockNodes().size() > 1);
         this.layoutContainer = new StackPane();
         this.layoutContainer.getStyleClass().add("dock-floating-layout-container");
         this.dropIndicator = new FloatingDropIndicator();
@@ -631,11 +638,7 @@ public final class DockFloatingWindow {
         Button attachButton = createControlButton(
             "dock-control-icon-attach",
             "Attach to layout",
-            () -> {
-                if (onAttachRequested != null) {
-                    onAttachRequested.run();
-                }
-            },
+            this::requestAttach,
             "dock-window-attach-button"
         );
 
@@ -659,7 +662,69 @@ public final class DockFloatingWindow {
 
         titleBar.getChildren().addAll(iconPane, titleLabel, spacer, attachButton, pinButton, maximizeButton, closeButton);
         setupTitleBarDrag(titleBar, window);
+        installTitleBarContextMenu(titleBar);
         return titleBar;
+    }
+
+    private void installTitleBarContextMenu(HBox titleBar) {
+        if (titleBar == null) {
+            return;
+        }
+        if (titleBarContextMenu != null) {
+            titleBarContextMenu.hide();
+        }
+        titleBarContextMenu = createTitleBarContextMenu();
+        titleBar.setOnContextMenuRequested(event -> showTitleBarContextMenu(titleBar, event));
+    }
+
+    private ContextMenu createTitleBarContextMenu() {
+        MenuItem attachItem = new MenuItem("Attach to Layout");
+        attachItem.setGraphic(createControlIcon("dock-control-icon-attach"));
+        attachItem.setOnAction(this::onAttachContextMenuAction);
+
+        CheckMenuItem alwaysOnTopItem = new CheckMenuItem("Always on Top");
+        alwaysOnTopItem.setOnAction(event -> onAlwaysOnTopContextMenuAction(alwaysOnTopItem));
+        alwaysOnTopItem.setGraphic(createControlIcon("dock-control-icon-pin-on"));
+
+        ContextMenu contextMenu = new ContextMenu(attachItem, new SeparatorMenuItem(), alwaysOnTopItem);
+        contextMenu.setOnShowing(event -> updateTitleBarContextMenuState(attachItem, alwaysOnTopItem));
+        return contextMenu;
+    }
+
+    private void onAttachContextMenuAction(ActionEvent event) {
+        if (floatingGraph.isLocked()) {
+            event.consume();
+            return;
+        }
+        requestAttach();
+        event.consume();
+    }
+
+    private void requestAttach() {
+        if (onAttachRequested != null) {
+            onAttachRequested.run();
+        }
+    }
+
+    private void onAlwaysOnTopContextMenuAction(CheckMenuItem alwaysOnTopItem) {
+        setAlwaysOnTop(alwaysOnTopItem.isSelected(), DockFloatingPinSource.USER);
+    }
+
+    private void updateTitleBarContextMenuState(MenuItem attachItem, CheckMenuItem alwaysOnTopItem) {
+        attachItem.setDisable(floatingGraph.isLocked() || onAttachRequested == null);
+        alwaysOnTopItem.setSelected(isAlwaysOnTop());
+        alwaysOnTopItem.setDisable(floatingGraph.isLocked() || !pinToggleEnabled);
+        alwaysOnTopItem.setGraphic(
+            createControlIcon(isAlwaysOnTop() ? "dock-control-icon-pin-on" : "dock-control-icon-pin-off")
+        );
+    }
+
+    private void showTitleBarContextMenu(HBox titleBar, ContextMenuEvent event) {
+        if (titleBarContextMenu == null) {
+            return;
+        }
+        titleBarContextMenu.show(titleBar, event.getScreenX(), event.getScreenY());
+        event.consume();
     }
 
     private Button createControlButton(String iconStyleClass, String tooltipText, Runnable action, String styleClass) {
@@ -1421,7 +1486,7 @@ public final class DockFloatingWindow {
     }
 
     private void handleInnerNodeFloatRequest(DockNode node) {
-        if (node == null || floatingGraph.isLocked()) {
+        if (node == null || floatingGraph.isLocked() || getDockNodes().size() <= 1) {
             return;
         }
         if (onNodeFloatRequest != null) {
@@ -1463,6 +1528,10 @@ public final class DockFloatingWindow {
 
         if (iconPane != null) {
             iconPane.getChildren().clear();
+        }
+        if (titleBarContextMenu != null) {
+            titleBarContextMenu.hide();
+            titleBarContextMenu = null;
         }
         pinButton = null;
         pinTooltip = null;

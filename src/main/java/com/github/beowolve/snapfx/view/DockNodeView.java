@@ -8,8 +8,10 @@ import javafx.beans.value.ChangeListener;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -33,6 +35,7 @@ public class DockNodeView extends VBox {
     private final Label titleLabel;
     private final ChangeListener<Node> iconListener;
     private final ChangeListener<Node> contentListener;
+    private ContextMenu headerContextMenu;
 
     public DockNodeView(DockNode dockNode, DockGraph dockGraph, DockDragService dragService) {
         this.dockNode = dockNode;
@@ -239,6 +242,28 @@ public class DockNodeView extends VBox {
         return header;
     }
 
+    /**
+     * Installs a context menu for the node header.
+     *
+     * @param contextMenu the context menu to show on header right-click
+     */
+    public void setHeaderContextMenu(ContextMenu contextMenu) {
+        headerContextMenu = contextMenu;
+        header.setOnContextMenuRequested(this::onHeaderContextMenuRequested);
+    }
+
+    ContextMenu getHeaderContextMenu() {
+        return headerContextMenu;
+    }
+
+    private void onHeaderContextMenuRequested(ContextMenuEvent event) {
+        if (headerContextMenu == null) {
+            return;
+        }
+        headerContextMenu.show(header, event.getScreenX(), event.getScreenY());
+        event.consume();
+    }
+
     public void setHeaderVisible(boolean visible) {
         header.setVisible(visible);
         header.setManaged(visible);
@@ -272,6 +297,11 @@ public class DockNodeView extends VBox {
         header.setOnMousePressed(null);
         header.setOnMouseDragged(null);
         header.setOnMouseReleased(null);
+        header.setOnContextMenuRequested(null);
+        if (headerContextMenu != null) {
+            headerContextMenu.hide();
+        }
+        headerContextMenu = null;
 
         contentPane.getChildren().clear();
     }

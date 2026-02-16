@@ -8,7 +8,10 @@ import javafx.event.Event;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
@@ -153,6 +156,57 @@ class DockLayoutEngineTest extends ApplicationTest {
     }
 
     @Test
+    void testTabContextMenuContainsExpectedActions() {
+        DockNode node1 = new DockNode(new Label("Test1"), "Node 1");
+        DockNode node2 = new DockNode(new Label("Test2"), "Node 2");
+
+        dockGraph.dock(node1, null, DockPosition.CENTER);
+        dockGraph.dock(node2, node1, DockPosition.CENTER);
+
+        TabPane tabPane = assertInstanceOf(TabPane.class, layoutEngine.buildSceneGraph());
+        ContextMenu contextMenu = tabPane.getTabs().getFirst().getContextMenu();
+        assertNotNull(contextMenu);
+
+        List<String> itemLabels = contextMenu.getItems().stream().map(MenuItem::getText).toList();
+        assertTrue(itemLabels.contains("Close"));
+        assertTrue(itemLabels.contains("Close Others"));
+        assertTrue(itemLabels.contains("Close All"));
+        assertTrue(itemLabels.contains("Float"));
+    }
+
+    @Test
+    void testTabContextMenuCloseOthersUsesTabCloseSource() {
+        DockNode node1 = new DockNode(new Label("Test1"), "Node 1");
+        DockNode node2 = new DockNode(new Label("Test2"), "Node 2");
+        DockNode node3 = new DockNode(new Label("Test3"), "Node 3");
+
+        dockGraph.dock(node1, null, DockPosition.CENTER);
+        dockGraph.dock(node2, node1, DockPosition.CENTER);
+        dockGraph.dock(node3, node2, DockPosition.CENTER);
+
+        List<DockNode> closedNodes = new ArrayList<>();
+        List<DockCloseSource> closeSources = new ArrayList<>();
+        layoutEngine.setOnNodeCloseRequest((node, source) -> {
+            closedNodes.add(node);
+            closeSources.add(source);
+        });
+
+        TabPane tabPane = assertInstanceOf(TabPane.class, layoutEngine.buildSceneGraph());
+        ContextMenu contextMenu = tabPane.getTabs().getFirst().getContextMenu();
+        MenuItem closeOthersItem = contextMenu.getItems().stream()
+            .filter(item -> "Close Others".equals(item.getText()))
+            .findFirst()
+            .orElseThrow();
+
+        closeOthersItem.fire();
+
+        assertEquals(2, closedNodes.size());
+        assertTrue(closedNodes.contains(node2));
+        assertTrue(closedNodes.contains(node3));
+        assertTrue(closeSources.stream().allMatch(source -> source == DockCloseSource.TAB));
+    }
+
+    @Test
     void testCloseButtonModeTitleOnlyHidesTabClose() {
         DockNode node1 = new DockNode(new Label("Test1"), "Node 1");
         DockNode node2 = new DockNode(new Label("Test2"), "Node 2");
@@ -289,6 +343,100 @@ class DockLayoutEngineTest extends ApplicationTest {
 
         SplitPane splitPane = (SplitPane) view;
         assertEquals(2, splitPane.getItems().size());
+    }
+
+    @Test
+    void testSplitPaneContextMenuResetItemAppliesBalancedRatios() {
+        DockNode node1 = new DockNode(new Label("Test1"), "Node 1");
+        DockNode node2 = new DockNode(new Label("Test2"), "Node 2");
+
+        dockGraph.dock(node1, null, DockPosition.CENTER);
+        dockGraph.dock(node2, node1, DockPosition.RIGHT);
+
+        SplitPane splitPane = assertInstanceOf(SplitPane.class, layoutEngine.buildSceneGraph());
+        splitPane.setDividerPositions(0.8);
+
+        ContextMenu contextMenu = splitPane.getContextMenu();
+        assertNotNull(contextMenu);
+        MenuItem resetItem = contextMenu.getItems().stream()
+            .filter(item -> "Reset Splitter Ratios".equals(item.getText()))
+            .findFirst()
+            .orElseThrow();
+
+        resetItem.fire();
+
+        assertEquals(0.5, splitPane.getDividerPositions()[0], 0.0001);
+        DockSplitPane model = assertInstanceOf(DockSplitPane.class, dockGraph.getRoot());
+        assertEquals(0.5, model.getDividerPositions().get(0).get(), 0.0001);
+    }
+
+    @Test
+    void testHeaderContextMenuFloatActionUsesCallback() {
+        DockNode node = new DockNode(new Label("Test"), "Node 1");
+        dockGraph.setRoot(node);
+
+        AtomicReference<DockNode> floatedNode = new AtomicReference<>();
+        layoutEngine.setOnNodeFloatRequest(floatedNode::set);
+
+        DockNodeView nodeView = assertInstanceOf(DockNodeView.class, layoutEngine.buildSceneGraph());
+        ContextMenu headerContextMenu = nodeView.getHeaderContextMenu();
+        assertNotNull(headerContextMenu);
+
+        MenuItem floatItem = headerContextMenu.getItems().stream()
+            .filter(item -> "Float".equals(item.getText()))
+            .findFirst()
+            .orElseThrow();
+        floatItem.fire();
+
+        assertEquals(node, floatedNode.get());
+    }
+
+    @Test
+    void testHeaderContextMenuHidesFloatWhenPredicateBlocksNode() {
+        DockNode node = new DockNode(new Label("Test"), "Node 1");
+        dockGraph.setRoot(node);
+        layoutEngine.setCanFloatNodePredicate(ignored -> false);
+
+        DockNodeView nodeView = assertInstanceOf(DockNodeView.class, layoutEngine.buildSceneGraph());
+        ContextMenu headerContextMenu = nodeView.getHeaderContextMenu();
+        assertNotNull(headerContextMenu);
+
+        MenuItem floatItem = headerContextMenu.getItems().stream()
+            .filter(item -> "Float".equals(item.getText()))
+            .findFirst()
+            .orElseThrow();
+        invokeContextMenuOnShowing(headerContextMenu);
+
+        assertFalse(floatItem.isVisible());
+        assertTrue(floatItem.isDisable());
+    }
+
+    @Test
+    void testTabContextMenuHidesFloatWhenPredicateBlocksNode() {
+        DockNode node1 = new DockNode(new Label("Test1"), "Node 1");
+        DockNode node2 = new DockNode(new Label("Test2"), "Node 2");
+        dockGraph.dock(node1, null, DockPosition.CENTER);
+        dockGraph.dock(node2, node1, DockPosition.CENTER);
+        layoutEngine.setCanFloatNodePredicate(ignored -> false);
+
+        TabPane tabPane = assertInstanceOf(TabPane.class, layoutEngine.buildSceneGraph());
+        ContextMenu contextMenu = tabPane.getTabs().getFirst().getContextMenu();
+        assertNotNull(contextMenu);
+        MenuItem floatItem = contextMenu.getItems().stream()
+            .filter(item -> "Float".equals(item.getText()))
+            .findFirst()
+            .orElseThrow();
+        SeparatorMenuItem separator = contextMenu.getItems().stream()
+            .filter(SeparatorMenuItem.class::isInstance)
+            .map(SeparatorMenuItem.class::cast)
+            .findFirst()
+            .orElseThrow();
+
+        invokeContextMenuOnShowing(contextMenu);
+
+        assertFalse(floatItem.isVisible());
+        assertTrue(floatItem.isDisable());
+        assertFalse(separator.isVisible());
     }
 
     @Test
@@ -485,6 +633,12 @@ class DockLayoutEngineTest extends ApplicationTest {
             return (Map<String, Node>) field.get(layoutEngine);
         } catch (ReflectiveOperationException e) {
             throw new AssertionError("Unable to inspect DockLayoutEngine view cache", e);
+        }
+    }
+
+    private void invokeContextMenuOnShowing(ContextMenu contextMenu) {
+        if (contextMenu.getOnShowing() != null) {
+            contextMenu.getOnShowing().handle(null);
         }
     }
 

@@ -43,6 +43,7 @@ A high-performance, lightweight JavaFX docking framework that behaves like nativ
 - **Floating Windows**: Custom undecorated floating windows with attach/maximize/restore/close controls
 - **Cross-Window D&D**: Dock nodes between main layout and floating windows, including split/tab targets
 - **Quick Float Actions**: Float buttons in title bars and tab headers
+- **Context Menus**: Right-click actions for tabs, splitters, dock headers, and floating title bars (`Attach to Layout`, always-on-top toggle)
 - **Resizable Floating Windows**: Resize from edges and corners (undecorated behavior)
 - **Locked Mode**: Lock the layout; no D&D; no close buttons
 - **Configurable Keyboard Shortcuts**: Default actions (`Ctrl+W`, `Ctrl+Tab`, `Ctrl+Shift+Tab`, `Escape`, `Ctrl+Shift+P`) can be remapped or disabled via API

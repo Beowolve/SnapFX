@@ -5,16 +5,22 @@ import com.github.beowolve.snapfx.floating.DockFloatingPinLockedBehavior;
 import com.github.beowolve.snapfx.floating.DockFloatingPinSource;
 import com.github.beowolve.snapfx.floating.DockFloatingWindow;
 import com.github.beowolve.snapfx.model.DockNode;
+import com.github.beowolve.snapfx.model.DockPosition;
 import com.github.beowolve.snapfx.view.DockNodeView;
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.PickResult;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -230,6 +236,147 @@ class DockFloatingWindowTest {
         assertFalse(nodeView.isFloatButtonVisible());
     }
 
+    @Test
+    void testTitleBarContextMenuAlwaysOnTopToggleUsesUserSource() {
+        runOnFxThreadAndWait(() -> {
+            DockFloatingWindow floatingWindow = new DockFloatingWindow(new DockNode(new Label("Node"), "Node"));
+            floatingWindow.setAlwaysOnTop(false, DockFloatingPinSource.API);
+            invokeCreateTitleBar(floatingWindow, new Stage());
+
+            ContextMenu contextMenu = readTitleBarContextMenu(floatingWindow);
+            assertNotNull(contextMenu);
+            CheckMenuItem alwaysOnTopItem = findAlwaysOnTopMenuItem(contextMenu);
+            assertNotNull(alwaysOnTopItem);
+
+            AtomicReference<Boolean> state = new AtomicReference<>();
+            AtomicReference<DockFloatingPinSource> source = new AtomicReference<>();
+            floatingWindow.setOnAlwaysOnTopChanged((alwaysOnTop, eventSource) -> {
+                state.set(alwaysOnTop);
+                source.set(eventSource);
+            });
+
+            alwaysOnTopItem.setSelected(true);
+            alwaysOnTopItem.fire();
+
+            assertTrue(floatingWindow.isAlwaysOnTop());
+            assertEquals(Boolean.TRUE, state.get());
+            assertEquals(DockFloatingPinSource.USER, source.get());
+        });
+    }
+
+    @Test
+    void testTitleBarContextMenuAlwaysOnTopItemReflectsStateAndLockMode() {
+        runOnFxThreadAndWait(() -> {
+            DockFloatingWindow floatingWindow = new DockFloatingWindow(new DockNode(new Label("Node"), "Node"));
+            floatingWindow.setAlwaysOnTop(false, DockFloatingPinSource.API);
+            invokeCreateTitleBar(floatingWindow, new Stage());
+
+            ContextMenu contextMenu = readTitleBarContextMenu(floatingWindow);
+            assertNotNull(contextMenu);
+            CheckMenuItem alwaysOnTopItem = findAlwaysOnTopMenuItem(contextMenu);
+            assertNotNull(alwaysOnTopItem);
+
+            invokeContextMenuOnShowing(contextMenu);
+            assertFalse(alwaysOnTopItem.isSelected());
+            assertFalse(alwaysOnTopItem.isDisable());
+
+            floatingWindow.setAlwaysOnTop(true, DockFloatingPinSource.API);
+            invokeContextMenuOnShowing(contextMenu);
+            assertTrue(alwaysOnTopItem.isSelected());
+
+            floatingWindow.getDockGraph().setLocked(true);
+            invokeContextMenuOnShowing(contextMenu);
+            assertTrue(alwaysOnTopItem.isDisable());
+
+            floatingWindow.getDockGraph().setLocked(false);
+            floatingWindow.setPinToggleEnabled(false);
+            invokeContextMenuOnShowing(contextMenu);
+            assertTrue(alwaysOnTopItem.isDisable());
+        });
+    }
+
+    @Test
+    void testTitleBarContextMenuContainsAttachAndPinIcons() {
+        runOnFxThreadAndWait(() -> {
+            DockFloatingWindow floatingWindow = new DockFloatingWindow(new DockNode(new Label("Node"), "Node"));
+            invokeCreateTitleBar(floatingWindow, new Stage());
+
+            ContextMenu contextMenu = readTitleBarContextMenu(floatingWindow);
+            assertNotNull(contextMenu);
+            MenuItem attachItem = findMenuItem(contextMenu, "Attach to Layout");
+            CheckMenuItem alwaysOnTopItem = findAlwaysOnTopMenuItem(contextMenu);
+
+            assertNotNull(attachItem);
+            assertNotNull(alwaysOnTopItem);
+            assertNotNull(attachItem.getGraphic());
+            assertTrue(hasStyleClass(attachItem.getGraphic(), "dock-control-icon-attach"));
+
+            invokeContextMenuOnShowing(contextMenu);
+            assertNotNull(alwaysOnTopItem.getGraphic());
+            assertTrue(hasStyleClass(alwaysOnTopItem.getGraphic(), "dock-control-icon-pin-on")
+                || hasStyleClass(alwaysOnTopItem.getGraphic(), "dock-control-icon-pin-off"));
+        });
+    }
+
+    @Test
+    void testTitleBarContextMenuAttachActionUsesCallback() {
+        runOnFxThreadAndWait(() -> {
+            DockFloatingWindow floatingWindow = new DockFloatingWindow(new DockNode(new Label("Node"), "Node"));
+            AtomicBoolean attachRequested = new AtomicBoolean(false);
+            floatingWindow.setOnAttachRequested(() -> attachRequested.set(true));
+            invokeCreateTitleBar(floatingWindow, new Stage());
+
+            ContextMenu contextMenu = readTitleBarContextMenu(floatingWindow);
+            assertNotNull(contextMenu);
+            MenuItem attachItem = findMenuItem(contextMenu, "Attach to Layout");
+            assertNotNull(attachItem);
+            invokeContextMenuOnShowing(contextMenu);
+
+            attachItem.fire();
+            assertTrue(attachRequested.get());
+        });
+    }
+
+    @Test
+    void testSingleNodeFloatingHeaderContextMenuHidesFloatAction() {
+        runOnFxThreadAndWait(() -> {
+            DockNode node = new DockNode(new Label("Node"), "Node");
+            DockFloatingWindow floatingWindow = new DockFloatingWindow(node);
+            invokeRebuildLayout(floatingWindow);
+
+            DockNodeView nodeView = floatingWindow.getDockNodeView(node);
+            assertNotNull(nodeView);
+            ContextMenu headerContextMenu = readHeaderContextMenu(nodeView);
+            assertNotNull(headerContextMenu);
+            MenuItem floatItem = findMenuItem(headerContextMenu, "Float");
+            assertNotNull(floatItem);
+
+            invokeContextMenuOnShowing(headerContextMenu);
+            assertFalse(floatItem.isVisible());
+        });
+    }
+
+    @Test
+    void testMultiNodeFloatingHeaderContextMenuShowsFloatAction() {
+        runOnFxThreadAndWait(() -> {
+            DockNode node1 = new DockNode(new Label("Node1"), "Node 1");
+            DockNode node2 = new DockNode(new Label("Node2"), "Node 2");
+            DockFloatingWindow floatingWindow = new DockFloatingWindow(node1);
+            floatingWindow.dockNode(node2, node1, DockPosition.RIGHT, null);
+            invokeRebuildLayout(floatingWindow);
+
+            DockNodeView nodeView = floatingWindow.getDockNodeView(node1);
+            assertNotNull(nodeView);
+            ContextMenu headerContextMenu = readHeaderContextMenu(nodeView);
+            assertNotNull(headerContextMenu);
+            MenuItem floatItem = findMenuItem(headerContextMenu, "Float");
+            assertNotNull(floatItem);
+
+            invokeContextMenuOnShowing(headerContextMenu);
+            assertTrue(floatItem.isVisible());
+        });
+    }
+
     private boolean invokeTitleBarActionCandidate(DockFloatingWindow floatingWindow, MouseEvent event, Stage stage) {
         try {
             Method method = DockFloatingWindow.class.getDeclaredMethod("isTitleBarActionCandidate", MouseEvent.class, Stage.class);
@@ -297,6 +444,54 @@ class DockFloatingWindowTest {
             .filter(button -> button.getStyleClass().contains("dock-window-pin-button"))
             .findFirst()
             .orElse(null);
+    }
+
+    private ContextMenu readTitleBarContextMenu(DockFloatingWindow floatingWindow) {
+        try {
+            Field field = DockFloatingWindow.class.getDeclaredField("titleBarContextMenu");
+            field.setAccessible(true);
+            return (ContextMenu) field.get(floatingWindow);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Unable to read titleBarContextMenu", e);
+        }
+    }
+
+    private CheckMenuItem findAlwaysOnTopMenuItem(ContextMenu contextMenu) {
+        return contextMenu.getItems().stream()
+            .filter(CheckMenuItem.class::isInstance)
+            .map(CheckMenuItem.class::cast)
+            .findFirst()
+            .orElse(null);
+    }
+
+    private MenuItem findMenuItem(ContextMenu contextMenu, String label) {
+        return contextMenu.getItems().stream()
+            .filter(item -> label.equals(item.getText()))
+            .findFirst()
+            .orElse(null);
+    }
+
+    private ContextMenu readHeaderContextMenu(DockNodeView nodeView) {
+        try {
+            Field field = DockNodeView.class.getDeclaredField("headerContextMenu");
+            field.setAccessible(true);
+            return (ContextMenu) field.get(nodeView);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Unable to read header context menu", e);
+        }
+    }
+
+    private boolean hasStyleClass(Node node, String styleClass) {
+        if (!(node instanceof Region region)) {
+            return false;
+        }
+        return region.getStyleClass().contains(styleClass);
+    }
+
+    private void invokeContextMenuOnShowing(ContextMenu contextMenu) {
+        if (contextMenu.getOnShowing() != null) {
+            contextMenu.getOnShowing().handle(new WindowEvent(new Stage(), WindowEvent.WINDOW_SHOWING));
+        }
     }
 
     private MouseEvent createMouseEvent(

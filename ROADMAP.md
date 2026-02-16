@@ -13,14 +13,14 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 |-------|--------|------------|
 | Phase 1: Core Stability | ✅ Completed | 100% |
 | Phase 2: Floating Windows | ✅ Completed | 100% |
-| Phase 3: User Experience | 🚧 In Progress | 36% |
+| Phase 3: User Experience | 🚧 In Progress | 64% |
 | Phase 4: Advanced Features | 📋 Planned | 0% |
 | Phase 5: Themes & Customization | 📋 Planned | 0% |
 | Phase 6: Performance & Polish | 📋 Planned | 0% |
 | Phase 7: Developer Experience | 📋 Planned | 45% |
 | Phase 8: Production Readiness | 📋 Planned | 25% |
 
-**Total Project Completion**: ~69%
+**Total Project Completion**: ~73%
 
 ## Legend
 
@@ -126,20 +126,19 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 - ✅ **Escape reliability**: Active drag cancellation now works even while the mouse button is still held
 - ✅ **Ctrl+Shift+P**: Toggle active floating window always-on-top (default mapping, fully configurable)
 - ✅ **F11 (MainDemo)**: Fullscreen toggle implemented at application level (kept out of framework defaults)
-- 💡 **Alt+1..9**: Keep as app-level panel-focus pattern; intentionally not built into framework defaults
 
 **Estimated Time**: Completed (framework baseline)
 
 ### 3.2 Context Menus
 **Priority**: 🟢 Medium
 
-- 📋 **Right-click on tab**: Close, Close Others, Close All, Float
-- 📋 **Right-click on splitter**: Reset to 50/50
-- 📋 **Right-click on header**: Minimize, Maximize, Float
-- 📋 **Right-click on floating title bar**: Toggle "Always on Top"
+- ✅ **Right-click on tab**: Close, Close Others, Close All, Float
+- ✅ **Right-click on splitter**: Reset splitter ratios to balanced layout
+- ✅ **Right-click on header**: Float and Close actions for dock-node headers
+- ✅ **Right-click on floating title bar**: `Attach to Layout` and toggle "Always on Top"
 - 📋 **Customizable menu items**: API for adding custom actions
 
-**Estimated Time**: 2 days
+**Estimated Time**: Remaining ~0.5 day
 
 ---
 

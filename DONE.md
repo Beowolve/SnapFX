@@ -59,7 +59,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (12 test classes, 174 tests)
+### Testing (12 test classes, 186 tests)
 - ✅ `DockGraphTest` (56 tests) - Tree manipulation and algorithms
   - **+11 regression tests** for critical bug fixes
   - Tests for empty container prevention
@@ -70,13 +70,13 @@ SnapFX has been fully implemented with core functionality and is production-read
   - Edge case tests for null/no-op/detached-target handling
 - ✅ `DockLayoutSerializerTest` (9 tests) - Persistence functionality
   - **+1 regression test** for locked state synchronization (2026-02-10)
-- ✅ `DockLayoutEngineTest` (22 tests) - View creation with TestFX
+- ✅ `DockLayoutEngineTest` (28 tests) - View creation with TestFX, context-menu interaction coverage, and float-availability policy checks
   - Memory cleanup tests for cache boundedness and undock/rebuild cycles
   - Layout optimization tests for empty/single-child roots
 - ✅ `SnapFXTest` (44 tests) - Hide/Restore + Floating Window API behavior plus configurable shortcut behavior
 - ✅ `DockGraphSplitTargetDockingTest` (1 test) - Split-target docking regression coverage
 - ✅ `DockDragServiceTest` (8 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, and ESC drag-cancel handling
-- ✅ `DockFloatingWindowTest` (8 tests) - Floating title-bar controls, pin behavior, and maximize/restore interaction behavior
+- ✅ `DockFloatingWindowTest` (14 tests) - Floating title-bar controls, context-menu behavior (attach/pin icons + attach action), pin behavior, single-node float-menu policy, and maximize/restore interaction behavior
 - ✅ `MainDemoTest` (5 tests) - Application icon resources, menu icon behavior, and demo shortcut wiring
 - ✅ `AboutDialogTest` (2 tests) - About dialog resources and credit link targets
 - ✅ `EditorCloseDecisionPolicyTest` (5 tests) - Deterministic close-decision behavior for dirty editor nodes
@@ -155,6 +155,8 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **MainDemo layout menu icons**: Hidden/Floating menu actions now show dock-node icons when available
 - ✅ **Floating pin configuration**: Pin button mode (`ALWAYS`/`AUTO`/`NEVER`), default pinned state, lock behavior, and toggle enablement are configurable via API
 - ✅ **Floating pin persistence + events**: Always-on-top state is persisted in floating layout snapshots and exposed through source-aware pin change callbacks
+- ✅ **Context menu baseline**: Right-click actions for tabs, splitters, dock-node headers, and floating title bars are implemented (including `Attach to Layout` and always-on-top toggle with control-icon parity)
+- ✅ **Floating single-node float policy parity**: Float context action is hidden for single-node floating layouts, matching button visibility behavior
 - ✅ **View Caching**: Performance optimization through view reuse
 
 ### Drag & Drop (Baseline + Critical Bug Fixes)
@@ -271,7 +273,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 
 See [ROADMAP.md](ROADMAP.md) for planned features and improvements.
 
-**Current Priority**: Focus on Phase 3 user-experience backlog (context menus and interaction polish).
+**Current Priority**: Focus on Phase 3 user-experience backlog (customizable context-menu API and interaction polish).
 
 ---
 

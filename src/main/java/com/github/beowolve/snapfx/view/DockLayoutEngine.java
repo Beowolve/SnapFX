@@ -10,11 +10,14 @@ import javafx.geometry.BoundingBox;
 import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.Button;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
@@ -26,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * Layout engine that converts the logical DockGraph into a visual scene graph.
@@ -51,6 +55,7 @@ public class DockLayoutEngine {
     private DockTitleBarMode titleBarMode = DockTitleBarMode.AUTO;
     private BiConsumer<DockNode, DockCloseSource> onNodeCloseRequest;
     private Consumer<DockNode> onNodeFloatRequest;
+    private Predicate<DockNode> canFloatNodePredicate = dockNode -> true;
 
     public DockLayoutEngine(DockGraph dockGraph, DockDragService dragService) {
         this.dockGraph = dockGraph;
@@ -127,6 +132,7 @@ public class DockLayoutEngine {
         // Set close button action
         nodeView.setOnCloseRequest(() -> handleCloseRequest(dockNode, DockCloseSource.TITLE_BAR));
         nodeView.setOnFloatRequest(() -> handleFloatRequest(dockNode));
+        nodeView.setHeaderContextMenu(createHeaderContextMenu(dockNode));
         applyTitleBarVisibility(nodeView, dockNode);
         applyTitleCloseVisibility(nodeView, dockNode);
 
@@ -157,6 +163,8 @@ public class DockLayoutEngine {
         };
         model.getChildren().addListener(childrenListener);
         registerCleanupTask(splitPane, () -> model.getChildren().removeListener(childrenListener));
+        splitPane.setContextMenu(createSplitPaneContextMenu(splitPane, model));
+        registerCleanupTask(splitPane, () -> splitPane.setContextMenu(null));
 
         return splitPane;
     }
@@ -204,7 +212,7 @@ public class DockLayoutEngine {
 
         // Create tabs
         for (DockElement child : model.getChildren()) {
-            Tab tab = createTab(child);
+            Tab tab = createTab(child, model);
             tabPane.getTabs().add(tab);
         }
 
@@ -266,7 +274,7 @@ public class DockLayoutEngine {
         disposeTabs(tabPane);
         tabPane.getTabs().clear();
         for (DockElement child : model.getChildren()) {
-            Tab tab = createTab(child);
+            Tab tab = createTab(child, model);
             tabPane.getTabs().add(tab);
         }
 
@@ -299,7 +307,7 @@ public class DockLayoutEngine {
      * @param element The DockElement to represent as a Tab
      * @return The created Tab
      */
-    private Tab createTab(DockElement element) {
+    private Tab createTab(DockElement element, DockTabPane ownerTabPane) {
         Tab tab = new Tab();
         Node contentView = createView(element);
         tab.setContent(contentView);
@@ -313,6 +321,7 @@ public class DockLayoutEngine {
             tab.getStyleClass().add("dock-tab-graphic");
             setupTabDragHandlers(tab, dockNode);
             bindTabCloseable(tab, dockNode);
+            tab.setContextMenu(createTabContextMenu(ownerTabPane, dockNode));
             tab.setOnCloseRequest(event -> {
                 handleCloseRequest(dockNode, DockCloseSource.TAB);
                 event.consume();
@@ -331,6 +340,133 @@ public class DockLayoutEngine {
             });
         }
         return tab;
+    }
+
+    private ContextMenu createHeaderContextMenu(DockNode dockNode) {
+        ContextMenu contextMenu = new ContextMenu();
+
+        MenuItem floatItem = new MenuItem("Float");
+        floatItem.setOnAction(e -> handleFloatRequest(dockNode));
+
+        MenuItem closeItem = new MenuItem("Close");
+        closeItem.setOnAction(e -> handleCloseRequest(dockNode, DockCloseSource.TITLE_BAR));
+
+        contextMenu.setOnShowing(e -> updateHeaderContextMenuState(floatItem, closeItem, dockNode));
+        contextMenu.getItems().addAll(floatItem, closeItem);
+        return contextMenu;
+    }
+
+    private void updateHeaderContextMenuState(MenuItem floatItem, MenuItem closeItem, DockNode dockNode) {
+        boolean locked = dockGraph.isLocked();
+        boolean canFloat = !locked && canFloatNode(dockNode);
+        floatItem.setVisible(canFloat);
+        floatItem.setDisable(!canFloat);
+        closeItem.setDisable(locked || dockNode == null || !dockNode.isCloseable());
+    }
+
+    private ContextMenu createTabContextMenu(DockTabPane ownerTabPane, DockNode dockNode) {
+        ContextMenu contextMenu = new ContextMenu();
+
+        MenuItem closeItem = new MenuItem("Close");
+        closeItem.setOnAction(e -> handleCloseRequest(dockNode, DockCloseSource.TAB));
+
+        MenuItem closeOthersItem = new MenuItem("Close Others");
+        closeOthersItem.setOnAction(e -> closeTabNodes(collectSiblingClosableNodes(ownerTabPane, dockNode)));
+
+        MenuItem closeAllItem = new MenuItem("Close All");
+        closeAllItem.setOnAction(e -> closeTabNodes(collectClosableNodes(ownerTabPane)));
+
+        MenuItem floatItem = new MenuItem("Float");
+        floatItem.setOnAction(e -> handleFloatRequest(dockNode));
+
+        SeparatorMenuItem separator = new SeparatorMenuItem();
+        contextMenu.setOnShowing(e -> updateTabContextMenuState(
+            closeItem,
+            closeOthersItem,
+            closeAllItem,
+            floatItem,
+            separator,
+            ownerTabPane,
+            dockNode
+        ));
+        contextMenu.getItems().addAll(closeItem, closeOthersItem, closeAllItem, separator, floatItem);
+        return contextMenu;
+    }
+
+    private void updateTabContextMenuState(
+        MenuItem closeItem,
+        MenuItem closeOthersItem,
+        MenuItem closeAllItem,
+        MenuItem floatItem,
+        SeparatorMenuItem separator,
+        DockTabPane ownerTabPane,
+        DockNode dockNode
+    ) {
+        boolean locked = dockGraph.isLocked();
+        boolean canFloat = !locked && canFloatNode(dockNode);
+        closeItem.setDisable(locked || dockNode == null || !dockNode.isCloseable());
+        closeOthersItem.setDisable(locked || collectSiblingClosableNodes(ownerTabPane, dockNode).isEmpty());
+        closeAllItem.setDisable(locked || collectClosableNodes(ownerTabPane).isEmpty());
+        floatItem.setVisible(canFloat);
+        floatItem.setDisable(!canFloat);
+        separator.setVisible(canFloat);
+        separator.setDisable(!canFloat);
+    }
+
+    private void closeTabNodes(List<DockNode> nodes) {
+        if (nodes == null || nodes.isEmpty()) {
+            return;
+        }
+        for (DockNode node : nodes) {
+            handleCloseRequest(node, DockCloseSource.TAB);
+        }
+    }
+
+    private List<DockNode> collectClosableNodes(DockTabPane tabPane) {
+        List<DockNode> nodes = new ArrayList<>();
+        if (tabPane == null) {
+            return nodes;
+        }
+        for (DockElement child : new ArrayList<>(tabPane.getChildren())) {
+            if (child instanceof DockNode dockNode && dockNode.isCloseable()) {
+                nodes.add(dockNode);
+            }
+        }
+        return nodes;
+    }
+
+    private List<DockNode> collectSiblingClosableNodes(DockTabPane tabPane, DockNode activeNode) {
+        List<DockNode> nodes = collectClosableNodes(tabPane);
+        nodes.remove(activeNode);
+        return nodes;
+    }
+
+    private ContextMenu createSplitPaneContextMenu(SplitPane splitPane, DockSplitPane model) {
+        ContextMenu contextMenu = new ContextMenu();
+        MenuItem resetItem = new MenuItem("Reset Splitter Ratios");
+        resetItem.setOnAction(e -> resetSplitPaneRatios(splitPane, model));
+        contextMenu.setOnShowing(e -> updateSplitPaneContextMenuState(resetItem, splitPane));
+        contextMenu.getItems().add(resetItem);
+        return contextMenu;
+    }
+
+    private void updateSplitPaneContextMenuState(MenuItem resetItem, SplitPane splitPane) {
+        resetItem.setDisable(splitPane == null || splitPane.getDividers().isEmpty());
+    }
+
+    private void resetSplitPaneRatios(SplitPane splitPane, DockSplitPane model) {
+        if (splitPane == null || model == null || splitPane.getDividers().isEmpty()) {
+            return;
+        }
+        int dividerCount = splitPane.getDividers().size();
+        double[] positions = new double[dividerCount];
+        for (int i = 0; i < dividerCount; i++) {
+            positions[i] = (i + 1.0) / (dividerCount + 1.0);
+        }
+        splitPane.setDividerPositions(positions);
+        for (int i = 0; i < positions.length && i < model.getDividerPositions().size(); i++) {
+            model.setDividerPosition(i, positions[i]);
+        }
     }
 
     /**
@@ -495,9 +631,16 @@ public class DockLayoutEngine {
     }
 
     private void handleFloatRequest(DockNode dockNode) {
-        if (onNodeFloatRequest != null) {
+        if (onNodeFloatRequest != null && canFloatNode(dockNode)) {
             onNodeFloatRequest.accept(dockNode);
         }
+    }
+
+    private boolean canFloatNode(DockNode dockNode) {
+        if (dockNode == null) {
+            return false;
+        }
+        return canFloatNodePredicate != null && canFloatNodePredicate.test(dockNode);
     }
 
     /**
@@ -980,6 +1123,18 @@ public class DockLayoutEngine {
 
     public void setOnNodeFloatRequest(Consumer<DockNode> onNodeFloatRequest) {
         this.onNodeFloatRequest = onNodeFloatRequest;
+    }
+
+    /**
+     * Sets a predicate controlling whether float actions are available for a node.
+     * This affects tab/header context menus and float-action callbacks.
+     */
+    public void setCanFloatNodePredicate(Predicate<DockNode> canFloatNodePredicate) {
+        if (canFloatNodePredicate == null) {
+            this.canFloatNodePredicate = dockNode -> true;
+            return;
+        }
+        this.canFloatNodePredicate = canFloatNodePredicate;
     }
 
     public DockCloseButtonMode getCloseButtonMode() {
