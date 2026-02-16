@@ -59,7 +59,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (13 test classes, 218 tests)
+### Testing (13 test classes, 219 tests)
 - ✅ `DockGraphTest` (56 tests) - Tree manipulation and algorithms
   - **+11 regression tests** for critical bug fixes
   - Tests for empty container prevention
@@ -70,7 +70,7 @@ SnapFX has been fully implemented with core functionality and is production-read
   - Edge case tests for null/no-op/detached-target handling
 - ✅ `DockLayoutSerializerTest` (16 tests) - Persistence functionality and strict load-failure diagnostics for blank content, malformed JSON, missing required fields, invalid tab selection metadata, unknown-node placeholder diagnostics, and unsupported-type recovery with optional factory custom fallback
   - **+1 regression test** for locked state synchronization (2026-02-10)
-- ✅ `DockLayoutEngineTest` (31 tests) - View creation with TestFX, context-menu interaction coverage, representative container-tab title/icon behavior, float-availability policy checks, and tiny-bounds drop-zone clamp regression coverage
+- ✅ `DockLayoutEngineTest` (32 tests) - View creation with TestFX, context-menu interaction coverage, representative container-tab title/icon behavior, float-availability policy checks, header-context-menu dismiss-on-press regression coverage, and tiny-bounds drop-zone clamp regression coverage
   - Memory cleanup tests for cache boundedness and undock/rebuild cycles
   - Layout optimization tests for empty/single-child roots
 - ✅ `SnapFXTest` (49 tests) - Hide/Restore + Floating Window API behavior, configurable shortcut behavior, invalid-load failure handling, persistence edge-case coverage for complex floating snapshots, and unknown-type layout recovery
@@ -84,7 +84,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `SimpleExampleTest` (2 tests) - Stylesheet resource resolution behavior
 - ✅ `MarkdownDocumentationConsistencyTest` (12 tests) - Documentation consistency guardrails
 - ✅ CI flake guard for critical interaction suites (`SnapFXTest`, `DockFloatingWindowTest`, `DockDragServiceTest`) runs 3x per CI execution
-- ✅ All tests passing (218/218) ✅
+- ✅ All tests passing (219/219) ✅
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
 - ✅ Mandatory regression tests for all bug fixes
 
@@ -159,6 +159,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **Floating pin configuration**: Pin button mode (`ALWAYS`/`AUTO`/`NEVER`), default pinned state, lock behavior, and toggle enablement are configurable via API
 - ✅ **Floating pin persistence + events**: Always-on-top state is persisted in floating layout snapshots and exposed through source-aware pin change callbacks
 - ✅ **Context menu baseline**: Right-click actions for tabs, splitters, dock-node headers, and floating title bars are implemented (including `Attach to Layout`, always-on-top toggle, and control-icon parity for attach/pin/close/float actions)
+- ✅ **Dock-node header context-menu dismiss behavior**: Header context menus now hide on header press, including direct clicks on the same toolbar area
 - ✅ **Floating single-node float policy parity**: Float context action is hidden for single-node floating layouts, matching button visibility behavior
 - ✅ **Floating title-bar icon correctness**: DockNode icons are image-based and rendered per view, so floating title-bar icons stay visible and follow active tabs
 - ✅ **View Caching**: Performance optimization through view reuse

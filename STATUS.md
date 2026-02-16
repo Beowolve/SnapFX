@@ -5,7 +5,7 @@
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 218 tests passing (latest full suite)
+✅ **Tests**: All 219 tests passing (latest full suite)
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully  
 ✅ **CI Automation**: GitHub Actions workflows added for push/PR tests and tag-triggered releases  
@@ -37,6 +37,7 @@
 - ✅ View caching
 - ✅ CSS styling (Modena theme)
 - ✅ Context menus for tab headers, dock-node headers, and split panes (with float-action availability policy support and close/float icon parity)
+- ✅ DockNode header context menus now close on header press (including presses directly on the same toolbar)
 - ✅ DockNode icons render as independent per-view image nodes (no shared-node icon loss across headers/tabs/floating title bars)
 - ✅ Container tabs now use representative DockNode title/icon summaries (`Title +N`) instead of internal container class names
 
@@ -137,7 +138,7 @@
 ### Testing (100% ✅)
 - ✅ DockGraphTest (56 tests, +11 regression tests)
 - ✅ DockLayoutSerializerTest (16 tests) - Includes strict load-failure diagnostics for blank content, malformed JSON, missing required fields, invalid tab selection metadata, unknown-node placeholder diagnostics, and unsupported-type recovery with optional factory custom fallback
-- ✅ DockLayoutEngineTest (31 tests) - Includes tab/header/splitter context-menu coverage, representative container-tab title/icon behavior, float-availability policy checks, and tiny-bounds drop-zone clamp regression coverage
+- ✅ DockLayoutEngineTest (32 tests) - Includes tab/header/splitter context-menu coverage, representative container-tab title/icon behavior, float-availability policy checks, header-context-menu dismiss-on-press regression coverage, and tiny-bounds drop-zone clamp regression coverage
 - ✅ **SnapFXTest (49 tests)** - Hide/Restore + Floating Window API tests plus configurable shortcut behavior, invalid-load failure handling, persistence edge-case coverage for complex floating snapshots, and unknown-type layout recovery
 - ✅ DockGraphSplitTargetDockingTest (1 test)
 - ✅ DockDragServiceTest (8 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, and ESC drag-cancel handling
@@ -148,7 +149,7 @@
 - ✅ SimpleExampleTest (2 tests) - Stylesheet resource resolution behavior
 - ✅ MarkdownDocumentationConsistencyTest (12 tests) - Markdown consistency guardrails
 - ✅ AboutDialogTest (2 tests) - About dialog branding resources and credit link targets
-- ✅ **218/218 tests passing** ✅
+- ✅ **219/219 tests passing** ✅
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Edge case tests** (null inputs, detached nodes, invalid move targets, no-op revision checks)

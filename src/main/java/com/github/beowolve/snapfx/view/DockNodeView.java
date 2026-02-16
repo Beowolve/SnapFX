@@ -123,6 +123,7 @@ public class DockNodeView extends VBox {
     }
 
     private void onHeaderPressed(MouseEvent event) {
+        hideHeaderContextMenu();
         if (isInteractiveControlTarget(event.getTarget())) {
             return;
         }
@@ -275,6 +276,13 @@ public class DockNodeView extends VBox {
         }
         headerContextMenu.show(header, event.getScreenX(), event.getScreenY());
         event.consume();
+    }
+
+    private void hideHeaderContextMenu() {
+        if (headerContextMenu == null) {
+            return;
+        }
+        headerContextMenu.hide();
     }
 
     public void setHeaderVisible(boolean visible) {

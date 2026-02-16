@@ -497,6 +497,21 @@ class DockLayoutEngineTest extends ApplicationTest {
     }
 
     @Test
+    void testHeaderPrimaryPressHidesVisibleContextMenu() {
+        DockNode node = new DockNode(new Label("Test"), "Node 1");
+        dockGraph.setRoot(node);
+
+        DockNodeView nodeView = assertInstanceOf(DockNodeView.class, layoutEngine.buildSceneGraph());
+        TrackingContextMenu contextMenu = new TrackingContextMenu();
+        nodeView.setHeaderContextMenu(contextMenu);
+
+        MouseEvent pressEvent = createPrimaryPressEvent(nodeView.getHeader(), nodeView.getHeader());
+        nodeView.getHeader().getOnMousePressed().handle(pressEvent);
+
+        assertTrue(contextMenu.isHideCalled());
+    }
+
+    @Test
     void testTabContextMenuHidesFloatWhenPredicateBlocksNode() {
         DockNode node1 = new DockNode(new Label("Test1"), "Node 1");
         DockNode node2 = new DockNode(new Label("Test2"), "Node 2");
@@ -783,6 +798,19 @@ class DockLayoutEngineTest extends ApplicationTest {
             method.invoke(layoutEngine, element, view, bounds, depth, zones);
         } catch (ReflectiveOperationException e) {
             throw new AssertionError("Unable to invoke DockLayoutEngine.addElementZones", e);
+        }
+    }
+
+    private static final class TrackingContextMenu extends ContextMenu {
+        private boolean hideCalled;
+
+        @Override
+        public void hide() {
+            hideCalled = true;
+        }
+
+        boolean isHideCalled() {
+            return hideCalled;
         }
     }
 }

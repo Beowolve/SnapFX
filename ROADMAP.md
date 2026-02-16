@@ -149,6 +149,7 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 - ✅ **Right-click on tab**: Close, Close Others, Close All, Float (with control-glyph icons for close/float)
 - ✅ **Right-click on splitter**: Reset splitter ratios to balanced layout
 - ✅ **Right-click on header**: Float and Close actions for dock-node headers (with control-glyph icons)
+- ✅ **Header context-menu dismiss behavior**: Dock-node header context menu now hides when pressing the header (including the same toolbar area)
 - ✅ **Right-click on floating title bar**: `Attach to Layout` and toggle "Always on Top"
 - 📋 **Customizable menu items**: API for adding custom actions
 
