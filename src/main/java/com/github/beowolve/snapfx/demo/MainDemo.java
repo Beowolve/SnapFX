@@ -384,16 +384,16 @@ public class MainDemo extends Application {
         return copyMenuIcon(node.getIcon());
     }
 
-    static Node copyMenuIcon(Node icon) {
-        if (!(icon instanceof ImageView source) || source.getImage() == null) {
+    static Node copyMenuIcon(Image image) {
+        if (image == null) {
             return null;
         }
-        ImageView copy = new ImageView(source.getImage());
-        copy.setFitWidth(source.getFitWidth() > 0 ? source.getFitWidth() : 16);
-        copy.setFitHeight(source.getFitHeight() > 0 ? source.getFitHeight() : 16);
-        copy.setPreserveRatio(source.isPreserveRatio());
-        copy.setSmooth(source.isSmooth());
-        copy.setCache(source.isCache());
+        ImageView copy = new ImageView(image);
+        copy.setFitWidth(16);
+        copy.setFitHeight(16);
+        copy.setPreserveRatio(true);
+        copy.setSmooth(true);
+        copy.setCache(true);
         return copy;
     }
 

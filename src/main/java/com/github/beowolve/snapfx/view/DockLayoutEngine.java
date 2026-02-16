@@ -19,6 +19,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -486,16 +488,16 @@ public class DockLayoutEngine {
         iconPane.setMaxSize(16, 16);
         iconPane.setMinSize(16, 16);
 
-        ChangeListener<Node> iconListener = (obs, oldIcon, newIcon) -> {
+        ChangeListener<Image> iconListener = (obs, oldIcon, newIcon) -> {
             iconPane.getChildren().clear();
             if (newIcon != null) {
-                iconPane.getChildren().add(newIcon);
+                iconPane.getChildren().add(createDockNodeIcon(newIcon));
             }
         };
         dockNode.iconProperty().addListener(iconListener);
 
         if (dockNode.getIcon() != null) {
-            iconPane.getChildren().add(dockNode.getIcon());
+            iconPane.getChildren().add(createDockNodeIcon(dockNode.getIcon()));
         }
         iconPane.visibleProperty().bind(dockNode.iconProperty().isNotNull());
         iconPane.managedProperty().bind(iconPane.visibleProperty());
@@ -533,6 +535,17 @@ public class DockLayoutEngine {
     private Region createControlIcon(String styleClass) {
         Region icon = new Region();
         icon.getStyleClass().addAll("dock-control-icon", styleClass);
+        icon.setMouseTransparent(true);
+        return icon;
+    }
+
+    private ImageView createDockNodeIcon(Image image) {
+        ImageView icon = new ImageView(image);
+        icon.setFitWidth(16);
+        icon.setFitHeight(16);
+        icon.setPreserveRatio(true);
+        icon.setSmooth(true);
+        icon.setCache(true);
         icon.setMouseTransparent(true);
         return icon;
     }

@@ -75,7 +75,7 @@ public final class DemoNodeFactory implements DockNodeFactory {
      */
     private DockNode createDockNode(DockNodeType type, Node content) {
         DockNode node = new DockNode(type.getId(), content, type.getDefaultTitle());
-        node.setIcon(IconUtil.loadIcon(type.getIconName()));
+        node.setIcon(IconUtil.loadImage(type.getIconName()));
         return node;
     }
 
@@ -207,7 +207,7 @@ public final class DemoNodeFactory implements DockNodeFactory {
     public DockNode createEditorNode(String title) {
         SerializableEditor editor = new SerializableEditor(title);
         DockNode node = new DockNode(DockNodeType.EDITOR.getId(), editor, title);
-        node.setIcon(IconUtil.loadIcon(DockNodeType.EDITOR.getIconName()));
+        node.setIcon(IconUtil.loadImage(DockNodeType.EDITOR.getIconName()));
         return node;
     }
 
@@ -232,7 +232,7 @@ public final class DemoNodeFactory implements DockNodeFactory {
         propsGrid.add(new Label("1.2 KB"), 1, 2);
         propertiesContent.getChildren().addAll(propLabel, new Separator(), propsGrid);
         DockNode node = new DockNode(DockNodeType.PROPERTIES_PANEL.getId(), propertiesContent, PROPERTIES);
-        node.setIcon(IconUtil.loadIcon(DockNodeType.PROPERTIES_PANEL.getIconName()));
+        node.setIcon(IconUtil.loadImage(DockNodeType.PROPERTIES_PANEL.getIconName()));
         return node;
     }
 
@@ -255,7 +255,7 @@ public final class DemoNodeFactory implements DockNodeFactory {
         );
         console.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px;");
         DockNode node = new DockNode(DockNodeType.CONSOLE_PANEL.getId(), console, "Console");
-        node.setIcon(IconUtil.loadIcon(DockNodeType.CONSOLE_PANEL.getIconName()));
+        node.setIcon(IconUtil.loadImage(DockNodeType.CONSOLE_PANEL.getIconName()));
         return node;
     }
 
@@ -274,7 +274,7 @@ public final class DemoNodeFactory implements DockNodeFactory {
         text.setPrefRowCount(10);
         content.getChildren().addAll(label, text);
         DockNode node = new DockNode(DockNodeType.GENERIC_PANEL.getId(), content, title);
-        node.setIcon(IconUtil.loadIcon(DockNodeType.GENERIC_PANEL.getIconName()));
+        node.setIcon(IconUtil.loadImage(DockNodeType.GENERIC_PANEL.getIconName()));
         return node;
     }
 }

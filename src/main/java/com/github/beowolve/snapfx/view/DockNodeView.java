@@ -13,6 +13,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -33,7 +35,7 @@ public class DockNodeView extends VBox {
     private final Button closeButton;
     private final StackPane contentPane;
     private final Label titleLabel;
-    private final ChangeListener<Node> iconListener;
+    private final ChangeListener<Image> iconListener;
     private final ChangeListener<Node> contentListener;
     private ContextMenu headerContextMenu;
 
@@ -56,13 +58,13 @@ public class DockNodeView extends VBox {
         iconListener = (obs, oldIcon, newIcon) -> {
             iconPane.getChildren().clear();
             if (newIcon != null) {
-                iconPane.getChildren().add(newIcon);
+                iconPane.getChildren().add(createDockNodeIcon(newIcon));
             }
         };
         dockNode.iconProperty().addListener(iconListener);
 
         if (dockNode.getIcon() != null) {
-            iconPane.getChildren().add(dockNode.getIcon());
+            iconPane.getChildren().add(createDockNodeIcon(dockNode.getIcon()));
         }
 
         iconPane.visibleProperty().bind(dockNode.iconProperty().isNotNull());
@@ -164,6 +166,17 @@ public class DockNodeView extends VBox {
     private Region createControlIcon(String styleClass) {
         Region icon = new Region();
         icon.getStyleClass().addAll("dock-control-icon", styleClass);
+        icon.setMouseTransparent(true);
+        return icon;
+    }
+
+    private ImageView createDockNodeIcon(Image image) {
+        ImageView icon = new ImageView(image);
+        icon.setFitWidth(16);
+        icon.setFitHeight(16);
+        icon.setPreserveRatio(true);
+        icon.setSmooth(true);
+        icon.setCache(true);
         icon.setMouseTransparent(true);
         return icon;
     }

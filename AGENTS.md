@@ -23,6 +23,7 @@ These instructions are shared for all AI agents working on this workspace.
 - Versioning is controlled by `gradle-jgitver` in `build.gradle.kts`; do not reintroduce custom version calculators in the build script.
 - Use tag-driven releases (`vX.Y.Z`) as the only release source of truth; do not create tags per commit.
 - Branch workflow policy: while base implementation is ongoing, work directly on `main`; once `develop` exists, integrate features into `develop` and cut release tags from `main` after merge.
+- Pre-release compatibility policy: until the first public Maven release, prefer best technical fixes over backward compatibility; breaking API changes are acceptable when they improve correctness/maintainability. After the first Maven release, public API compatibility becomes mandatory unless explicitly planned as a breaking release.
 - Status documentation consistency rule: in `STATUS.md`, `DONE.md`, and `ROADMAP.md`, status bullets must always include a status icon prefix (`✅`, `🚧`, `📋`, `💡`, `❌`, `⚠️`), never plain `- Added/Updated/Completed/...`.
 - Change-history rule: `STATUS.md` should stay current-state focused; versioned historical details belong in `CHANGELOG.md`.
 - Markdown encoding rule: preserve UTF-8 and avoid shell text-rewrite commands that can alter Unicode; prefer `apply_patch` for markdown edits.

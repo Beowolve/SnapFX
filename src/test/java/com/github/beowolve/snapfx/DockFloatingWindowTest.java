@@ -6,6 +6,7 @@ import com.github.beowolve.snapfx.floating.DockFloatingPinSource;
 import com.github.beowolve.snapfx.floating.DockFloatingWindow;
 import com.github.beowolve.snapfx.model.DockNode;
 import com.github.beowolve.snapfx.model.DockPosition;
+import com.github.beowolve.snapfx.model.DockTabPane;
 import com.github.beowolve.snapfx.view.DockNodeView;
 import javafx.application.Platform;
 import javafx.scene.Node;
@@ -14,11 +15,15 @@ import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.PickResult;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import org.junit.jupiter.api.BeforeAll;
@@ -33,7 +38,9 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DockFloatingWindowTest {
@@ -377,6 +384,59 @@ class DockFloatingWindowTest {
         });
     }
 
+    @Test
+    void testFloatingWindowAndDockNodeViewRenderIndependentIconViews() {
+        runOnFxThreadAndWait(() -> {
+            DockNode node = new DockNode(new Label("Node"), "Node");
+            Image iconImage = new WritableImage(16, 16);
+            node.setIcon(iconImage);
+
+            DockFloatingWindow floatingWindow = new DockFloatingWindow(node);
+            invokeCreateTitleBar(floatingWindow, new Stage());
+            invokeRebuildLayout(floatingWindow);
+
+            DockNodeView nodeView = floatingWindow.getDockNodeView(node);
+            assertNotNull(nodeView);
+            StackPane dockNodeIconPane = assertInstanceOf(StackPane.class, nodeView.getHeader().getChildren().getFirst());
+            StackPane floatingTitleIconPane = readTitleIconPane(floatingWindow);
+
+            assertFalse(dockNodeIconPane.getChildren().isEmpty());
+            assertFalse(floatingTitleIconPane.getChildren().isEmpty());
+            assertNotSame(dockNodeIconPane.getChildren().getFirst(), floatingTitleIconPane.getChildren().getFirst());
+        });
+    }
+
+    @Test
+    void testFloatingTitleBarIconFollowsSelectedTab() {
+        runOnFxThreadAndWait(() -> {
+            DockNode node1 = new DockNode(new Label("Node1"), "Node 1");
+            DockNode node2 = new DockNode(new Label("Node2"), "Node 2");
+            Image icon1 = new WritableImage(16, 16);
+            Image icon2 = new WritableImage(16, 16);
+            node1.setIcon(icon1);
+            node2.setIcon(icon2);
+
+            DockFloatingWindow floatingWindow = new DockFloatingWindow(node1);
+            floatingWindow.dockNode(node2, node1, DockPosition.CENTER, null);
+            invokeCreateTitleBar(floatingWindow, new Stage());
+            invokeRebuildLayout(floatingWindow);
+
+            DockTabPane tabPane = assertInstanceOf(DockTabPane.class, floatingWindow.getDockGraph().getRoot());
+            int initialSelectedIndex = tabPane.getSelectedIndex();
+            Image initialExpectedImage = initialSelectedIndex == 0 ? icon1 : icon2;
+            StackPane floatingTitleIconPane = readTitleIconPane(floatingWindow);
+            ImageView firstIconView = assertInstanceOf(ImageView.class, floatingTitleIconPane.getChildren().getFirst());
+            assertEquals(initialExpectedImage, firstIconView.getImage());
+
+            int nextSelectedIndex = initialSelectedIndex == 0 ? 1 : 0;
+            tabPane.setSelectedIndex(nextSelectedIndex);
+            Image nextExpectedImage = nextSelectedIndex == 0 ? icon1 : icon2;
+
+            ImageView secondIconView = assertInstanceOf(ImageView.class, floatingTitleIconPane.getChildren().getFirst());
+            assertEquals(nextExpectedImage, secondIconView.getImage());
+        });
+    }
+
     private boolean invokeTitleBarActionCandidate(DockFloatingWindow floatingWindow, MouseEvent event, Stage stage) {
         try {
             Method method = DockFloatingWindow.class.getDeclaredMethod("isTitleBarActionCandidate", MouseEvent.class, Stage.class);
@@ -478,6 +538,16 @@ class DockFloatingWindowTest {
             return (ContextMenu) field.get(nodeView);
         } catch (ReflectiveOperationException e) {
             throw new AssertionError("Unable to read header context menu", e);
+        }
+    }
+
+    private StackPane readTitleIconPane(DockFloatingWindow floatingWindow) {
+        try {
+            Field field = DockFloatingWindow.class.getDeclaredField("iconPane");
+            field.setAccessible(true);
+            return (StackPane) field.get(floatingWindow);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Unable to read floating title icon pane", e);
         }
     }
 

@@ -5,7 +5,7 @@
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 186 tests passing (latest full suite)  
+✅ **Tests**: All 188 tests passing (latest full suite)
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully  
 ✅ **CI Automation**: GitHub Actions workflows added for push/PR tests and tag-triggered releases  
@@ -36,6 +36,7 @@
 - ✅ View caching
 - ✅ CSS styling (Modena theme)
 - ✅ Context menus for tab headers, dock-node headers, and split panes (with float-action availability policy support and close/float icon parity)
+- ✅ DockNode icons render as independent per-view image nodes (no shared-node icon loss across headers/tabs/floating title bars)
 
 ### Drag & Drop (100% ✅)
 - ✅ DockDragService implementation
@@ -102,6 +103,7 @@
 - ✅ Configurable floating pin controls (`ALWAYS`/`AUTO`/`NEVER`) with default always-on-top and lock-mode behavior
 - ✅ Source-aware floating pin change callbacks plus always-on-top snapshot persistence
 - ✅ Floating title-bar context menu with `Attach to Layout` and always-on-top toggle (icon parity with title-bar controls)
+- ✅ Floating title-bar icon sync follows active tab changes in floating tab layouts
 
 ### Debug Tools (100% ✅)
 - ✅ DockGraphDebugView
@@ -129,13 +131,13 @@
 - ✅ **SnapFXTest (44 tests)** - Hide/Restore + Floating Window API tests plus configurable shortcut behavior
 - ✅ DockGraphSplitTargetDockingTest (1 test)
 - ✅ DockDragServiceTest (8 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, and ESC drag-cancel handling
-- ✅ DockFloatingWindowTest (14 tests) - Floating title bar controls, context menu behavior (attach/pin icons + attach action), pin behavior, single-node float-menu policy, and maximize/restore interaction behavior
+- ✅ DockFloatingWindowTest (16 tests) - Floating title bar controls, context menu behavior (attach/pin icons + attach action), pin behavior, icon rendering/sync regression coverage, single-node float-menu policy, and maximize/restore interaction behavior
 - ✅ MainDemoTest (5 tests) - Demo app icon resource wiring, menu icon behavior, and demo shortcut wiring
 - ✅ EditorCloseDecisionPolicyTest (5 tests) - Deterministic close-decision policy checks
 - ✅ SimpleExampleTest (2 tests) - Stylesheet resource resolution behavior
 - ✅ MarkdownDocumentationConsistencyTest (12 tests) - Markdown consistency guardrails
 - ✅ AboutDialogTest (2 tests) - About dialog branding resources and credit link targets
-- ✅ **186/186 tests passing** ✅
+- ✅ **188/188 tests passing** ✅
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Edge case tests** (null inputs, detached nodes, invalid move targets, no-op revision checks)

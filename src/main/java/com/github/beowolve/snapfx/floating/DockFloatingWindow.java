@@ -14,6 +14,7 @@ import com.github.beowolve.snapfx.view.DockDropZoneType;
 import com.github.beowolve.snapfx.view.DockLayoutEngine;
 import com.github.beowolve.snapfx.view.DockNodeView;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.event.ActionEvent;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
@@ -31,6 +32,8 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -76,6 +79,7 @@ public final class DockFloatingWindow {
     private final StackPane layoutContainer;
     private final FloatingDropIndicator dropIndicator;
     private final FloatingDropZonesOverlay dropZonesOverlay;
+    private final List<Runnable> tabSelectionListenersCleanup;
 
     private Stage stage;
     private Double preferredX;
@@ -157,6 +161,7 @@ public final class DockFloatingWindow {
         this.layoutContainer.getStyleClass().add("dock-floating-layout-container");
         this.dropIndicator = new FloatingDropIndicator();
         this.dropZonesOverlay = new FloatingDropZonesOverlay();
+        this.tabSelectionListenersCleanup = new ArrayList<>();
         this.dropIndicator.setMouseTransparent(true);
         this.dropIndicator.setManaged(false);
         this.dropZonesOverlay.setMouseTransparent(true);
@@ -1125,6 +1130,7 @@ public final class DockFloatingWindow {
         if (layout != null) {
             layoutContainer.getChildren().add(layout);
         }
+        refreshTabSelectionListeners();
         updateInnerNodeActionVisibility();
         updateWindowTitleAndIcon();
     }
@@ -1155,10 +1161,55 @@ public final class DockFloatingWindow {
 
         if (iconPane != null) {
             iconPane.getChildren().clear();
-            if (representativeNode != null && representativeNode.getIcon() != null) {
-                iconPane.getChildren().add(representativeNode.getIcon());
+            if (representativeNode != null) {
+                Node iconNode = createDockNodeIcon(representativeNode.getIcon());
+                if (iconNode != null) {
+                    iconPane.getChildren().add(iconNode);
+                }
             }
         }
+    }
+
+    private ImageView createDockNodeIcon(Image image) {
+        if (image == null) {
+            return null;
+        }
+        ImageView icon = new ImageView(image);
+        icon.setFitWidth(16);
+        icon.setFitHeight(16);
+        icon.setPreserveRatio(true);
+        icon.setSmooth(true);
+        icon.setCache(true);
+        icon.setMouseTransparent(true);
+        return icon;
+    }
+
+    private void refreshTabSelectionListeners() {
+        clearTabSelectionListeners();
+        registerTabSelectionListeners(floatingGraph.getRoot());
+    }
+
+    private void registerTabSelectionListeners(DockElement element) {
+        if (element == null) {
+            return;
+        }
+        if (element instanceof DockTabPane tabPane) {
+            ChangeListener<Number> selectedIndexListener = (obs, oldValue, newValue) -> updateWindowTitleAndIcon();
+            tabPane.selectedIndexProperty().addListener(selectedIndexListener);
+            tabSelectionListenersCleanup.add(() -> tabPane.selectedIndexProperty().removeListener(selectedIndexListener));
+        }
+        if (element instanceof DockContainer container) {
+            for (DockElement child : container.getChildren()) {
+                registerTabSelectionListeners(child);
+            }
+        }
+    }
+
+    private void clearTabSelectionListeners() {
+        for (Runnable cleanup : new ArrayList<>(tabSelectionListenersCleanup)) {
+            cleanup.run();
+        }
+        tabSelectionListenersCleanup.clear();
     }
 
     private String buildWindowTitle(DockNode representativeNode) {
@@ -1514,6 +1565,7 @@ public final class DockFloatingWindow {
 
     private void onWindowHidden(Stage hiddenStage) {
         clearDropPreview();
+        clearTabSelectionListeners();
         if (hiddenStage.isMaximized() && hasRestoreBounds) {
             preferredX = restoreX;
             preferredY = restoreY;

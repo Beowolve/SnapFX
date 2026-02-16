@@ -2,6 +2,7 @@ package com.github.beowolve.snapfx.model;
 
 import javafx.beans.property.*;
 import javafx.scene.Node;
+import javafx.scene.image.Image;
 
 import java.util.UUID;
 
@@ -25,7 +26,7 @@ public class DockNode implements DockElement {
     private String layoutId; // Unique ID for this instance in layout
     private final StringProperty title;
     private final ObjectProperty<Node> content;
-    private final ObjectProperty<Node> icon;
+    private final ObjectProperty<Image> icon;
     private final BooleanProperty closeable;
     private DockContainer parent;
 
@@ -118,15 +119,15 @@ public class DockNode implements DockElement {
         this.content.set(content);
     }
 
-    public Node getIcon() {
+    public Image getIcon() {
         return icon.get();
     }
 
-    public ObjectProperty<Node> iconProperty() {
+    public ObjectProperty<Image> iconProperty() {
         return icon;
     }
 
-    public void setIcon(Node icon) {
+    public void setIcon(Image icon) {
         this.icon.set(icon);
     }
 

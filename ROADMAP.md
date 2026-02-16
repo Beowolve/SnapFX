@@ -108,6 +108,7 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 - ✅ **Window decorations**: Custom title bar styling and controls
 - ✅ **Resizable undecorated windows**: Edge/corner resize behavior for floating stages
 - ✅ **Tab-level float action**: Float button available in tab headers
+- ✅ **Floating title-bar icon reliability**: Title-bar icons now stay visible across dock/header/tab views and track active tab selection
 
 **Estimated Time**: Completed
 

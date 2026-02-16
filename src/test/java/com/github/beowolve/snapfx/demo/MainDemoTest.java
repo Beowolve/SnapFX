@@ -13,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
@@ -40,27 +41,21 @@ class MainDemoTest {
 
     @Test
     void testCopyMenuIconReturnsIndependentImageViewCopy() {
-        WritableImage image = new WritableImage(16, 16);
-        ImageView source = new ImageView(image);
-        source.setFitWidth(20);
-        source.setFitHeight(18);
-        source.setPreserveRatio(true);
-        source.setSmooth(true);
-
-        Node copiedNode = MainDemo.copyMenuIcon(source);
+        Image sourceImage = new WritableImage(16, 16);
+        Node copiedNode = MainDemo.copyMenuIcon(sourceImage);
 
         ImageView copied = assertInstanceOf(ImageView.class, copiedNode);
-        assertNotSame(source, copied);
-        assertEquals(image, copied.getImage());
-        assertEquals(20.0, copied.getFitWidth(), 0.0001);
-        assertEquals(18.0, copied.getFitHeight(), 0.0001);
-        assertEquals(source.isPreserveRatio(), copied.isPreserveRatio());
-        assertEquals(source.isSmooth(), copied.isSmooth());
+        assertNotNull(copied);
+        assertEquals(sourceImage, copied.getImage());
+        assertEquals(16.0, copied.getFitWidth(), 0.0001);
+        assertEquals(16.0, copied.getFitHeight(), 0.0001);
+        assertTrue(copied.isPreserveRatio());
+        assertTrue(copied.isSmooth());
     }
 
     @Test
-    void testCopyMenuIconReturnsNullForUnsupportedIconType() {
-        Node copiedNode = MainDemo.copyMenuIcon(new javafx.scene.layout.Region());
+    void testCopyMenuIconReturnsNullForMissingImage() {
+        Node copiedNode = MainDemo.copyMenuIcon(null);
         assertNull(copiedNode);
     }
 
