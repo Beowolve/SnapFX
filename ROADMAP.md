@@ -70,6 +70,7 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 ### 1.5 UI Bug Fixes
 **Priority**: 🟡 High
 
+- ✅ **Container tab title/icon UX**: Tabs containing nested split/tab layouts now derive title/icon from a representative DockNode (`Title +N`) instead of showing container class names
 - 📋 No planned items; see `CHANGELOG.md` for completed fixes.
 
 ---

@@ -18,6 +18,8 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.PickResult;
+import javafx.scene.image.ImageView;
+import javafx.scene.image.WritableImage;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.control.Tab;
@@ -124,6 +126,72 @@ class DockLayoutEngineTest extends ApplicationTest {
 
         node1.setTitle("Renamed");
         assertEquals("Renamed", tabPane.getTabs().get(0).getText());
+    }
+
+    @Test
+    void testContainerTabUsesRepresentativeNodeTitleAndIconSummary() {
+        DockNode plainNode = new DockNode(new Label("Plain"), "Plain");
+        DockNode splitNode1 = new DockNode(new Label("Split 1"), "Split 1");
+        DockNode splitNode2 = new DockNode(new Label("Split 2"), "Split 2");
+        WritableImage splitIcon = new WritableImage(16, 16);
+        splitNode1.setIcon(splitIcon);
+        DockSplitPane splitPane = new DockSplitPane(Orientation.HORIZONTAL);
+        splitPane.addChild(splitNode1);
+        splitPane.addChild(splitNode2);
+
+        DockTabPane rootTabPane = new DockTabPane();
+        rootTabPane.addChild(plainNode);
+        rootTabPane.addChild(splitPane);
+        dockGraph.setRoot(rootTabPane);
+
+        TabPane tabPane = assertInstanceOf(TabPane.class, layoutEngine.buildSceneGraph());
+        Tab containerTab = tabPane.getTabs().get(1);
+
+        assertEquals("Split 1 +1", containerTab.getText());
+        assertNotEquals("DockSplitPane", containerTab.getText());
+
+        HBox header = assertInstanceOf(HBox.class, containerTab.getGraphic());
+        StackPane iconPane = assertInstanceOf(StackPane.class, header.getChildren().getFirst());
+        ImageView iconView = assertInstanceOf(ImageView.class, iconPane.getChildren().getFirst());
+        assertEquals(splitIcon, iconView.getImage());
+    }
+
+    @Test
+    void testContainerTabFollowsSelectedInnerTabForRepresentativeTitleAndIcon() {
+        DockNode plainNode = new DockNode(new Label("Plain"), "Plain");
+        DockNode innerNode1 = new DockNode(new Label("One"), "One");
+        DockNode innerNode2 = new DockNode(new Label("Two"), "Two");
+        DockNode splitSiblingNode = new DockNode(new Label("Split Sibling"), "Split Sibling");
+        WritableImage icon1 = new WritableImage(16, 16);
+        WritableImage icon2 = new WritableImage(16, 16);
+        innerNode1.setIcon(icon1);
+        innerNode2.setIcon(icon2);
+
+        DockTabPane innerTabPane = new DockTabPane();
+        innerTabPane.addChild(innerNode1);
+        innerTabPane.addChild(innerNode2);
+        innerTabPane.setSelectedIndex(0);
+
+        DockSplitPane splitPane = new DockSplitPane(Orientation.HORIZONTAL);
+        splitPane.addChild(innerTabPane);
+        splitPane.addChild(splitSiblingNode);
+
+        DockTabPane rootTabPane = new DockTabPane();
+        rootTabPane.addChild(plainNode);
+        rootTabPane.addChild(splitPane);
+        dockGraph.setRoot(rootTabPane);
+
+        TabPane tabPane = assertInstanceOf(TabPane.class, layoutEngine.buildSceneGraph());
+        Tab containerTab = tabPane.getTabs().get(1);
+        assertEquals("One +2", containerTab.getText());
+
+        innerTabPane.setSelectedIndex(1);
+        assertEquals("Two +2", containerTab.getText());
+
+        HBox header = assertInstanceOf(HBox.class, containerTab.getGraphic());
+        StackPane iconPane = assertInstanceOf(StackPane.class, header.getChildren().getFirst());
+        ImageView iconView = assertInstanceOf(ImageView.class, iconPane.getChildren().getFirst());
+        assertEquals(icon2, iconView.getImage());
     }
 
     /**

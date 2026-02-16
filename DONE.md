@@ -59,7 +59,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (12 test classes, 189 tests)
+### Testing (12 test classes, 191 tests)
 - ✅ `DockGraphTest` (56 tests) - Tree manipulation and algorithms
   - **+11 regression tests** for critical bug fixes
   - Tests for empty container prevention
@@ -70,7 +70,7 @@ SnapFX has been fully implemented with core functionality and is production-read
   - Edge case tests for null/no-op/detached-target handling
 - ✅ `DockLayoutSerializerTest` (9 tests) - Persistence functionality
   - **+1 regression test** for locked state synchronization (2026-02-10)
-- ✅ `DockLayoutEngineTest` (29 tests) - View creation with TestFX, context-menu interaction coverage, float-availability policy checks, and tiny-bounds drop-zone clamp regression coverage
+- ✅ `DockLayoutEngineTest` (31 tests) - View creation with TestFX, context-menu interaction coverage, representative container-tab title/icon behavior, float-availability policy checks, and tiny-bounds drop-zone clamp regression coverage
   - Memory cleanup tests for cache boundedness and undock/rebuild cycles
   - Layout optimization tests for empty/single-child roots
 - ✅ `SnapFXTest` (44 tests) - Hide/Restore + Floating Window API behavior plus configurable shortcut behavior
@@ -146,6 +146,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **Property Bindings**: Reactive UI updates via JavaFX properties
 - ✅ **CSS Styling**: Native Modena theme integration
 - ✅ **Tab Overflow Dropdown**: Menu shows titles when using custom tab graphics
+- ✅ **Container tab summary headers**: Tabs hosting nested layouts now show representative DockNode title/icon with `+N` suffix instead of container class names
 - ✅ **Tab Auto-Hide**: In locked mode, tabs only visible when >1
 - ✅ **Close Button Options**: Toggle tab/title close buttons, keep tab close always visible, align styling, and hide the title bar when desired
 - ✅ **CSS-based Control Glyphs**: Dock/floating control icons are stylesheet-defined; title close glyph is aligned with tab close styling

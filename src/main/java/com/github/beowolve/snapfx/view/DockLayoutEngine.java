@@ -305,7 +305,8 @@ public class DockLayoutEngine {
 
     /**
      * Creates a Tab for the given DockElement. For DockNode, the tab header contains icon and title.
-     * For containers, a generic label is used. Handles drag & drop and close events.
+     * For containers, the tab label/icon is derived from the representative DockNode.
+     * Handles drag & drop and close events.
      * @param element The DockElement to represent as a Tab
      * @return The created Tab
      */
@@ -329,7 +330,10 @@ public class DockLayoutEngine {
                 event.consume();
             });
         } else {
-            tab.setText(element.getClass().getSimpleName());
+            TabHeader tabHeader = createContainerTabHeader(tab, element);
+            tab.setGraphic(tabHeader.node());
+            tab.getProperties().put(TAB_CLEANUP_KEY, tabHeader.cleanup());
+            tab.getStyleClass().add("dock-tab-graphic");
             if (!shouldShowTabCloseButton()) {
                 tab.setClosable(false);
             } else {
@@ -342,6 +346,139 @@ public class DockLayoutEngine {
             });
         }
         return tab;
+    }
+
+    private TabHeader createContainerTabHeader(Tab tab, DockElement element) {
+        HBox tabHeader = new HBox(5);
+        tabHeader.setAlignment(Pos.CENTER_LEFT);
+
+        StackPane iconPane = new StackPane();
+        iconPane.setPrefSize(16, 16);
+        iconPane.setMaxSize(16, 16);
+        iconPane.setMinSize(16, 16);
+
+        Label tabLabel = new Label();
+        List<Runnable> subtreeCleanup = new ArrayList<>();
+
+        Runnable refreshHeader = () -> updateContainerTabHeader(tab, element, tabLabel, iconPane);
+        Runnable refreshListeners = () -> {
+            clearContainerTabHeaderListeners(subtreeCleanup);
+            registerContainerTabHeaderListeners(element, refreshHeader, subtreeCleanup);
+            refreshHeader.run();
+        };
+        ChangeListener<Number> revisionListener = (obs, oldValue, newValue) -> refreshListeners.run();
+        dockGraph.revisionProperty().addListener(revisionListener);
+        refreshListeners.run();
+
+        tabHeader.getChildren().addAll(iconPane, tabLabel);
+
+        Runnable cleanup = () -> {
+            dockGraph.revisionProperty().removeListener(revisionListener);
+            clearContainerTabHeaderListeners(subtreeCleanup);
+            iconPane.getChildren().clear();
+            iconPane.setVisible(true);
+            iconPane.setManaged(true);
+            tabLabel.setText("");
+        };
+        return new TabHeader(tabHeader, cleanup);
+    }
+
+    private void updateContainerTabHeader(Tab tab, DockElement element, Label tabLabel, StackPane iconPane) {
+        DockNode representativeNode = resolveRepresentativeNode(element);
+        int nodeCount = countDockNodes(element);
+        String title = buildRepresentativeTitle(representativeNode, nodeCount);
+        tab.setText(title);
+        tabLabel.setText(title);
+
+        iconPane.getChildren().clear();
+        if (representativeNode != null) {
+            ImageView icon = createDockNodeIcon(representativeNode.getIcon());
+            if (icon != null) {
+                iconPane.getChildren().add(icon);
+            }
+        }
+        boolean hasIcon = !iconPane.getChildren().isEmpty();
+        iconPane.setVisible(hasIcon);
+        iconPane.setManaged(hasIcon);
+    }
+
+    private void registerContainerTabHeaderListeners(DockElement element, Runnable onUpdate, List<Runnable> cleanup) {
+        if (element == null || onUpdate == null || cleanup == null) {
+            return;
+        }
+        if (element instanceof DockNode dockNode) {
+            ChangeListener<String> titleListener = (obs, oldValue, newValue) -> onUpdate.run();
+            ChangeListener<Image> iconListener = (obs, oldValue, newValue) -> onUpdate.run();
+            dockNode.titleProperty().addListener(titleListener);
+            dockNode.iconProperty().addListener(iconListener);
+            cleanup.add(() -> dockNode.titleProperty().removeListener(titleListener));
+            cleanup.add(() -> dockNode.iconProperty().removeListener(iconListener));
+        }
+        if (element instanceof DockTabPane tabPane) {
+            ChangeListener<Number> selectedIndexListener = (obs, oldValue, newValue) -> onUpdate.run();
+            tabPane.selectedIndexProperty().addListener(selectedIndexListener);
+            cleanup.add(() -> tabPane.selectedIndexProperty().removeListener(selectedIndexListener));
+        }
+        if (element instanceof DockContainer container) {
+            for (DockElement child : container.getChildren()) {
+                registerContainerTabHeaderListeners(child, onUpdate, cleanup);
+            }
+        }
+    }
+
+    private void clearContainerTabHeaderListeners(List<Runnable> cleanup) {
+        if (cleanup == null || cleanup.isEmpty()) {
+            return;
+        }
+        for (Runnable cleanupTask : new ArrayList<>(cleanup)) {
+            cleanupTask.run();
+        }
+        cleanup.clear();
+    }
+
+    private String buildRepresentativeTitle(DockNode representativeNode, int nodeCount) {
+        String baseTitle = representativeNode == null ? "Layout" : representativeNode.getTitle();
+        if (baseTitle == null || baseTitle.isBlank()) {
+            baseTitle = "Layout";
+        }
+        if (nodeCount <= 1) {
+            return baseTitle;
+        }
+        return baseTitle + " +" + (nodeCount - 1);
+    }
+
+    private DockNode resolveRepresentativeNode(DockElement element) {
+        if (element == null) {
+            return null;
+        }
+        if (element instanceof DockNode dockNode) {
+            return dockNode;
+        }
+        if (element instanceof DockTabPane tabPane && !tabPane.getChildren().isEmpty()) {
+            int selectedIndex = Math.clamp(tabPane.getSelectedIndex(), 0, tabPane.getChildren().size() - 1);
+            return resolveRepresentativeNode(tabPane.getChildren().get(selectedIndex));
+        }
+        if (element instanceof DockContainer container && !container.getChildren().isEmpty()) {
+            return resolveRepresentativeNode(container.getChildren().getFirst());
+        }
+        return null;
+    }
+
+    private int countDockNodes(DockElement element) {
+        if (element == null) {
+            return 0;
+        }
+        if (element instanceof DockNode) {
+            return 1;
+        }
+        if (element instanceof DockContainer container) {
+            int count = 0;
+            for (DockElement child : container.getChildren()) {
+                count += countDockNodes(child);
+            }
+            return count;
+        }
+        return 0;
     }
 
     private ContextMenu createHeaderContextMenu(DockNode dockNode) {

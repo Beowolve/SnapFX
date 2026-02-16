@@ -10,7 +10,7 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Removed obsolete JavaFX test JVM module flags that caused classpath/module warning noise (`24ac0bc`).
 - ✅ Stabilized JavaFX module-path test runtime without FXML assumptions (`e8197a9`).
 - ✅ Migrated plugin/dependency versions to `gradle/libs.versions.toml` and reduced duplicated build configuration (`517b5db`).
-- ✅ Expanded shortcut, context-menu, and demo-accelerator coverage in unit tests; full suite now runs with 189 tests.
+- ✅ Expanded shortcut, context-menu, and demo-accelerator coverage in unit tests; full suite now runs with 191 tests.
 
 ### Framework and UI
 - ✅ Added configurable framework keyboard shortcut API in `SnapFX` (`setShortcut`, `clearShortcut`, `resetShortcutsToDefaults`, `getShortcuts`).
@@ -24,6 +24,7 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Reworked DockNode icon model to image-based rendering so each view creates its own icon node, preventing parent-sharing losses in floating title bars.
 - ✅ Floating title-bar icon now tracks active tab selection in floating tab layouts.
 - ✅ Hardened drop-zone edge-size clamping for tiny bounds so drag hover no longer throws `Math.clamp` min/max-order exceptions.
+- ✅ Tab headers for nested container layouts now use representative DockNode title/icon summaries (`Title +N`) instead of container class names.
 
 ### Documentation
 - ✅ Split repository workflow content out of `README.md` into dedicated `CONTRIBUTING.md` and `RELEASING.md` (`6f93d0a`).

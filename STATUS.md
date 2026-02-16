@@ -5,7 +5,7 @@
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 189 tests passing (latest full suite)
+✅ **Tests**: All 191 tests passing (latest full suite)
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully  
 ✅ **CI Automation**: GitHub Actions workflows added for push/PR tests and tag-triggered releases  
@@ -37,6 +37,7 @@
 - ✅ CSS styling (Modena theme)
 - ✅ Context menus for tab headers, dock-node headers, and split panes (with float-action availability policy support and close/float icon parity)
 - ✅ DockNode icons render as independent per-view image nodes (no shared-node icon loss across headers/tabs/floating title bars)
+- ✅ Container tabs now use representative DockNode title/icon summaries (`Title +N`) instead of internal container class names
 
 ### Drag & Drop (100% ✅)
 - ✅ DockDragService implementation
@@ -128,7 +129,7 @@
 ### Testing (100% ✅)
 - ✅ DockGraphTest (56 tests, +11 regression tests)
 - ✅ DockLayoutSerializerTest (9 tests, +1 regression test)
-- ✅ DockLayoutEngineTest (29 tests) - Includes tab/header/splitter context-menu coverage, float-availability policy checks, and tiny-bounds drop-zone clamp regression coverage
+- ✅ DockLayoutEngineTest (31 tests) - Includes tab/header/splitter context-menu coverage, representative container-tab title/icon behavior, float-availability policy checks, and tiny-bounds drop-zone clamp regression coverage
 - ✅ **SnapFXTest (44 tests)** - Hide/Restore + Floating Window API tests plus configurable shortcut behavior
 - ✅ DockGraphSplitTargetDockingTest (1 test)
 - ✅ DockDragServiceTest (8 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, and ESC drag-cancel handling
@@ -138,7 +139,7 @@
 - ✅ SimpleExampleTest (2 tests) - Stylesheet resource resolution behavior
 - ✅ MarkdownDocumentationConsistencyTest (12 tests) - Markdown consistency guardrails
 - ✅ AboutDialogTest (2 tests) - About dialog branding resources and credit link targets
-- ✅ **189/189 tests passing** ✅
+- ✅ **191/191 tests passing** ✅
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Edge case tests** (null inputs, detached nodes, invalid move targets, no-op revision checks)
