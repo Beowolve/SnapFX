@@ -10,17 +10,20 @@ import com.github.beowolve.snapfx.model.DockTabPane;
 import com.github.beowolve.snapfx.view.DockNodeView;
 import javafx.application.Platform;
 import javafx.scene.Node;
+import javafx.scene.Cursor;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.TextArea;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.PickResult;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -296,6 +299,156 @@ class DockFloatingWindowTest {
 
             assertEquals(100.0, stage.getX(), 0.0001);
             assertEquals(80.0, stage.getY(), 0.0001);
+        });
+    }
+
+    @Test
+    void testTitleBarPrimaryPressHidesVisibleContextMenu() {
+        runOnFxThreadAndWait(() -> {
+            DockFloatingWindow floatingWindow = new DockFloatingWindow(new DockNode(new Label("Node"), "Node"));
+            Stage stage = new Stage();
+            stage.setX(100);
+            stage.setY(80);
+            stage.setWidth(640);
+            stage.setHeight(420);
+
+            HBox titleBar = new HBox();
+            TrackingContextMenu contextMenu = new TrackingContextMenu();
+            writeTitleBarContextMenu(floatingWindow, contextMenu);
+
+            MouseEvent pressEvent = createMouseEvent(
+                MouseEvent.MOUSE_PRESSED,
+                180,
+                120,
+                80,
+                12,
+                titleBar,
+                titleBar,
+                MouseButton.PRIMARY,
+                1
+            );
+            invokeOnTitleBarMousePressed(floatingWindow, pressEvent, stage, titleBar);
+
+            assertTrue(contextMenu.isHideCalled());
+        });
+    }
+
+    @Test
+    void testSmallDragFromMaximizedTitleBarDoesNotRestoreWindow() {
+        runOnFxThreadAndWait(() -> {
+            DockFloatingWindow floatingWindow = new DockFloatingWindow(new DockNode(new Label("Node"), "Node"));
+            Stage stage = new Stage();
+            stage.setX(100);
+            stage.setY(80);
+            stage.setWidth(1000);
+            stage.setHeight(700);
+            stage.setMaximized(true);
+
+            HBox titleBar = new HBox();
+            Label contentTarget = new Label("Content");
+
+            MouseEvent pressEvent = createMouseEvent(
+                MouseEvent.MOUSE_PRESSED,
+                500,
+                100,
+                400,
+                10,
+                titleBar,
+                titleBar,
+                MouseButton.PRIMARY,
+                1
+            );
+            invokeOnTitleBarMousePressed(floatingWindow, pressEvent, stage, titleBar);
+
+            MouseEvent tinyDragEvent = createMouseEvent(
+                MouseEvent.MOUSE_DRAGGED,
+                501,
+                101,
+                401,
+                11,
+                contentTarget,
+                contentTarget,
+                MouseButton.PRIMARY,
+                1
+            );
+            invokeOnSceneMouseDragged(floatingWindow, tinyDragEvent, stage, titleBar);
+
+            assertTrue(stage.isMaximized());
+            assertEquals(100.0, stage.getX(), 0.0001);
+            assertEquals(80.0, stage.getY(), 0.0001);
+        });
+    }
+
+    @Test
+    void testResizeRespectsStageMinimumWidthConstraint() {
+        runOnFxThreadAndWait(() -> {
+            DockFloatingWindow floatingWindow = new DockFloatingWindow(new DockNode(new Label("Node"), "Node"));
+            Stage stage = new Stage();
+            stage.setX(100);
+            stage.setY(80);
+            stage.setWidth(700);
+            stage.setHeight(420);
+            stage.setMinWidth(500);
+
+            HBox titleBar = new HBox();
+            MouseEvent beginEvent = createMouseEvent(
+                MouseEvent.MOUSE_PRESSED,
+                700,
+                100,
+                600,
+                20,
+                titleBar,
+                titleBar,
+                MouseButton.PRIMARY,
+                1
+            );
+            invokeBeginResize(floatingWindow, beginEvent, stage, 2);
+
+            MouseEvent resizeEvent = createMouseEvent(
+                MouseEvent.MOUSE_DRAGGED,
+                300,
+                100,
+                200,
+                20,
+                titleBar,
+                titleBar,
+                MouseButton.PRIMARY,
+                1
+            );
+            invokePerformResize(floatingWindow, resizeEvent, stage);
+
+            assertEquals(500.0, stage.getWidth(), 0.0001);
+        });
+    }
+
+    @Test
+    void testResizeCursorIsAppliedToInteractiveContentTargetNearRightEdge() {
+        runOnFxThreadAndWait(() -> {
+            DockFloatingWindow floatingWindow = new DockFloatingWindow(new DockNode(new Label("Node"), "Node"));
+
+            TextArea textArea = new TextArea();
+            BorderPane root = new BorderPane(textArea);
+            Stage stage = new Stage();
+            stage.setX(100);
+            stage.setY(80);
+            stage.setWidth(640);
+            stage.setHeight(420);
+            stage.setScene(new javafx.scene.Scene(root, 640, 420));
+
+            MouseEvent moveEvent = createMouseEvent(
+                MouseEvent.MOUSE_MOVED,
+                738,
+                200,
+                638,
+                120,
+                textArea,
+                textArea,
+                MouseButton.NONE,
+                0
+            );
+            invokeUpdateResizeCursor(floatingWindow, root, stage, moveEvent);
+
+            assertEquals(Cursor.E_RESIZE, textArea.getCursor());
         });
     }
 
@@ -683,6 +836,41 @@ class DockFloatingWindowTest {
         }
     }
 
+    private void invokeBeginResize(DockFloatingWindow floatingWindow, MouseEvent event, Stage stage, int mask) {
+        try {
+            Method method = DockFloatingWindow.class.getDeclaredMethod("beginResize", MouseEvent.class, Stage.class, int.class);
+            method.setAccessible(true);
+            method.invoke(floatingWindow, event, stage, mask);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Unable to invoke beginResize", e);
+        }
+    }
+
+    private void invokePerformResize(DockFloatingWindow floatingWindow, MouseEvent event, Stage stage) {
+        try {
+            Method method = DockFloatingWindow.class.getDeclaredMethod("performResize", MouseEvent.class, Stage.class);
+            method.setAccessible(true);
+            method.invoke(floatingWindow, event, stage);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Unable to invoke performResize", e);
+        }
+    }
+
+    private void invokeUpdateResizeCursor(
+        DockFloatingWindow floatingWindow,
+        BorderPane root,
+        Stage stage,
+        MouseEvent event
+    ) {
+        try {
+            Method method = DockFloatingWindow.class.getDeclaredMethod("updateResizeCursor", BorderPane.class, Stage.class, MouseEvent.class);
+            method.setAccessible(true);
+            method.invoke(floatingWindow, root, stage, event);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Unable to invoke updateResizeCursor", e);
+        }
+    }
+
     private HBox invokeCreateTitleBar(DockFloatingWindow floatingWindow, Stage stage) {
         try {
             Method method = DockFloatingWindow.class.getDeclaredMethod("createTitleBar", Stage.class);
@@ -729,6 +917,16 @@ class DockFloatingWindowTest {
             return (ContextMenu) field.get(floatingWindow);
         } catch (ReflectiveOperationException e) {
             throw new AssertionError("Unable to read titleBarContextMenu", e);
+        }
+    }
+
+    private void writeTitleBarContextMenu(DockFloatingWindow floatingWindow, ContextMenu contextMenu) {
+        try {
+            Field field = DockFloatingWindow.class.getDeclaredField("titleBarContextMenu");
+            field.setAccessible(true);
+            field.set(floatingWindow, contextMenu);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Unable to write titleBarContextMenu", e);
         }
     }
 
@@ -839,6 +1037,19 @@ class DockFloatingWindowTest {
         }
         if (error.get() != null) {
             throw new AssertionError("JavaFX test action failed", error.get());
+        }
+    }
+
+    private static final class TrackingContextMenu extends ContextMenu {
+        private boolean hideCalled;
+
+        @Override
+        public void hide() {
+            hideCalled = true;
+        }
+
+        boolean isHideCalled() {
+            return hideCalled;
         }
     }
 }

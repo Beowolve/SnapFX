@@ -63,6 +63,7 @@ public final class DockFloatingWindow {
     private static final double DEFAULT_OFFSET_X = 40;
     private static final double DEFAULT_OFFSET_Y = 40;
     private static final double RESIZE_MARGIN = 6.0;
+    private static final double MAXIMIZED_RESTORE_DRAG_THRESHOLD = 6.0;
     private static final double MIN_WINDOW_WIDTH = 280.0;
     private static final double MIN_WINDOW_HEIGHT = 180.0;
 
@@ -107,6 +108,9 @@ public final class DockFloatingWindow {
     private double dragOffsetX;
     private double dragOffsetY;
     private boolean titleBarDragActive;
+    private boolean awaitingMaximizedRestoreDrag;
+    private double titleBarPressScreenX;
+    private double titleBarPressScreenY;
     private double restoreX;
     private double restoreY;
     private double restoreWidth = DEFAULT_WIDTH;
@@ -126,6 +130,8 @@ public final class DockFloatingWindow {
     private DockFloatingPinLockedBehavior pinLockedBehavior = DockFloatingPinLockedBehavior.ALLOW;
     private boolean pinToggleEnabled = true;
     private BiConsumer<Boolean, DockFloatingPinSource> onAlwaysOnTopChanged;
+    private Node resizeCursorTargetNode;
+    private Cursor resizeCursorTargetPrevious;
 
     public DockFloatingWindow(DockNode dockNode) {
         this((DockElement) dockNode, "SnapFX", null);
@@ -606,6 +612,8 @@ public final class DockFloatingWindow {
         }
         setupTitleBarDrag(titleBar, window, scene);
         window.setScene(scene);
+        window.setMinWidth(resolveMinimumWindowWidth(window));
+        window.setMinHeight(resolveMinimumWindowHeight(window));
         window.setAlwaysOnTop(alwaysOnTop);
         applyWindowPosition(window, ownerStage);
 
@@ -852,7 +860,9 @@ public final class DockFloatingWindow {
     }
 
     private void onTitleBarMousePressed(MouseEvent event, Stage window, HBox titleBar) {
+        hideTitleBarContextMenu();
         titleBarDragActive = false;
+        awaitingMaximizedRestoreDrag = false;
         if (!isPrimaryTitleBarPress(event, window)) {
             return;
         }
@@ -865,6 +875,9 @@ public final class DockFloatingWindow {
             dragOffsetX = restoreWidth * pointerRatio;
             double titleBarHeight = titleBar.getHeight() > 0 ? titleBar.getHeight() : 32.0;
             dragOffsetY = Math.clamp(event.getY(), 0.0, titleBarHeight);
+            titleBarPressScreenX = event.getScreenX();
+            titleBarPressScreenY = event.getScreenY();
+            awaitingMaximizedRestoreDrag = true;
             return;
         }
         dragOffsetX = event.getScreenX() - window.getX();
@@ -877,10 +890,15 @@ public final class DockFloatingWindow {
         }
         if (!event.isPrimaryButtonDown()) {
             titleBarDragActive = false;
+            awaitingMaximizedRestoreDrag = false;
             return;
         }
         if (window.isMaximized()) {
+            if (awaitingMaximizedRestoreDrag && !hasExceededMaximizedRestoreThreshold(event)) {
+                return;
+            }
             restoreWindowForDrag(window, event, titleBar);
+            awaitingMaximizedRestoreDrag = false;
         }
         window.setX(event.getScreenX() - dragOffsetX);
         window.setY(event.getScreenY() - dragOffsetY);
@@ -888,6 +906,7 @@ public final class DockFloatingWindow {
 
     private void onSceneMouseReleased(MouseEvent event) {
         titleBarDragActive = false;
+        awaitingMaximizedRestoreDrag = false;
     }
 
     private void onTitleBarMouseClicked(MouseEvent event, Stage window) {
@@ -903,6 +922,23 @@ public final class DockFloatingWindow {
         return event != null
             && event.getButton() == MouseButton.PRIMARY
             && isTitleBarActionCandidate(event, window);
+    }
+
+    private boolean hasExceededMaximizedRestoreThreshold(MouseEvent event) {
+        if (event == null) {
+            return false;
+        }
+        double deltaX = event.getScreenX() - titleBarPressScreenX;
+        double deltaY = event.getScreenY() - titleBarPressScreenY;
+        double distance = Math.hypot(deltaX, deltaY);
+        return distance >= MAXIMIZED_RESTORE_DRAG_THRESHOLD;
+    }
+
+    private void hideTitleBarContextMenu() {
+        if (titleBarContextMenu == null) {
+            return;
+        }
+        titleBarContextMenu.hide();
     }
 
     private boolean isTitleBarActionCandidate(MouseEvent event, Stage window) {
@@ -942,8 +978,8 @@ public final class DockFloatingWindow {
         }
         double fallbackWidth = preferredWidth > 0 ? preferredWidth : DEFAULT_WIDTH;
         double fallbackHeight = preferredHeight > 0 ? preferredHeight : DEFAULT_HEIGHT;
-        restoreWidth = Math.max(MIN_WINDOW_WIDTH, fallbackWidth);
-        restoreHeight = Math.max(MIN_WINDOW_HEIGHT, fallbackHeight);
+        restoreWidth = Math.max(resolveMinimumWindowWidth(window), fallbackWidth);
+        restoreHeight = Math.max(resolveMinimumWindowHeight(window), fallbackHeight);
         restoreX = window.getX();
         restoreY = window.getY();
         hasRestoreBounds = true;
@@ -995,7 +1031,7 @@ public final class DockFloatingWindow {
     private void setupResizeHandling(BorderPane root, Stage window) {
         root.addEventFilter(MouseEvent.MOUSE_ENTERED_TARGET, event -> updateResizeCursor(root, window, event));
         root.addEventFilter(MouseEvent.MOUSE_MOVED, event -> updateResizeCursor(root, window, event));
-        root.addEventFilter(MouseEvent.MOUSE_EXITED_TARGET, event -> applyCursor(root, window.getScene(), Cursor.DEFAULT));
+        root.addEventFilter(MouseEvent.MOUSE_EXITED_TARGET, event -> applyCursor(root, window.getScene(), Cursor.DEFAULT, event.getTarget()));
 
         root.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
             if (window.isMaximized()
@@ -1015,7 +1051,7 @@ public final class DockFloatingWindow {
                 return;
             }
             performResize(event, window);
-            applyCursor(root, window.getScene(), resolveCursor(activeResizeMask));
+            applyCursor(root, window.getScene(), resolveCursor(activeResizeMask), event.getTarget());
         });
 
         root.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> {
@@ -1033,14 +1069,14 @@ public final class DockFloatingWindow {
             return;
         }
         if (window.isMaximized() || resizing) {
-            applyCursor(root, window.getScene(), Cursor.DEFAULT);
+            applyCursor(root, window.getScene(), Cursor.DEFAULT, event.getTarget());
             return;
         }
         int mask = resolveResizeMask(event.getScreenX(), event.getScreenY(), window);
-        applyCursor(root, window.getScene(), resolveCursor(mask));
+        applyCursor(root, window.getScene(), resolveCursor(mask), event.getTarget());
     }
 
-    private void applyCursor(Node node, Scene scene, Cursor cursor) {
+    private void applyCursor(Node node, Scene scene, Cursor cursor, Object target) {
         Cursor effectiveCursor = cursor == null ? Cursor.DEFAULT : cursor;
         if (node != null) {
             node.setCursor(effectiveCursor);
@@ -1048,6 +1084,33 @@ public final class DockFloatingWindow {
         if (scene != null) {
             scene.setCursor(effectiveCursor);
         }
+        applyTargetCursor(target, effectiveCursor);
+    }
+
+    private void applyTargetCursor(Object target, Cursor cursor) {
+        Node nodeTarget = target instanceof Node node ? node : null;
+        Cursor effectiveCursor = cursor == null ? Cursor.DEFAULT : cursor;
+
+        if (effectiveCursor == Cursor.DEFAULT || nodeTarget == null) {
+            clearTargetCursorOverride();
+            return;
+        }
+
+        if (resizeCursorTargetNode != nodeTarget) {
+            clearTargetCursorOverride();
+            resizeCursorTargetNode = nodeTarget;
+            resizeCursorTargetPrevious = nodeTarget.getCursor();
+        }
+        nodeTarget.setCursor(effectiveCursor);
+    }
+
+    private void clearTargetCursorOverride() {
+        if (resizeCursorTargetNode == null) {
+            return;
+        }
+        resizeCursorTargetNode.setCursor(resizeCursorTargetPrevious);
+        resizeCursorTargetNode = null;
+        resizeCursorTargetPrevious = null;
     }
 
     private void beginResize(MouseEvent event, Stage window, int mask) {
@@ -1066,6 +1129,8 @@ public final class DockFloatingWindow {
     private void performResize(MouseEvent event, Stage window) {
         double deltaX = event.getScreenX() - resizeStartScreenX;
         double deltaY = event.getScreenY() - resizeStartScreenY;
+        double minWidth = resolveMinimumWindowWidth(window);
+        double minHeight = resolveMinimumWindowHeight(window);
 
         double x = resizeStartWindowX;
         double y = resizeStartWindowY;
@@ -1074,34 +1139,64 @@ public final class DockFloatingWindow {
 
         if ((activeResizeMask & RESIZE_LEFT) != 0) {
             double candidateWidth = resizeStartWindowWidth - deltaX;
-            if (candidateWidth < MIN_WINDOW_WIDTH) {
-                candidateWidth = MIN_WINDOW_WIDTH;
-                x = resizeStartWindowX + (resizeStartWindowWidth - MIN_WINDOW_WIDTH);
+            if (candidateWidth < minWidth) {
+                candidateWidth = minWidth;
+                x = resizeStartWindowX + (resizeStartWindowWidth - minWidth);
             } else {
                 x = resizeStartWindowX + deltaX;
             }
             width = candidateWidth;
         } else if ((activeResizeMask & RESIZE_RIGHT) != 0) {
-            width = Math.max(MIN_WINDOW_WIDTH, resizeStartWindowWidth + deltaX);
+            width = Math.max(minWidth, resizeStartWindowWidth + deltaX);
         }
 
         if ((activeResizeMask & RESIZE_TOP) != 0) {
             double candidateHeight = resizeStartWindowHeight - deltaY;
-            if (candidateHeight < MIN_WINDOW_HEIGHT) {
-                candidateHeight = MIN_WINDOW_HEIGHT;
-                y = resizeStartWindowY + (resizeStartWindowHeight - MIN_WINDOW_HEIGHT);
+            if (candidateHeight < minHeight) {
+                candidateHeight = minHeight;
+                y = resizeStartWindowY + (resizeStartWindowHeight - minHeight);
             } else {
                 y = resizeStartWindowY + deltaY;
             }
             height = candidateHeight;
         } else if ((activeResizeMask & RESIZE_BOTTOM) != 0) {
-            height = Math.max(MIN_WINDOW_HEIGHT, resizeStartWindowHeight + deltaY);
+            height = Math.max(minHeight, resizeStartWindowHeight + deltaY);
         }
 
         window.setX(x);
         window.setY(y);
         window.setWidth(width);
         window.setHeight(height);
+    }
+
+    private double resolveMinimumWindowWidth(Stage window) {
+        double minimum = MIN_WINDOW_WIDTH;
+        if (window != null) {
+            minimum = Math.max(minimum, window.getMinWidth());
+            Scene scene = window.getScene();
+            if (scene != null && scene.getRoot() != null) {
+                double contentMinimum = scene.getRoot().minWidth(-1);
+                if (Double.isFinite(contentMinimum) && contentMinimum > 0.0) {
+                    minimum = Math.max(minimum, contentMinimum);
+                }
+            }
+        }
+        return minimum;
+    }
+
+    private double resolveMinimumWindowHeight(Stage window) {
+        double minimum = MIN_WINDOW_HEIGHT;
+        if (window != null) {
+            minimum = Math.max(minimum, window.getMinHeight());
+            Scene scene = window.getScene();
+            if (scene != null && scene.getRoot() != null) {
+                double contentMinimum = scene.getRoot().minHeight(-1);
+                if (Double.isFinite(contentMinimum) && contentMinimum > 0.0) {
+                    minimum = Math.max(minimum, contentMinimum);
+                }
+            }
+        }
+        return minimum;
     }
 
     private int resolveResizeMask(double screenX, double screenY, Stage window) {
@@ -1590,6 +1685,7 @@ public final class DockFloatingWindow {
 
     private void onWindowHidden(Stage hiddenStage) {
         clearDropPreview();
+        clearTargetCursorOverride();
         clearTabSelectionListeners();
         if (hiddenStage.isMaximized() && hasRestoreBounds) {
             preferredX = restoreX;
