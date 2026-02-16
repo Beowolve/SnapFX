@@ -791,10 +791,8 @@ public class DockLayoutEngine {
         double zoneMin = isLeaf ? LEAF_DROP_ZONE_MIN_PX : DROP_ZONE_MIN_PX;
         double zoneMaxRatio = isLeaf ? LEAF_DROP_ZONE_MAX_RATIO : DROP_ZONE_MAX_RATIO;
 
-        double edgeW = Math.clamp(zoneBounds.getWidth() * zoneRatio,
-            zoneMin, zoneBounds.getWidth() * zoneMaxRatio);
-        double edgeH = Math.clamp(zoneBounds.getHeight() * zoneRatio,
-            zoneMin, zoneBounds.getHeight() * zoneMaxRatio);
+        double edgeW = calculateDropZoneEdgeSize(zoneBounds.getWidth(), zoneRatio, zoneMin, zoneMaxRatio);
+        double edgeH = calculateDropZoneEdgeSize(zoneBounds.getHeight(), zoneRatio, zoneMin, zoneMaxRatio);
 
         Bounds left = new BoundingBox(zoneBounds.getMinX(), zoneBounds.getMinY(), edgeW, zoneBounds.getHeight());
         Bounds right = new BoundingBox(zoneBounds.getMaxX() - edgeW, zoneBounds.getMinY(), edgeW, zoneBounds.getHeight());
@@ -812,6 +810,18 @@ public class DockLayoutEngine {
         if (view instanceof TabPane tabPane) {
             addTabHeaderZone(element, tabPane, depth, zones);
         }
+    }
+
+    private double calculateDropZoneEdgeSize(double span, double ratio, double minSize, double maxRatio) {
+        if (span <= 0) {
+            return 0;
+        }
+        double maxSize = span * maxRatio;
+        if (maxSize <= 0) {
+            return 0;
+        }
+        double normalizedMin = Math.min(minSize, maxSize);
+        return Math.clamp(span * ratio, normalizedMin, maxSize);
     }
 
     private Bounds buildCenterBounds(Bounds bounds, double edgeW, double edgeH) {

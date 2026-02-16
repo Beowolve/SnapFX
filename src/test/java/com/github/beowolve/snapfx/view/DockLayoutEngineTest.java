@@ -5,6 +5,8 @@ import com.github.beowolve.snapfx.dnd.DockDragService;
 import com.github.beowolve.snapfx.model.*;
 import javafx.application.Platform;
 import javafx.event.Event;
+import javafx.geometry.BoundingBox;
+import javafx.geometry.Bounds;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -26,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.testfx.framework.junit5.ApplicationTest;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -345,6 +348,16 @@ class DockLayoutEngineTest extends ApplicationTest {
 
         SplitPane splitPane = (SplitPane) view;
         assertEquals(2, splitPane.getItems().size());
+    }
+
+    @Test
+    void testAddElementZonesHandlesSmallLeafBoundsWithoutClampException() {
+        DockNode node = new DockNode(new Label("Test"), "Node");
+        List<DockDropZone> zones = new ArrayList<>();
+        Bounds tinyBounds = new BoundingBox(0, 0, 43.0, 43.0);
+
+        assertDoesNotThrow(() -> invokeAddElementZones(node, new StackPane(), tinyBounds, 0, zones));
+        assertEquals(5, zones.size());
     }
 
     @Test
@@ -680,5 +693,28 @@ class DockLayoutEngineTest extends ApplicationTest {
             false,
             new PickResult(target, 0, 0)
         );
+    }
+
+    private void invokeAddElementZones(
+        DockElement element,
+        Node view,
+        Bounds bounds,
+        int depth,
+        List<DockDropZone> zones
+    ) {
+        try {
+            Method method = DockLayoutEngine.class.getDeclaredMethod(
+                "addElementZones",
+                DockElement.class,
+                Node.class,
+                Bounds.class,
+                int.class,
+                List.class
+            );
+            method.setAccessible(true);
+            method.invoke(layoutEngine, element, view, bounds, depth, zones);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Unable to invoke DockLayoutEngine.addElementZones", e);
+        }
     }
 }

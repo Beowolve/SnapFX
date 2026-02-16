@@ -37,6 +37,7 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 ### 1.1 Drag & Drop Improvements
 **Priority**: 🔴 Critical
 
+- ✅ **Tiny-bounds drop-zone stability**: Drop-zone edge sizing now avoids `Math.clamp` min/max-order exceptions during drag hover on very small bounds
 - 📋 No planned items; see `CHANGELOG.md` for completed fixes.
 
 ---

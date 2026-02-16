@@ -5,7 +5,7 @@
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 188 tests passing (latest full suite)
+✅ **Tests**: All 189 tests passing (latest full suite)
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully  
 ✅ **CI Automation**: GitHub Actions workflows added for push/PR tests and tag-triggered releases  
@@ -57,6 +57,7 @@
 - ✅ Unresolved drops always trigger floating fallback (not only outside main scene)
 - ✅ Main layout drops accept drags originating from floating windows
 - ✅ Escape cancels active drag reliably, including while the mouse button remains pressed
+- ✅ Drop-zone sizing now guards tiny bounds so drag hover never throws `Math.clamp` min/max-order exceptions
 
 ### Persistence (100% ✅)
 - ✅ JSON serialization (Gson)
@@ -127,7 +128,7 @@
 ### Testing (100% ✅)
 - ✅ DockGraphTest (56 tests, +11 regression tests)
 - ✅ DockLayoutSerializerTest (9 tests, +1 regression test)
-- ✅ DockLayoutEngineTest (28 tests) - Includes tab/header/splitter context-menu coverage and float-availability policy checks
+- ✅ DockLayoutEngineTest (29 tests) - Includes tab/header/splitter context-menu coverage, float-availability policy checks, and tiny-bounds drop-zone clamp regression coverage
 - ✅ **SnapFXTest (44 tests)** - Hide/Restore + Floating Window API tests plus configurable shortcut behavior
 - ✅ DockGraphSplitTargetDockingTest (1 test)
 - ✅ DockDragServiceTest (8 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, and ESC drag-cancel handling
@@ -137,7 +138,7 @@
 - ✅ SimpleExampleTest (2 tests) - Stylesheet resource resolution behavior
 - ✅ MarkdownDocumentationConsistencyTest (12 tests) - Markdown consistency guardrails
 - ✅ AboutDialogTest (2 tests) - About dialog branding resources and credit link targets
-- ✅ **188/188 tests passing** ✅
+- ✅ **189/189 tests passing** ✅
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Edge case tests** (null inputs, detached nodes, invalid move targets, no-op revision checks)

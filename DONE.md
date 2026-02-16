@@ -59,7 +59,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (12 test classes, 188 tests)
+### Testing (12 test classes, 189 tests)
 - ✅ `DockGraphTest` (56 tests) - Tree manipulation and algorithms
   - **+11 regression tests** for critical bug fixes
   - Tests for empty container prevention
@@ -70,7 +70,7 @@ SnapFX has been fully implemented with core functionality and is production-read
   - Edge case tests for null/no-op/detached-target handling
 - ✅ `DockLayoutSerializerTest` (9 tests) - Persistence functionality
   - **+1 regression test** for locked state synchronization (2026-02-10)
-- ✅ `DockLayoutEngineTest` (28 tests) - View creation with TestFX, context-menu interaction coverage, and float-availability policy checks
+- ✅ `DockLayoutEngineTest` (29 tests) - View creation with TestFX, context-menu interaction coverage, float-availability policy checks, and tiny-bounds drop-zone clamp regression coverage
   - Memory cleanup tests for cache boundedness and undock/rebuild cycles
   - Layout optimization tests for empty/single-child roots
 - ✅ `SnapFXTest` (44 tests) - Hide/Restore + Floating Window API behavior plus configurable shortcut behavior
