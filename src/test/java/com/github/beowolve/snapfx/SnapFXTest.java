@@ -9,6 +9,7 @@ import com.github.beowolve.snapfx.floating.DockFloatingPinButtonMode;
 import com.github.beowolve.snapfx.floating.DockFloatingPinChangeEvent;
 import com.github.beowolve.snapfx.floating.DockFloatingPinLockedBehavior;
 import com.github.beowolve.snapfx.floating.DockFloatingPinSource;
+import com.github.beowolve.snapfx.floating.DockFloatingSnapTarget;
 import com.github.beowolve.snapfx.floating.DockFloatingWindow;
 import com.github.beowolve.snapfx.model.DockContainer;
 import com.github.beowolve.snapfx.model.DockElement;
@@ -35,6 +36,7 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -779,6 +781,44 @@ class SnapFXTest {
         assertEquals(DockFloatingPinButtonMode.ALWAYS, floatingWindow.getPinButtonMode());
         assertFalse(floatingWindow.isPinToggleEnabled());
         assertEquals(DockFloatingPinLockedBehavior.HIDE_BUTTON, floatingWindow.getPinLockedBehavior());
+    }
+
+    @Test
+    void testFloatingSnapSettingsApplyToOpenAndNewWindows() {
+        DockNode nodeMain = new DockNode("nodeMain", new Label("Main"), "Main");
+        DockNode nodeFloatA = new DockNode("nodeFloatA", new Label("Float A"), "Float A");
+        DockNode nodeFloatB = new DockNode("nodeFloatB", new Label("Float B"), "Float B");
+
+        snapFX.dock(nodeMain, null, DockPosition.CENTER);
+        snapFX.dock(nodeFloatA, nodeMain, DockPosition.RIGHT);
+        snapFX.dock(nodeFloatB, nodeMain, DockPosition.BOTTOM);
+
+        DockFloatingWindow firstWindow = snapFX.floatNode(nodeFloatA);
+        assertTrue(firstWindow.isSnappingEnabled());
+
+        snapFX.setFloatingWindowSnappingEnabled(false);
+        snapFX.setFloatingWindowSnapDistance(20.0);
+        snapFX.setFloatingWindowSnapTargets(Set.of(DockFloatingSnapTarget.FLOATING_WINDOWS));
+
+        assertFalse(firstWindow.isSnappingEnabled());
+        assertEquals(20.0, firstWindow.getSnapDistance(), 0.0001);
+        assertEquals(Set.of(DockFloatingSnapTarget.FLOATING_WINDOWS), firstWindow.getSnapTargets());
+
+        DockFloatingWindow secondWindow = snapFX.floatNode(nodeFloatB);
+        assertFalse(secondWindow.isSnappingEnabled());
+        assertEquals(20.0, secondWindow.getSnapDistance(), 0.0001);
+        assertEquals(Set.of(DockFloatingSnapTarget.FLOATING_WINDOWS), secondWindow.getSnapTargets());
+    }
+
+    @Test
+    void testFloatingSnapDistanceRejectsInvalidInput() {
+        assertEquals(12.0, snapFX.getFloatingWindowSnapDistance(), 0.0001);
+
+        snapFX.setFloatingWindowSnapDistance(Double.NaN);
+        assertEquals(12.0, snapFX.getFloatingWindowSnapDistance(), 0.0001);
+
+        snapFX.setFloatingWindowSnapDistance(-1.0);
+        assertEquals(12.0, snapFX.getFloatingWindowSnapDistance(), 0.0001);
     }
 
     @Test

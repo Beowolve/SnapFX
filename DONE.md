@@ -59,7 +59,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (13 test classes, 220 tests)
+### Testing (14 test classes, 234 tests)
 - ✅ `DockGraphTest` (56 tests) - Tree manipulation and algorithms
   - **+11 regression tests** for critical bug fixes
   - Tests for empty container prevention
@@ -73,10 +73,11 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `DockLayoutEngineTest` (32 tests) - View creation with TestFX, context-menu interaction coverage, representative container-tab title/icon behavior, float-availability policy checks, header-context-menu dismiss-on-press regression coverage, and tiny-bounds drop-zone clamp regression coverage
   - Memory cleanup tests for cache boundedness and undock/rebuild cycles
   - Layout optimization tests for empty/single-child roots
-- ✅ `SnapFXTest` (50 tests) - Hide/Restore + Floating Window API behavior, configurable shortcut behavior, invalid-load failure handling, persistence edge-case coverage for complex floating snapshots, unknown-type layout recovery, and unresolved floating-sub-layout D&D detach coverage
+- ✅ `SnapFXTest` (52 tests) - Hide/Restore + Floating Window API behavior, configurable shortcut behavior, floating-window snap API propagation/validation, invalid-load failure handling, persistence edge-case coverage for complex floating snapshots, unknown-type layout recovery, and unresolved floating-sub-layout D&D detach coverage
 - ✅ `DockGraphSplitTargetDockingTest` (1 test) - Split-target docking regression coverage
 - ✅ `DockDragServiceTest` (8 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, and ESC drag-cancel handling
-- ✅ `DockFloatingWindowTest` (24 tests) - Floating title-bar controls, context-menu behavior (attach/pin icons + attach action), pin behavior, icon rendering/sync regression coverage, single-node float-menu policy, maximize/restore interaction behavior, scene-level drag continuity (including release/reset and non-primary guard behavior), resize-min constraints, and interactive-target cursor reliability
+- ✅ `DockFloatingWindowTest` (30 tests) - Floating title-bar controls, context-menu behavior (attach/pin icons + attach action), pin behavior, icon rendering/sync regression coverage, single-node float-menu policy, maximize/restore interaction behavior, scene-level drag continuity (including release/reset and non-primary guard behavior), resize-min constraints, interactive-target cursor reliability, and floating/main edge snapping behavior (including overlap-guard, adjacent-edge cases, and main-window shadow-inset compensation)
+- ✅ `DockFloatingSnapEngineTest` (6 tests) - Snap candidate scoring, overlap-aware candidate generation, and shadow-inset compensation coverage
 - ✅ `MainDemoTest` (9 tests) - Application icon resources, menu icon behavior, demo shortcut wiring, load-error message formatting, and owner-aware error-alert behavior
 - ✅ `DemoNodeFactoryTest` (3 tests) - Unknown-node fallback strategy coverage (framework placeholder vs. demo custom fallback), plus SnapFX integration coverage for unsupported-type recovery with the default demo factory
 - ✅ `AboutDialogTest` (2 tests) - About dialog resources and credit link targets
@@ -84,7 +85,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `SimpleExampleTest` (2 tests) - Stylesheet resource resolution behavior
 - ✅ `MarkdownDocumentationConsistencyTest` (12 tests) - Documentation consistency guardrails
 - ✅ CI flake guard for critical interaction suites (`SnapFXTest`, `DockFloatingWindowTest`, `DockDragServiceTest`) runs 3x per CI execution
-- ✅ All tests passing (220/220) ✅
+- ✅ All tests passing (234/234) ✅
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
 - ✅ Mandatory regression tests for all bug fixes
 
@@ -162,6 +163,8 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **Dock-node header context-menu dismiss behavior**: Header context menus now hide on header press, including direct clicks on the same toolbar area
 - ✅ **Floating single-node float policy parity**: Float context action is hidden for single-node floating layouts, matching button visibility behavior
 - ✅ **Floating title-bar icon correctness**: DockNode icons are image-based and rendered per view, so floating title-bar icons stay visible and follow active tabs
+- ✅ **Floating window snapping (MVP)**: Title-bar drag snapping now supports screen edges, main-window edges, and peer floating-window edges with configurable enable/targets/distance API, perpendicular-overlap guards, adjacent-edge alignment for both main and floating snap targets, and main-window shadow-inset compensation for decorated stages
+- ✅ **Snapping architecture cleanup**: Candidate generation and overlap-aware snapping logic is centralized in `DockFloatingSnapEngine`, reducing `DockFloatingWindow` complexity and improving testability
 - ✅ **View Caching**: Performance optimization through view reuse
 
 ### Drag & Drop (Baseline + Critical Bug Fixes)

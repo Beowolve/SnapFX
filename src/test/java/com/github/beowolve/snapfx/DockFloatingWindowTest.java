@@ -3,6 +3,7 @@ package com.github.beowolve.snapfx;
 import com.github.beowolve.snapfx.floating.DockFloatingPinButtonMode;
 import com.github.beowolve.snapfx.floating.DockFloatingPinLockedBehavior;
 import com.github.beowolve.snapfx.floating.DockFloatingPinSource;
+import com.github.beowolve.snapfx.floating.DockFloatingSnapTarget;
 import com.github.beowolve.snapfx.floating.DockFloatingWindow;
 import com.github.beowolve.snapfx.model.DockNode;
 import com.github.beowolve.snapfx.model.DockPosition;
@@ -34,6 +35,8 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.EnumSet;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -255,6 +258,330 @@ class DockFloatingWindowTest {
 
             assertEquals(100.0, stage.getX(), 0.0001);
             assertEquals(80.0, stage.getY(), 0.0001);
+        });
+    }
+
+    @Test
+    void testSceneDragSnapsToPeerFloatingWindowEdgeWhenEnabled() {
+        runOnFxThreadAndWait(() -> {
+            DockFloatingWindow floatingWindow = new DockFloatingWindow(new DockNode(new Label("Node"), "Node"));
+            DockFloatingWindow peerWindow = new DockFloatingWindow(new DockNode(new Label("Peer"), "Peer"));
+
+            Stage peerStage = new Stage();
+            peerStage.setX(300);
+            peerStage.setY(80);
+            peerStage.setWidth(640);
+            peerStage.setHeight(420);
+            writeStage(peerWindow, peerStage);
+
+            floatingWindow.setSnappingEnabled(true);
+            floatingWindow.setSnapDistance(15.0);
+            floatingWindow.setSnapTargets(EnumSet.of(DockFloatingSnapTarget.FLOATING_WINDOWS));
+            floatingWindow.setSnapPeerWindowsSupplier(() -> List.of(peerWindow));
+
+            Stage stage = new Stage();
+            stage.setX(100);
+            stage.setY(80);
+            stage.setWidth(640);
+            stage.setHeight(420);
+
+            HBox titleBar = new HBox();
+            MouseEvent pressEvent = createMouseEvent(
+                MouseEvent.MOUSE_PRESSED,
+                180,
+                120,
+                80,
+                12,
+                titleBar,
+                titleBar,
+                MouseButton.PRIMARY,
+                1
+            );
+            invokeOnTitleBarMousePressed(floatingWindow, pressEvent, stage, titleBar);
+
+            MouseEvent dragEvent = createMouseEvent(
+                MouseEvent.MOUSE_DRAGGED,
+                369,
+                190,
+                30,
+                140,
+                titleBar,
+                titleBar,
+                MouseButton.PRIMARY,
+                1
+            );
+            invokeOnSceneMouseDragged(floatingWindow, dragEvent, stage, titleBar);
+
+            assertEquals(300.0, stage.getX(), 0.0001);
+        });
+    }
+
+    @Test
+    void testSceneDragDoesNotSnapToPeerFloatingWindowEdgeWhenDisabled() {
+        runOnFxThreadAndWait(() -> {
+            DockFloatingWindow floatingWindow = new DockFloatingWindow(new DockNode(new Label("Node"), "Node"));
+            DockFloatingWindow peerWindow = new DockFloatingWindow(new DockNode(new Label("Peer"), "Peer"));
+
+            Stage peerStage = new Stage();
+            peerStage.setX(300);
+            peerStage.setY(80);
+            peerStage.setWidth(640);
+            peerStage.setHeight(420);
+            writeStage(peerWindow, peerStage);
+
+            floatingWindow.setSnappingEnabled(false);
+            floatingWindow.setSnapDistance(15.0);
+            floatingWindow.setSnapTargets(EnumSet.of(DockFloatingSnapTarget.FLOATING_WINDOWS));
+            floatingWindow.setSnapPeerWindowsSupplier(() -> List.of(peerWindow));
+
+            Stage stage = new Stage();
+            stage.setX(100);
+            stage.setY(80);
+            stage.setWidth(640);
+            stage.setHeight(420);
+
+            HBox titleBar = new HBox();
+            MouseEvent pressEvent = createMouseEvent(
+                MouseEvent.MOUSE_PRESSED,
+                180,
+                120,
+                80,
+                12,
+                titleBar,
+                titleBar,
+                MouseButton.PRIMARY,
+                1
+            );
+            invokeOnTitleBarMousePressed(floatingWindow, pressEvent, stage, titleBar);
+
+            MouseEvent dragEvent = createMouseEvent(
+                MouseEvent.MOUSE_DRAGGED,
+                369,
+                190,
+                30,
+                140,
+                titleBar,
+                titleBar,
+                MouseButton.PRIMARY,
+                1
+            );
+            invokeOnSceneMouseDragged(floatingWindow, dragEvent, stage, titleBar);
+
+            assertEquals(289.0, stage.getX(), 0.0001);
+        });
+    }
+
+    @Test
+    void testSceneDragCanSnapAdjacentToPeerFloatingWindowEdge() {
+        runOnFxThreadAndWait(() -> {
+            DockFloatingWindow floatingWindow = new DockFloatingWindow(new DockNode(new Label("Node"), "Node"));
+            DockFloatingWindow peerWindow = new DockFloatingWindow(new DockNode(new Label("Peer"), "Peer"));
+
+            Stage peerStage = new Stage();
+            peerStage.setX(300);
+            peerStage.setY(80);
+            peerStage.setWidth(640);
+            peerStage.setHeight(420);
+            writeStage(peerWindow, peerStage);
+
+            floatingWindow.setSnappingEnabled(true);
+            floatingWindow.setSnapDistance(15.0);
+            floatingWindow.setSnapTargets(EnumSet.of(DockFloatingSnapTarget.FLOATING_WINDOWS));
+            floatingWindow.setSnapPeerWindowsSupplier(() -> List.of(peerWindow));
+
+            Stage stage = new Stage();
+            stage.setX(100);
+            stage.setY(80);
+            stage.setWidth(640);
+            stage.setHeight(420);
+
+            HBox titleBar = new HBox();
+            MouseEvent pressEvent = createMouseEvent(
+                MouseEvent.MOUSE_PRESSED,
+                180,
+                120,
+                80,
+                12,
+                titleBar,
+                titleBar,
+                MouseButton.PRIMARY,
+                1
+            );
+            invokeOnTitleBarMousePressed(floatingWindow, pressEvent, stage, titleBar);
+
+            MouseEvent dragEvent = createMouseEvent(
+                MouseEvent.MOUSE_DRAGGED,
+                1029,
+                190,
+                30,
+                140,
+                titleBar,
+                titleBar,
+                MouseButton.PRIMARY,
+                1
+            );
+            invokeOnSceneMouseDragged(floatingWindow, dragEvent, stage, titleBar);
+
+            assertEquals(940.0, stage.getX(), 0.0001);
+        });
+    }
+
+    @Test
+    void testSceneDragDoesNotSnapToPeerWindowWhenNoPerpendicularOverlap() {
+        runOnFxThreadAndWait(() -> {
+            DockFloatingWindow floatingWindow = new DockFloatingWindow(new DockNode(new Label("Node"), "Node"));
+            DockFloatingWindow peerWindow = new DockFloatingWindow(new DockNode(new Label("Peer"), "Peer"));
+
+            Stage peerStage = new Stage();
+            peerStage.setX(300);
+            peerStage.setY(800);
+            peerStage.setWidth(640);
+            peerStage.setHeight(420);
+            writeStage(peerWindow, peerStage);
+
+            floatingWindow.setSnappingEnabled(true);
+            floatingWindow.setSnapDistance(15.0);
+            floatingWindow.setSnapTargets(EnumSet.of(DockFloatingSnapTarget.FLOATING_WINDOWS));
+            floatingWindow.setSnapPeerWindowsSupplier(() -> List.of(peerWindow));
+
+            Stage stage = new Stage();
+            stage.setX(100);
+            stage.setY(80);
+            stage.setWidth(640);
+            stage.setHeight(420);
+
+            HBox titleBar = new HBox();
+            MouseEvent pressEvent = createMouseEvent(
+                MouseEvent.MOUSE_PRESSED,
+                180,
+                120,
+                80,
+                12,
+                titleBar,
+                titleBar,
+                MouseButton.PRIMARY,
+                1
+            );
+            invokeOnTitleBarMousePressed(floatingWindow, pressEvent, stage, titleBar);
+
+            MouseEvent dragEvent = createMouseEvent(
+                MouseEvent.MOUSE_DRAGGED,
+                369,
+                190,
+                30,
+                140,
+                titleBar,
+                titleBar,
+                MouseButton.PRIMARY,
+                1
+            );
+            invokeOnSceneMouseDragged(floatingWindow, dragEvent, stage, titleBar);
+
+            assertEquals(289.0, stage.getX(), 0.0001);
+        });
+    }
+
+    @Test
+    void testSceneDragCanSnapAdjacentToMainWindowEdge() {
+        runOnFxThreadAndWait(() -> {
+            DockFloatingWindow floatingWindow = new DockFloatingWindow(new DockNode(new Label("Node"), "Node"));
+            floatingWindow.setSnappingEnabled(true);
+            floatingWindow.setSnapDistance(15.0);
+            floatingWindow.setSnapTargets(EnumSet.of(DockFloatingSnapTarget.MAIN_WINDOW));
+
+            Stage ownerStage = new Stage();
+            ownerStage.setX(300);
+            ownerStage.setY(80);
+            ownerStage.setWidth(640);
+            ownerStage.setHeight(420);
+
+            Stage stage = new Stage();
+            stage.initOwner(ownerStage);
+            stage.setX(100);
+            stage.setY(80);
+            stage.setWidth(640);
+            stage.setHeight(420);
+
+            HBox titleBar = new HBox();
+            MouseEvent pressEvent = createMouseEvent(
+                MouseEvent.MOUSE_PRESSED,
+                180,
+                120,
+                80,
+                12,
+                titleBar,
+                titleBar,
+                MouseButton.PRIMARY,
+                1
+            );
+            invokeOnTitleBarMousePressed(floatingWindow, pressEvent, stage, titleBar);
+
+            MouseEvent dragEvent = createMouseEvent(
+                MouseEvent.MOUSE_DRAGGED,
+                1028,
+                190,
+                30,
+                140,
+                titleBar,
+                titleBar,
+                MouseButton.PRIMARY,
+                1
+            );
+            invokeOnSceneMouseDragged(floatingWindow, dragEvent, stage, titleBar);
+
+            assertEquals(940.0, stage.getX(), 0.0001);
+        });
+    }
+
+    @Test
+    void testSceneDragDoesNotSnapToMainWindowWhenNoPerpendicularOverlap() {
+        runOnFxThreadAndWait(() -> {
+            DockFloatingWindow floatingWindow = new DockFloatingWindow(new DockNode(new Label("Node"), "Node"));
+            floatingWindow.setSnappingEnabled(true);
+            floatingWindow.setSnapDistance(15.0);
+            floatingWindow.setSnapTargets(EnumSet.of(DockFloatingSnapTarget.MAIN_WINDOW));
+
+            Stage ownerStage = new Stage();
+            ownerStage.setX(300);
+            ownerStage.setY(300);
+            ownerStage.setWidth(640);
+            ownerStage.setHeight(420);
+
+            Stage stage = new Stage();
+            stage.initOwner(ownerStage);
+            stage.setX(100);
+            stage.setY(80);
+            stage.setWidth(640);
+            stage.setHeight(420);
+
+            HBox titleBar = new HBox();
+            MouseEvent pressEvent = createMouseEvent(
+                MouseEvent.MOUSE_PRESSED,
+                180,
+                120,
+                80,
+                12,
+                titleBar,
+                titleBar,
+                MouseButton.PRIMARY,
+                1
+            );
+            invokeOnTitleBarMousePressed(floatingWindow, pressEvent, stage, titleBar);
+
+            MouseEvent dragEvent = createMouseEvent(
+                MouseEvent.MOUSE_DRAGGED,
+                1200,
+                347,
+                30,
+                140,
+                titleBar,
+                titleBar,
+                MouseButton.PRIMARY,
+                1
+            );
+            invokeOnSceneMouseDragged(floatingWindow, dragEvent, stage, titleBar);
+
+            assertEquals(307.0, stage.getY(), 0.0001);
         });
     }
 
@@ -908,6 +1235,16 @@ class DockFloatingWindowTest {
             .filter(button -> button.getStyleClass().contains("dock-window-pin-button"))
             .findFirst()
             .orElse(null);
+    }
+
+    private void writeStage(DockFloatingWindow floatingWindow, Stage stage) {
+        try {
+            Field field = DockFloatingWindow.class.getDeclaredField("stage");
+            field.setAccessible(true);
+            field.set(floatingWindow, stage);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Unable to write stage", e);
+        }
     }
 
     private ContextMenu readTitleBarContextMenu(DockFloatingWindow floatingWindow) {

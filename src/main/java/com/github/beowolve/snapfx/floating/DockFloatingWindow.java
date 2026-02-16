@@ -19,6 +19,7 @@ import javafx.event.ActionEvent;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -43,16 +44,21 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * Represents an external floating window that can host a full dock layout subtree.
@@ -132,6 +138,11 @@ public final class DockFloatingWindow {
     private BiConsumer<Boolean, DockFloatingPinSource> onAlwaysOnTopChanged;
     private Node resizeCursorTargetNode;
     private Cursor resizeCursorTargetPrevious;
+    private final DockFloatingSnapEngine snapEngine = new DockFloatingSnapEngine();
+    private boolean snappingEnabled;
+    private double snapDistance = 12.0;
+    private EnumSet<DockFloatingSnapTarget> snapTargets = EnumSet.noneOf(DockFloatingSnapTarget.class);
+    private Supplier<List<DockFloatingWindow>> snapPeerWindowsSupplier;
 
     public DockFloatingWindow(DockNode dockNode) {
         this((DockElement) dockNode, "SnapFX", null);
@@ -380,6 +391,68 @@ public final class DockFloatingWindow {
 
     public void setOnNodeFloatRequest(Consumer<DockNode> onNodeFloatRequest) {
         this.onNodeFloatRequest = onNodeFloatRequest;
+    }
+
+    /**
+     * Enables or disables snapping while dragging the floating window title bar.
+     */
+    public void setSnappingEnabled(boolean enabled) {
+        snappingEnabled = enabled;
+    }
+
+    /**
+     * Returns whether drag snapping is enabled.
+     */
+    public boolean isSnappingEnabled() {
+        return snappingEnabled;
+    }
+
+    /**
+     * Sets the snap distance in pixels.
+     */
+    public void setSnapDistance(double pixels) {
+        if (Double.isFinite(pixels) && pixels >= 0.0) {
+            snapDistance = pixels;
+        }
+    }
+
+    /**
+     * Returns the snap distance in pixels.
+     */
+    public double getSnapDistance() {
+        return snapDistance;
+    }
+
+    /**
+     * Configures which snap targets are considered during drag.
+     */
+    public void setSnapTargets(Set<DockFloatingSnapTarget> targets) {
+        EnumSet<DockFloatingSnapTarget> resolvedTargets = EnumSet.noneOf(DockFloatingSnapTarget.class);
+        if (targets != null) {
+            for (DockFloatingSnapTarget target : targets) {
+                if (target != null) {
+                    resolvedTargets.add(target);
+                }
+            }
+        }
+        snapTargets = resolvedTargets;
+    }
+
+    /**
+     * Returns the configured snap targets.
+     */
+    public Set<DockFloatingSnapTarget> getSnapTargets() {
+        if (snapTargets.isEmpty()) {
+            return Set.of();
+        }
+        return Collections.unmodifiableSet(EnumSet.copyOf(snapTargets));
+    }
+
+    /**
+     * Sets the supplier used to resolve other floating windows for snapping.
+     */
+    public void setSnapPeerWindowsSupplier(Supplier<List<DockFloatingWindow>> supplier) {
+        snapPeerWindowsSupplier = supplier;
     }
 
     /**
@@ -900,8 +973,193 @@ public final class DockFloatingWindow {
             restoreWindowForDrag(window, event, titleBar);
             awaitingMaximizedRestoreDrag = false;
         }
-        window.setX(event.getScreenX() - dragOffsetX);
-        window.setY(event.getScreenY() - dragOffsetY);
+        double requestedX = event.getScreenX() - dragOffsetX;
+        double requestedY = event.getScreenY() - dragOffsetY;
+        Point2D snappedPosition = resolveSnappedDragPosition(window, requestedX, requestedY, event.getScreenX(), event.getScreenY());
+        window.setX(snappedPosition.getX());
+        window.setY(snappedPosition.getY());
+    }
+
+    private Point2D resolveSnappedDragPosition(
+        Stage window,
+        double requestedX,
+        double requestedY,
+        double pointerScreenX,
+        double pointerScreenY
+    ) {
+        if (!snappingEnabled || snapDistance <= 0.0 || window == null || snapTargets.isEmpty()) {
+            return new Point2D(requestedX, requestedY);
+        }
+        List<Double> xCandidates = new ArrayList<>();
+        List<Double> yCandidates = new ArrayList<>();
+        collectSnapCandidates(window, requestedX, requestedY, pointerScreenX, pointerScreenY, xCandidates, yCandidates);
+        if (xCandidates.isEmpty() && yCandidates.isEmpty()) {
+            return new Point2D(requestedX, requestedY);
+        }
+        return snapEngine.snap(requestedX, requestedY, snapDistance, xCandidates, yCandidates);
+    }
+
+    private void collectSnapCandidates(
+        Stage window,
+        double requestedX,
+        double requestedY,
+        double pointerScreenX,
+        double pointerScreenY,
+        List<Double> xCandidates,
+        List<Double> yCandidates
+    ) {
+        if (window == null || xCandidates == null || yCandidates == null) {
+            return;
+        }
+        double windowWidth = window.getWidth();
+        double windowHeight = window.getHeight();
+        if (snapTargets.contains(DockFloatingSnapTarget.SCREEN)) {
+            snapEngine.addAlignmentCandidates(
+                resolveScreenSnapBounds(
+                    requestedX,
+                    requestedY,
+                    pointerScreenX,
+                    pointerScreenY,
+                    windowWidth,
+                    windowHeight
+                ),
+                windowWidth,
+                windowHeight,
+                xCandidates,
+                yCandidates
+            );
+        }
+        if (snapTargets.contains(DockFloatingSnapTarget.MAIN_WINDOW)) {
+            Rectangle2D mainWindowBounds = resolveMainWindowSnapBounds(window);
+            if (mainWindowBounds != null) {
+                snapEngine.addOverlapAwareCandidates(
+                    List.of(mainWindowBounds),
+                    requestedX,
+                    requestedY,
+                    windowWidth,
+                    windowHeight,
+                    snapDistance,
+                    xCandidates,
+                    yCandidates
+                );
+            }
+        }
+        if (snapTargets.contains(DockFloatingSnapTarget.FLOATING_WINDOWS)) {
+            snapEngine.addOverlapAwareCandidates(
+                resolvePeerFloatingSnapBounds(window),
+                requestedX,
+                requestedY,
+                windowWidth,
+                windowHeight,
+                snapDistance,
+                xCandidates,
+                yCandidates
+            );
+        }
+    }
+
+    private List<Rectangle2D> resolveScreenSnapBounds(
+        double requestedX,
+        double requestedY,
+        double pointerScreenX,
+        double pointerScreenY,
+        double windowWidth,
+        double windowHeight
+    ) {
+        List<Screen> screens = Screen.getScreensForRectangle(pointerScreenX, pointerScreenY, 1.0, 1.0);
+        if (screens.isEmpty()) {
+            screens = Screen.getScreensForRectangle(
+                requestedX,
+                requestedY,
+                Math.max(1.0, windowWidth),
+                Math.max(1.0, windowHeight)
+            );
+        }
+        if (screens.isEmpty()) {
+            Screen primaryScreen = Screen.getPrimary();
+            if (primaryScreen != null) {
+                screens = List.of(primaryScreen);
+            }
+        }
+        List<Rectangle2D> bounds = new ArrayList<>();
+        for (Screen screen : screens) {
+            if (screen != null) {
+                bounds.add(screen.getVisualBounds());
+            }
+        }
+        return bounds;
+    }
+
+    private Rectangle2D resolveMainWindowSnapBounds(Stage window) {
+        if (window == null || !(window.getOwner() instanceof Stage ownerStage)) {
+            return null;
+        }
+        if (ownerStage.getWidth() <= 0.0 || ownerStage.getHeight() <= 0.0) {
+            return null;
+        }
+
+        Rectangle2D stageBounds = new Rectangle2D(
+            ownerStage.getX(),
+            ownerStage.getY(),
+            ownerStage.getWidth(),
+            ownerStage.getHeight()
+        );
+        if (ownerStage.getScene() == null || ownerStage.getScene().getRoot() == null) {
+            return stageBounds;
+        }
+        Bounds sceneBounds = ownerStage.getScene().getRoot().localToScreen(
+            ownerStage.getScene().getRoot().getBoundsInLocal()
+        );
+        if (sceneBounds == null) {
+            return stageBounds;
+        }
+
+        double leftInset = Math.max(0.0, sceneBounds.getMinX() - stageBounds.getMinX());
+        double rightInset = Math.max(0.0, stageBounds.getMaxX() - sceneBounds.getMaxX());
+        double bottomInset = Math.max(0.0, stageBounds.getMaxY() - sceneBounds.getMaxY());
+        double inferredShadowInset = snapEngine.inferShadowInset(leftInset, rightInset, bottomInset);
+        if (inferredShadowInset <= 0.0) {
+            return stageBounds;
+        }
+
+        double adjustedWidth = stageBounds.getWidth() - (2.0 * inferredShadowInset);
+        double adjustedHeight = stageBounds.getHeight() - inferredShadowInset;
+        if (adjustedWidth <= 0.0 || adjustedHeight <= 0.0) {
+            return stageBounds;
+        }
+        return new Rectangle2D(
+            stageBounds.getMinX() + inferredShadowInset,
+            stageBounds.getMinY(),
+            adjustedWidth,
+            adjustedHeight
+        );
+    }
+
+    private List<Rectangle2D> resolvePeerFloatingSnapBounds(Stage window) {
+        List<Rectangle2D> peerBounds = new ArrayList<>();
+        if (snapPeerWindowsSupplier == null) {
+            return peerBounds;
+        }
+        List<DockFloatingWindow> peerWindows = snapPeerWindowsSupplier.get();
+        if (peerWindows == null || peerWindows.isEmpty()) {
+            return peerBounds;
+        }
+        for (DockFloatingWindow peerWindow : peerWindows) {
+            if (peerWindow == null || peerWindow == this) {
+                continue;
+            }
+            Stage peerStage = peerWindow.stage;
+            if (peerStage == null || peerStage == window || peerStage.getWidth() <= 0.0 || peerStage.getHeight() <= 0.0) {
+                continue;
+            }
+            peerBounds.add(new Rectangle2D(
+                peerStage.getX(),
+                peerStage.getY(),
+                peerStage.getWidth(),
+                peerStage.getHeight()
+            ));
+        }
+        return peerBounds;
     }
 
     private void onSceneMouseReleased(MouseEvent event) {

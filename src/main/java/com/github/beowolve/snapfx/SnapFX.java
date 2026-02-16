@@ -11,6 +11,7 @@ import com.github.beowolve.snapfx.floating.DockFloatingPinButtonMode;
 import com.github.beowolve.snapfx.floating.DockFloatingPinChangeEvent;
 import com.github.beowolve.snapfx.floating.DockFloatingPinLockedBehavior;
 import com.github.beowolve.snapfx.floating.DockFloatingPinSource;
+import com.github.beowolve.snapfx.floating.DockFloatingSnapTarget;
 import com.github.beowolve.snapfx.floating.DockFloatingWindow;
 import com.github.beowolve.snapfx.model.*;
 import com.github.beowolve.snapfx.persistence.DockLayoutSerializer;
@@ -47,10 +48,12 @@ import javafx.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -113,6 +116,13 @@ public class SnapFX {
     private boolean defaultFloatingAlwaysOnTop = true;
     private boolean allowFloatingPinToggle = true;
     private DockFloatingPinLockedBehavior floatingPinLockedBehavior = DockFloatingPinLockedBehavior.ALLOW;
+    private boolean floatingWindowSnappingEnabled = true;
+    private double floatingWindowSnapDistance = 12.0;
+    private EnumSet<DockFloatingSnapTarget> floatingWindowSnapTargets = EnumSet.of(
+        DockFloatingSnapTarget.SCREEN,
+        DockFloatingSnapTarget.MAIN_WINDOW,
+        DockFloatingSnapTarget.FLOATING_WINDOWS
+    );
     private Consumer<DockFloatingPinChangeEvent> onFloatingPinChanged;
 
     private Pane rootContainer; // Container that holds the buildLayout() result
@@ -1022,6 +1032,7 @@ public class SnapFX {
             handleFloatingPinChanged(floatingWindow, alwaysOnTop, source)
         );
         applyFloatingPinSettings(floatingWindow);
+        applyFloatingSnapSettings(floatingWindow);
     }
 
     private void applyFloatingPinSettings(DockFloatingWindow floatingWindow) {
@@ -1031,6 +1042,16 @@ public class SnapFX {
         floatingWindow.setPinButtonMode(floatingPinButtonMode);
         floatingWindow.setPinToggleEnabled(allowFloatingPinToggle);
         floatingWindow.setPinLockedBehavior(floatingPinLockedBehavior);
+    }
+
+    private void applyFloatingSnapSettings(DockFloatingWindow floatingWindow) {
+        if (floatingWindow == null) {
+            return;
+        }
+        floatingWindow.setSnappingEnabled(floatingWindowSnappingEnabled);
+        floatingWindow.setSnapDistance(floatingWindowSnapDistance);
+        floatingWindow.setSnapTargets(floatingWindowSnapTargets);
+        floatingWindow.setSnapPeerWindowsSupplier(() -> new ArrayList<>(floatingWindows));
     }
 
     private void applyFloatingWindowInitialAlwaysOnTop(
@@ -1425,6 +1446,71 @@ public class SnapFX {
      */
     public DockFloatingPinLockedBehavior getFloatingPinLockedBehavior() {
         return floatingPinLockedBehavior;
+    }
+
+    /**
+     * Enables or disables floating-window snapping while title bars are dragged.
+     */
+    public void setFloatingWindowSnappingEnabled(boolean enabled) {
+        floatingWindowSnappingEnabled = enabled;
+        for (DockFloatingWindow floatingWindow : floatingWindows) {
+            floatingWindow.setSnappingEnabled(floatingWindowSnappingEnabled);
+        }
+    }
+
+    /**
+     * Returns whether floating-window snapping is enabled.
+     */
+    public boolean isFloatingWindowSnappingEnabled() {
+        return floatingWindowSnappingEnabled;
+    }
+
+    /**
+     * Sets the snap distance in pixels used for floating-window drag snapping.
+     */
+    public void setFloatingWindowSnapDistance(double pixels) {
+        if (!isFiniteNumber(pixels) || pixels < 0.0) {
+            return;
+        }
+        floatingWindowSnapDistance = pixels;
+        for (DockFloatingWindow floatingWindow : floatingWindows) {
+            floatingWindow.setSnapDistance(floatingWindowSnapDistance);
+        }
+    }
+
+    /**
+     * Returns the configured floating-window snap distance in pixels.
+     */
+    public double getFloatingWindowSnapDistance() {
+        return floatingWindowSnapDistance;
+    }
+
+    /**
+     * Configures which targets are used for floating-window snapping.
+     */
+    public void setFloatingWindowSnapTargets(Set<DockFloatingSnapTarget> targets) {
+        EnumSet<DockFloatingSnapTarget> resolvedTargets = EnumSet.noneOf(DockFloatingSnapTarget.class);
+        if (targets != null) {
+            for (DockFloatingSnapTarget target : targets) {
+                if (target != null) {
+                    resolvedTargets.add(target);
+                }
+            }
+        }
+        floatingWindowSnapTargets = resolvedTargets;
+        for (DockFloatingWindow floatingWindow : floatingWindows) {
+            floatingWindow.setSnapTargets(floatingWindowSnapTargets);
+        }
+    }
+
+    /**
+     * Returns the configured floating-window snap targets.
+     */
+    public Set<DockFloatingSnapTarget> getFloatingWindowSnapTargets() {
+        if (floatingWindowSnapTargets.isEmpty()) {
+            return Set.of();
+        }
+        return Collections.unmodifiableSet(EnumSet.copyOf(floatingWindowSnapTargets));
     }
 
     /**

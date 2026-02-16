@@ -14,13 +14,13 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 | Phase 1: Core Stability | ✅ Completed | 100% |
 | Phase 2: Floating Windows | ✅ Completed | 100% |
 | Phase 3: User Experience | 🚧 In Progress | 64% |
-| Phase 4: Advanced Features | 📋 Planned | 0% |
+| Phase 4: Advanced Features | 🚧 In Progress | 20% |
 | Phase 5: Themes & Customization | 📋 Planned | 0% |
 | Phase 6: Performance & Polish | 📋 Planned | 0% |
 | Phase 7: Developer Experience | 📋 Planned | 45% |
 | Phase 8: Production Readiness | 📋 Planned | 25% |
 
-**Total Project Completion**: ~73%
+**Total Project Completion**: ~75%
 
 ## Legend
 
@@ -225,9 +225,11 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 ### 4.5 Floating Window Snapping
 **Priority**: 🟢 Medium
 
-- 📋 **Window-to-window snapping**: Snap floating windows to each other while moving
-- 📋 **Snap to main docking area**: Magnetic alignment at main layout borders
-- 📋 **Configurable snap distance**: API/property to tune sensitivity
+- ✅ **Window-to-window snapping**: Floating windows now snap to other floating window edges while moving
+- ✅ **Snap to main docking area**: Floating windows now snap to the main window edges
+- ✅ **Configurable snap distance**: `SnapFX.setFloatingWindowSnapDistance(...)` controls tolerance in pixels
+- ✅ **Configurable snap targets**: `SnapFX.setFloatingWindowSnapTargets(...)` controls screen/main/floating snap surfaces
+- ✅ **Snapping engine consolidation**: Candidate generation and overlap-aware snap logic are centralized in `DockFloatingSnapEngine` for maintainability and focused testing
 - 📋 **Visual snap guides**: Alignment indicator lines while dragging
 
 **Estimated Time**: 2-3 days

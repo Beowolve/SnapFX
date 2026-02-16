@@ -7,7 +7,7 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 ## Unreleased
 
 ### Build and Test
-- ✅ Added serializer/API regression tests for layout-load failures (`blank`, malformed JSON, missing required fields, invalid tab index), expanded floating-title-bar drag continuity coverage (release/reset + non-primary guards), resize-min/cursor reliability coverage, persistence edge-case coverage for complex floating snapshots plus unknown-node placeholder diagnostics, unsupported-type recovery/custom-fallback coverage (including SnapFX + DemoNodeFactory integration), dock-node-header context-menu dismiss-on-press regression coverage, unresolved floating-sub-layout D&D detach regression coverage, and a CI flake guard that reruns critical interaction suites 3x; full suite now runs with 220 tests.
+- ✅ Added serializer/API regression tests for layout-load failures (`blank`, malformed JSON, missing required fields, invalid tab index), expanded floating-title-bar drag continuity coverage (release/reset + non-primary guards), resize-min/cursor reliability coverage, persistence edge-case coverage for complex floating snapshots plus unknown-node placeholder diagnostics, unsupported-type recovery/custom-fallback coverage (including SnapFX + DemoNodeFactory integration), dock-node-header context-menu dismiss-on-press regression coverage, unresolved floating-sub-layout D&D detach regression coverage, and floating-window snapping coverage (engine scoring, overlap-aware candidate generation, drag edge snapping, adjacent-edge alignment, main-window parity checks including shadow-inset compensation, and API propagation/validation); full suite now runs with 234 tests.
 
 ### Framework and UI
 - ✅ Added `DockLayoutLoadException` with JSON-location context for deserialization failures.
@@ -21,6 +21,8 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ MainDemo error dialogs are now owner-aware and attach to the primary stage when available (better multi-monitor behavior).
 - ✅ Unknown/unsupported serialized node types now recover without aborting layout load: `DockLayoutSerializer` routes them through `DockNodeFactory` fallback hooks and otherwise inserts framework diagnostic placeholders (including node-id and JSON-path context).
 - ✅ Unresolved D&D releases from multi-node floating sub-layouts now detach the dragged node into a new floating window (matching float-button/context-menu behavior).
+- ✅ Added floating-window snapping MVP: title-bar drag can snap against screen work-area edges, main window edges, and peer floating-window edges with configurable enable/targets/distance API in `SnapFX`; snapping to main and peer windows now requires perpendicular overlap and supports adjacent-edge snapping, and main-window snapping compensates decorated-stage shadow insets.
+- ✅ Refactored snapping internals to centralize candidate generation and overlap-aware logic in `DockFloatingSnapEngine`, removing unused helper paths and reducing `DockFloatingWindow` complexity.
 
 ### Documentation
 - ✅ Updated README/ARCHITECTURE persistence examples to show `loadLayout(...)` / `deserialize(...)` error handling with `DockLayoutLoadException`.
