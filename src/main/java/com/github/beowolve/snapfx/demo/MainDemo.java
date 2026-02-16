@@ -16,6 +16,7 @@ import com.github.beowolve.snapfx.model.DockContainer;
 import com.github.beowolve.snapfx.model.DockElement;
 import com.github.beowolve.snapfx.model.DockNode;
 import com.github.beowolve.snapfx.model.DockPosition;
+import com.github.beowolve.snapfx.persistence.DockLayoutLoadException;
 import com.github.beowolve.snapfx.view.DockCloseButtonMode;
 import com.github.beowolve.snapfx.view.DockTitleBarMode;
 import javafx.application.Application;
@@ -762,6 +763,13 @@ public class MainDemo extends Application {
                 lockLayoutProperty.set(snapFX.isLocked());
 
                 // Success - no popup needed for better UX
+            } catch (DockLayoutLoadException e) {
+                LOGGER.log(
+                    System.Logger.Level.WARNING,
+                    "Layout load failed: {0}",
+                    e.toDisplayMessage()
+                );
+                showError(buildLayoutLoadErrorMessage(e));
             } catch (IOException e) {
                 showError("Error while loading:\n" + e.getMessage());
             }
@@ -1069,6 +1077,13 @@ public class MainDemo extends Application {
         return title;
     }
 
+
+    static String buildLayoutLoadErrorMessage(DockLayoutLoadException exception) {
+        if (exception == null) {
+            return "Error while loading:\nLayout could not be loaded due to an unknown error.";
+        }
+        return "Error while loading:\n" + exception.toDisplayMessage();
+    }
 
     private void showError(String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);

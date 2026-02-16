@@ -13,6 +13,7 @@ import com.github.beowolve.snapfx.model.DockNode;
 import com.github.beowolve.snapfx.model.DockPosition;
 import com.github.beowolve.snapfx.model.DockSplitPane;
 import com.github.beowolve.snapfx.model.DockTabPane;
+import com.github.beowolve.snapfx.persistence.DockLayoutLoadException;
 import javafx.event.Event;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -764,7 +765,7 @@ class SnapFXTest {
     }
 
     @Test
-    void testSaveLoadRoundTripRestoresFloatingWindowBoundsAndNode() {
+    void testSaveLoadRoundTripRestoresFloatingWindowBoundsAndNode() throws DockLayoutLoadException {
         DockNode nodeMain = new DockNode("nodeMain", new Label("Main"), "Main");
         DockNode nodeFloat = new DockNode("nodeFloat", new Label("Float"), "Float");
 
@@ -800,7 +801,7 @@ class SnapFXTest {
     }
 
     @Test
-    void testLoadLayoutRemainsCompatibleWithLegacyMainLayoutJson() {
+    void testLoadLayoutRemainsCompatibleWithLegacyMainLayoutJson() throws DockLayoutLoadException {
         DockNode nodeMain = new DockNode("nodeMain", new Label("Main"), "Main");
         DockNode nodeRight = new DockNode("nodeRight", new Label("Right"), "Right");
 
@@ -817,6 +818,36 @@ class SnapFXTest {
 
         assertTrue(restored.getFloatingWindows().isEmpty());
         assertNotNull(restored.getDockGraph().getRoot());
+    }
+
+    @Test
+    void testLoadLayoutThrowsForInvalidJsonAndKeepsCurrentLayout() {
+        DockNode node = new DockNode("node1", new Label("Node 1"), "Node 1");
+        snapFX.dock(node, null, DockPosition.CENTER);
+
+        DockNode originalRoot = assertInstanceOf(DockNode.class, snapFX.getDockGraph().getRoot());
+
+        DockLayoutLoadException exception = assertThrows(
+            DockLayoutLoadException.class,
+            () -> snapFX.loadLayout("{ invalid")
+        );
+
+        assertTrue(exception.getMessage().contains("Invalid JSON syntax"));
+        assertSame(originalRoot, snapFX.getDockGraph().getRoot());
+    }
+
+    @Test
+    void testLoadLayoutThrowsForBlankContentAndKeepsCurrentLayout() {
+        DockNode node = new DockNode("node1", new Label("Node 1"), "Node 1");
+        snapFX.dock(node, null, DockPosition.CENTER);
+
+        DockLayoutLoadException exception = assertThrows(
+            DockLayoutLoadException.class,
+            () -> snapFX.loadLayout("   ")
+        );
+
+        assertTrue(exception.getMessage().contains("empty"));
+        assertSame(node, snapFX.getDockGraph().getRoot());
     }
 
     @Test

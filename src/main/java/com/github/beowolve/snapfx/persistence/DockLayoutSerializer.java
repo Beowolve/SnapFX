@@ -84,35 +84,41 @@ public class DockLayoutSerializer {
         data.id = element.getId(); // layoutId
         data.type = element.getClass().getSimpleName();
 
-        if (element instanceof DockNode node) {
-            data.dockNodeId = node.getDockNodeId(); // Type-based ID for factory
-            data.title = node.getTitle();
-            data.closeable = node.isCloseable();
+        switch (element) {
+            case DockNode node -> {
+                data.dockNodeId = node.getDockNodeId(); // Type-based ID for factory
 
-            // Check if content implements DockNodeContentSerializer
-            if (node.getContent() instanceof DockNodeContentSerializer serializer) {
-                data.contentData = serializer.serializeContent();
-            }
-        } else if (element instanceof DockSplitPane splitPane) {
-            data.orientation = splitPane.getOrientation().toString();
-            data.children = new ElementData[splitPane.getChildren().size()];
+                data.title = node.getTitle();
+                data.closeable = node.isCloseable();
 
-            for (int i = 0; i < splitPane.getChildren().size(); i++) {
-                data.children[i] = serializeElement(splitPane.getChildren().get(i));
+                // Check if content implements DockNodeContentSerializer
+                if (node.getContent() instanceof DockNodeContentSerializer serializer) {
+                    data.contentData = serializer.serializeContent();
+                }
             }
+            case DockSplitPane splitPane -> {
+                data.orientation = splitPane.getOrientation().toString();
+                data.children = new ElementData[splitPane.getChildren().size()];
 
-            // Divider Positionen
-            data.dividerPositions = new double[splitPane.getDividerPositions().size()];
-            for (int i = 0; i < splitPane.getDividerPositions().size(); i++) {
-                data.dividerPositions[i] = splitPane.getDividerPositions().get(i).get();
-            }
-        } else if (element instanceof DockTabPane tabPane) {
-            data.selectedIndex = tabPane.getSelectedIndex();
-            data.children = new ElementData[tabPane.getChildren().size()];
+                for (int i = 0; i < splitPane.getChildren().size(); i++) {
+                    data.children[i] = serializeElement(splitPane.getChildren().get(i));
+                }
 
-            for (int i = 0; i < tabPane.getChildren().size(); i++) {
-                data.children[i] = serializeElement(tabPane.getChildren().get(i));
+                // Divider Positionen
+                data.dividerPositions = new double[splitPane.getDividerPositions().size()];
+                for (int i = 0; i < splitPane.getDividerPositions().size(); i++) {
+                    data.dividerPositions[i] = splitPane.getDividerPositions().get(i).get();
+                }
             }
+            case DockTabPane tabPane -> {
+                data.selectedIndex = tabPane.getSelectedIndex();
+                data.children = new ElementData[tabPane.getChildren().size()];
+
+                for (int i = 0; i < tabPane.getChildren().size(); i++) {
+                    data.children[i] = serializeElement(tabPane.getChildren().get(i));
+                }
+            }
+            default -> throw new IllegalStateException("Unexpected value: " + element);
         }
 
         return data;
@@ -120,42 +126,81 @@ public class DockLayoutSerializer {
 
     /**
      * Deserializes JSON into a DockGraph.
+     *
+     * @throws DockLayoutLoadException if the JSON is invalid or cannot be mapped to a valid layout
      */
-    public void deserialize(String json) {
-        if (json == null || json.trim().isEmpty() || json.equals("{}")) {
+    public void deserialize(String json) throws DockLayoutLoadException {
+        if (json == null || json.isBlank()) {
+            throw loadError("Layout content is empty.", "$");
+        }
+
+        String normalizedJson = json.trim();
+        JsonObject rootObject = parseRootJsonObject(normalizedJson);
+        if (rootObject.isEmpty()) {
             dockGraph.setRoot(null);
             return;
         }
+        if (!rootObject.has("root")) {
+            throw missingFieldError("$.root");
+        }
 
+        LayoutData data = parseLayoutData(rootObject);
+        DockElement root = data.root == null ? null : deserializeElement(data.root, "$.root");
+
+        dockGraph.setLocked(data.locked);
+        if (data.layoutIdCounter > 0) {
+            dockGraph.setLayoutIdCounter(data.layoutIdCounter);
+        }
+        dockGraph.setRoot(root);
+    }
+
+    private JsonObject parseRootJsonObject(String json) throws DockLayoutLoadException {
         try {
-            LayoutData data = gson.fromJson(json, LayoutData.class);
-            dockGraph.setLocked(data.locked);
-
-            // Restore layout ID counter to continue from where we left off
-            if (data.layoutIdCounter > 0) {
-                dockGraph.setLayoutIdCounter(data.layoutIdCounter);
+            JsonElement parsed = JsonParser.parseString(json);
+            if (!parsed.isJsonObject()) {
+                throw loadError("Layout must be a JSON object.", "$");
             }
-
-            if (data.root != null) {
-                DockElement root = deserializeElement(data.root);
-                dockGraph.setRoot(root);
-            }
-        } catch (Exception e) {
-            System.err.println("Error while deserializing: " + e.getMessage());
-            e.printStackTrace();
+            return parsed.getAsJsonObject();
+        } catch (JsonSyntaxException e) {
+            throw loadError("Invalid JSON syntax: " + e.getMessage(), "$", e);
         }
     }
 
-    private DockElement deserializeElement(ElementData data) {
+    private LayoutData parseLayoutData(JsonObject rootObject) throws DockLayoutLoadException {
+        try {
+            LayoutData data = gson.fromJson(rootObject, LayoutData.class);
+            if (data == null) {
+                throw loadError("Layout JSON is empty or malformed.", "$");
+            }
+            return data;
+        } catch (JsonParseException e) {
+            throw loadError("Layout JSON could not be parsed.", "$", e);
+        }
+    }
+
+    private DockElement deserializeElement(ElementData data, String path) throws DockLayoutLoadException {
+        if (data == null) {
+            throw loadError("Layout element is missing.", path);
+        }
+        if (isBlank(data.type)) {
+            throw missingFieldError(path + ".type");
+        }
         return switch (data.type) {
-            case "DockNode" -> deserializeDockNode(data);
-            case "DockSplitPane" -> deserializeSplitPane(data);
-            case "DockTabPane" -> deserializeTabPane(data);
-            default -> null;
+            case "DockNode" -> deserializeDockNode(data, path);
+            case "DockSplitPane" -> deserializeSplitPane(data, path);
+            case "DockTabPane" -> deserializeTabPane(data, path);
+            default -> throw loadError("Unsupported element type '" + data.type + "'.", path + ".type");
         };
     }
 
-    private DockNode deserializeDockNode(ElementData data) {
+    private DockNode deserializeDockNode(ElementData data, String path) throws DockLayoutLoadException {
+        if (isBlank(data.id)) {
+            throw missingFieldError(path + ".id");
+        }
+        if (isBlank(data.title)) {
+            throw missingFieldError(path + ".title");
+        }
+
         // Try factory first (recommended for cross-session persistence)
         if (nodeFactory != null && data.dockNodeId != null) {
             // Use dockNodeId for factory (type-based)
@@ -172,7 +217,12 @@ public class DockLayoutSerializer {
 
                 // Restore content data if available
                 if (data.contentData != null && node.getContent() instanceof DockNodeContentSerializer serializer) {
-                    serializer.deserializeContent(data.contentData);
+                    try {
+                        serializer.deserializeContent(data.contentData);
+                    } catch (RuntimeException e) {
+                        throw loadError("DockNode content could not be deserialized: " + e.getMessage(),
+                            path + ".contentData", e);
+                    }
                 }
 
                 return node;
@@ -197,16 +247,29 @@ public class DockLayoutSerializer {
         return node;
     }
 
-    private DockSplitPane deserializeSplitPane(ElementData data) {
-        Orientation orientation = Orientation.valueOf(data.orientation);
+    private DockSplitPane deserializeSplitPane(ElementData data, String path) throws DockLayoutLoadException {
+        if (isBlank(data.orientation)) {
+            throw missingFieldError(path + ".orientation");
+        }
+
+        Orientation orientation;
+        try {
+            orientation = Orientation.valueOf(data.orientation);
+        } catch (IllegalArgumentException e) {
+            throw loadError("Unsupported split orientation '" + data.orientation + "'.",
+                path + ".orientation", e);
+        }
+
+        if (data.children == null || data.children.length == 0) {
+            throw loadError("Split pane must define at least one child.", path + ".children");
+        }
+
         DockSplitPane splitPane = new DockSplitPane(orientation);
 
-        if (data.children != null) {
-            for (ElementData childData : data.children) {
-                DockElement child = deserializeElement(childData);
-                if (child != null) {
-                    splitPane.addChild(child);
-                }
+        for (int i = 0; i < data.children.length; i++) {
+            DockElement child = deserializeElement(data.children[i], path + ".children[" + i + "]");
+            if (child != null) {
+                splitPane.addChild(child);
             }
         }
 
@@ -220,20 +283,44 @@ public class DockLayoutSerializer {
         return splitPane;
     }
 
-    private DockTabPane deserializeTabPane(ElementData data) {
+    private DockTabPane deserializeTabPane(ElementData data, String path) throws DockLayoutLoadException {
+        if (data.children == null || data.children.length == 0) {
+            throw loadError("Tab pane must define at least one child.", path + ".children");
+        }
+
         DockTabPane tabPane = new DockTabPane();
 
-        if (data.children != null) {
-            for (ElementData childData : data.children) {
-                DockElement child = deserializeElement(childData);
-                if (child != null) {
-                    tabPane.addChild(child);
-                }
+        for (int i = 0; i < data.children.length; i++) {
+            DockElement child = deserializeElement(data.children[i], path + ".children[" + i + "]");
+            if (child != null) {
+                tabPane.addChild(child);
             }
         }
 
+        if (data.selectedIndex < 0 || data.selectedIndex >= tabPane.getChildren().size()) {
+            throw loadError(
+                "Selected tab index " + data.selectedIndex + " is out of range for " + tabPane.getChildren().size() + " tab(s).",
+                path + ".selectedIndex"
+            );
+        }
         tabPane.setSelectedIndex(data.selectedIndex);
         return tabPane;
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
+    }
+
+    private DockLayoutLoadException missingFieldError(String path) {
+        return loadError("Missing required field.", path);
+    }
+
+    private DockLayoutLoadException loadError(String message, String path) {
+        return new DockLayoutLoadException(message, path);
+    }
+
+    private DockLayoutLoadException loadError(String message, String path, Throwable cause) {
+        return new DockLayoutLoadException(message, path, cause);
     }
 
     // Data classes for JSON

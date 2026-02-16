@@ -6,7 +6,17 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 
 ## Unreleased
 
-- 📋 No unreleased changes yet.
+### Build and Test
+- ✅ Added serializer/API regression tests for layout-load failures (`blank`, malformed JSON, missing required fields, invalid tab index); full suite now runs with 199 tests.
+
+### Framework and UI
+- ✅ Added `DockLayoutLoadException` with JSON-location context for deserialization failures.
+- ✅ `DockLayoutSerializer.deserialize(...)` now throws precise typed load errors instead of printing to `System.out`/`System.err`.
+- ✅ `SnapFX.loadLayout(...)` now throws `DockLayoutLoadException` and validates payloads before applying them so invalid layouts do not partially apply.
+- ✅ MainDemo now shows a user-facing error dialog for invalid layout files, including detailed load failure context.
+
+### Documentation
+- ✅ Updated README/ARCHITECTURE persistence examples to show `loadLayout(...)` / `deserialize(...)` error handling with `DockLayoutLoadException`.
 
 ## v0.2.4 - 2026-02-16
 

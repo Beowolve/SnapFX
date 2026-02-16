@@ -136,7 +136,11 @@ Files.writeString(Path.of("layout.json"), json);
 
 // Later session:
 String json = Files.readString(Path.of("layout.json"));
-snapFX.loadLayout(json); // Factory recreates nodes from IDs
+try {
+    snapFX.loadLayout(json); // Factory recreates nodes from IDs
+} catch (DockLayoutLoadException e) {
+    // Handle invalid/corrupt layout JSON.
+}
 ```
 
 ## Architecture

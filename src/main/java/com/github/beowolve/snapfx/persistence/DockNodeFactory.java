@@ -23,7 +23,11 @@ import javafx.scene.Node;
  * };
  *
  * snapFX.setNodeFactory(factory);
- * snapFX.loadLayout(json);
+ * try {
+ *     snapFX.loadLayout(json);
+ * } catch (DockLayoutLoadException e) {
+ *     // Handle invalid/corrupt layout JSON.
+ * }
  * }</pre>
  *
  * <p><b>Important:</b> The factory must create DockNodes with the same ID that

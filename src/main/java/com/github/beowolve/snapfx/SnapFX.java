@@ -14,6 +14,7 @@ import com.github.beowolve.snapfx.floating.DockFloatingPinSource;
 import com.github.beowolve.snapfx.floating.DockFloatingWindow;
 import com.github.beowolve.snapfx.model.*;
 import com.github.beowolve.snapfx.persistence.DockLayoutSerializer;
+import com.github.beowolve.snapfx.persistence.DockLayoutLoadException;
 import com.github.beowolve.snapfx.persistence.DockNodeFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -686,11 +687,19 @@ public class SnapFX {
 
     /**
      * Loads a layout from JSON.
+     *
+     * @throws DockLayoutLoadException if layout JSON is invalid or cannot be deserialized
      */
-    public void loadLayout(String json) {
+    public void loadLayout(String json) throws DockLayoutLoadException {
+        LayoutSnapshot snapshot = tryParseLayoutSnapshot(json);
+        if (snapshot != null) {
+            validateSnapshotLayout(snapshot);
+        } else {
+            validateLayoutJson(json, "$");
+        }
+
         clearFloatingDropPreviews();
         closeAllFloatingWindows(false);
-        LayoutSnapshot snapshot = tryParseLayoutSnapshot(json);
         if (snapshot != null) {
             serializer.deserialize(SNAPSHOT_GSON.toJson(snapshot.mainLayout()));
             restoreFloatingWindows(snapshot.floatingWindows());
@@ -1631,7 +1640,7 @@ public class SnapFX {
         return floatingArray;
     }
 
-    private void restoreFloatingWindows(List<FloatingWindowSnapshot> snapshots) {
+    private void restoreFloatingWindows(List<FloatingWindowSnapshot> snapshots) throws DockLayoutLoadException {
         if (snapshots == null || snapshots.isEmpty()) {
             return;
         }
@@ -1640,7 +1649,7 @@ public class SnapFX {
         }
     }
 
-    private void restoreFloatingWindow(FloatingWindowSnapshot snapshot) {
+    private void restoreFloatingWindow(FloatingWindowSnapshot snapshot) throws DockLayoutLoadException {
         if (snapshot == null || snapshot.layout() == null) {
             return;
         }
@@ -1723,6 +1732,65 @@ public class SnapFX {
         } catch (JsonSyntaxException ignored) {
             return null;
         }
+    }
+
+    private void validateSnapshotLayout(LayoutSnapshot snapshot) throws DockLayoutLoadException {
+        if (snapshot == null || snapshot.mainLayout() == null) {
+            throw new DockLayoutLoadException("Snapshot is missing main layout data.", "$.mainLayout");
+        }
+        validateLayoutJson(SNAPSHOT_GSON.toJson(snapshot.mainLayout()), "$.mainLayout");
+        List<FloatingWindowSnapshot> floatingSnapshots = snapshot.floatingWindows();
+        if (floatingSnapshots == null || floatingSnapshots.isEmpty()) {
+            return;
+        }
+        for (int i = 0; i < floatingSnapshots.size(); i++) {
+            FloatingWindowSnapshot floatingSnapshot = floatingSnapshots.get(i);
+            if (floatingSnapshot == null || floatingSnapshot.layout() == null) {
+                throw new DockLayoutLoadException(
+                    "Floating window snapshot is missing layout data.",
+                    "$.floatingWindows[" + i + "].layout"
+                );
+            }
+            validateLayoutJson(
+                SNAPSHOT_GSON.toJson(floatingSnapshot.layout()),
+                "$.floatingWindows[" + i + "].layout"
+            );
+        }
+    }
+
+    private void validateLayoutJson(String layoutJson, String rootPath) throws DockLayoutLoadException {
+        DockLayoutSerializer validationSerializer = createLayoutSerializer(new DockGraph());
+        try {
+            validationSerializer.deserialize(layoutJson);
+        } catch (DockLayoutLoadException e) {
+            throw rebaseLoadException(e, rootPath);
+        }
+    }
+
+    private DockLayoutLoadException rebaseLoadException(DockLayoutLoadException exception, String basePath) {
+        if (exception == null) {
+            return new DockLayoutLoadException("Layout could not be loaded.", basePath);
+        }
+        String location = combineJsonPath(basePath, exception.getLocation());
+        return new DockLayoutLoadException(exception.getMessage(), location, exception.getCause());
+    }
+
+    private String combineJsonPath(String basePath, String nestedPath) {
+        String base = (basePath == null || basePath.isBlank()) ? "$" : basePath;
+        if (nestedPath == null || nestedPath.isBlank() || "$".equals(nestedPath)) {
+            return base;
+        }
+        if (!nestedPath.startsWith("$")) {
+            return base + "." + nestedPath;
+        }
+        String nestedSuffix = nestedPath.substring(1);
+        if (nestedSuffix.isBlank()) {
+            return base;
+        }
+        if (nestedSuffix.startsWith(".")) {
+            return base + nestedSuffix;
+        }
+        return base + "." + nestedSuffix;
     }
 
     private DockLayoutSerializer createLayoutSerializer(DockGraph graph) {

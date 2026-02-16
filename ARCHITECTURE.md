@@ -17,16 +17,17 @@ SnapFX is a lightweight JavaFX docking framework with a strict separation betwee
 ### Architecture Overview
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                          SnapFX API                             │
-│                   (Simple, fluent public API)                   │
-│  - dock(content, title)                                         │
-│  - dock(content, title, target, position)                       │
-│  - undock(node)                                                 │
-│  - buildLayout()                                                │
-│  - saveLayout() / loadLayout(json)                              │
-│  - setLocked(boolean)                                           │
-└────────────────┬────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────┐
+│                          SnapFX API                               │
+│                   (Simple, fluent public API)                     │
+│  - dock(content, title)                                           │
+│  - dock(content, title, target, position)                         │
+│  - undock(node)                                                   │
+│  - buildLayout()                                                  │
+│  - saveLayout() / loadLayout(json) throws DockLayoutLoadException │
+│  - setLocked(boolean)                                             │
+│  - ...                                                            │
+└────────────────┬──────────────────────────────────────────────────┘
                  │
                  │ coordinates
                  │
@@ -439,7 +440,7 @@ SnapFX {
     + buildLayout(): Parent
     + setLocked(locked)
     + saveLayout(): String
-    + loadLayout(json)
+    + loadLayout(json) throws DockLayoutLoadException
 }
 ```
 
@@ -468,7 +469,11 @@ snapFX.setLocked(true);
 
 // Save/load
 String json = snapFX.saveLayout();
-snapFX.loadLayout(json);
+try {
+    snapFX.loadLayout(json);
+} catch (DockLayoutLoadException e) {
+    // Handle invalid/corrupt layout data.
+}
 ```
 
 ## 6. Data Flow
@@ -616,12 +621,20 @@ class DockFloatingWindow {
 ```java
 serializer.registerNode(myNode);
 String json = serializer.serialize();
-serializer.deserialize(json);
+try {
+    serializer.deserialize(json);
+} catch (DockLayoutLoadException e) {
+    // Handle invalid/corrupt layout data.
+}
 ```
 
 ### 2. Rebuild after layout changes
 ```java
-snapFX.loadLayout(json);
+try {
+    snapFX.loadLayout(json);
+} catch (DockLayoutLoadException e) {
+    // Handle invalid/corrupt layout data.
+}
 Parent newLayout = snapFX.buildLayout();
 scene.setRoot(newLayout);
 ```

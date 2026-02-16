@@ -1,5 +1,6 @@
 package com.github.beowolve.snapfx.demo;
 
+import com.github.beowolve.snapfx.persistence.DockLayoutLoadException;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -73,5 +74,21 @@ class MainDemoTest {
         f11Action.run();
         assertEquals(1, invocationCounter.get());
         assertTrue(scene.getAccelerators().containsKey(f11));
+    }
+
+    @Test
+    void testBuildLayoutLoadErrorMessageIncludesLocation() {
+        DockLayoutLoadException exception = new DockLayoutLoadException("Missing required field.", "$.root.type");
+        String message = MainDemo.buildLayoutLoadErrorMessage(exception);
+
+        assertTrue(message.contains("Error while loading:"));
+        assertTrue(message.contains("Missing required field."));
+        assertTrue(message.contains("$.root.type"));
+    }
+
+    @Test
+    void testBuildLayoutLoadErrorMessageHandlesNullException() {
+        String message = MainDemo.buildLayoutLoadErrorMessage(null);
+        assertTrue(message.contains("unknown error"));
     }
 }

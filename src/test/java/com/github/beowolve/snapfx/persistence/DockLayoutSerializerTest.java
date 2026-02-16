@@ -80,13 +80,13 @@ class DockLayoutSerializerTest {
     }
 
     @Test
-    void testDeserializeEmptyGraph() {
+    void testDeserializeEmptyGraph() throws DockLayoutLoadException {
         serializer.deserialize("{}");
         assertNull(dockGraph.getRoot());
     }
 
     @Test
-    void testRoundTripSingleNode() {
+    void testRoundTripSingleNode() throws DockLayoutLoadException {
         DockNode node = new DockNode("testNode1", new Label("Test"), "Test Node");
         dockGraph.setRoot(node);
 
@@ -114,7 +114,7 @@ class DockLayoutSerializerTest {
     }
 
     @Test
-    void testRoundTripComplexStructure() {
+    void testRoundTripComplexStructure() throws DockLayoutLoadException {
         DockNode node1 = new DockNode("node1", new Label("Test1"), "Node 1");
         DockNode node2 = new DockNode("node2", new Label("Test2"), "Node 2");
         DockNode node3 = new DockNode("node3", new Label("Test3"), "Node 3");
@@ -148,7 +148,7 @@ class DockLayoutSerializerTest {
     }
 
     @Test
-    void testSerializeLockedState() {
+    void testSerializeLockedState() throws DockLayoutLoadException {
         DockNode node = new DockNode(new Label("Test"), "Test Node");
         dockGraph.setRoot(node);
         dockGraph.setLocked(true);
@@ -171,7 +171,7 @@ class DockLayoutSerializerTest {
      * Fix: Application must sync UI property with DockGraph.isLocked() after load.
      */
     @Test
-    void testLockedStateRoundTrip() {
+    void testLockedStateRoundTrip() throws DockLayoutLoadException {
         // Setup: Create layout with locked=true
         DockNode node1 = new DockNode("node1", new Label("Test1"), "Node 1");
         DockNode node2 = new DockNode("node2", new Label("Test2"), "Node 2");
@@ -221,5 +221,75 @@ class DockLayoutSerializerTest {
         newSerializer2.deserialize(json3);
 
         assertFalse(newGraph2.isLocked(), "Unlocked state should be restored from JSON");
+    }
+
+    @Test
+    void testDeserializeRejectsBlankContent() {
+        DockLayoutLoadException exception = assertThrows(
+            DockLayoutLoadException.class,
+            () -> serializer.deserialize("   ")
+        );
+        assertTrue(exception.getMessage().contains("empty"));
+        assertEquals("$", exception.getLocation());
+    }
+
+    @Test
+    void testDeserializeRejectsInvalidJsonSyntax() {
+        DockLayoutLoadException exception = assertThrows(
+            DockLayoutLoadException.class,
+            () -> serializer.deserialize("{ invalid")
+        );
+        assertTrue(exception.getMessage().contains("Invalid JSON syntax"));
+        assertEquals("$", exception.getLocation());
+    }
+
+    @Test
+    void testDeserializeRejectsMissingElementType() {
+        String json = """
+            {
+              "locked": false,
+              "layoutIdCounter": 4,
+              "root": {
+                "id": "layout-root-1",
+                "title": "Root"
+              }
+            }
+            """;
+        DockLayoutLoadException exception = assertThrows(
+            DockLayoutLoadException.class,
+            () -> serializer.deserialize(json)
+        );
+        assertEquals("$.root.type", exception.getLocation());
+        assertTrue(exception.getMessage().contains("Missing required field"));
+    }
+
+    @Test
+    void testDeserializeRejectsOutOfRangeTabSelection() {
+        String json = """
+            {
+              "locked": false,
+              "layoutIdCounter": 7,
+              "root": {
+                "id": "layout-tab-root",
+                "type": "DockTabPane",
+                "selectedIndex": 3,
+                "children": [
+                  {
+                    "id": "layout-node-1",
+                    "dockNodeId": "node1",
+                    "type": "DockNode",
+                    "title": "One",
+                    "closeable": true
+                  }
+                ]
+              }
+            }
+            """;
+        DockLayoutLoadException exception = assertThrows(
+            DockLayoutLoadException.class,
+            () -> serializer.deserialize(json)
+        );
+        assertEquals("$.root.selectedIndex", exception.getLocation());
+        assertTrue(exception.getMessage().contains("out of range"));
     }
 }

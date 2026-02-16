@@ -6,7 +6,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 
 ## ✅ What Has Been Completed
 
-### Core Framework (23 classes)
+### Core Framework (24 classes)
 
 #### Model Layer (7 classes)
 - ✅ `DockGraph` - Central data structure for the docking system
@@ -31,9 +31,9 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `DockDragData` - Transfer object for drag operations
 - ✅ `DockDropVisualizationMode` - Drop-zone visualization modes
 
-#### Persistence (1 class)
+#### Persistence (2 classes)
 - ✅ `DockLayoutSerializer` - JSON-based serialization with Gson
-
+- ✅ `DockLayoutLoadException` - Typed layout-load failure model with JSON-path diagnostics
 #### Debug Tools (1 class)
 - ✅ `DockGraphDebugView` - Tree visualization and export
 - ✅ `D&D Activity Log` - Comprehensive logging of all drag & drop operations
@@ -59,7 +59,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (12 test classes, 191 tests)
+### Testing (12 test classes, 199 tests)
 - ✅ `DockGraphTest` (56 tests) - Tree manipulation and algorithms
   - **+11 regression tests** for critical bug fixes
   - Tests for empty container prevention
@@ -68,16 +68,16 @@ SnapFX has been fully implemented with core functionality and is production-read
   - Tests for flattening logic
   - Performance stress tests for large layouts (50+ nodes)
   - Edge case tests for null/no-op/detached-target handling
-- ✅ `DockLayoutSerializerTest` (9 tests) - Persistence functionality
+- ✅ `DockLayoutSerializerTest` (13 tests) - Persistence functionality and strict load-failure diagnostics for blank content, malformed JSON, missing required fields, and invalid tab selection metadata
   - **+1 regression test** for locked state synchronization (2026-02-10)
 - ✅ `DockLayoutEngineTest` (31 tests) - View creation with TestFX, context-menu interaction coverage, representative container-tab title/icon behavior, float-availability policy checks, and tiny-bounds drop-zone clamp regression coverage
   - Memory cleanup tests for cache boundedness and undock/rebuild cycles
   - Layout optimization tests for empty/single-child roots
-- ✅ `SnapFXTest` (44 tests) - Hide/Restore + Floating Window API behavior plus configurable shortcut behavior
+- ✅ `SnapFXTest` (46 tests) - Hide/Restore + Floating Window API behavior, configurable shortcut behavior, and invalid-load failure handling
 - ✅ `DockGraphSplitTargetDockingTest` (1 test) - Split-target docking regression coverage
 - ✅ `DockDragServiceTest` (8 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, and ESC drag-cancel handling
 - ✅ `DockFloatingWindowTest` (16 tests) - Floating title-bar controls, context-menu behavior (attach/pin icons + attach action), pin behavior, icon rendering/sync regression coverage, single-node float-menu policy, and maximize/restore interaction behavior
-- ✅ `MainDemoTest` (5 tests) - Application icon resources, menu icon behavior, and demo shortcut wiring
+- ✅ `MainDemoTest` (7 tests) - Application icon resources, menu icon behavior, demo shortcut wiring, and load-error message formatting
 - ✅ `AboutDialogTest` (2 tests) - About dialog resources and credit link targets
 - ✅ `EditorCloseDecisionPolicyTest` (5 tests) - Deterministic close-decision behavior for dirty editor nodes
 - ✅ `SimpleExampleTest` (2 tests) - Stylesheet resource resolution behavior

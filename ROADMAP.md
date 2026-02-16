@@ -71,6 +71,7 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 **Priority**: 🟡 High
 
 - ✅ **Container tab title/icon UX**: Tabs containing nested split/tab layouts now derive title/icon from a representative DockNode (`Title +N`) instead of showing container class names
+- ✅ **Layout-load diagnostics UX**: Invalid layout files now return typed `DockLayoutLoadException` failures with JSON path context, and MainDemo surfaces the details in an error dialog
 - 📋 No planned items; see `CHANGELOG.md` for completed fixes.
 
 ---
