@@ -53,6 +53,9 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 - ✅ **Add performance tests**: Large layouts with 50+ nodes
 - ✅ **Add memory leak tests**: Ensure proper cleanup
 - ✅ **Add edge case tests**: More boundary conditions
+- ✅ **Floating drag-state regression hardening**: Added scene-level drag release/reset and non-primary activation guard coverage for floating title-bar movement
+- ✅ **Persistence edge-case hardening**: Added complex floating snapshot roundtrip coverage and invalid floating snapshot validation/no-partial-apply tests
+- ✅ **CI flake guard for critical interactions**: CI now reruns `SnapFXTest`, `DockFloatingWindowTest`, and `DockDragServiceTest` three times per run
 
 **Estimated Time**: Completed
 

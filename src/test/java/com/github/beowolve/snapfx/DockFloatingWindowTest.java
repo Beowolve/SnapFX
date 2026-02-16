@@ -199,6 +199,107 @@ class DockFloatingWindowTest {
     }
 
     @Test
+    void testSceneDragStopsAfterMouseRelease() {
+        runOnFxThreadAndWait(() -> {
+            DockFloatingWindow floatingWindow = new DockFloatingWindow(new DockNode(new Label("Node"), "Node"));
+            Stage stage = new Stage();
+            stage.setX(100);
+            stage.setY(80);
+            stage.setWidth(640);
+            stage.setHeight(420);
+
+            HBox titleBar = new HBox();
+            Label contentTarget = new Label("Content");
+
+            MouseEvent pressEvent = createMouseEvent(
+                MouseEvent.MOUSE_PRESSED,
+                180,
+                120,
+                80,
+                12,
+                titleBar,
+                titleBar,
+                MouseButton.PRIMARY,
+                1
+            );
+            invokeOnTitleBarMousePressed(floatingWindow, pressEvent, stage, titleBar);
+
+            MouseEvent releaseEvent = createMouseEvent(
+                MouseEvent.MOUSE_RELEASED,
+                180,
+                120,
+                80,
+                12,
+                contentTarget,
+                contentTarget,
+                MouseButton.PRIMARY,
+                1
+            );
+            invokeOnSceneMouseReleased(floatingWindow, releaseEvent);
+
+            MouseEvent dragEvent = createMouseEvent(
+                MouseEvent.MOUSE_DRAGGED,
+                260,
+                190,
+                30,
+                140,
+                contentTarget,
+                contentTarget,
+                MouseButton.PRIMARY,
+                1
+            );
+            invokeOnSceneMouseDragged(floatingWindow, dragEvent, stage, titleBar);
+
+            assertEquals(100.0, stage.getX(), 0.0001);
+            assertEquals(80.0, stage.getY(), 0.0001);
+        });
+    }
+
+    @Test
+    void testSecondaryTitleBarPressDoesNotActivateSceneDrag() {
+        runOnFxThreadAndWait(() -> {
+            DockFloatingWindow floatingWindow = new DockFloatingWindow(new DockNode(new Label("Node"), "Node"));
+            Stage stage = new Stage();
+            stage.setX(100);
+            stage.setY(80);
+            stage.setWidth(640);
+            stage.setHeight(420);
+
+            HBox titleBar = new HBox();
+            Label contentTarget = new Label("Content");
+
+            MouseEvent pressEvent = createMouseEvent(
+                MouseEvent.MOUSE_PRESSED,
+                180,
+                120,
+                80,
+                12,
+                titleBar,
+                titleBar,
+                MouseButton.SECONDARY,
+                1
+            );
+            invokeOnTitleBarMousePressed(floatingWindow, pressEvent, stage, titleBar);
+
+            MouseEvent dragEvent = createMouseEvent(
+                MouseEvent.MOUSE_DRAGGED,
+                260,
+                190,
+                30,
+                140,
+                contentTarget,
+                contentTarget,
+                MouseButton.PRIMARY,
+                1
+            );
+            invokeOnSceneMouseDragged(floatingWindow, dragEvent, stage, titleBar);
+
+            assertEquals(100.0, stage.getX(), 0.0001);
+            assertEquals(80.0, stage.getY(), 0.0001);
+        });
+    }
+
+    @Test
     void testFloatingWindowControlButtonsAreHiddenWhenLocked() {
         runOnFxThreadAndWait(() -> {
             DockFloatingWindow floatingWindow = new DockFloatingWindow(new DockNode(new Label("Node"), "Node"));
@@ -569,6 +670,16 @@ class DockFloatingWindowTest {
             method.invoke(floatingWindow, event, stage, titleBar);
         } catch (ReflectiveOperationException e) {
             throw new AssertionError("Unable to invoke onSceneMouseDragged", e);
+        }
+    }
+
+    private void invokeOnSceneMouseReleased(DockFloatingWindow floatingWindow, MouseEvent event) {
+        try {
+            Method method = DockFloatingWindow.class.getDeclaredMethod("onSceneMouseReleased", MouseEvent.class);
+            method.setAccessible(true);
+            method.invoke(floatingWindow, event);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Unable to invoke onSceneMouseReleased", e);
         }
     }
 

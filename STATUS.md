@@ -5,11 +5,12 @@
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 201 tests passing (latest full suite)
+✅ **Tests**: All 205 tests passing (latest full suite)
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully  
 ✅ **CI Automation**: GitHub Actions workflows added for push/PR tests and tag-triggered releases  
 ✅ **Release Notes Automation**: `git-cliff` generates tag-based GitHub Release notes
+✅ **CI Stability Guard**: Critical interaction test suites run 3x per CI execution to catch flakes early
 
 ## Documentation Scope
 
@@ -132,16 +133,16 @@
 - ✅ DockGraphTest (56 tests, +11 regression tests)
 - ✅ DockLayoutSerializerTest (13 tests) - Includes strict load-failure diagnostics for blank content, malformed JSON, missing required fields, and invalid tab selection metadata
 - ✅ DockLayoutEngineTest (31 tests) - Includes tab/header/splitter context-menu coverage, representative container-tab title/icon behavior, float-availability policy checks, and tiny-bounds drop-zone clamp regression coverage
-- ✅ **SnapFXTest (46 tests)** - Hide/Restore + Floating Window API tests plus configurable shortcut behavior and invalid-load failure handling
+- ✅ **SnapFXTest (48 tests)** - Hide/Restore + Floating Window API tests plus configurable shortcut behavior, invalid-load failure handling, and persistence edge-case coverage for complex floating snapshots
 - ✅ DockGraphSplitTargetDockingTest (1 test)
 - ✅ DockDragServiceTest (8 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, and ESC drag-cancel handling
-- ✅ DockFloatingWindowTest (18 tests) - Floating title bar controls, context menu behavior (attach/pin icons + attach action), pin behavior, icon rendering/sync regression coverage, single-node float-menu policy, maximize/restore interaction behavior, and scene-level drag continuity
+- ✅ DockFloatingWindowTest (20 tests) - Floating title bar controls, context menu behavior (attach/pin icons + attach action), pin behavior, icon rendering/sync regression coverage, single-node float-menu policy, maximize/restore interaction behavior, and scene-level drag continuity (including release/reset and non-primary guard behavior)
 - ✅ MainDemoTest (7 tests) - Demo app icon resource wiring, menu icon behavior, demo shortcut wiring, and load-error message formatting
 - ✅ EditorCloseDecisionPolicyTest (5 tests) - Deterministic close-decision policy checks
 - ✅ SimpleExampleTest (2 tests) - Stylesheet resource resolution behavior
 - ✅ MarkdownDocumentationConsistencyTest (12 tests) - Markdown consistency guardrails
 - ✅ AboutDialogTest (2 tests) - About dialog branding resources and credit link targets
-- ✅ **201/201 tests passing** ✅
+- ✅ **205/205 tests passing** ✅
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Edge case tests** (null inputs, detached nodes, invalid move targets, no-op revision checks)

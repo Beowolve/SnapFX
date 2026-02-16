@@ -59,7 +59,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (12 test classes, 201 tests)
+### Testing (12 test classes, 205 tests)
 - ✅ `DockGraphTest` (56 tests) - Tree manipulation and algorithms
   - **+11 regression tests** for critical bug fixes
   - Tests for empty container prevention
@@ -73,15 +73,16 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `DockLayoutEngineTest` (31 tests) - View creation with TestFX, context-menu interaction coverage, representative container-tab title/icon behavior, float-availability policy checks, and tiny-bounds drop-zone clamp regression coverage
   - Memory cleanup tests for cache boundedness and undock/rebuild cycles
   - Layout optimization tests for empty/single-child roots
-- ✅ `SnapFXTest` (46 tests) - Hide/Restore + Floating Window API behavior, configurable shortcut behavior, and invalid-load failure handling
+- ✅ `SnapFXTest` (48 tests) - Hide/Restore + Floating Window API behavior, configurable shortcut behavior, invalid-load failure handling, and persistence edge-case coverage for complex floating snapshots
 - ✅ `DockGraphSplitTargetDockingTest` (1 test) - Split-target docking regression coverage
 - ✅ `DockDragServiceTest` (8 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, and ESC drag-cancel handling
-- ✅ `DockFloatingWindowTest` (18 tests) - Floating title-bar controls, context-menu behavior (attach/pin icons + attach action), pin behavior, icon rendering/sync regression coverage, single-node float-menu policy, maximize/restore interaction behavior, and scene-level drag continuity when leaving the title bar
+- ✅ `DockFloatingWindowTest` (20 tests) - Floating title-bar controls, context-menu behavior (attach/pin icons + attach action), pin behavior, icon rendering/sync regression coverage, single-node float-menu policy, maximize/restore interaction behavior, and scene-level drag continuity (including release/reset and non-primary guard behavior)
 - ✅ `MainDemoTest` (7 tests) - Application icon resources, menu icon behavior, demo shortcut wiring, and load-error message formatting
 - ✅ `AboutDialogTest` (2 tests) - About dialog resources and credit link targets
 - ✅ `EditorCloseDecisionPolicyTest` (5 tests) - Deterministic close-decision behavior for dirty editor nodes
 - ✅ `SimpleExampleTest` (2 tests) - Stylesheet resource resolution behavior
 - ✅ `MarkdownDocumentationConsistencyTest` (12 tests) - Documentation consistency guardrails
+- ✅ CI flake guard for critical interaction suites (`SnapFXTest`, `DockFloatingWindowTest`, `DockDragServiceTest`) runs 3x per CI execution
 - ✅ All tests passing ✅
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
 - ✅ Mandatory regression tests for all bug fixes

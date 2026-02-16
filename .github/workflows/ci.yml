@@ -38,3 +38,14 @@ jobs:
 
       - name: Run unit tests
         run: xvfb-run -a ./gradlew --no-daemon test
+
+      - name: Run critical interaction suites (stability check x3)
+        shell: bash
+        run: |
+          for run in 1 2 3; do
+            echo "Critical stability run ${run}/3"
+            xvfb-run -a ./gradlew --no-daemon test --rerun-tasks \
+              --tests com.github.beowolve.snapfx.SnapFXTest \
+              --tests com.github.beowolve.snapfx.DockFloatingWindowTest \
+              --tests com.github.beowolve.snapfx.dnd.DockDragServiceTest
+          done

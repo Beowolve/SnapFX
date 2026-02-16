@@ -7,7 +7,7 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 ## Unreleased
 
 ### Build and Test
-- ✅ Added serializer/API regression tests for layout-load failures (`blank`, malformed JSON, missing required fields, invalid tab index) and floating-title-bar drag continuity; full suite now runs with 201 tests.
+- ✅ Added serializer/API regression tests for layout-load failures (`blank`, malformed JSON, missing required fields, invalid tab index), expanded floating-title-bar drag continuity coverage (release/reset + non-primary guards), persistence edge-case coverage for complex floating snapshots, and a CI flake guard that reruns critical interaction suites 3x; full suite now runs with 205 tests.
 
 ### Framework and UI
 - ✅ Added `DockLayoutLoadException` with JSON-location context for deserialization failures.

@@ -9,11 +9,16 @@ import com.github.beowolve.snapfx.floating.DockFloatingPinChangeEvent;
 import com.github.beowolve.snapfx.floating.DockFloatingPinLockedBehavior;
 import com.github.beowolve.snapfx.floating.DockFloatingPinSource;
 import com.github.beowolve.snapfx.floating.DockFloatingWindow;
+import com.github.beowolve.snapfx.model.DockContainer;
+import com.github.beowolve.snapfx.model.DockElement;
 import com.github.beowolve.snapfx.model.DockNode;
 import com.github.beowolve.snapfx.model.DockPosition;
 import com.github.beowolve.snapfx.model.DockSplitPane;
 import com.github.beowolve.snapfx.model.DockTabPane;
 import com.github.beowolve.snapfx.persistence.DockLayoutLoadException;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import javafx.event.Event;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -821,6 +826,91 @@ class SnapFXTest {
     }
 
     @Test
+    void testSaveLoadRoundTripRestoresComplexFloatingSubtrees() throws DockLayoutLoadException {
+        DockNode nodeMain = new DockNode("nodeMain", new Label("Main"), "Main");
+        DockNode nodeFloatA = new DockNode("nodeFloatA", new Label("Float A"), "Float A");
+        DockNode nodeFloatATab = new DockNode("nodeFloatATab", new Label("Float A Tab"), "Float A Tab");
+        DockNode nodeFloatSplit = new DockNode("nodeFloatSplit", new Label("Float Split"), "Float Split");
+        DockNode nodeFloatB = new DockNode("nodeFloatB", new Label("Float B"), "Float B");
+        DockNode nodeFloatBTab = new DockNode("nodeFloatBTab", new Label("Float B Tab"), "Float B Tab");
+
+        snapFX.setNodeFactory(this::createFactoryNode);
+        snapFX.dock(nodeMain, null, DockPosition.CENTER);
+        snapFX.dock(nodeFloatA, nodeMain, DockPosition.RIGHT);
+        snapFX.dock(nodeFloatB, nodeMain, DockPosition.BOTTOM);
+
+        DockFloatingWindow windowA = snapFX.floatNode(nodeFloatA, 280.0, 160.0);
+        windowA.dockNode(nodeFloatATab, nodeFloatA, DockPosition.CENTER, null);
+        windowA.dockNode(nodeFloatSplit, nodeFloatA, DockPosition.RIGHT, null);
+        DockTabPane tabPaneA = findFirstTabPane(windowA.getDockGraph().getRoot());
+        assertNotNull(tabPaneA);
+        tabPaneA.setSelectedIndex(1);
+
+        DockFloatingWindow windowB = snapFX.floatNode(nodeFloatB, 760.0, 220.0);
+        windowB.dockNode(nodeFloatBTab, nodeFloatB, DockPosition.CENTER, null);
+        DockTabPane tabPaneB = assertInstanceOf(DockTabPane.class, windowB.getDockGraph().getRoot());
+        tabPaneB.setSelectedIndex(1);
+
+        String json = snapFX.saveLayout();
+
+        SnapFX restored = new SnapFX();
+        restored.setNodeFactory(this::createFactoryNode);
+        restored.loadLayout(json);
+
+        assertEquals(2, restored.getFloatingWindows().size());
+
+        List<List<String>> floatingNodeIds = restored.getFloatingWindows().stream()
+            .map(window -> window.getDockNodes().stream()
+                .map(DockNode::getDockNodeId)
+                .sorted()
+                .toList())
+            .toList();
+
+        assertTrue(floatingNodeIds.contains(List.of("nodeFloatA", "nodeFloatATab", "nodeFloatSplit")));
+        assertTrue(floatingNodeIds.contains(List.of("nodeFloatB", "nodeFloatBTab")));
+
+        for (DockFloatingWindow restoredWindow : restored.getFloatingWindows()) {
+            DockTabPane restoredTabPane = findFirstTabPane(restoredWindow.getDockGraph().getRoot());
+            assertNotNull(restoredTabPane);
+            assertEquals(1, restoredTabPane.getSelectedIndex());
+        }
+
+        DockNode restoredMainNode = assertInstanceOf(DockNode.class, restored.getDockGraph().getRoot());
+        assertEquals("nodeMain", restoredMainNode.getDockNodeId());
+        assertFalse(containsDockNodeId(restored.getDockGraph().getRoot(), "nodeFloatA"));
+        assertFalse(containsDockNodeId(restored.getDockGraph().getRoot(), "nodeFloatB"));
+    }
+
+    @Test
+    void testLoadLayoutThrowsForInvalidFloatingSnapshotAndKeepsCurrentState() {
+        DockNode nodeMain = new DockNode("nodeMain", new Label("Main"), "Main");
+        DockNode nodeFloat = new DockNode("nodeFloat", new Label("Float"), "Float");
+
+        snapFX.dock(nodeMain, null, DockPosition.CENTER);
+        snapFX.dock(nodeFloat, nodeMain, DockPosition.RIGHT);
+        snapFX.floatNode(nodeFloat, 420.0, 210.0);
+
+        String json = snapFX.saveLayout();
+        JsonObject snapshot = JsonParser.parseString(json).getAsJsonObject();
+        JsonArray floatingWindows = snapshot.getAsJsonArray("floatingWindows");
+        JsonObject floatingLayout = floatingWindows.get(0).getAsJsonObject().getAsJsonObject("layout");
+        floatingLayout.getAsJsonObject("root").remove("title");
+
+        DockNode originalRoot = assertInstanceOf(DockNode.class, snapFX.getDockGraph().getRoot());
+        int originalFloatingCount = snapFX.getFloatingWindows().size();
+
+        DockLayoutLoadException exception = assertThrows(
+            DockLayoutLoadException.class,
+            () -> snapFX.loadLayout(snapshot.toString())
+        );
+
+        assertEquals("$.floatingWindows[0].layout.root.title", exception.getLocation());
+        assertTrue(exception.getMessage().contains("Missing required field"));
+        assertSame(originalRoot, snapFX.getDockGraph().getRoot());
+        assertEquals(originalFloatingCount, snapFX.getFloatingWindows().size());
+    }
+
+    @Test
     void testLoadLayoutThrowsForInvalidJsonAndKeepsCurrentLayout() {
         DockNode node = new DockNode("node1", new Label("Node 1"), "Node 1");
         snapFX.dock(node, null, DockPosition.CENTER);
@@ -925,16 +1015,51 @@ class SnapFXTest {
         return findInGraph(snapFX.getDockGraph().getRoot(), node);
     }
 
-    private boolean findInGraph(com.github.beowolve.snapfx.model.DockElement current, DockNode target) {
+    private boolean findInGraph(DockElement current, DockNode target) {
         if (current == null) {
             return false;
         }
         if (current == target) {
             return true;
         }
-        if (current instanceof com.github.beowolve.snapfx.model.DockContainer container) {
-            for (com.github.beowolve.snapfx.model.DockElement child : container.getChildren()) {
+        if (current instanceof DockContainer container) {
+            for (DockElement child : container.getChildren()) {
                 if (findInGraph(child, target)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private DockTabPane findFirstTabPane(DockElement current) {
+        if (current == null) {
+            return null;
+        }
+        if (current instanceof DockTabPane dockTabPane) {
+            return dockTabPane;
+        }
+        if (current instanceof DockContainer container) {
+            for (DockElement child : container.getChildren()) {
+                DockTabPane tabPane = findFirstTabPane(child);
+                if (tabPane != null) {
+                    return tabPane;
+                }
+            }
+        }
+        return null;
+    }
+
+    private boolean containsDockNodeId(DockElement current, String dockNodeId) {
+        if (current == null || dockNodeId == null || dockNodeId.isBlank()) {
+            return false;
+        }
+        if (current instanceof DockNode dockNode) {
+            return dockNodeId.equals(dockNode.getDockNodeId());
+        }
+        if (current instanceof DockContainer container) {
+            for (DockElement child : container.getChildren()) {
+                if (containsDockNodeId(child, dockNodeId)) {
                     return true;
                 }
             }
