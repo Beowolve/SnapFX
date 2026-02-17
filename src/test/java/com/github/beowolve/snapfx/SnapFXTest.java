@@ -728,6 +728,42 @@ class SnapFXTest {
     }
 
     @Test
+    void testDetachAttachTopLeftNodeInThreeWindowFloatingLayoutRestoresOriginalStructure() {
+        FloatingThreeWindowLayout layout = createThreeWindowFloatingLayout();
+        assertDetachAttachRestoresFloatingLayout(layout, layout.topLeft());
+    }
+
+    @Test
+    void testDetachAttachTopRightNodeInThreeWindowFloatingLayoutRestoresOriginalStructure() {
+        FloatingThreeWindowLayout layout = createThreeWindowFloatingLayout();
+        assertDetachAttachRestoresFloatingLayout(layout, layout.topRight());
+    }
+
+    @Test
+    void testDetachAttachBottomNodeInThreeWindowFloatingLayoutRestoresOriginalStructure() {
+        FloatingThreeWindowLayout layout = createThreeWindowFloatingLayout();
+        assertDetachAttachRestoresFloatingLayout(layout, layout.bottom());
+    }
+
+    @Test
+    void testDetachCloseRemainingAttachTopLeftNodeReturnsToFloatingLayout() {
+        FloatingThreeWindowLayout layout = createThreeWindowFloatingLayout();
+        assertDetachCloseRemainingAttachRestoresIntoFloatingHost(layout, layout.topLeft(), layout.topRight());
+    }
+
+    @Test
+    void testDetachCloseRemainingAttachTopRightNodeReturnsToFloatingLayout() {
+        FloatingThreeWindowLayout layout = createThreeWindowFloatingLayout();
+        assertDetachCloseRemainingAttachRestoresIntoFloatingHost(layout, layout.topRight(), layout.topLeft());
+    }
+
+    @Test
+    void testDetachCloseRemainingAttachBottomNodeReturnsToFloatingLayout() {
+        FloatingThreeWindowLayout layout = createThreeWindowFloatingLayout();
+        assertDetachCloseRemainingAttachRestoresIntoFloatingHost(layout, layout.bottom(), layout.topLeft());
+    }
+
+    @Test
     void testRequestFloatForNodeDoesNothingForSingleNodeFloatingWindow() {
         DockNode node1 = new DockNode("node1", new Label("Node 1"), "Node 1");
         snapFX.dock(node1, null, DockPosition.CENTER);
@@ -1300,6 +1336,138 @@ class SnapFXTest {
             .filter(window -> window != null && window.containsNode(node))
             .findFirst()
             .orElse(null);
+    }
+
+    private FloatingThreeWindowLayout createThreeWindowFloatingLayout() {
+        DockNode mainNode = new DockNode("main", new Label("Main"), "Main");
+        DockNode topLeftNode = new DockNode("top-left", new Label("Top Left"), "Top Left");
+        DockNode topRightNode = new DockNode("top-right", new Label("Top Right"), "Top Right");
+        DockNode bottomNode = new DockNode("bottom", new Label("Bottom"), "Bottom");
+
+        snapFX.dock(mainNode, null, DockPosition.CENTER);
+        snapFX.dock(topLeftNode, mainNode, DockPosition.RIGHT);
+
+        DockFloatingWindow sourceWindow = snapFX.floatNode(topLeftNode, 320.0, 220.0);
+        sourceWindow.dockNode(topRightNode, topLeftNode, DockPosition.RIGHT, null);
+        sourceWindow.dockNode(bottomNode, sourceWindow.getDockGraph().getRoot(), DockPosition.BOTTOM, null);
+
+        return new FloatingThreeWindowLayout(sourceWindow, topLeftNode, topRightNode, bottomNode);
+    }
+
+    private void assertDetachAttachRestoresFloatingLayout(FloatingThreeWindowLayout layout, DockNode detachedNode) {
+        assertNotNull(layout);
+        assertNotNull(detachedNode);
+        assertNotNull(layout.sourceWindow());
+        assertTrue(layout.sourceWindow().containsNode(layout.topLeft()));
+        assertTrue(layout.sourceWindow().containsNode(layout.topRight()));
+        assertTrue(layout.sourceWindow().containsNode(layout.bottom()));
+
+        String baselineLayoutFingerprint = describeLayout(layout.sourceWindow().getDockGraph().getRoot());
+
+        layout.sourceWindow().requestFloatForNode(detachedNode);
+
+        DockFloatingWindow detachedWindow = findFloatingWindowContainingNode(snapFX, detachedNode);
+        assertNotNull(detachedWindow);
+        assertNotSame(layout.sourceWindow(), detachedWindow);
+        assertEquals(2, snapFX.getFloatingWindows().size());
+
+        snapFX.attachFloatingWindow(detachedWindow);
+
+        assertEquals(1, snapFX.getFloatingWindows().size());
+        assertSame(layout.sourceWindow(), snapFX.getFloatingWindows().getFirst());
+        assertTrue(layout.sourceWindow().containsNode(layout.topLeft()));
+        assertTrue(layout.sourceWindow().containsNode(layout.topRight()));
+        assertTrue(layout.sourceWindow().containsNode(layout.bottom()));
+        assertEquals(
+            baselineLayoutFingerprint,
+            describeLayout(layout.sourceWindow().getDockGraph().getRoot())
+        );
+    }
+
+    private void assertDetachCloseRemainingAttachRestoresIntoFloatingHost(
+        FloatingThreeWindowLayout layout,
+        DockNode detachedNode,
+        DockNode nodeToClose
+    ) {
+        assertNotNull(layout);
+        assertNotNull(detachedNode);
+        assertNotNull(nodeToClose);
+        assertNotSame(detachedNode, nodeToClose);
+        assertNotNull(layout.sourceWindow());
+        assertTrue(layout.sourceWindow().containsNode(detachedNode));
+        assertTrue(layout.sourceWindow().containsNode(nodeToClose));
+
+        layout.sourceWindow().requestFloatForNode(detachedNode);
+
+        DockFloatingWindow detachedWindow = findFloatingWindowContainingNode(snapFX, detachedNode);
+        assertNotNull(detachedWindow);
+        assertNotSame(layout.sourceWindow(), detachedWindow);
+        assertEquals(2, snapFX.getFloatingWindows().size());
+
+        snapFX.close(nodeToClose);
+
+        assertTrue(snapFX.getHiddenNodes().contains(nodeToClose));
+        assertFalse(layout.sourceWindow().containsNode(nodeToClose));
+        assertEquals(2, snapFX.getFloatingWindows().size());
+        assertEquals(1, layout.sourceWindow().getDockNodes().size());
+
+        snapFX.attachFloatingWindow(detachedWindow);
+
+        DockFloatingWindow postAttachHost = findFloatingWindowContainingNode(snapFX, detachedNode);
+        assertTrue(
+            layout.sourceWindow().containsNode(detachedNode),
+            "Expected detached node to reattach into source floating window, but host was: "
+                + (postAttachHost == null ? "none" : (postAttachHost == layout.sourceWindow() ? "source" : "other"))
+                + ", inMain=" + isInGraph(snapFX, detachedNode)
+                + ", floatingWindowCount=" + snapFX.getFloatingWindows().size()
+        );
+        assertFalse(isInGraph(snapFX, detachedNode));
+        assertEquals(1, snapFX.getFloatingWindows().size());
+        assertSame(layout.sourceWindow(), snapFX.getFloatingWindows().getFirst());
+    }
+
+    private String describeLayout(DockElement element) {
+        if (element == null) {
+            return "null";
+        }
+        if (element instanceof DockNode node) {
+            return node.getDockNodeId();
+        }
+        if (element instanceof DockSplitPane splitPane) {
+            StringBuilder builder = new StringBuilder();
+            builder.append("S(").append(splitPane.getOrientation()).append(")[");
+            List<DockElement> children = splitPane.getChildren();
+            for (int i = 0; i < children.size(); i++) {
+                if (i > 0) {
+                    builder.append(",");
+                }
+                builder.append(describeLayout(children.get(i)));
+            }
+            builder.append("]");
+            return builder.toString();
+        }
+        if (element instanceof DockTabPane tabPane) {
+            StringBuilder builder = new StringBuilder();
+            builder.append("T(").append(tabPane.getSelectedIndex()).append(")[");
+            List<DockElement> children = tabPane.getChildren();
+            for (int i = 0; i < children.size(); i++) {
+                if (i > 0) {
+                    builder.append(",");
+                }
+                builder.append(describeLayout(children.get(i)));
+            }
+            builder.append("]");
+            return builder.toString();
+        }
+        return element.getClass().getSimpleName() + ":" + element.getId();
+    }
+
+    private record FloatingThreeWindowLayout(
+        DockFloatingWindow sourceWindow,
+        DockNode topLeft,
+        DockNode topRight,
+        DockNode bottom
+    ) {
     }
 
     private DockNode createFactoryNode(String nodeId) {

@@ -874,6 +874,7 @@ public class SnapFX {
      * <ul>
      *   <li>Try remembered exact target/position/tab-index in the original host.</li>
      *   <li>Try remembered previous/next-neighbor anchors from the original host.</li>
+     *   <li>If anchors are missing but the original floating host is still active, dock into that host.</li>
      *   <li>If the original floating host no longer exists, skip it and continue with main-layout fallback.</li>
      *   <li>If nothing is restorable, dock into the main layout without interruption.</li>
      * </ul>
@@ -906,7 +907,7 @@ public class SnapFX {
             }
         }
         for (DockNode node : pendingNodes) {
-            dockAtMainFallback(node);
+            dockAtHostFallbackOrMain(node);
         }
     }
 

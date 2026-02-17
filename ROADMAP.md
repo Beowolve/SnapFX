@@ -56,6 +56,7 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 - ✅ **Floating drag-state regression hardening**: Added scene-level drag release/reset and non-primary activation guard coverage for floating title-bar movement
 - ✅ **Persistence edge-case hardening**: Added complex floating snapshot roundtrip coverage and invalid floating snapshot validation/no-partial-apply tests
 - ✅ **CI flake guard for critical interactions**: CI now reruns `SnapFXTest`, `DockFloatingWindowTest`, and `DockDragServiceTest` three times per run
+- ✅ **Floating reattach structure hardening**: Added three-window floating-layout detach/attach roundtrip regression coverage (top-left/top-right/bottom nodes), plus detach-close-remaining-attach host-restore fallback cases
 
 **Estimated Time**: Completed
 
@@ -122,7 +123,7 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 - ✅ **Adaptive resize minimum constraints**: Floating resize honors effective stage/content minimum sizes
 - ✅ **Interactive-target resize cursor reliability**: Edge resize cursors now apply consistently over content controls (for example console text areas)
 - ✅ **Owner-aware MainDemo error alerts**: Error dialogs attach to the primary stage for better multi-monitor usability
-- ✅ **Host-aware floating reattach restore**: Attach now restores detached floating-sub-layout nodes back to remembered host context (preferred/neighbor anchors) and falls back silently to active host root or main layout when anchors are unavailable
+- ✅ **Host-aware floating reattach restore**: Attach now restores detached floating-sub-layout nodes back to remembered host context (preferred/neighbor anchors) and falls back silently to active host root or main layout when anchors are unavailable, including when source floating-layout neighbors changed after detach
 
 **Estimated Time**: Completed
 

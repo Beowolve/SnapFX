@@ -5,7 +5,7 @@
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 239 tests passing (latest full suite)
+✅ **Tests**: All 245 tests passing (latest full suite)
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully  
 ✅ **CI Automation**: GitHub Actions workflows added for push/PR tests and tag-triggered releases  
@@ -117,7 +117,7 @@
 - ✅ Maximized floating windows now require a deliberate drag threshold before restore-on-drag triggers
 - ✅ Floating resize now respects effective minimum constraints from stage/content minimum sizes
 - ✅ Resize cursors now apply reliably near edges over interactive content targets (for example console text areas)
-- ✅ Attach-to-layout now restores detached floating-sub-layout nodes back to their previous host context when possible (preferred/neighbor anchors), with silent fallback to active host-root or main layout when anchors are unavailable
+- ✅ Attach-to-layout now restores detached floating-sub-layout nodes back to their previous host context when possible (preferred/neighbor anchors), with silent fallback to active host-root or main layout when anchors are unavailable, including detach-close-remaining-attach host-restore cases
 
 ### Debug Tools (100% ✅)
 - ✅ DockGraphDebugView
@@ -142,7 +142,7 @@
 - ✅ DockGraphTest (56 tests, +11 regression tests)
 - ✅ DockLayoutSerializerTest (16 tests) - Includes strict load-failure diagnostics for blank content, malformed JSON, missing required fields, invalid tab selection metadata, unknown-node placeholder diagnostics, and unsupported-type recovery with optional factory custom fallback
 - ✅ DockLayoutEngineTest (32 tests) - Includes tab/header/splitter context-menu coverage, representative container-tab title/icon behavior, float-availability policy checks, header-context-menu dismiss-on-press regression coverage, and tiny-bounds drop-zone clamp regression coverage
-- ✅ **SnapFXTest (55 tests)** - Hide/Restore + Floating Window API tests plus configurable shortcut behavior, floating-window snap API propagation/validation, invalid-load failure handling, persistence edge-case coverage for complex floating snapshots, unknown-type layout recovery, unresolved floating-sub-layout D&D detach behavior, and floating reattach placement restore/fallback behavior for both float-button and unresolved-drag detach paths
+- ✅ **SnapFXTest (61 tests)** - Hide/Restore + Floating Window API tests plus configurable shortcut behavior, floating-window snap API propagation/validation, invalid-load failure handling, persistence edge-case coverage for complex floating snapshots, unknown-type layout recovery, unresolved floating-sub-layout D&D detach behavior, floating reattach placement restore/fallback behavior for both float-button and unresolved-drag detach paths, three-window floating-layout detach/attach roundtrip regression coverage (top-left/top-right/bottom cases), and detach-close-remaining-attach host-restore fallback coverage
 - ✅ DockGraphSplitTargetDockingTest (1 test)
 - ✅ DockDragServiceTest (8 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, and ESC drag-cancel handling
 - ✅ DockFloatingWindowTest (30 tests) - Floating title bar controls, context menu behavior (attach/pin icons + attach action), pin behavior, icon rendering/sync regression coverage, single-node float-menu policy, maximize/restore interaction behavior, scene-level drag continuity (including release/reset and non-primary guard behavior), resize-min constraints, interactive-target cursor reliability, and floating/main edge snapping behavior (including overlap-guard, adjacent-edge cases, and main-window shadow-inset compensation)
@@ -153,7 +153,7 @@
 - ✅ SimpleExampleTest (2 tests) - Stylesheet resource resolution behavior
 - ✅ MarkdownDocumentationConsistencyTest (12 tests) - Markdown consistency guardrails
 - ✅ AboutDialogTest (2 tests) - About dialog branding resources and credit link targets
-- ✅ **239/239 tests passing** ✅
+- ✅ **245/245 tests passing** ✅
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Edge case tests** (null inputs, detached nodes, invalid move targets, no-op revision checks)
