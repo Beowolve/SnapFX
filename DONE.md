@@ -59,7 +59,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (14 test classes, 236 tests)
+### Testing (14 test classes, 239 tests)
 - ✅ `DockGraphTest` (56 tests) - Tree manipulation and algorithms
   - **+11 regression tests** for critical bug fixes
   - Tests for empty container prevention
@@ -73,7 +73,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `DockLayoutEngineTest` (32 tests) - View creation with TestFX, context-menu interaction coverage, representative container-tab title/icon behavior, float-availability policy checks, header-context-menu dismiss-on-press regression coverage, and tiny-bounds drop-zone clamp regression coverage
   - Memory cleanup tests for cache boundedness and undock/rebuild cycles
   - Layout optimization tests for empty/single-child roots
-- ✅ `SnapFXTest` (52 tests) - Hide/Restore + Floating Window API behavior, configurable shortcut behavior, floating-window snap API propagation/validation, invalid-load failure handling, persistence edge-case coverage for complex floating snapshots, unknown-type layout recovery, and unresolved floating-sub-layout D&D detach coverage
+- ✅ `SnapFXTest` (55 tests) - Hide/Restore + Floating Window API behavior, configurable shortcut behavior, floating-window snap API propagation/validation, invalid-load failure handling, persistence edge-case coverage for complex floating snapshots, unknown-type layout recovery, unresolved floating-sub-layout D&D detach coverage, and host-aware floating reattach placement restore/fallback coverage
 - ✅ `DockGraphSplitTargetDockingTest` (1 test) - Split-target docking regression coverage
 - ✅ `DockDragServiceTest` (8 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, and ESC drag-cancel handling
 - ✅ `DockFloatingWindowTest` (30 tests) - Floating title-bar controls, context-menu behavior (attach/pin icons + attach action), pin behavior, icon rendering/sync regression coverage, single-node float-menu policy, maximize/restore interaction behavior, scene-level drag continuity (including release/reset and non-primary guard behavior), resize-min constraints, interactive-target cursor reliability, and floating/main edge snapping behavior (including overlap-guard, adjacent-edge cases, and main-window shadow-inset compensation)
@@ -85,7 +85,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `SimpleExampleTest` (2 tests) - Stylesheet resource resolution behavior
 - ✅ `MarkdownDocumentationConsistencyTest` (12 tests) - Documentation consistency guardrails
 - ✅ CI flake guard for critical interaction suites (`SnapFXTest`, `DockFloatingWindowTest`, `DockDragServiceTest`) runs 3x per CI execution
-- ✅ All tests passing (236/236) ✅
+- ✅ All tests passing (239/239) ✅
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
 - ✅ Mandatory regression tests for all bug fixes
 
@@ -119,6 +119,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Documentation scope is now explicit: `STATUS` = current, `ROADMAP` = planned, `DONE` = completed, `TESTING_POLICY` = rules-only
 - ✅ AGENTS collaboration rules now require per-fix commit message body lines and method extraction for multi-statement UI callbacks
 - ✅ AGENTS collaboration rules now require minimal-diff edits across all file changes, plus inline rendered-icon comments for `\u...` icon constants
+- ✅ ADR documentation baseline added: significant design decisions are now captured under `docs/adr/` and reflected in architecture/API docs
 - ✅ Markdown documentation consistency tests now keep Unicode icon constants readable via inline icon comments
 
 ### Resources
@@ -166,6 +167,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **Floating window snapping (MVP)**: Title-bar drag snapping now supports screen edges, main-window edges, and peer floating-window edges with configurable enable/targets/distance API, perpendicular-overlap guards, adjacent-edge alignment for both main and floating snap targets, and main-window shadow-inset compensation for decorated stages
 - ✅ **Snapping architecture cleanup**: Candidate generation and overlap-aware snapping logic is centralized in `DockFloatingSnapEngine`, reducing `DockFloatingWindow` complexity and improving testability
 - ✅ **MainDemo snapping API controls**: Debug settings now expose snapping enable toggle, snap distance, and snap-target selection to support manual verification workflows
+- ✅ **Host-aware floating reattach placement**: Nodes detached from floating sub-layouts now reattach to remembered host context (preferred/neighbor anchors) with deterministic fallback to active host root or main layout when anchors are unavailable
 - ✅ **View Caching**: Performance optimization through view reuse
 
 ### Drag & Drop (Baseline + Critical Bug Fixes)

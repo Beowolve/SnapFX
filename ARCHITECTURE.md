@@ -523,6 +523,23 @@ DockNodeView.titleLabel.text (View)
 Tab.text (if used in a TabPane)
 ```
 
+### Floating Reattach Strategy
+
+SnapFX uses host-aware placement memory to restore nodes after floating-window attach operations.
+
+- Placement capture happens before undocking from either the main layout or a floating layout.
+- Captured anchors include preferred target/position/tab-index, previous and next sibling anchors, and source host context (main layout or specific floating window).
+- During `attachFloatingWindow(...)`, restore is attempted in this order:
+  - preferred anchor in original host
+  - neighbor anchors in original host
+  - remembered anchors in main layout (when applicable)
+  - fallback docking
+- Fallback behavior is non-blocking:
+  - if original floating host is still active, fallback can dock into that host root
+  - otherwise fallback docks into the main layout
+- Hidden/closed floating windows are never treated as valid restore hosts.
+- No user dialogs are shown when restore anchors are invalid; attach always resolves via fallback.
+
 ## 7. Design Patterns
 
 ### 1. Model-View-Controller (MVC)

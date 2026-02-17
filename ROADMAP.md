@@ -122,6 +122,7 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 - ✅ **Adaptive resize minimum constraints**: Floating resize honors effective stage/content minimum sizes
 - ✅ **Interactive-target resize cursor reliability**: Edge resize cursors now apply consistently over content controls (for example console text areas)
 - ✅ **Owner-aware MainDemo error alerts**: Error dialogs attach to the primary stage for better multi-monitor usability
+- ✅ **Host-aware floating reattach restore**: Attach now restores detached floating-sub-layout nodes back to remembered host context (preferred/neighbor anchors) and falls back silently to active host root or main layout when anchors are unavailable
 
 **Estimated Time**: Completed
 
@@ -327,6 +328,7 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 - ✅ **Documentation ownership baseline**: Scope split clarified (`STATUS` current, `ROADMAP` planned, `DONE` completed, `TESTING_POLICY` rules-only)
 - ✅ **Minimal-diff editing baseline**: collaboration rules now require targeted edits over full-file rewrites whenever smaller diffs are sufficient
 - ✅ **Unicode icon readability baseline**: `\u...` icon constants in doc consistency tests now include inline rendered-icon comments
+- ✅ **ADR baseline**: Significant design decisions are documented under `docs/adr/` and mirrored in API/architecture documentation
 - ✅ **License wording baseline**: README/SETUP now state MIT licensing and explicit personal/commercial use positioning
 - ✅ **README consumer-focus baseline**: Quick Start now focuses on SnapFX usage, without generic Gradle/module templates or repository workflow sections
 - ✅ **Maintainer docs baseline**: Collaboration/release workflow is now documented in `CONTRIBUTING.md` and `RELEASING.md`

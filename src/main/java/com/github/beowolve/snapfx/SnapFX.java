@@ -33,6 +33,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
+import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -99,6 +100,7 @@ public class SnapFX {
     private final EventHandler<KeyEvent> shortcutKeyEventFilter;
     private final ChangeListener<Scene> rootContainerSceneListener;
     private final Map<DockFloatingWindow, Scene> floatingShortcutScenes;
+    private final Map<DockNode, DockPlacementMemory> dockPlacementMemory;
     private Stage primaryStage;
     private DockNodeFactory nodeFactory;
     private Scene shortcutScene;
@@ -136,6 +138,7 @@ public class SnapFX {
         this.shortcutKeyEventFilter = this::handleShortcutKeyPressed;
         this.rootContainerSceneListener = (obs, oldScene, newScene) -> rebindShortcutScene(newScene);
         this.floatingShortcutScenes = new HashMap<>();
+        this.dockPlacementMemory = new HashMap<>();
         this.hiddenNodes = FXCollections.observableArrayList();
         this.floatingWindows = FXCollections.observableArrayList();
         this.readOnlyFloatingWindows = FXCollections.unmodifiableObservableList(floatingWindows);
@@ -729,6 +732,7 @@ public class SnapFX {
         }
         DockFloatingWindow floatingWindow = findFloatingWindow(node);
         if (floatingWindow != null) {
+            rememberLastKnownPlacement(node, floatingWindow);
             rememberFloatingBoundsForNodes(floatingWindow);
             floatingWindow.undockNode(node);
             node.setHiddenRestoreTarget(DockNode.HiddenRestoreTarget.FLOATING);
@@ -757,6 +761,7 @@ public class SnapFX {
         hiddenNodes.remove(node);
         DockFloatingWindow floatingWindow = findFloatingWindow(node);
         if (floatingWindow != null) {
+            rememberLastKnownPlacement(node, floatingWindow);
             rememberFloatingBoundsForNodes(floatingWindow);
             floatingWindow.undockNode(node);
             if (floatingWindow.isEmpty()) {
@@ -804,6 +809,10 @@ public class SnapFX {
     /**
      * Moves an existing DockNode into an external floating window at a screen position.
      * The screen coordinates can be on any monitor.
+     *
+     * <p>Before detaching a node from its current host (main layout or another floating window),
+     * SnapFX captures placement anchors so {@link #attachFloatingWindow(DockFloatingWindow)} can
+     * restore the node as close as possible to its previous location later.</p>
      */
     public DockFloatingWindow floatNode(DockNode node, Double screenX, Double screenY) {
         if (node == null) {
@@ -828,6 +837,7 @@ public class SnapFX {
         } else {
             sourceFloatingWindow = findFloatingWindow(node);
             if (sourceFloatingWindow != null) {
+                rememberLastKnownPlacement(node, sourceFloatingWindow);
                 sourceFloatingWindow.undockNode(node);
                 if (sourceFloatingWindow.isEmpty()) {
                     removeFloatingWindowSilently(sourceFloatingWindow);
@@ -859,6 +869,16 @@ public class SnapFX {
 
     /**
      * Attaches a floating window back into the main layout.
+     *
+     * <p>Attach uses a best-effort placement restore strategy per node:</p>
+     * <ul>
+     *   <li>Try remembered exact target/position/tab-index in the original host.</li>
+     *   <li>Try remembered previous/next-neighbor anchors from the original host.</li>
+     *   <li>If the original floating host no longer exists, skip it and continue with main-layout fallback.</li>
+     *   <li>If nothing is restorable, dock into the main layout without interruption.</li>
+     * </ul>
+     *
+     * <p>No dialogs are shown for restore failures; attach is always resolved via fallback.</p>
      */
     public void attachFloatingWindow(DockFloatingWindow floatingWindow) {
         if (floatingWindow == null || !floatingWindows.remove(floatingWindow)) {
@@ -877,8 +897,16 @@ public class SnapFX {
             floatingWindow.undockNode(node);
         }
 
-        for (DockNode node : nodesToAttach) {
-            dockAtRememberedOrFallback(node);
+        List<DockNode> pendingNodes = new ArrayList<>(nodesToAttach);
+        for (int pass = 0; pass < nodesToAttach.size() && !pendingNodes.isEmpty(); pass++) {
+            int before = pendingNodes.size();
+            pendingNodes.removeIf(this::tryDockAtRememberedPlacement);
+            if (pendingNodes.size() == before) {
+                break;
+            }
+        }
+        for (DockNode node : pendingNodes) {
+            dockAtMainFallback(node);
         }
     }
 
@@ -914,6 +942,7 @@ public class SnapFX {
             return;
         }
 
+        rememberLastKnownPlacement(draggedNode, sourceWindow);
         sourceWindow.undockNode(draggedNode);
         if (sourceWindow.isEmpty()) {
             rememberFloatingBoundsForNodes(sourceWindow);
@@ -995,6 +1024,7 @@ public class SnapFX {
             rememberLastKnownPlacement(node);
             dockGraph.undock(node);
         } else if (sourceWindow != null) {
+            rememberLastKnownPlacement(node, sourceWindow);
             rememberFloatingBoundsForNodes(sourceWindow);
             sourceWindow.undockNode(node);
             if (sourceWindow.isEmpty()) {
@@ -1100,6 +1130,7 @@ public class SnapFX {
             return sourceWindow;
         }
 
+        rememberLastKnownPlacement(node, sourceWindow);
         rememberFloatingBoundsForNodes(sourceWindow);
         sourceWindow.undockNode(node);
         if (sourceWindow.isEmpty()) {
@@ -1659,60 +1690,258 @@ public class SnapFX {
         floatingWindow.closeWithoutNotification();
     }
 
+    /**
+     * Captures placement anchors for a node in the main layout.
+     */
     private void rememberLastKnownPlacement(DockNode node) {
+        rememberLastKnownPlacement(node, null);
+    }
+
+    /**
+     * Captures host-aware placement anchors for a node before it is undocked.
+     * The host is {@code null} for the main layout or the source floating window otherwise.
+     */
+    private void rememberLastKnownPlacement(DockNode node, DockFloatingWindow hostWindow) {
         if (node == null || node.getParent() == null) {
             return;
         }
 
         DockContainer parent = node.getParent();
         int index = parent.getChildren().indexOf(node);
+        DockElement previousNeighbor = index > 0 ? parent.getChildren().get(index - 1) : null;
+        DockElement nextNeighbor = index >= 0 && index < parent.getChildren().size() - 1
+            ? parent.getChildren().get(index + 1)
+            : null;
+
+        DockElement preferredTarget;
+        DockPosition preferredPosition;
+        Integer preferredTabIndex = null;
+        DockPosition previousNeighborPosition = null;
+        Integer previousNeighborTabIndex = null;
+        DockPosition nextNeighborPosition = null;
+        Integer nextNeighborTabIndex = null;
 
         if (parent instanceof DockTabPane tabPane) {
-            DockElement tabTarget = tabPane;
-            if (tabPane.getChildren().size() > 1) {
-                if (index > 0) {
-                    tabTarget = tabPane.getChildren().get(index - 1);
-                } else if (index < tabPane.getChildren().size() - 1) {
-                    tabTarget = tabPane.getChildren().get(index + 1);
-                }
+            int resolvedTabIndex = index >= 0 ? index : tabPane.getChildren().size();
+            preferredTarget = tabPane;
+            preferredPosition = DockPosition.CENTER;
+            preferredTabIndex = resolvedTabIndex;
+            if (previousNeighbor != null) {
+                previousNeighborPosition = DockPosition.CENTER;
+                previousNeighborTabIndex = resolvedTabIndex;
             }
-            node.setLastKnownTarget(tabTarget);
-            node.setLastKnownPosition(DockPosition.CENTER);
-            node.setLastKnownTabIndex(index >= 0 ? index : tabPane.getChildren().size());
-            return;
-        }
+            if (nextNeighbor != null) {
+                nextNeighborPosition = DockPosition.CENTER;
+                nextNeighborTabIndex = resolvedTabIndex;
+            }
+        } else if (parent instanceof DockSplitPane splitPane) {
+            Orientation orientation = splitPane.getOrientation();
+            if (previousNeighbor != null) {
+                previousNeighborPosition = resolveSplitPositionAfterPrevious(orientation);
+            }
+            if (nextNeighbor != null) {
+                nextNeighborPosition = resolveSplitPositionBeforeNext(orientation);
+            }
 
-        DockElement target = null;
-        DockPosition position = DockPosition.RIGHT;
-        node.setLastKnownTabIndex(null);
-
-        if (parent.getChildren().size() > 1) {
-            if (index > 0) {
-                target = parent.getChildren().get(index - 1);
-                position = DockPosition.RIGHT;
-            } else if (index < parent.getChildren().size() - 1) {
-                target = parent.getChildren().get(index + 1);
-                position = DockPosition.LEFT;
+            if (previousNeighbor != null && previousNeighborPosition != null) {
+                preferredTarget = previousNeighbor;
+                preferredPosition = previousNeighborPosition;
+            } else if (nextNeighbor != null && nextNeighborPosition != null) {
+                preferredTarget = nextNeighbor;
+                preferredPosition = nextNeighborPosition;
+            } else {
+                preferredTarget = parent;
+                preferredPosition = DockPosition.CENTER;
+                preferredTabIndex = 0;
             }
         } else {
-            target = parent;
-            position = DockPosition.CENTER;
+            if (previousNeighbor != null) {
+                preferredTarget = previousNeighbor;
+                preferredPosition = DockPosition.RIGHT;
+            } else if (nextNeighbor != null) {
+                preferredTarget = nextNeighbor;
+                preferredPosition = DockPosition.LEFT;
+            } else {
+                preferredTarget = parent;
+                preferredPosition = DockPosition.CENTER;
+                preferredTabIndex = 0;
+            }
         }
 
-        node.setLastKnownTarget(target);
-        node.setLastKnownPosition(position);
+        Integer normalizedPreferredTabIndex = preferredPosition == DockPosition.CENTER ? preferredTabIndex : null;
+        node.setLastKnownTarget(preferredTarget);
+        node.setLastKnownPosition(preferredPosition);
+        node.setLastKnownTabIndex(normalizedPreferredTabIndex);
+        dockPlacementMemory.put(
+            node,
+            new DockPlacementMemory(
+                hostWindow,
+                preferredTarget,
+                preferredPosition,
+                normalizedPreferredTabIndex,
+                previousNeighbor,
+                previousNeighborPosition,
+                previousNeighborTabIndex,
+                nextNeighbor,
+                nextNeighborPosition,
+                nextNeighborTabIndex
+            )
+        );
     }
 
-    private void dockAtRememberedOrFallback(DockNode node) {
+    private DockPosition resolveSplitPositionAfterPrevious(Orientation orientation) {
+        return orientation == Orientation.HORIZONTAL ? DockPosition.RIGHT : DockPosition.BOTTOM;
+    }
+
+    private DockPosition resolveSplitPositionBeforeNext(Orientation orientation) {
+        return orientation == Orientation.HORIZONTAL ? DockPosition.LEFT : DockPosition.TOP;
+    }
+
+    private DockFloatingWindow resolveActivePlacementHost(DockFloatingWindow hostWindow) {
+        if (hostWindow != null && floatingWindows.contains(hostWindow)) {
+            return hostWindow;
+        }
+        return null;
+    }
+
+    /**
+     * Attempts to dock a node using remembered placement anchors only.
+     * Returns {@code false} when anchors are not restorable in currently active hosts.
+     */
+    private boolean tryDockAtRememberedPlacement(DockNode node) {
+        if (node == null) {
+            return false;
+        }
+
+        DockPlacementMemory placementMemory = dockPlacementMemory.get(node);
+        if (placementMemory != null) {
+            DockFloatingWindow preferredHost = resolveActivePlacementHost(placementMemory.hostWindow());
+            if (tryDockUsingPlacementMemory(node, placementMemory, preferredHost)) {
+                return true;
+            }
+            if (preferredHost != null && tryDockUsingPlacementMemory(node, placementMemory, null)) {
+                return true;
+            }
+        }
+
         DockElement target = node.getLastKnownTarget();
         DockPosition position = node.getLastKnownPosition();
         Integer tabIndex = node.getLastKnownTabIndex();
-
         if (target != null && position != null && isInGraph(target)) {
             dockGraph.dock(node, target, position, position == DockPosition.CENTER ? tabIndex : null);
-            return;
+            return true;
         }
 
+        return false;
+    }
+
+    private boolean tryDockUsingPlacementMemory(
+        DockNode node,
+        DockPlacementMemory placementMemory,
+        DockFloatingWindow hostWindow
+    ) {
+        if (placementMemory == null) {
+            return false;
+        }
+
+        if (tryDockInHost(
+            node,
+            hostWindow,
+            placementMemory.preferredTarget(),
+            placementMemory.preferredPosition(),
+            placementMemory.preferredTabIndex()
+        )) {
+            return true;
+        }
+        if (tryDockInHost(
+            node,
+            hostWindow,
+            placementMemory.previousNeighbor(),
+            placementMemory.positionRelativeToPreviousNeighbor(),
+            placementMemory.tabIndexRelativeToPreviousNeighbor()
+        )) {
+            return true;
+        }
+        return tryDockInHost(
+            node,
+            hostWindow,
+            placementMemory.nextNeighbor(),
+            placementMemory.positionRelativeToNextNeighbor(),
+            placementMemory.tabIndexRelativeToNextNeighbor()
+        );
+    }
+
+    private boolean tryDockInHost(
+        DockNode node,
+        DockFloatingWindow hostWindow,
+        DockElement target,
+        DockPosition position,
+        Integer tabIndex
+    ) {
+        if (node == null || target == null || position == null || target == node || !isElementInHost(target, hostWindow)) {
+            return false;
+        }
+
+        Integer resolvedTabIndex = position == DockPosition.CENTER ? tabIndex : null;
+        if (hostWindow == null) {
+            dockGraph.dock(node, target, position, resolvedTabIndex);
+        } else {
+            hostWindow.dockNode(node, target, position, resolvedTabIndex);
+        }
+        return true;
+    }
+
+    private boolean isElementInHost(DockElement element, DockFloatingWindow hostWindow) {
+        if (element == null) {
+            return false;
+        }
+        DockElement hostRoot = getHostRoot(hostWindow);
+        if (hostRoot == null) {
+            return false;
+        }
+        return hostRoot == element || findInGraph(hostRoot, element);
+    }
+
+    private DockElement getHostRoot(DockFloatingWindow hostWindow) {
+        if (hostWindow == null) {
+            return dockGraph.getRoot();
+        }
+        if (!floatingWindows.contains(hostWindow)) {
+            return null;
+        }
+        return hostWindow.getDockGraph().getRoot();
+    }
+
+    private void dockAtRememberedOrFallback(DockNode node) {
+        if (tryDockAtRememberedPlacement(node)) {
+            return;
+        }
+        dockAtHostFallbackOrMain(node);
+    }
+
+    /**
+     * Fallback used after anchor restore attempts failed.
+     * If the remembered host floating window is still active, dock into that host root;
+     * otherwise dock into the main layout.
+     */
+    private void dockAtHostFallbackOrMain(DockNode node) {
+        DockPlacementMemory placementMemory = dockPlacementMemory.get(node);
+        DockFloatingWindow preferredHost = placementMemory == null
+            ? null
+            : resolveActivePlacementHost(placementMemory.hostWindow());
+        if (preferredHost != null) {
+            DockElement hostRoot = preferredHost.getDockGraph().getRoot();
+            if (hostRoot == null) {
+                preferredHost.getDockGraph().setRoot(node);
+                return;
+            }
+            preferredHost.dockNode(node, hostRoot, DockPosition.RIGHT, null);
+            return;
+        }
+        dockAtMainFallback(node);
+    }
+
+    private void dockAtMainFallback(DockNode node) {
         if (dockGraph.getRoot() == null) {
             dockGraph.setRoot(node);
         } else {
@@ -1952,6 +2181,20 @@ public class SnapFX {
 
     private boolean isFiniteNumber(Double value) {
         return value != null && Double.isFinite(value);
+    }
+
+    private record DockPlacementMemory(
+        DockFloatingWindow hostWindow,
+        DockElement preferredTarget,
+        DockPosition preferredPosition,
+        Integer preferredTabIndex,
+        DockElement previousNeighbor,
+        DockPosition positionRelativeToPreviousNeighbor,
+        Integer tabIndexRelativeToPreviousNeighbor,
+        DockElement nextNeighbor,
+        DockPosition positionRelativeToNextNeighbor,
+        Integer tabIndexRelativeToNextNeighbor
+    ) {
     }
 
     private record LayoutSnapshot(JsonObject mainLayout, List<FloatingWindowSnapshot> floatingWindows) {

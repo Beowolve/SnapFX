@@ -645,6 +645,89 @@ class SnapFXTest {
     }
 
     @Test
+    void testAttachAfterButtonFloatFromFloatingSubLayoutRestoresIntoSourceFloatingWindow() {
+        DockNode node1 = new DockNode("node1", new Label("Node 1"), "Node 1");
+        DockNode node2 = new DockNode("node2", new Label("Node 2"), "Node 2");
+
+        snapFX.dock(node1, null, DockPosition.CENTER);
+        snapFX.dock(node2, node1, DockPosition.RIGHT);
+
+        DockFloatingWindow sourceWindow = snapFX.floatNode(node1, 300.0, 200.0);
+        snapFX.getDockGraph().undock(node2);
+        sourceWindow.dockNode(node2, node1, DockPosition.CENTER, null);
+
+        sourceWindow.requestFloatForNode(node2);
+
+        DockFloatingWindow detachedWindow = findFloatingWindowContainingNode(snapFX, node2);
+        assertNotNull(detachedWindow);
+        assertNotSame(sourceWindow, detachedWindow);
+        assertTrue(sourceWindow.containsNode(node1));
+        assertFalse(sourceWindow.containsNode(node2));
+
+        snapFX.attachFloatingWindow(detachedWindow);
+
+        assertTrue(sourceWindow.containsNode(node2));
+        assertFalse(isInGraph(snapFX, node2));
+        assertEquals(1, snapFX.getFloatingWindows().size());
+        assertSame(sourceWindow, snapFX.getFloatingWindows().getFirst());
+    }
+
+    @Test
+    void testAttachAfterUnresolvedDragFloatFromFloatingSubLayoutRestoresIntoSourceFloatingWindow() {
+        DockNode node1 = new DockNode("node1", new Label("Node 1"), "Node 1");
+        DockNode node2 = new DockNode("node2", new Label("Node 2"), "Node 2");
+
+        snapFX.dock(node1, null, DockPosition.CENTER);
+        snapFX.dock(node2, node1, DockPosition.RIGHT);
+
+        DockFloatingWindow sourceWindow = snapFX.floatNode(node1, 300.0, 200.0);
+        snapFX.getDockGraph().undock(node2);
+        sourceWindow.dockNode(node2, node1, DockPosition.CENTER, null);
+
+        assertTrue(requestFloatDetach(snapFX, node2, 900.0, 700.0));
+
+        DockFloatingWindow detachedWindow = findFloatingWindowContainingNode(snapFX, node2);
+        assertNotNull(detachedWindow);
+        assertNotSame(sourceWindow, detachedWindow);
+        assertTrue(sourceWindow.containsNode(node1));
+        assertFalse(sourceWindow.containsNode(node2));
+
+        snapFX.attachFloatingWindow(detachedWindow);
+
+        assertTrue(sourceWindow.containsNode(node2));
+        assertFalse(isInGraph(snapFX, node2));
+        assertEquals(1, snapFX.getFloatingWindows().size());
+        assertSame(sourceWindow, snapFX.getFloatingWindows().getFirst());
+    }
+
+    @Test
+    void testAttachAfterFloatFromFloatingSubLayoutFallsBackToMainLayoutWhenSourceWindowIsGone() {
+        DockNode node1 = new DockNode("node1", new Label("Node 1"), "Node 1");
+        DockNode node2 = new DockNode("node2", new Label("Node 2"), "Node 2");
+
+        snapFX.dock(node1, null, DockPosition.CENTER);
+        snapFX.dock(node2, node1, DockPosition.RIGHT);
+
+        DockFloatingWindow sourceWindow = snapFX.floatNode(node1, 300.0, 200.0);
+        snapFX.getDockGraph().undock(node2);
+        sourceWindow.dockNode(node2, node1, DockPosition.CENTER, null);
+        sourceWindow.requestFloatForNode(node2);
+
+        DockFloatingWindow detachedWindow = findFloatingWindowContainingNode(snapFX, node2);
+        assertNotNull(detachedWindow);
+        assertNotSame(sourceWindow, detachedWindow);
+
+        snapFX.attachFloatingWindow(sourceWindow);
+        assertTrue(isInGraph(snapFX, node1));
+        assertEquals(1, snapFX.getFloatingWindows().size());
+
+        snapFX.attachFloatingWindow(detachedWindow);
+
+        assertTrue(isInGraph(snapFX, node2));
+        assertTrue(snapFX.getFloatingWindows().isEmpty());
+    }
+
+    @Test
     void testRequestFloatForNodeDoesNothingForSingleNodeFloatingWindow() {
         DockNode node1 = new DockNode("node1", new Label("Node 1"), "Node 1");
         snapFX.dock(node1, null, DockPosition.CENTER);
@@ -1207,6 +1290,16 @@ class SnapFXTest {
             }
         }
         return false;
+    }
+
+    private DockFloatingWindow findFloatingWindowContainingNode(SnapFX framework, DockNode node) {
+        if (framework == null || node == null) {
+            return null;
+        }
+        return framework.getFloatingWindows().stream()
+            .filter(window -> window != null && window.containsNode(node))
+            .findFirst()
+            .orElse(null);
     }
 
     private DockNode createFactoryNode(String nodeId) {

@@ -7,14 +7,17 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 ## Unreleased
 
 ### Build and Test
-- ✅ Added `MainDemoTest` coverage for floating snap-target settings resolution used by the debug settings panel; full suite now runs with 236 tests.
+- ✅ Added `MainDemoTest` coverage for floating snap-target settings resolution used by the debug settings panel and added `SnapFXTest` regression coverage for host-aware floating reattach restore/fallback behavior (float-button + unresolved-drag detach paths); full suite now runs with 239 tests.
 
 ### Framework and UI
 - ✅ MainDemo Settings tab now includes floating-window snapping controls for API verification: enable toggle, snap distance, and snap-target selection (`SCREEN`, `MAIN_WINDOW`, `FLOATING_WINDOWS`).
+- ✅ `attachFloatingWindow(...)` now restores detached floating-sub-layout nodes to remembered host context when possible (preferred/neighbor anchors), with deterministic silent fallback to active host-root or main layout when anchors are unavailable.
 
 ### Documentation
 - ✅ Added a persistent collaboration rule in `AGENTS.md`: every SnapFX API function must be represented in the MainDemo Settings tab for manual verification.
-- ✅ Updated `STATUS.md`, `DONE.md`, and `ROADMAP.md` to reflect the new MainDemo snapping settings integration and current test totals.
+- ✅ Added a persistent collaboration rule in `AGENTS.md`: significant design decisions must be documented in JavaDoc, `ARCHITECTURE.md`, and ADRs under `docs/adr/`.
+- ✅ Added ADR `docs/adr/0001-floating-reattach-placement-strategy.md` and updated architecture/readme/status docs to reflect the new reattach strategy and documentation baseline.
+- ✅ Updated `STATUS.md`, `DONE.md`, and `ROADMAP.md` to reflect the new reattach behavior and current test totals.
 
 ## v0.2.5 - 2026-02-16
 

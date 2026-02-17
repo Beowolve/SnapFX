@@ -19,6 +19,7 @@ A high-performance, lightweight JavaFX docking framework that behaves like nativ
 | `README.md` | Entry point, feature overview, and quick start |
 | `SETUP.md` | Local development environment setup |
 | `ARCHITECTURE.md` | Technical architecture and design |
+| `docs/adr/*.md` | Architecture Decision Records (context, decisions, and trade-offs) |
 | `STATUS.md` | Current state and open issues |
 | `ROADMAP.md` | Planned work and future priorities |
 | `DONE.md` | Completed milestones and delivered capabilities |
