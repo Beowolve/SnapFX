@@ -11,6 +11,7 @@ import com.github.beowolve.snapfx.dnd.DockDropVisualizationMode;
 import com.github.beowolve.snapfx.floating.DockFloatingPinButtonMode;
 import com.github.beowolve.snapfx.floating.DockFloatingPinChangeEvent;
 import com.github.beowolve.snapfx.floating.DockFloatingPinLockedBehavior;
+import com.github.beowolve.snapfx.floating.DockFloatingSnapTarget;
 import com.github.beowolve.snapfx.floating.DockFloatingWindow;
 import com.github.beowolve.snapfx.model.DockContainer;
 import com.github.beowolve.snapfx.model.DockElement;
@@ -45,6 +46,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -533,6 +535,42 @@ public class MainDemo extends Application {
         }
     }
 
+    private void onFloatingWindowSnappingEnabledChanged(Boolean enabled) {
+        if (enabled != null) {
+            snapFX.setFloatingWindowSnappingEnabled(enabled);
+        }
+    }
+
+    private void onFloatingWindowSnapDistanceChanged(Double distance) {
+        if (distance != null) {
+            snapFX.setFloatingWindowSnapDistance(distance);
+        }
+    }
+
+    private void onFloatingWindowSnapTargetsChanged(boolean screenEnabled, boolean mainWindowEnabled, boolean floatingWindowsEnabled) {
+        snapFX.setFloatingWindowSnapTargets(
+            resolveFloatingWindowSnapTargets(screenEnabled, mainWindowEnabled, floatingWindowsEnabled)
+        );
+    }
+
+    static EnumSet<DockFloatingSnapTarget> resolveFloatingWindowSnapTargets(
+        boolean screenEnabled,
+        boolean mainWindowEnabled,
+        boolean floatingWindowsEnabled
+    ) {
+        EnumSet<DockFloatingSnapTarget> targets = EnumSet.noneOf(DockFloatingSnapTarget.class);
+        if (screenEnabled) {
+            targets.add(DockFloatingSnapTarget.SCREEN);
+        }
+        if (mainWindowEnabled) {
+            targets.add(DockFloatingSnapTarget.MAIN_WINDOW);
+        }
+        if (floatingWindowsEnabled) {
+            targets.add(DockFloatingSnapTarget.FLOATING_WINDOWS);
+        }
+        return targets;
+    }
+
     /**
      * Creates the demo layout with fixed node IDs for persistence.
      */
@@ -679,9 +717,57 @@ public class MainDemo extends Application {
         pinLockedBehavior.valueProperty().addListener((obs, oldVal, newVal) -> onFloatingPinLockedBehaviorChanged(newVal));
         grid.addRow(7, new Label("Pin in Lock Mode"), pinLockedBehavior);
 
+        CheckBox floatingSnappingCheckBox = new CheckBox("Enable snapping while dragging title bars");
+        floatingSnappingCheckBox.setSelected(snapFX.isFloatingWindowSnappingEnabled());
+        floatingSnappingCheckBox.selectedProperty().addListener((obs, oldVal, newVal) ->
+            onFloatingWindowSnappingEnabledChanged(newVal)
+        );
+        grid.addRow(8, new Label("Floating Snapping"), floatingSnappingCheckBox);
+
+        Spinner<Double> snapDistanceSpinner = new Spinner<>();
+        snapDistanceSpinner.setValueFactory(
+            new SpinnerValueFactory.DoubleSpinnerValueFactory(0.0, 64.0, snapFX.getFloatingWindowSnapDistance(), 1.0)
+        );
+        snapDistanceSpinner.setEditable(true);
+        snapDistanceSpinner.setMaxWidth(Double.MAX_VALUE);
+        snapDistanceSpinner.valueProperty().addListener((obs, oldVal, newVal) -> onFloatingWindowSnapDistanceChanged(newVal));
+        grid.addRow(9, new Label("Snap Distance (px)"), snapDistanceSpinner);
+
+        CheckBox screenSnapTargetCheckBox = new CheckBox("Screen");
+        CheckBox mainWindowSnapTargetCheckBox = new CheckBox("Main Window");
+        CheckBox floatingWindowsSnapTargetCheckBox = new CheckBox("Floating Windows");
+        var configuredSnapTargets = snapFX.getFloatingWindowSnapTargets();
+        screenSnapTargetCheckBox.setSelected(configuredSnapTargets.contains(DockFloatingSnapTarget.SCREEN));
+        mainWindowSnapTargetCheckBox.setSelected(configuredSnapTargets.contains(DockFloatingSnapTarget.MAIN_WINDOW));
+        floatingWindowsSnapTargetCheckBox.setSelected(configuredSnapTargets.contains(DockFloatingSnapTarget.FLOATING_WINDOWS));
+        screenSnapTargetCheckBox.selectedProperty().addListener((obs, oldVal, newVal) ->
+            onFloatingWindowSnapTargetsChanged(
+                screenSnapTargetCheckBox.isSelected(),
+                mainWindowSnapTargetCheckBox.isSelected(),
+                floatingWindowsSnapTargetCheckBox.isSelected()
+            )
+        );
+        mainWindowSnapTargetCheckBox.selectedProperty().addListener((obs, oldVal, newVal) ->
+            onFloatingWindowSnapTargetsChanged(
+                screenSnapTargetCheckBox.isSelected(),
+                mainWindowSnapTargetCheckBox.isSelected(),
+                floatingWindowsSnapTargetCheckBox.isSelected()
+            )
+        );
+        floatingWindowsSnapTargetCheckBox.selectedProperty().addListener((obs, oldVal, newVal) ->
+            onFloatingWindowSnapTargetsChanged(
+                screenSnapTargetCheckBox.isSelected(),
+                mainWindowSnapTargetCheckBox.isSelected(),
+                floatingWindowsSnapTargetCheckBox.isSelected()
+            )
+        );
+        HBox snapTargetsBox = new HBox(8, screenSnapTargetCheckBox, mainWindowSnapTargetCheckBox, floatingWindowsSnapTargetCheckBox);
+        snapTargetsBox.setAlignment(Pos.CENTER_LEFT);
+        grid.addRow(10, new Label("Snap Targets"), snapTargetsBox);
+
         CheckBox promptEditorCloseCheckBox = new CheckBox("Prompt for unsaved editors");
         promptEditorCloseCheckBox.selectedProperty().bindBidirectional(promptOnEditorCloseProperty);
-        grid.addRow(8, new Label("Close Hook"), promptEditorCloseCheckBox);
+        grid.addRow(11, new Label("Close Hook"), promptEditorCloseCheckBox);
 
         Label hint = new Label("Changes apply immediately. Dirty editors are marked with '*'.");
 

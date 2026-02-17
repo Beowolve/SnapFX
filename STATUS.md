@@ -1,11 +1,11 @@
 # Project Status
 
-**Last Updated**: 2026-02-16
+**Last Updated**: 2026-02-17
 
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 234 tests passing (latest full suite)
+✅ **Tests**: All 236 tests passing (latest full suite)
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully  
 ✅ **CI Automation**: GitHub Actions workflows added for push/PR tests and tag-triggered releases  
@@ -146,13 +146,13 @@
 - ✅ DockDragServiceTest (8 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, and ESC drag-cancel handling
 - ✅ DockFloatingWindowTest (30 tests) - Floating title bar controls, context menu behavior (attach/pin icons + attach action), pin behavior, icon rendering/sync regression coverage, single-node float-menu policy, maximize/restore interaction behavior, scene-level drag continuity (including release/reset and non-primary guard behavior), resize-min constraints, interactive-target cursor reliability, and floating/main edge snapping behavior (including overlap-guard, adjacent-edge cases, and main-window shadow-inset compensation)
 - ✅ DockFloatingSnapEngineTest (6 tests) - Snap candidate scoring, overlap-aware candidate generation, and shadow-inset compensation behavior
-- ✅ MainDemoTest (9 tests) - Demo app icon resource wiring, menu icon behavior, demo shortcut wiring, load-error message formatting, and owner-aware error-alert behavior
+- ✅ MainDemoTest (11 tests) - Demo app icon resource wiring, menu icon behavior, demo shortcut wiring, floating snap-target settings resolution coverage, load-error message formatting, and owner-aware error-alert behavior
 - ✅ DemoNodeFactoryTest (3 tests) - Unknown-node fallback strategy coverage (framework placeholder vs. custom demo fallback node) plus SnapFX integration coverage for unsupported-type recovery with the default demo factory
 - ✅ EditorCloseDecisionPolicyTest (5 tests) - Deterministic close-decision policy checks
 - ✅ SimpleExampleTest (2 tests) - Stylesheet resource resolution behavior
 - ✅ MarkdownDocumentationConsistencyTest (12 tests) - Markdown consistency guardrails
 - ✅ AboutDialogTest (2 tests) - About dialog branding resources and credit link targets
-- ✅ **234/234 tests passing** ✅
+- ✅ **236/236 tests passing** ✅
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Edge case tests** (null inputs, detached nodes, invalid move targets, no-op revision checks)
@@ -173,7 +173,7 @@
 - ✅ About dialog extracted into dedicated class with dynamic version info, large logo branding, and icon credits
 - ✅ About dialog easter egg animation (triple-click logo)
 - ✅ Debug view toggle
-- ✅ Settings tab for live layout options (title bar, close buttons, drop visualization, lock, floating pin controls)
+- ✅ Settings tab for live layout options (title bar, close buttons, drop visualization, lock, floating pin controls, and floating-window snapping controls for enable/distance/targets)
 
 ### Documentation (100% ✅)
 - ✅ README.md updated

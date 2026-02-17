@@ -6,7 +6,15 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 
 ## Unreleased
 
-No changes yet.
+### Build and Test
+- ✅ Added `MainDemoTest` coverage for floating snap-target settings resolution used by the debug settings panel; full suite now runs with 236 tests.
+
+### Framework and UI
+- ✅ MainDemo Settings tab now includes floating-window snapping controls for API verification: enable toggle, snap distance, and snap-target selection (`SCREEN`, `MAIN_WINDOW`, `FLOATING_WINDOWS`).
+
+### Documentation
+- ✅ Added a persistent collaboration rule in `AGENTS.md`: every SnapFX API function must be represented in the MainDemo Settings tab for manual verification.
+- ✅ Updated `STATUS.md`, `DONE.md`, and `ROADMAP.md` to reflect the new MainDemo snapping settings integration and current test totals.
 
 ## v0.2.5 - 2026-02-16
 

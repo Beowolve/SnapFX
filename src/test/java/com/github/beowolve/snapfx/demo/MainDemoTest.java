@@ -1,10 +1,12 @@
 package com.github.beowolve.snapfx.demo;
 
+import com.github.beowolve.snapfx.floating.DockFloatingSnapTarget;
 import com.github.beowolve.snapfx.persistence.DockLayoutLoadException;
 import javafx.application.Platform;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeAll;
 
+import java.util.EnumSet;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -125,6 +127,35 @@ class MainDemoTest {
             Alert alert = MainDemo.createErrorAlert("Error message", null);
             assertNull(alert.getOwner());
         });
+    }
+
+    @Test
+    void testResolveFloatingWindowSnapTargetsAllEnabled() {
+        EnumSet<DockFloatingSnapTarget> targets =
+            MainDemo.resolveFloatingWindowSnapTargets(true, true, true);
+
+        assertEquals(
+            EnumSet.of(
+                DockFloatingSnapTarget.SCREEN,
+                DockFloatingSnapTarget.MAIN_WINDOW,
+                DockFloatingSnapTarget.FLOATING_WINDOWS
+            ),
+            targets
+        );
+    }
+
+    @Test
+    void testResolveFloatingWindowSnapTargetsSubsetAndEmpty() {
+        EnumSet<DockFloatingSnapTarget> subset =
+            MainDemo.resolveFloatingWindowSnapTargets(true, false, true);
+        EnumSet<DockFloatingSnapTarget> empty =
+            MainDemo.resolveFloatingWindowSnapTargets(false, false, false);
+
+        assertEquals(
+            EnumSet.of(DockFloatingSnapTarget.SCREEN, DockFloatingSnapTarget.FLOATING_WINDOWS),
+            subset
+        );
+        assertEquals(EnumSet.noneOf(DockFloatingSnapTarget.class), empty);
     }
 
     private void runOnFxThreadAndWait(Runnable action) {

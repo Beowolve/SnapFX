@@ -1,6 +1,6 @@
 # SnapFX Development Roadmap
 
-**Last Updated**: 2026-02-16
+**Last Updated**: 2026-02-17
 
 This document tracks planned and proposed work for SnapFX.
 This roadmap lists planned work only; completed/fixed history is tracked in `CHANGELOG.md`.
@@ -229,6 +229,7 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 - ✅ **Snap to main docking area**: Floating windows now snap to the main window edges
 - ✅ **Configurable snap distance**: `SnapFX.setFloatingWindowSnapDistance(...)` controls tolerance in pixels
 - ✅ **Configurable snap targets**: `SnapFX.setFloatingWindowSnapTargets(...)` controls screen/main/floating snap surfaces
+- ✅ **MainDemo snapping settings controls**: Debug settings tab now exposes snapping enable, snap distance, and snap targets for direct manual API verification
 - ✅ **Snapping engine consolidation**: Candidate generation and overlap-aware snap logic are centralized in `DockFloatingSnapEngine` for maintainability and focused testing
 - 📋 **Visual snap guides**: Alignment indicator lines while dragging
 

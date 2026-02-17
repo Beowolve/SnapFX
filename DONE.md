@@ -1,6 +1,6 @@
 # SnapFX Framework - Completed Features
 
-**Last Updated**: 2026-02-16
+**Last Updated**: 2026-02-17
 
 SnapFX has been fully implemented with core functionality and is production-ready for large applications.
 
@@ -52,14 +52,14 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `SimpleExample` - Minimal usage example
 - ✅ `DockNodeFactory` - Helper for creating demo nodes
 - ✅ `AboutDialog` - Dedicated About dialog with branding, credits, and easter egg animation
-- ✅ `Settings tab` - Live layout options in the debug panel
+- ✅ `Settings tab` - Live layout options in the debug panel, including floating-window snapping API controls (enable, distance, targets)
 
 ### Module System
 - ✅ `module-info.java` - Java Platform Module System descriptor
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (14 test classes, 234 tests)
+### Testing (14 test classes, 236 tests)
 - ✅ `DockGraphTest` (56 tests) - Tree manipulation and algorithms
   - **+11 regression tests** for critical bug fixes
   - Tests for empty container prevention
@@ -78,14 +78,14 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `DockDragServiceTest` (8 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, and ESC drag-cancel handling
 - ✅ `DockFloatingWindowTest` (30 tests) - Floating title-bar controls, context-menu behavior (attach/pin icons + attach action), pin behavior, icon rendering/sync regression coverage, single-node float-menu policy, maximize/restore interaction behavior, scene-level drag continuity (including release/reset and non-primary guard behavior), resize-min constraints, interactive-target cursor reliability, and floating/main edge snapping behavior (including overlap-guard, adjacent-edge cases, and main-window shadow-inset compensation)
 - ✅ `DockFloatingSnapEngineTest` (6 tests) - Snap candidate scoring, overlap-aware candidate generation, and shadow-inset compensation coverage
-- ✅ `MainDemoTest` (9 tests) - Application icon resources, menu icon behavior, demo shortcut wiring, load-error message formatting, and owner-aware error-alert behavior
+- ✅ `MainDemoTest` (11 tests) - Application icon resources, menu icon behavior, demo shortcut wiring, floating snap-target settings resolution coverage, load-error message formatting, and owner-aware error-alert behavior
 - ✅ `DemoNodeFactoryTest` (3 tests) - Unknown-node fallback strategy coverage (framework placeholder vs. demo custom fallback), plus SnapFX integration coverage for unsupported-type recovery with the default demo factory
 - ✅ `AboutDialogTest` (2 tests) - About dialog resources and credit link targets
 - ✅ `EditorCloseDecisionPolicyTest` (5 tests) - Deterministic close-decision behavior for dirty editor nodes
 - ✅ `SimpleExampleTest` (2 tests) - Stylesheet resource resolution behavior
 - ✅ `MarkdownDocumentationConsistencyTest` (12 tests) - Documentation consistency guardrails
 - ✅ CI flake guard for critical interaction suites (`SnapFXTest`, `DockFloatingWindowTest`, `DockDragServiceTest`) runs 3x per CI execution
-- ✅ All tests passing (234/234) ✅
+- ✅ All tests passing (236/236) ✅
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
 - ✅ Mandatory regression tests for all bug fixes
 
@@ -165,6 +165,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **Floating title-bar icon correctness**: DockNode icons are image-based and rendered per view, so floating title-bar icons stay visible and follow active tabs
 - ✅ **Floating window snapping (MVP)**: Title-bar drag snapping now supports screen edges, main-window edges, and peer floating-window edges with configurable enable/targets/distance API, perpendicular-overlap guards, adjacent-edge alignment for both main and floating snap targets, and main-window shadow-inset compensation for decorated stages
 - ✅ **Snapping architecture cleanup**: Candidate generation and overlap-aware snapping logic is centralized in `DockFloatingSnapEngine`, reducing `DockFloatingWindow` complexity and improving testability
+- ✅ **MainDemo snapping API controls**: Debug settings now expose snapping enable toggle, snap distance, and snap-target selection to support manual verification workflows
 - ✅ **View Caching**: Performance optimization through view reuse
 
 ### Drag & Drop (Baseline + Critical Bug Fixes)
