@@ -15,12 +15,12 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 | Phase 2: Floating Windows | ✅ Completed | 100% |
 | Phase 3: User Experience | 🚧 In Progress | 64% |
 | Phase 4: Advanced Features | 🚧 In Progress | 20% |
-| Phase 5: Themes & Customization | 📋 Planned | 0% |
+| Phase 5: Themes & Customization | 🚧 In Progress | 60% |
 | Phase 6: Performance & Polish | 📋 Planned | 0% |
 | Phase 7: Developer Experience | 📋 Planned | 45% |
 | Phase 8: Production Readiness | 📋 Planned | 25% |
 
-**Total Project Completion**: ~75%
+**Total Project Completion**: ~79%
 
 ## Legend
 
@@ -103,6 +103,9 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 - ✅ **MainDemo close-hook sample**: Demo now shows editor-specific save prompts on close requests
 - ✅ **MainDemo editor file actions**: Demo now includes open/save/save-as workflow for `SerializableEditor` nodes
 - ✅ **MainDemo FileChooser consolidation**: Layout and editor open/save dialogs now share reusable chooser builders, filter constants, and save-default resolution helpers
+- ✅ **Theme runtime switching API**: `initialize(...)` now auto-applies the default SnapFX stylesheet, `setThemeStylesheet(...)` updates primary/floating scenes at runtime, and built-in themes are exposed as an ordered named catalog (`Light`, `Dark`) via list/map helpers
+- ✅ **MainDemo theme selector**: Settings tab now reads themes from the SnapFX named catalog and switches styles via API
+- ✅ **Theme modularization**: Theme catalog metadata and stylesheet apply/resolve logic are extracted from `SnapFX` into dedicated classes under `com.github.beowolve.snapfx.theme`
 - ✅ **MainDemo layout menu icon parity**: Hidden/Floating menu entries display dock-node icons when available
 - ✅ **Maximize/restore**: Custom floating title-bar toggle implemented
 - ✅ **Maximized drag restore**: Dragging the title bar from maximized restores and moves the window
@@ -245,13 +248,13 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 ### 5.1 Theme Support
 **Priority**: 🟢 Medium
 
-- 📋 **Light theme**: Bright, clean appearance
-- 📋 **Dark theme**: Low-light environment
-- 📋 **Custom theme API**: User-defined color schemes
-- 📋 **Theme switcher**: Runtime theme changes
-- 📋 **CSS variables**: Parameterized styling
+- ✅ **Light theme**: Bright, clean appearance (`snapfx.css`) is built in and remains the default
+- ✅ **Dark theme**: Low-light alternative (`snapfx-dark.css`) is built in
+- ✅ **Custom theme API**: Runtime stylesheet switching supports classpath resources and absolute stylesheet URLs
+- ✅ **Theme switcher**: Runtime theme changes are wired through API and exposed in MainDemo Settings
+- ✅ **Named theme discovery**: Built-in themes are exposed as ordered name/path metadata (`Light`, `Dark`) for UI pickers
 
-**Estimated Time**: 2-3 days
+**Estimated Time**: Completed
 
 ---
 

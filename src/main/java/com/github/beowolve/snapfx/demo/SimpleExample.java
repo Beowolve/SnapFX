@@ -12,7 +12,6 @@ import javafx.scene.control.TreeView;
 import javafx.scene.control.TreeItem;
 import javafx.stage.Stage;
 
-import java.net.URL;
 import java.util.List;
 
 /**
@@ -20,9 +19,6 @@ import java.util.List;
  * Demonstrates the minimum amount of code required for a working docking setup.
  */
 public class SimpleExample extends Application {
-    private static final System.Logger LOGGER = System.getLogger(SimpleExample.class.getName());
-    private static final String SNAPFX_STYLESHEET_RESOURCE = "/snapfx.css";
-
     @Override
     public void start(Stage stage) {
         // 1. Create SnapFX instance
@@ -46,8 +42,6 @@ public class SimpleExample extends Application {
         // 5. Configure scene and stage
         Scene scene = new Scene(layout, 1000, 600);
 
-        applyStylesheet(scene);
-
         stage.setTitle("SnapFX - Simple Example");
         stage.setScene(scene);
 
@@ -55,41 +49,6 @@ public class SimpleExample extends Application {
         snapFX.initialize(stage);
 
         stage.show();
-    }
-
-    static String getStylesheetResourcePath() {
-        return SNAPFX_STYLESHEET_RESOURCE;
-    }
-
-    static URL resolveStylesheetResource() {
-        URL moduleResource = SimpleExample.class.getResource(SNAPFX_STYLESHEET_RESOURCE);
-        if (moduleResource != null) {
-            return moduleResource;
-        }
-
-        String classpathResource = SNAPFX_STYLESHEET_RESOURCE.startsWith("/")
-            ? SNAPFX_STYLESHEET_RESOURCE.substring(1)
-            : SNAPFX_STYLESHEET_RESOURCE;
-        ClassLoader classLoader = SimpleExample.class.getClassLoader();
-        return classLoader != null
-            ? classLoader.getResource(classpathResource)
-            : ClassLoader.getSystemResource(classpathResource);
-    }
-
-    private void applyStylesheet(Scene scene) {
-        if (scene == null) {
-            return;
-        }
-        URL cssResource = resolveStylesheetResource();
-        if (cssResource == null) {
-            LOGGER.log(
-                System.Logger.Level.WARNING,
-                "SnapFX stylesheet not found in classpath: " + SNAPFX_STYLESHEET_RESOURCE
-                    + ". SimpleExample runs without custom styling."
-            );
-            return;
-        }
-        scene.getStylesheets().add(cssResource.toExternalForm());
     }
 
     private TreeView<String> createFileTree() {

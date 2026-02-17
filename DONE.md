@@ -6,7 +6,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 
 ## ✅ What Has Been Completed
 
-### Core Framework (24 classes)
+### Core Framework (26 classes)
 
 #### Model Layer (7 classes)
 - ✅ `DockGraph` - Central data structure for the docking system
@@ -47,19 +47,23 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Split ratio API in `SnapFX` (`setRootSplitRatios(...)`, `setSplitRatios(...)`)
 - ✅ Configurable shortcut API in `SnapFX` (`setShortcut(...)`, `clearShortcut(...)`, `resetShortcutsToDefaults(...)`, `getShortcuts()`)
 
+#### Theme Management (2 classes)
+- ✅ `DockThemeCatalog` - Built-in named theme metadata (`Light`/`Dark`) with deterministic map/list access
+- ✅ `DockThemeStylesheetManager` - Stylesheet normalization, resolution, and managed scene application lifecycle
+
 #### Demo (4 classes)
 - ✅ `MainDemo` - Full IDE-like layout with all features
 - ✅ `SimpleExample` - Minimal usage example
 - ✅ `DockNodeFactory` - Helper for creating demo nodes
 - ✅ `AboutDialog` - Dedicated About dialog with branding, credits, and easter egg animation
-- ✅ `Settings tab` - Live layout options in the debug panel, including floating-window snapping API controls (enable, distance, targets)
+- ✅ `Settings tab` - Live layout options in the debug panel, including floating-window snapping API controls (enable, distance, targets) and runtime theme switching via named SnapFX themes (`Light`/`Dark`)
 
 ### Module System
 - ✅ `module-info.java` - Java Platform Module System descriptor
 - ✅ Full JPMS support with proper exports and opens
 - ✅ Compatible with Java 21 module system
 
-### Testing (14 test classes, 250 tests)
+### Testing (13 test classes, 259 tests)
 - ✅ `DockGraphTest` (56 tests) - Tree manipulation and algorithms
   - **+11 regression tests** for critical bug fixes
   - Tests for empty container prevention
@@ -73,19 +77,18 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `DockLayoutEngineTest` (32 tests) - View creation with TestFX, context-menu interaction coverage, representative container-tab title/icon behavior, float-availability policy checks, header-context-menu dismiss-on-press regression coverage, and tiny-bounds drop-zone clamp regression coverage
   - Memory cleanup tests for cache boundedness and undock/rebuild cycles
   - Layout optimization tests for empty/single-child roots
-- ✅ `SnapFXTest` (61 tests) - Hide/Restore + Floating Window API behavior, configurable shortcut behavior, floating-window snap API propagation/validation, invalid-load failure handling, persistence edge-case coverage for complex floating snapshots, unknown-type layout recovery, unresolved floating-sub-layout D&D detach coverage, host-aware floating reattach placement restore/fallback coverage, three-window floating-layout detach/attach roundtrip coverage for top-left/top-right/bottom nodes, and detach-close-remaining-attach host-restore fallback coverage
+- ✅ `SnapFXTest` (69 tests) - Hide/Restore + Floating Window API behavior, configurable shortcut behavior, floating-window snap API propagation/validation, invalid-load failure handling, persistence edge-case coverage for complex floating snapshots, unknown-type layout recovery, unresolved floating-sub-layout D&D detach coverage, host-aware floating reattach placement restore/fallback coverage, three-window floating-layout detach/attach roundtrip coverage for top-left/top-right/bottom nodes, detach-close-remaining-attach host-restore fallback coverage, and theme stylesheet API behavior (initialize auto-apply + runtime switching + named theme catalog exposure)
 - ✅ `DockGraphSplitTargetDockingTest` (1 test) - Split-target docking regression coverage
 - ✅ `DockDragServiceTest` (8 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, and ESC drag-cancel handling
 - ✅ `DockFloatingWindowTest` (30 tests) - Floating title-bar controls, context-menu behavior (attach/pin icons + attach action), pin behavior, icon rendering/sync regression coverage, single-node float-menu policy, maximize/restore interaction behavior, scene-level drag continuity (including release/reset and non-primary guard behavior), resize-min constraints, interactive-target cursor reliability, and floating/main edge snapping behavior (including overlap-guard, adjacent-edge cases, and main-window shadow-inset compensation)
 - ✅ `DockFloatingSnapEngineTest` (6 tests) - Snap candidate scoring, overlap-aware candidate generation, and shadow-inset compensation coverage
-- ✅ `MainDemoTest` (16 tests) - Application icon resources, menu icon behavior, demo shortcut wiring, floating snap-target settings resolution coverage, load-error message formatting, owner-aware error-alert behavior, and FileChooser helper coverage for shared layout/editor chooser configuration
+- ✅ `MainDemoTest` (19 tests) - Application icon resources, menu icon behavior, demo shortcut wiring, floating snap-target settings resolution coverage, load-error message formatting, owner-aware error-alert behavior, FileChooser helper coverage for shared layout/editor chooser configuration, and named theme-catalog/resource coverage
 - ✅ `DemoNodeFactoryTest` (3 tests) - Unknown-node fallback strategy coverage (framework placeholder vs. demo custom fallback), plus SnapFX integration coverage for unsupported-type recovery with the default demo factory
 - ✅ `AboutDialogTest` (2 tests) - About dialog resources and credit link targets
 - ✅ `EditorCloseDecisionPolicyTest` (5 tests) - Deterministic close-decision behavior for dirty editor nodes
-- ✅ `SimpleExampleTest` (2 tests) - Stylesheet resource resolution behavior
 - ✅ `MarkdownDocumentationConsistencyTest` (12 tests) - Documentation consistency guardrails
 - ✅ CI flake guard for critical interaction suites (`SnapFXTest`, `DockFloatingWindowTest`, `DockDragServiceTest`) runs 3x per CI execution
-- ✅ All tests passing (250/250) ✅
+- ✅ All tests passing (259/259) ✅
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
 - ✅ Mandatory regression tests for all bug fixes
 
@@ -168,6 +171,10 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **Snapping architecture cleanup**: Candidate generation and overlap-aware snapping logic is centralized in `DockFloatingSnapEngine`, reducing `DockFloatingWindow` complexity and improving testability
 - ✅ **MainDemo snapping API controls**: Debug settings now expose snapping enable toggle, snap distance, and snap-target selection to support manual verification workflows
 - ✅ **Host-aware floating reattach placement**: Nodes detached from floating sub-layouts now reattach to remembered host context (preferred/neighbor anchors) with deterministic fallback to active host root or main layout when anchors are unavailable
+- ✅ **Runtime theme API + auto stylesheet wiring**: `initialize(...)` now applies the default SnapFX stylesheet automatically; `setThemeStylesheet(...)` switches theme at runtime for primary and floating scenes
+- ✅ **Dark theme resource**: Added `snapfx-dark.css` and integrated theme switching in MainDemo settings
+- ✅ **Named theme catalog API**: SnapFX now exposes built-in themes as ordered name/path metadata (`Light`/`Dark`) via list/map helpers
+- ✅ **Theme logic modularization**: Stylesheet catalog + apply/resolve logic moved out of `SnapFX` into `com.github.beowolve.snapfx.theme`
 - ✅ **View Caching**: Performance optimization through view reuse
 
 ### Drag & Drop (Baseline + Critical Bug Fixes)

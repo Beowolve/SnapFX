@@ -162,12 +162,6 @@ public class MainDemo extends Application {
         // Install debug panel (right side)
         installDebugPanel();
 
-        // Load CSS
-        var cssResource = getClass().getResource("/snapfx.css");
-        if (cssResource != null) {
-            stage.getScene().getStylesheets().add(cssResource.toExternalForm());
-        }
-
         // Initialize SnapFX AFTER scene is set (needed for ghost overlay)
         snapFX.initialize(stage);
 
@@ -190,6 +184,26 @@ public class MainDemo extends Application {
 
     static List<String> getAppIconResources() {
         return APP_ICON_RESOURCES;
+    }
+
+    static Map<String, String> getNamedThemeStylesheets() {
+        return SnapFX.getAvailableThemeStylesheets();
+    }
+
+    static List<String> getThemeStylesheetResources() {
+        return List.copyOf(getNamedThemeStylesheets().values());
+    }
+
+    static String resolveThemeNameByStylesheetPath(String stylesheetResourcePath) {
+        if (stylesheetResourcePath == null || stylesheetResourcePath.isBlank()) {
+            return SnapFX.getDefaultThemeName();
+        }
+        for (Map.Entry<String, String> entry : getNamedThemeStylesheets().entrySet()) {
+            if (entry.getValue().equals(stylesheetResourcePath)) {
+                return entry.getKey();
+            }
+        }
+        return SnapFX.getDefaultThemeName();
     }
 
     static void configureDemoShortcuts(Scene scene, Runnable toggleFullscreenAction) {
@@ -565,6 +579,16 @@ public class MainDemo extends Application {
         );
     }
 
+    private void onThemeChanged(String themeName) {
+        if (themeName == null || themeName.isBlank()) {
+            return;
+        }
+        String stylesheetPath = getNamedThemeStylesheets().get(themeName);
+        if (stylesheetPath != null) {
+            snapFX.setThemeStylesheet(stylesheetPath);
+        }
+    }
+
     static EnumSet<DockFloatingSnapTarget> resolveFloatingWindowSnapTargets(
         boolean screenEnabled,
         boolean mainWindowEnabled,
@@ -777,9 +801,16 @@ public class MainDemo extends Application {
         snapTargetsBox.setAlignment(Pos.CENTER_LEFT);
         grid.addRow(10, new Label("Snap Targets"), snapTargetsBox);
 
+        ComboBox<String> themeMode = new ComboBox<>();
+        themeMode.getItems().setAll(SnapFX.getAvailableThemeNames());
+        themeMode.setMaxWidth(Double.MAX_VALUE);
+        themeMode.setValue(resolveThemeNameByStylesheetPath(snapFX.getThemeStylesheetResourcePath()));
+        themeMode.valueProperty().addListener((obs, oldVal, newVal) -> onThemeChanged(newVal));
+        grid.addRow(11, new Label("Theme"), themeMode);
+
         CheckBox promptEditorCloseCheckBox = new CheckBox("Prompt for unsaved editors");
         promptEditorCloseCheckBox.selectedProperty().bindBidirectional(promptOnEditorCloseProperty);
-        grid.addRow(11, new Label("Close Hook"), promptEditorCloseCheckBox);
+        grid.addRow(12, new Label("Close Hook"), promptEditorCloseCheckBox);
 
         Label hint = new Label("Changes apply immediately. Dirty editors are marked with '*'.");
 

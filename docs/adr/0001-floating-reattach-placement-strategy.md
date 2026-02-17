@@ -2,11 +2,12 @@
 
 - Status: Accepted
 - Date: 2026-02-17
-- Deciders: SnapFX maintainers
+- Deciders: Beo
 
 ## Context
 
-When users detach a `DockNode` from a floating layout (for example by unresolved drag release or float action) and later invoke `Attach to Layout`, the previous behavior always inserted the node into the main layout.
+When users detach a `DockNode` from a floating layout (for example by unresolved drag release or float action) and
+later invoke `Attach to Layout`, the previous behavior always inserted the node into the main layout.
 
 This caused behavioral drift:
 

@@ -83,10 +83,11 @@ public class SimpleDemo extends Application {
 
         // Build layout
         Scene scene = new Scene(snapFX.buildLayout(), 800, 600);
-        scene.getStylesheets().add(getClass().getResource("/snapfx.css").toExternalForm());
 
         stage.setScene(scene);
         snapFX.initialize(stage);
+        // Optional: switch theme at runtime via named catalog entry
+        // snapFX.setThemeStylesheet(SnapFX.getAvailableThemeStylesheets().get("Dark"));
         stage.show();
     }
 }

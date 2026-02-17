@@ -30,13 +30,18 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
+import javafx.stage.Stage;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -57,6 +62,7 @@ class SnapFXTest {
         } catch (IllegalStateException e) {
             // JavaFX is already running
         }
+        Platform.setImplicitExit(false);
     }
 
     @BeforeEach
@@ -206,6 +212,138 @@ class SnapFXTest {
         Event.fireEvent(scene, ctrlShiftP);
 
         assertFalse(floatingWindow.isAlwaysOnTop());
+    }
+
+    @Test
+    void testDefaultThemeStylesheetResourcePath() {
+        assertEquals("/snapfx.css", SnapFX.getDefaultThemeStylesheetResourcePath());
+    }
+
+    @Test
+    void testDefaultThemeName() {
+        assertEquals("Light", SnapFX.getDefaultThemeName());
+    }
+
+    @Test
+    void testAvailableThemeStylesheetsExposeStableNamedMapAndList() {
+        Map<String, String> stylesheets = SnapFX.getAvailableThemeStylesheets();
+
+        assertEquals(List.of("Light", "Dark"), List.copyOf(stylesheets.keySet()));
+        assertEquals(List.of("Light", "Dark"), SnapFX.getAvailableThemeNames());
+        assertEquals("/snapfx.css", stylesheets.get("Light"));
+        assertEquals("/snapfx-dark.css", stylesheets.get("Dark"));
+    }
+
+    @Test
+    void testAvailableThemeStylesheetsMapIsUnmodifiable() {
+        Map<String, String> stylesheets = SnapFX.getAvailableThemeStylesheets();
+
+        assertThrows(UnsupportedOperationException.class, () -> stylesheets.put("Custom", "/custom.css"));
+    }
+
+    @Test
+    void testInitializeAppliesDefaultThemeStylesheetToPrimaryScene() {
+        runOnFxThreadAndWait(() -> {
+            SnapFX framework = new SnapFX();
+            DockNode node = new DockNode("node", new Label("Node"), "Node");
+            framework.dock(node, null, DockPosition.CENTER);
+
+            Stage stage = new Stage();
+            try {
+                Scene scene = new Scene(framework.buildLayout(), 640, 480);
+                stage.setScene(scene);
+                framework.initialize(stage);
+
+                String defaultStylesheetUrl = SnapFX.class
+                    .getResource(SnapFX.getDefaultThemeStylesheetResourcePath())
+                    .toExternalForm();
+                assertTrue(scene.getStylesheets().contains(defaultStylesheetUrl));
+            } finally {
+                stage.close();
+                closeGhostStage(framework);
+            }
+        });
+    }
+
+    @Test
+    void testSetThemeStylesheetUpdatesPrimaryAndFloatingScenes() {
+        runOnFxThreadAndWait(() -> {
+            SnapFX framework = new SnapFX();
+            DockNode nodeMain = new DockNode("nodeMain", new Label("Main"), "Main");
+            DockNode nodeFloat = new DockNode("nodeFloat", new Label("Float"), "Float");
+
+            framework.dock(nodeMain, null, DockPosition.CENTER);
+            framework.dock(nodeFloat, nodeMain, DockPosition.RIGHT);
+            DockFloatingWindow floatingWindow = framework.floatNode(nodeFloat);
+
+            Stage stage = new Stage();
+            try {
+                Scene scene = new Scene(framework.buildLayout(), 640, 480);
+                stage.setScene(scene);
+                framework.initialize(stage);
+
+                String defaultStylesheetUrl = SnapFX.class
+                    .getResource(SnapFX.getDefaultThemeStylesheetResourcePath())
+                    .toExternalForm();
+                String darkStylesheetUrl = SnapFX.class
+                    .getResource("/snapfx-dark.css")
+                    .toExternalForm();
+
+                framework.setThemeStylesheet("/snapfx-dark.css");
+
+                assertTrue(scene.getStylesheets().contains(darkStylesheetUrl));
+                assertFalse(scene.getStylesheets().contains(defaultStylesheetUrl));
+                assertNotNull(floatingWindow.getScene());
+                assertTrue(floatingWindow.getScene().getStylesheets().contains(darkStylesheetUrl));
+                assertFalse(floatingWindow.getScene().getStylesheets().contains(defaultStylesheetUrl));
+                framework.closeFloatingWindows(false);
+            } finally {
+                stage.close();
+                closeGhostStage(framework);
+            }
+        });
+    }
+
+    @Test
+    void testSetThemeStylesheetBlankResetsToDefault() {
+        runOnFxThreadAndWait(() -> {
+            SnapFX framework = new SnapFX();
+            DockNode node = new DockNode("node", new Label("Node"), "Node");
+            framework.dock(node, null, DockPosition.CENTER);
+
+            Stage stage = new Stage();
+            try {
+                Scene scene = new Scene(framework.buildLayout(), 640, 480);
+                stage.setScene(scene);
+                framework.initialize(stage);
+
+                String defaultStylesheetUrl = SnapFX.class
+                    .getResource(SnapFX.getDefaultThemeStylesheetResourcePath())
+                    .toExternalForm();
+                String darkStylesheetUrl = SnapFX.class
+                    .getResource("/snapfx-dark.css")
+                    .toExternalForm();
+
+                framework.setThemeStylesheet("/snapfx-dark.css");
+                framework.setThemeStylesheet(" ");
+
+                assertTrue(scene.getStylesheets().contains(defaultStylesheetUrl));
+                assertFalse(scene.getStylesheets().contains(darkStylesheetUrl));
+            } finally {
+                stage.close();
+                closeGhostStage(framework);
+            }
+        });
+    }
+
+    @Test
+    void testSetThemeStylesheetThrowsForMissingResource() {
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> snapFX.setThemeStylesheet("/missing-theme.css")
+        );
+
+        assertTrue(exception.getMessage().contains("/missing-theme.css"));
     }
 
     /**
@@ -1468,6 +1606,55 @@ class SnapFXTest {
         DockNode topRight,
         DockNode bottom
     ) {
+    }
+
+    private void runOnFxThreadAndWait(Runnable action) {
+        if (Platform.isFxApplicationThread()) {
+            action.run();
+            return;
+        }
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<Throwable> error = new AtomicReference<>();
+        Platform.runLater(() -> {
+            try {
+                action.run();
+            } catch (Throwable throwable) {
+                error.set(throwable);
+            } finally {
+                latch.countDown();
+            }
+        });
+        try {
+            assertTrue(latch.await(5, TimeUnit.SECONDS), "Timed out waiting for JavaFX thread");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new AssertionError("Interrupted while waiting for JavaFX thread", e);
+        }
+        if (error.get() != null) {
+            throw new AssertionError("JavaFX action failed", error.get());
+        }
+    }
+
+    private void closeGhostStage(SnapFX framework) {
+        if (framework == null) {
+            return;
+        }
+        try {
+            Field dragServiceField = SnapFX.class.getDeclaredField("dragService");
+            dragServiceField.setAccessible(true);
+            Object dragService = dragServiceField.get(framework);
+            if (dragService == null) {
+                return;
+            }
+            Field ghostStageField = DockDragService.class.getDeclaredField("ghostStage");
+            ghostStageField.setAccessible(true);
+            Object ghostStage = ghostStageField.get(dragService);
+            if (ghostStage instanceof Stage stage) {
+                stage.close();
+            }
+        } catch (ReflectiveOperationException ignored) {
+            // Best-effort test cleanup.
+        }
     }
 
     private DockNode createFactoryNode(String nodeId) {

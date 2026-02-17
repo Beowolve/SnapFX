@@ -434,6 +434,11 @@ SnapFX {
     - serializer: DockLayoutSerializer
 
     + initialize(stage)
+    + getDefaultThemeName(): String
+    + getAvailableThemeStylesheets(): Map<String, String>
+    + getAvailableThemeNames(): List<String>
+    + setThemeStylesheet(stylesheetResourcePath)
+    + getThemeStylesheetResourcePath(): String
     + dock(content, title): DockNode
     + dock(content, title, target, position): DockNode
     + undock(node)
@@ -447,7 +452,10 @@ SnapFX {
 **Usage**:
 ```java
 SnapFX snapFX = new SnapFX();
-snapFX.initialize(stage);
+snapFX.initialize(stage); // applies default /snapfx.css automatically
+snapFX.setThemeStylesheet(
+    SnapFX.getAvailableThemeStylesheets().get("Dark")
+); // optional runtime theme switch
 
 // Simple docking
 DockNode editor = snapFX.dock(new TextArea(), "Editor");
@@ -475,6 +483,11 @@ try {
     // Handle invalid/corrupt layout data.
 }
 ```
+
+Theme stylesheet internals are encapsulated in `com.github.beowolve.snapfx.theme`:
+
+- `DockThemeCatalog`: built-in named theme map/list (`Light`, `Dark`)
+- `DockThemeStylesheetManager`: path/url resolution and scene stylesheet application
 
 ## 6. Data Flow
 

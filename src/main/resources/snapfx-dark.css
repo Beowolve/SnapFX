@@ -1,0 +1,71 @@
+/* SnapFX Dark Theme */
+@import "snapfx.css";
+
+.root {
+    -fx-base: #2b2d31;
+    -fx-background: #2b2d31;
+    -fx-control-inner-background: #31343a;
+    -fx-text-base-color: #e9edf5;
+    -fx-accent: #4b8cf5;
+    -fx-focus-color: #4b8cf5;
+    -fx-faint-focus-color: rgba(75, 140, 245, 0.25);
+    -fx-selection-bar: #3b6eb8;
+    -fx-selection-bar-text: #ffffff;
+}
+
+.dock-node-view,
+.dock-floating-window,
+.dock-node-content,
+.dock-split-pane,
+.dock-tab-pane {
+    -fx-background-color: -fx-background;
+}
+
+.dock-node-header,
+.dock-floating-title-bar {
+    -fx-background-color: linear-gradient(to bottom, #3a3d43, #2f3238);
+    -fx-border-color: #1f2125;
+}
+
+.dock-split-pane > .split-pane-divider,
+.dock-split-pane:horizontal > .split-pane-divider,
+.dock-split-pane:vertical > .split-pane-divider {
+    -fx-background-color: #25272c;
+}
+
+.dock-tab-pane .tab-header-area {
+    -fx-background-color: #25272c;
+}
+
+.dock-tab-pane .tab {
+    -tab-background: #32353c;
+}
+
+.dock-tab-pane .tab:selected {
+    -fx-background-color: #3a3d43;
+}
+
+.dock-tab-pane .tab:hover {
+    -fx-background-color: #424651;
+}
+
+.dock-control-icon,
+.dock-tab-pane .tab .tab-close-button,
+.dock-control-icon-close {
+    -fx-background-color: #d7dbe3;
+}
+
+.dock-node-close-button:hover,
+.dock-tab-pane .tab-close-button:hover {
+    -fx-background-color: #4b8cf5;
+}
+
+.dock-drop-indicator {
+    -fx-background-color: rgba(75, 140, 245, 0.25);
+    -fx-border-color: #4b8cf5;
+}
+
+.dock-debug-panel {
+    -fx-background-color: #25272c;
+    -fx-border-color: #1f2125;
+}

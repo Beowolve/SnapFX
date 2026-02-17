@@ -1,5 +1,6 @@
 package com.github.beowolve.snapfx.demo;
 
+import com.github.beowolve.snapfx.SnapFX;
 import com.github.beowolve.snapfx.floating.DockFloatingSnapTarget;
 import com.github.beowolve.snapfx.persistence.DockLayoutLoadException;
 import javafx.application.Platform;
@@ -45,6 +46,7 @@ class MainDemoTest {
         } catch (IllegalStateException ignored) {
             // JavaFX is already running.
         }
+        Platform.setImplicitExit(false);
     }
 
     @Test
@@ -61,6 +63,28 @@ class MainDemoTest {
                 "Missing app icon resource: " + resourcePath
             );
         }
+    }
+
+    @Test
+    void testThemeStylesheetResourcesExistInClasspath() {
+        for (String resourcePath : MainDemo.getThemeStylesheetResources()) {
+            assertNotNull(
+                MainDemo.class.getResource(resourcePath),
+                "Missing theme stylesheet resource: " + resourcePath
+            );
+        }
+    }
+
+    @Test
+    void testNamedThemeStylesheetsMirrorSnapFXCatalog() {
+        assertEquals(SnapFX.getAvailableThemeStylesheets(), MainDemo.getNamedThemeStylesheets());
+    }
+
+    @Test
+    void testResolveThemeNameByStylesheetPathUsesCatalogAndFallback() {
+        assertEquals("Dark", MainDemo.resolveThemeNameByStylesheetPath("/snapfx-dark.css"));
+        assertEquals(SnapFX.getDefaultThemeName(), MainDemo.resolveThemeNameByStylesheetPath("/unknown-theme.css"));
+        assertEquals(SnapFX.getDefaultThemeName(), MainDemo.resolveThemeNameByStylesheetPath(" "));
     }
 
     @Test

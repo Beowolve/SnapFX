@@ -5,7 +5,7 @@
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 250 tests passing (latest full suite)
+✅ **Tests**: All 259 tests passing (latest full suite)
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully  
 ✅ **CI Automation**: GitHub Actions workflows added for push/PR tests and tag-triggered releases  
@@ -29,6 +29,7 @@
 - ✅ Smart flattening algorithm (with correct order: flatten first, then cleanup)
 - ✅ Auto-cleanup for empty containers (fixed to prevent orphaned containers)
 - ✅ Model-View separation
+- ✅ Theme management is modularized into dedicated classes (`DockThemeCatalog`, `DockThemeStylesheetManager`) to keep `SnapFX` focused on API orchestration
 
 ### View Layer (100% ✅)
 - ✅ DockLayoutEngine (Model → SceneGraph)
@@ -118,6 +119,7 @@
 - ✅ Floating resize now respects effective minimum constraints from stage/content minimum sizes
 - ✅ Resize cursors now apply reliably near edges over interactive content targets (for example console text areas)
 - ✅ Attach-to-layout now restores detached floating-sub-layout nodes back to their previous host context when possible (preferred/neighbor anchors), with silent fallback to active host-root or main layout when anchors are unavailable, including detach-close-remaining-attach host-restore cases
+- ✅ Framework stylesheet handling is now automatic on `initialize(...)`; built-in named themes are exposed via map/list (`Light`, `Dark`), and runtime theme switching updates primary and floating scenes via `setThemeStylesheet(...)`
 
 ### Debug Tools (100% ✅)
 - ✅ DockGraphDebugView
@@ -142,18 +144,17 @@
 - ✅ DockGraphTest (56 tests, +11 regression tests)
 - ✅ DockLayoutSerializerTest (16 tests) - Includes strict load-failure diagnostics for blank content, malformed JSON, missing required fields, invalid tab selection metadata, unknown-node placeholder diagnostics, and unsupported-type recovery with optional factory custom fallback
 - ✅ DockLayoutEngineTest (32 tests) - Includes tab/header/splitter context-menu coverage, representative container-tab title/icon behavior, float-availability policy checks, header-context-menu dismiss-on-press regression coverage, and tiny-bounds drop-zone clamp regression coverage
-- ✅ **SnapFXTest (61 tests)** - Hide/Restore + Floating Window API tests plus configurable shortcut behavior, floating-window snap API propagation/validation, invalid-load failure handling, persistence edge-case coverage for complex floating snapshots, unknown-type layout recovery, unresolved floating-sub-layout D&D detach behavior, floating reattach placement restore/fallback behavior for both float-button and unresolved-drag detach paths, three-window floating-layout detach/attach roundtrip regression coverage (top-left/top-right/bottom cases), and detach-close-remaining-attach host-restore fallback coverage
+- ✅ **SnapFXTest (69 tests)** - Hide/Restore + Floating Window API tests plus configurable shortcut behavior, floating-window snap API propagation/validation, invalid-load failure handling, persistence edge-case coverage for complex floating snapshots, unknown-type layout recovery, unresolved floating-sub-layout D&D detach behavior, floating reattach placement restore/fallback behavior for both float-button and unresolved-drag detach paths, three-window floating-layout detach/attach roundtrip regression coverage (top-left/top-right/bottom cases), detach-close-remaining-attach host-restore fallback coverage, and theme stylesheet API behavior (initialize auto-apply + runtime switching + named theme catalog exposure)
 - ✅ DockGraphSplitTargetDockingTest (1 test)
 - ✅ DockDragServiceTest (8 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, and ESC drag-cancel handling
 - ✅ DockFloatingWindowTest (30 tests) - Floating title bar controls, context menu behavior (attach/pin icons + attach action), pin behavior, icon rendering/sync regression coverage, single-node float-menu policy, maximize/restore interaction behavior, scene-level drag continuity (including release/reset and non-primary guard behavior), resize-min constraints, interactive-target cursor reliability, and floating/main edge snapping behavior (including overlap-guard, adjacent-edge cases, and main-window shadow-inset compensation)
 - ✅ DockFloatingSnapEngineTest (6 tests) - Snap candidate scoring, overlap-aware candidate generation, and shadow-inset compensation behavior
-- ✅ MainDemoTest (16 tests) - Demo app icon resource wiring, menu icon behavior, demo shortcut wiring, floating snap-target settings resolution coverage, load-error message formatting, owner-aware error-alert behavior, and FileChooser helper coverage for shared layout/editor chooser configuration
+- ✅ MainDemoTest (19 tests) - Demo app icon resource wiring, menu icon behavior, demo shortcut wiring, floating snap-target settings resolution coverage, load-error message formatting, owner-aware error-alert behavior, FileChooser helper coverage for shared layout/editor chooser configuration, and named theme-catalog/resource coverage
 - ✅ DemoNodeFactoryTest (3 tests) - Unknown-node fallback strategy coverage (framework placeholder vs. custom demo fallback node) plus SnapFX integration coverage for unsupported-type recovery with the default demo factory
 - ✅ EditorCloseDecisionPolicyTest (5 tests) - Deterministic close-decision policy checks
-- ✅ SimpleExampleTest (2 tests) - Stylesheet resource resolution behavior
 - ✅ MarkdownDocumentationConsistencyTest (12 tests) - Markdown consistency guardrails
 - ✅ AboutDialogTest (2 tests) - About dialog branding resources and credit link targets
-- ✅ **250/250 tests passing** ✅
+- ✅ **259/259 tests passing** ✅
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Edge case tests** (null inputs, detached nodes, invalid move targets, no-op revision checks)
@@ -176,6 +177,7 @@
 - ✅ Debug view toggle
 - ✅ Settings tab for live layout options (title bar, close buttons, drop visualization, lock, floating pin controls, and floating-window snapping controls for enable/distance/targets)
 - ✅ File workflows now use shared `FileChooser` helpers for layout open/save and editor open/save-as to keep extension filters and defaults consistent
+- ✅ Settings tab now includes a theme selector driven by the SnapFX named theme catalog (`Light`, `Dark`) and applies styles via runtime API
 
 ### Documentation (100% ✅)
 - ✅ README.md updated
@@ -188,6 +190,7 @@
 - ✅ RELEASING.md (maintainer release/versioning/tag flow)
 - ✅ ROADMAP.md now starts with overall progress, keeps legend directly below, and no longer includes a version-track block.
 - ✅ Architecture decision records are now tracked under `docs/adr/` and linked from README documentation map.
+- ✅ Runtime theme-stylesheet behavior is documented in ADR `docs/adr/0002-runtime-theme-stylesheet-management.md`
 
 ## Issues
 

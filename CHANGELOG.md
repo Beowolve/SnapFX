@@ -7,10 +7,21 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 ## Unreleased
 
 ### Build and Test
-- ✅ Added `MainDemoTest` coverage for the `MainDemo` FileChooser helper refactor (shared layout/editor chooser builders and editor save-default resolution); full suite now runs with 250 tests.
+- ✅ Added `MainDemoTest` coverage for the `MainDemo` FileChooser helper refactor (shared layout/editor chooser builders and editor save-default resolution), plus theme-resource coverage for runtime theme switching in settings.
+- ✅ Added `SnapFXTest` coverage for automatic default stylesheet application during `initialize(...)` and runtime theme switching via the new theme stylesheet API (including floating-scene propagation and invalid-resource validation).
+- ✅ Added named-theme catalog coverage (`Light`/`Dark`) in `SnapFXTest` and `MainDemoTest` (named map/list exposure plus fallback name resolution), and validated the refactored theme helpers after extraction from `SnapFX`.
+- ✅ Removed obsolete `SimpleExampleTest` stylesheet checks after framework-managed default stylesheet wiring, and moved `DockFloatingWindowTest` into the `floating` package for test-structure alignment; full suite now runs with 259 tests.
 
 ### Framework and UI
 - ✅ Refactored `MainDemo` FileChooser setup into reusable helper functions shared by `saveLayout`/`loadLayout` and `openTextFileInEditor`/`chooseEditorSaveTargetFile`, with centralized extension-filter constants.
+- ✅ SnapFX now applies the default stylesheet automatically during `initialize(...)` and exposes runtime theme switching via `setThemeStylesheet(...)`.
+- ✅ Added `snapfx-dark.css` and wired a theme selector into MainDemo Settings so light/dark switching uses the SnapFX API live.
+- ✅ Replaced theme-ID handling with a simpler named theme catalog (`Light`, `Dark`) exposed via `SnapFX.getAvailableThemeStylesheets()` / `getAvailableThemeNames()`, while keeping path-based `setThemeStylesheet(...)`.
+- ✅ Extracted stylesheet resolution/application logic from `SnapFX` into dedicated classes under `com.github.beowolve.snapfx.theme` (`DockThemeCatalog`, `DockThemeStylesheetManager`) to reduce `SnapFX` complexity.
+
+### Documentation
+- ✅ Updated README/ARCHITECTURE docs for automatic stylesheet handling and runtime theme switching.
+- ✅ Added ADR `docs/adr/0002-runtime-theme-stylesheet-management.md` for theme lifecycle ownership and API behavior.
 
 ## v0.2.6 - 2026-02-17
 

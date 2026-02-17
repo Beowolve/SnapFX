@@ -1,10 +1,5 @@
-package com.github.beowolve.snapfx;
+package com.github.beowolve.snapfx.floating;
 
-import com.github.beowolve.snapfx.floating.DockFloatingPinButtonMode;
-import com.github.beowolve.snapfx.floating.DockFloatingPinLockedBehavior;
-import com.github.beowolve.snapfx.floating.DockFloatingPinSource;
-import com.github.beowolve.snapfx.floating.DockFloatingSnapTarget;
-import com.github.beowolve.snapfx.floating.DockFloatingWindow;
 import com.github.beowolve.snapfx.model.DockNode;
 import com.github.beowolve.snapfx.model.DockPosition;
 import com.github.beowolve.snapfx.model.DockTabPane;

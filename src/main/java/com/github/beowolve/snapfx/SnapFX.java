@@ -17,6 +17,8 @@ import com.github.beowolve.snapfx.model.*;
 import com.github.beowolve.snapfx.persistence.DockLayoutSerializer;
 import com.github.beowolve.snapfx.persistence.DockLayoutLoadException;
 import com.github.beowolve.snapfx.persistence.DockNodeFactory;
+import com.github.beowolve.snapfx.theme.DockThemeCatalog;
+import com.github.beowolve.snapfx.theme.DockThemeStylesheetManager;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -99,6 +101,7 @@ public class SnapFX {
     private final EnumMap<DockShortcutAction, KeyCombination> shortcuts;
     private final EventHandler<KeyEvent> shortcutKeyEventFilter;
     private final ChangeListener<Scene> rootContainerSceneListener;
+    private final ChangeListener<Scene> primaryStageSceneListener;
     private final Map<DockFloatingWindow, Scene> floatingShortcutScenes;
     private final Map<DockNode, DockPlacementMemory> dockPlacementMemory;
     private Stage primaryStage;
@@ -126,6 +129,7 @@ public class SnapFX {
         DockFloatingSnapTarget.FLOATING_WINDOWS
     );
     private Consumer<DockFloatingPinChangeEvent> onFloatingPinChanged;
+    private final DockThemeStylesheetManager themeStylesheetManager;
 
     private Pane rootContainer; // Container that holds the buildLayout() result
 
@@ -137,11 +141,13 @@ public class SnapFX {
         this.shortcuts = new EnumMap<>(DockShortcutAction.class);
         this.shortcutKeyEventFilter = this::handleShortcutKeyPressed;
         this.rootContainerSceneListener = (obs, oldScene, newScene) -> rebindShortcutScene(newScene);
+        this.primaryStageSceneListener = (obs, oldScene, newScene) -> applyManagedThemeStylesheet(newScene, null);
         this.floatingShortcutScenes = new HashMap<>();
         this.dockPlacementMemory = new HashMap<>();
         this.hiddenNodes = FXCollections.observableArrayList();
         this.floatingWindows = FXCollections.observableArrayList();
         this.readOnlyFloatingWindows = FXCollections.unmodifiableObservableList(floatingWindows);
+        this.themeStylesheetManager = new DockThemeStylesheetManager();
         resetShortcutsToDefaults();
         this.layoutEngine.setOnNodeCloseRequest(this::handleDockNodeCloseRequest);
         this.layoutEngine.setOnNodeFloatRequest(node -> floatNode(node));
@@ -170,15 +176,75 @@ public class SnapFX {
 
     /**
      * Initializes SnapFX with the primary stage.
+     * Also applies the currently configured framework stylesheet to the primary and floating scenes.
      */
     public void initialize(Stage stage) {
+        if (primaryStage != null) {
+            primaryStage.sceneProperty().removeListener(primaryStageSceneListener);
+        }
         this.primaryStage = stage;
+        if (primaryStage != null) {
+            primaryStage.sceneProperty().addListener(primaryStageSceneListener);
+        }
         dragService.initialize(stage);
         dragService.setLayoutEngine(layoutEngine);
+        applyManagedThemeStylesheetToManagedScenes(null);
         for (DockFloatingWindow floatingWindow : floatingWindows) {
             floatingWindow.show(primaryStage);
+            applyManagedThemeStylesheet(floatingWindow.getScene(), null);
             bindFloatingShortcutScene(floatingWindow);
         }
+    }
+
+    /**
+     * Returns the built-in default theme name.
+     */
+    public static String getDefaultThemeName() {
+        return DockThemeCatalog.getDefaultThemeName();
+    }
+
+    /**
+     * Returns the default classpath stylesheet used by SnapFX.
+     */
+    public static String getDefaultThemeStylesheetResourcePath() {
+        return DockThemeCatalog.getDefaultThemeStylesheetResourcePath();
+    }
+
+    /**
+     * Returns all built-in themes as an ordered map of {@code themeName -> stylesheetResourcePath}.
+     */
+    public static Map<String, String> getAvailableThemeStylesheets() {
+        return DockThemeCatalog.getAvailableThemeStylesheets();
+    }
+
+    /**
+     * Returns all built-in theme names in deterministic order.
+     */
+    public static List<String> getAvailableThemeNames() {
+        return DockThemeCatalog.getAvailableThemeNames();
+    }
+
+    /**
+     * Returns the currently configured stylesheet resource path or absolute URL.
+     *
+     * <p>Classpath resources use paths like {@code /snapfx.css}; external stylesheets keep their original URL.</p>
+     */
+    public String getThemeStylesheetResourcePath() {
+        return themeStylesheetManager.getStylesheetResourcePath();
+    }
+
+    /**
+     * Sets the stylesheet used by SnapFX and applies it immediately to the primary and floating window scenes.
+     *
+     * <p>Passing {@code null} or blank restores the default stylesheet ({@code /snapfx.css}).</p>
+     *
+     * @param stylesheetResourcePath classpath resource path (for example {@code /snapfx-dark.css})
+     *                              or an absolute stylesheet URL
+     * @throws IllegalArgumentException when the classpath resource cannot be resolved
+     */
+    public void setThemeStylesheet(String stylesheetResourcePath) {
+        String previousStylesheetUrl = themeStylesheetManager.setStylesheetResourcePath(stylesheetResourcePath);
+        applyManagedThemeStylesheetToManagedScenes(previousStylesheetUrl);
     }
 
     /**
@@ -339,6 +405,22 @@ public class SnapFX {
         if (shortcutScene != null) {
             shortcutScene.addEventFilter(KeyEvent.KEY_PRESSED, shortcutKeyEventFilter);
         }
+    }
+
+    private void applyManagedThemeStylesheetToManagedScenes(String previousStylesheetUrl) {
+        if (primaryStage != null) {
+            applyManagedThemeStylesheet(primaryStage.getScene(), previousStylesheetUrl);
+        }
+        if (rootContainer != null) {
+            applyManagedThemeStylesheet(rootContainer.getScene(), previousStylesheetUrl);
+        }
+        for (DockFloatingWindow floatingWindow : floatingWindows) {
+            applyManagedThemeStylesheet(floatingWindow.getScene(), previousStylesheetUrl);
+        }
+    }
+
+    private void applyManagedThemeStylesheet(Scene scene, String previousStylesheetUrl) {
+        themeStylesheetManager.applyToScene(scene, previousStylesheetUrl);
     }
 
     private void bindFloatingShortcutScene(DockFloatingWindow floatingWindow) {
