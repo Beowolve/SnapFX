@@ -116,7 +116,6 @@ public class SnapFX {
     private DockCloseBehavior defaultCloseBehavior = DockCloseBehavior.HIDE;
     private Function<DockCloseRequest, DockCloseDecision> onCloseRequest;
     private Consumer<DockCloseResult> onCloseHandled;
-    private Consumer<DockNode> legacyNodeCloseRequest;
     private DockFloatingPinButtonMode floatingPinButtonMode = DockFloatingPinButtonMode.AUTO;
     private boolean defaultFloatingAlwaysOnTop = true;
     private boolean allowFloatingPinToggle = true;
@@ -1286,11 +1285,6 @@ public class SnapFX {
             return;
         }
 
-        if (legacyNodeCloseRequest != null && request.nodes().size() == 1 && request.source() != DockCloseSource.FLOATING_WINDOW) {
-            legacyNodeCloseRequest.accept(request.nodes().getFirst());
-            return;
-        }
-
         DockCloseDecision decision = DockCloseDecision.DEFAULT;
         if (onCloseRequest != null) {
             DockCloseDecision resolved = onCloseRequest.apply(request);
@@ -1642,15 +1636,6 @@ public class SnapFX {
             return;
         }
         floatingWindow.setAlwaysOnTop(alwaysOnTop, DockFloatingPinSource.API);
-    }
-
-    /**
-     * Legacy close hook retained for compatibility.
-     * Prefer {@link #setOnCloseRequest(Function)} for source-aware close handling.
-     */
-    @Deprecated(forRemoval = false)
-    public void setOnNodeCloseRequest(Consumer<DockNode> handler) {
-        legacyNodeCloseRequest = handler;
     }
 
     public int getDockNodeCount(String id) {
