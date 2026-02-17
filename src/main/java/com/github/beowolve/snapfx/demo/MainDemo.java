@@ -60,6 +60,18 @@ public class MainDemo extends Application {
     private static final System.Logger LOGGER = System.getLogger(MainDemo.class.getName());
     public static final String FX_FONT_WEIGHT_BOLD = "-fx-font-weight: bold;";
     private static final String DIRTY_TITLE_SUFFIX = " *";
+    private static final String JSON_FILE_GLOB = "*.json";
+    private static final String ALL_FILES_GLOB = "*.*";
+    private static final String[] TEXT_FILES_GLOBS = {"*.txt", "*.md", "*.java", "*.xml", JSON_FILE_GLOB, "*.properties"};
+    private static final String JSON_FILES_FILTER_LABEL = "JSON files";
+    private static final String TEXT_FILES_FILTER_LABEL = "Text files";
+    private static final String ALL_FILES_FILTER_LABEL = "All files";
+    private static final String SAVE_LAYOUT_CHOOSER_TITLE = "Save layout";
+    private static final String LOAD_LAYOUT_CHOOSER_TITLE = "Load layout";
+    private static final String OPEN_TEXT_FILE_CHOOSER_TITLE = "Open text file";
+    private static final String SAVE_EDITOR_CHOOSER_TITLE = "Save editor content";
+    private static final String DEFAULT_LAYOUT_FILE_NAME = "snapfx-layout.json";
+    private static final String DOCUMENTS_DIRECTORY_NAME = "Documents";
     private static final List<String> APP_ICON_RESOURCES = List.of(
         "/images/16/snapfx.png",
         "/images/24/snapfx.png",
@@ -798,19 +810,7 @@ public class MainDemo extends Application {
     }
 
     private void saveLayout() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Save layout");
-        fileChooser.getExtensionFilters().add(
-            new FileChooser.ExtensionFilter("JSON files", "*.json")
-        );
-        fileChooser.setInitialFileName("snapfx-layout.json");
-
-        // Set initial directory to user's Documents folder
-        String documentsPath = System.getProperty("user.home") + File.separator + "Documents";
-        File documentsDir = new File(documentsPath);
-        if (documentsDir.exists() && documentsDir.isDirectory()) {
-            fileChooser.setInitialDirectory(documentsDir);
-        }
+        FileChooser fileChooser = createLayoutSaveFileChooser();
 
         File file = fileChooser.showSaveDialog(primaryStage);
         if (file != null) {
@@ -825,18 +825,7 @@ public class MainDemo extends Application {
     }
 
     private void loadLayout() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Load layout");
-        fileChooser.getExtensionFilters().add(
-            new FileChooser.ExtensionFilter("JSON files", "*.json")
-        );
-
-        // Set initial directory to user's Documents folder
-        String documentsPath = System.getProperty("user.home") + File.separator + "Documents";
-        File documentsDir = new File(documentsPath);
-        if (documentsDir.exists() && documentsDir.isDirectory()) {
-            fileChooser.setInitialDirectory(documentsDir);
-        }
+        FileChooser fileChooser = createLayoutLoadFileChooser();
 
         File file = fileChooser.showOpenDialog(primaryStage);
         if (file != null) {
@@ -938,12 +927,7 @@ public class MainDemo extends Application {
     }
 
     private void openTextFileInEditor() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Open text file");
-        fileChooser.getExtensionFilters().addAll(
-            new FileChooser.ExtensionFilter("Text files", "*.txt", "*.md", "*.java", "*.xml", "*.json", "*.properties"),
-            new FileChooser.ExtensionFilter("All files", "*.*")
-        );
+        FileChooser fileChooser = createEditorOpenFileChooser();
         File file = fileChooser.showOpenDialog(primaryStage);
         if (file == null) {
             return;
@@ -1028,25 +1012,97 @@ public class MainDemo extends Application {
     }
 
     private File chooseEditorSaveTargetFile(EditorDocumentState state) {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Save editor content");
-        fileChooser.getExtensionFilters().addAll(
-            new FileChooser.ExtensionFilter("Text files", "*.txt", "*.md", "*.java", "*.xml", "*.json", "*.properties"),
-            new FileChooser.ExtensionFilter("All files", "*.*")
-        );
-
-        if (state != null && state.filePath != null) {
-            File currentFile = state.filePath.toFile();
-            File parentFile = currentFile.getParentFile();
-            if (parentFile != null && parentFile.isDirectory()) {
-                fileChooser.setInitialDirectory(parentFile);
-            }
-            fileChooser.setInitialFileName(currentFile.getName());
-        } else if (state != null && state.baseTitle != null && !state.baseTitle.isBlank()) {
-            fileChooser.setInitialFileName(state.baseTitle);
-        }
-
+        FileChooser fileChooser = createEditorSaveFileChooser(state);
         return fileChooser.showSaveDialog(primaryStage);
+    }
+
+    private FileChooser createLayoutSaveFileChooser() {
+        FileChooser fileChooser = createFileChooser(
+            SAVE_LAYOUT_CHOOSER_TITLE,
+            List.of(createJsonFileExtensionFilter())
+        );
+        fileChooser.setInitialFileName(DEFAULT_LAYOUT_FILE_NAME);
+        applyDocumentsInitialDirectory(fileChooser);
+        return fileChooser;
+    }
+
+    private FileChooser createLayoutLoadFileChooser() {
+        FileChooser fileChooser = createFileChooser(
+            LOAD_LAYOUT_CHOOSER_TITLE,
+            List.of(createJsonFileExtensionFilter())
+        );
+        applyDocumentsInitialDirectory(fileChooser);
+        return fileChooser;
+    }
+
+    private FileChooser createEditorOpenFileChooser() {
+        return createFileChooser(OPEN_TEXT_FILE_CHOOSER_TITLE, createEditorFileExtensionFilters());
+    }
+
+    private FileChooser createEditorSaveFileChooser(EditorDocumentState state) {
+        FileChooser fileChooser = createFileChooser(SAVE_EDITOR_CHOOSER_TITLE, createEditorFileExtensionFilters());
+        Path currentFilePath = state == null ? null : state.filePath;
+        String baseTitle = state == null ? null : state.baseTitle;
+        applyEditorSaveChooserDefaults(fileChooser, currentFilePath, baseTitle);
+        return fileChooser;
+    }
+
+    static FileChooser createFileChooser(String title, List<FileChooser.ExtensionFilter> extensionFilters) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle(title);
+        if (extensionFilters != null) {
+            fileChooser.getExtensionFilters().addAll(extensionFilters);
+        }
+        return fileChooser;
+    }
+
+    static FileChooser.ExtensionFilter createJsonFileExtensionFilter() {
+        return new FileChooser.ExtensionFilter(JSON_FILES_FILTER_LABEL, JSON_FILE_GLOB);
+    }
+
+    static List<FileChooser.ExtensionFilter> createEditorFileExtensionFilters() {
+        return List.of(
+            new FileChooser.ExtensionFilter(TEXT_FILES_FILTER_LABEL, TEXT_FILES_GLOBS),
+            new FileChooser.ExtensionFilter(ALL_FILES_FILTER_LABEL, ALL_FILES_GLOB)
+        );
+    }
+
+    static void applyEditorSaveChooserDefaults(FileChooser fileChooser, Path currentFilePath, String baseTitle) {
+        if (fileChooser == null) {
+            return;
+        }
+        if (currentFilePath != null) {
+            File currentFile = currentFilePath.toFile();
+            File parentFile = currentFile.getParentFile();
+            applyInitialDirectoryIfDirectory(fileChooser, parentFile);
+            fileChooser.setInitialFileName(currentFile.getName());
+            return;
+        }
+        if (baseTitle != null && !baseTitle.isBlank()) {
+            fileChooser.setInitialFileName(baseTitle);
+        }
+    }
+
+    private static void applyDocumentsInitialDirectory(FileChooser fileChooser) {
+        if (fileChooser == null) {
+            return;
+        }
+        applyInitialDirectoryIfDirectory(fileChooser, resolveDocumentsDirectory());
+    }
+
+    private static void applyInitialDirectoryIfDirectory(FileChooser fileChooser, File directory) {
+        if (fileChooser == null || directory == null || !directory.exists() || !directory.isDirectory()) {
+            return;
+        }
+        fileChooser.setInitialDirectory(directory);
+    }
+
+    private static File resolveDocumentsDirectory() {
+        String userHome = System.getProperty("user.home");
+        if (userHome == null || userHome.isBlank()) {
+            return null;
+        }
+        return new File(userHome + File.separator + DOCUMENTS_DIRECTORY_NAME);
     }
 
     private void registerEditorNode(DockNode node) {

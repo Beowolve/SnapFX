@@ -102,6 +102,7 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 
 - ✅ **MainDemo close-hook sample**: Demo now shows editor-specific save prompts on close requests
 - ✅ **MainDemo editor file actions**: Demo now includes open/save/save-as workflow for `SerializableEditor` nodes
+- ✅ **MainDemo FileChooser consolidation**: Layout and editor open/save dialogs now share reusable chooser builders, filter constants, and save-default resolution helpers
 - ✅ **MainDemo layout menu icon parity**: Hidden/Floating menu entries display dock-node icons when available
 - ✅ **Maximize/restore**: Custom floating title-bar toggle implemented
 - ✅ **Maximized drag restore**: Dragging the title bar from maximized restores and moves the window

@@ -29,8 +29,12 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.layout.StackPane;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicInteger;
 
 class MainDemoTest {
@@ -156,6 +160,68 @@ class MainDemoTest {
             subset
         );
         assertEquals(EnumSet.noneOf(DockFloatingSnapTarget.class), empty);
+    }
+
+    @Test
+    void testCreateJsonFileExtensionFilterUsesJsonGlob() {
+        FileChooser.ExtensionFilter filter = MainDemo.createJsonFileExtensionFilter();
+
+        assertEquals("JSON files", filter.getDescription());
+        assertEquals(List.of("*.json"), filter.getExtensions());
+    }
+
+    @Test
+    void testCreateEditorFileExtensionFiltersContainTextAndAllFilters() {
+        List<FileChooser.ExtensionFilter> filters = MainDemo.createEditorFileExtensionFilters();
+
+        assertEquals(2, filters.size());
+        assertEquals("Text files", filters.getFirst().getDescription());
+        assertEquals(
+            List.of("*.txt", "*.md", "*.java", "*.xml", "*.json", "*.properties"),
+            filters.getFirst().getExtensions()
+        );
+        assertEquals("All files", filters.getLast().getDescription());
+        assertEquals(List.of("*.*"), filters.getLast().getExtensions());
+    }
+
+    @Test
+    void testCreateFileChooserAppliesTitleAndFilters() {
+        FileChooser.ExtensionFilter jsonFilter = MainDemo.createJsonFileExtensionFilter();
+        FileChooser chooser = MainDemo.createFileChooser("Custom chooser", List.of(jsonFilter));
+
+        assertEquals("Custom chooser", chooser.getTitle());
+        assertEquals(1, chooser.getExtensionFilters().size());
+        assertEquals(List.of("*.json"), chooser.getExtensionFilters().getFirst().getExtensions());
+    }
+
+    @Test
+    void testApplyEditorSaveChooserDefaultsUsesCurrentFilePath() throws IOException {
+        Path tempDirectory = Files.createTempDirectory("snapfx-main-demo-test");
+        try {
+            Path filePath = tempDirectory.resolve("editor-content.txt");
+            FileChooser chooser = new FileChooser();
+
+            MainDemo.applyEditorSaveChooserDefaults(chooser, filePath, "fallback-name.txt");
+
+            assertNotNull(chooser.getInitialDirectory());
+            assertEquals(
+                tempDirectory.toFile().getCanonicalFile(),
+                chooser.getInitialDirectory().getCanonicalFile()
+            );
+            assertEquals("editor-content.txt", chooser.getInitialFileName());
+        } finally {
+            Files.deleteIfExists(tempDirectory);
+        }
+    }
+
+    @Test
+    void testApplyEditorSaveChooserDefaultsUsesBaseTitleWhenPathMissing() {
+        FileChooser chooser = new FileChooser();
+
+        MainDemo.applyEditorSaveChooserDefaults(chooser, null, "EditorTitle.md");
+
+        assertNull(chooser.getInitialDirectory());
+        assertEquals("EditorTitle.md", chooser.getInitialFileName());
     }
 
     private void runOnFxThreadAndWait(Runnable action) {

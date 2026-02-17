@@ -6,6 +6,12 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 
 ## Unreleased
 
+### Build and Test
+- ✅ Added `MainDemoTest` coverage for the `MainDemo` FileChooser helper refactor (shared layout/editor chooser builders and editor save-default resolution); full suite now runs with 250 tests.
+
+### Framework and UI
+- ✅ Refactored `MainDemo` FileChooser setup into reusable helper functions shared by `saveLayout`/`loadLayout` and `openTextFileInEditor`/`chooseEditorSaveTargetFile`, with centralized extension-filter constants.
+
 ## v0.2.6 - 2026-02-17
 
 ### Build and Test
