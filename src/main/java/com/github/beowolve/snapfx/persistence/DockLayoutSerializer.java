@@ -18,6 +18,10 @@ public class DockLayoutSerializer {
     public static final String DOCK_SPLIT_PANE = "DockSplitPane";
     public static final String DOCK_TAB_PANE = "DockTabPane";
 
+    public static final String TYPE_JSON_SUFFIX = ".type";
+    public static final String ID_JSON_SUFFIX = ".id";
+    public static final String TITLE_JSON_SUFFIX = ".title";
+
     private final DockGraph dockGraph;
     private final Gson gson;
     private final Map<String, DockNode> nodeRegistry;
@@ -187,7 +191,7 @@ public class DockLayoutSerializer {
             throw loadError("Layout element is missing.", path);
         }
         if (isBlank(data.type)) {
-            throw missingFieldError(path + ".type");
+            throw missingFieldError(path + TYPE_JSON_SUFFIX);
         }
         return switch (data.type) {
             case DOCK_NODE -> deserializeDockNode(data, path);
@@ -205,7 +209,7 @@ public class DockLayoutSerializer {
         if (data.children != null && data.children.length > 0) {
             throw loadError(
                 "Unsupported container element type '" + data.type + "'.",
-                path + ".type"
+                path + TYPE_JSON_SUFFIX
             );
         }
         return deserializeDockNode(data, path, data.type);
@@ -214,16 +218,16 @@ public class DockLayoutSerializer {
     private DockNode deserializeDockNode(ElementData data, String path, String unsupportedType) throws DockLayoutLoadException {
         boolean strictFields = isBlank(unsupportedType);
         if (strictFields && isBlank(data.id)) {
-            throw missingFieldError(path + ".id");
+            throw missingFieldError(path + ID_JSON_SUFFIX);
         }
         if (strictFields && isBlank(data.title)) {
-            throw missingFieldError(path + ".title");
+            throw missingFieldError(path + TITLE_JSON_SUFFIX);
         }
 
         String resolvedDockNodeId = resolveDockNodeId(data, unsupportedType);
         String resolvedTitle = resolveNodeTitle(data, resolvedDockNodeId, unsupportedType);
         String resolvedLayoutId = isBlank(data.id) ? null : data.id;
-        String typePath = isBlank(unsupportedType) ? path : path + ".type";
+        String typePath = isBlank(unsupportedType) ? path : path + TYPE_JSON_SUFFIX;
 
         DockNode node = createNodeViaFactory(
             data,
