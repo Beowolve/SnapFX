@@ -150,118 +150,163 @@ public class DockGraph {
         bumpRevision();
     }
 
+    /**
+     * Docks a node as a new tab relative to the target element.
+     * If the target is not already in a TabPane, a new TabPane will be created to hold both the target and the new node.
+     * If the target is already in a TabPane, the new node will be added to that TabPane.
+     * @param node The node to dock
+     * @param target The target element to dock relative to
+     * @param tabIndex Optional index to insert the new tab at (only applies if target is a TabPane or already in a TabPane). If null, the new tab will be added right after the target tab (or at the end if target is not a tab itself).
+     */
     private void dockAsTab(DockNode node, DockElement target, Integer tabIndex) {
         DockContainer parent = target.getParent();
 
         // Optimization: If target is already in a TabPane, add node directly to that TabPane
         if (parent instanceof DockTabPane existingTabPane) {
-            if (tabIndex != null) {
-                existingTabPane.addChild(node, tabIndex);
-            } else {
-                // Find the index of the target
-                int targetIndex = existingTabPane.getChildren().indexOf(target);
-
-                // Add the new node right after the target
-                if (targetIndex >= 0 && targetIndex < existingTabPane.getChildren().size() - 1) {
-                    existingTabPane.getChildren().add(targetIndex + 1, node);
-                    node.setParent(existingTabPane);
-                } else {
-                    // Add at the end
-                    existingTabPane.addChild(node);
-                }
-            }
-
-            // Select the newly added tab
-            existingTabPane.setSelectedIndex(existingTabPane.getChildren().indexOf(node));
-
-            bumpRevision();
+            dockToParentTabPane(node, target, tabIndex, existingTabPane);
             return;
         }
 
-        if (target instanceof DockNode) {
-            // Create a TabPane that contains both nodes
-            DockTabPane tabPane = new DockTabPane();
-
-            if (parent != null) {
-                // Compute index before removal
-                int index = parent.getChildren().indexOf(target);
-                // Remove target directly from the children list without triggering cleanup
-                if (index >= 0) {
-                    parent.getChildren().remove(index);
-                    target.setParent(null);
-                }
-                // Insert TabPane at the correct position
-                if (index >= 0 && index <= parent.getChildren().size()) {
-                    parent.getChildren().add(index, tabPane);
-                } else {
-                    parent.addChild(tabPane);
-                }
-                tabPane.setParent(parent);
-            } else {
-                // Target is root
-                setRoot(tabPane);
+        switch (target) {
+            case DockNode ignored -> replaceTargetWithTabPane(node, target, tabIndex, parent);
+            case DockTabPane tabPane -> dockToTargetTabPane(node, tabIndex, tabPane);
+            case DockSplitPane ignored -> handleDockAsTabToSplitPane(node, target, tabIndex);
+            default -> {
+                // Unsupported target type - should not happen
             }
-
-            if (tabIndex != null && tabIndex <= 0) {
-                tabPane.addChild(node);
-                tabPane.addChild(target);
-            } else {
-                tabPane.addChild(target);
-                tabPane.addChild(node);
-            }
-
-            // Select the newly added tab (index 1, since we added target first)
-            tabPane.setSelectedIndex(tabPane.getChildren().indexOf(node));
-
-        } else if (target instanceof DockTabPane tabPane) {
-            // Add directly to the TabPane
-            if (tabIndex != null) {
-                tabPane.addChild(node, tabIndex);
-            } else {
-                tabPane.addChild(node);
-            }
-
-            // Select the newly added tab (last index)
-            tabPane.setSelectedIndex(tabPane.getChildren().indexOf(node));
-        } else if (target instanceof DockSplitPane) {
-            // If target is a SplitPane, we can't add as tab directly
-            // This should not happen in normal usage, but handle gracefully
-            // by wrapping the target and new node in a TabPane
-            DockTabPane tabPane = new DockTabPane();
-            DockContainer targetParent = target.getParent();
-
-            if (targetParent != null) {
-                int index = targetParent.getChildren().indexOf(target);
-                if (index >= 0) {
-                    targetParent.getChildren().remove(index);
-                    target.setParent(null);
-                }
-                if (index >= 0 && index <= targetParent.getChildren().size()) {
-                    targetParent.getChildren().add(index, tabPane);
-                } else {
-                    targetParent.addChild(tabPane);
-                }
-                tabPane.setParent(targetParent);
-            } else {
-                setRoot(tabPane);
-            }
-
-            if (tabIndex != null && tabIndex <= 0) {
-                tabPane.addChild(node);
-                tabPane.addChild(target);
-            } else {
-                tabPane.addChild(target);
-                tabPane.addChild(node);
-            }
-            tabPane.setSelectedIndex(tabPane.getChildren().indexOf(node));
         }
     }
 
+    /**
+     * Handles docking as tab when the target is a SplitPane (which cannot contain tabs directly).
+     * @param node The node to dock
+     * @param target The target SplitPane to dock relative to
+     * @param tabIndex Optional index to insert the new tab at (only applies if target is a TabPane or already in a TabPane). If null, the new tab will be added right after the target tab (or at the end if target is not a tab itself).
+     */
+    private void handleDockAsTabToSplitPane(DockNode node, DockElement target, Integer tabIndex) {
+        // If target is a SplitPane, we can't add as tab directly
+        // This should not happen in normal usage, but handle gracefully
+        // by wrapping the target and new node in a TabPane
+        DockTabPane tabPane = new DockTabPane();
+        DockContainer targetParent = target.getParent();
+
+        if (targetParent != null) {
+            int index = targetParent.getChildren().indexOf(target);
+            if (index >= 0) {
+                targetParent.getChildren().remove(index);
+                target.setParent(null);
+            }
+            if (index >= 0 && index <= targetParent.getChildren().size()) {
+                targetParent.getChildren().add(index, tabPane);
+            } else {
+                targetParent.addChild(tabPane);
+            }
+            tabPane.setParent(targetParent);
+        } else {
+            setRoot(tabPane);
+        }
+
+        if (tabIndex != null && tabIndex <= 0) {
+            tabPane.addChild(node);
+            tabPane.addChild(target);
+        } else {
+            tabPane.addChild(target);
+            tabPane.addChild(node);
+        }
+        tabPane.setSelectedIndex(tabPane.getChildren().indexOf(node));
+    }
+
+    /**
+     * Docks a node directly to an existing TabPane.
+     * @param node The node to dock
+     * @param tabIndex Optional index to insert the new tab at. If null, the new tab will be added right after the target tab (or at the end if target is not a tab itself).
+     * @param tabPane The TabPane to dock into
+     */
+    private static void dockToTargetTabPane(DockNode node, Integer tabIndex, DockTabPane tabPane) {
+        // Add directly to the TabPane
+        if (tabIndex != null) {
+            tabPane.addChild(node, tabIndex);
+        } else {
+            tabPane.addChild(node);
+        }
+
+        // Select the newly added tab (last index)
+        tabPane.setSelectedIndex(tabPane.getChildren().indexOf(node));
+    }
+
+    /**
+     * Replaces the target element with a new TabPane that contains both the target and the new node.
+     * @param node The node to dock
+     * @param target The target element to dock relative to
+     * @param tabIndex Optional index to insert the new tab at. If null, the new tab will be added right after the target tab (or at the end if target is not a tab itself).
+     * @param parent The parent container of the target element, or null if the target is root
+     */
+    private void replaceTargetWithTabPane(DockNode node, DockElement target, Integer tabIndex, DockContainer parent) {
+        // Create a TabPane that contains both nodes
+        DockTabPane tabPane = new DockTabPane();
+
+        if (parent != null) {
+            // Compute index before removal
+            int index = parent.getChildren().indexOf(target);
+            // Remove target directly from the children list without triggering cleanup
+            if (index >= 0) {
+                parent.getChildren().remove(index);
+                target.setParent(null);
+            }
+            // Insert TabPane at the correct position
+            if (index >= 0 && index <= parent.getChildren().size()) {
+                parent.getChildren().add(index, tabPane);
+            } else {
+                parent.addChild(tabPane);
+            }
+            tabPane.setParent(parent);
+        } else {
+            // Target is root
+            setRoot(tabPane);
+        }
+
+        if (tabIndex != null && tabIndex <= 0) {
+            tabPane.addChild(node);
+            tabPane.addChild(target);
+        } else {
+            tabPane.addChild(target);
+            tabPane.addChild(node);
+        }
+
+        // Select the newly added tab (index 1, since we added target first)
+        tabPane.setSelectedIndex(tabPane.getChildren().indexOf(node));
+    }
+
+    /**
+     * Docks a node to an existing TabPane that already contains the target element.
+     * @param node The node to dock
+     * @param target The target element to dock relative to (must be a child of the existing TabPane)
+     * @param tabIndex Optional index to insert the new tab at. If null, the new tab will be added right after the target tab (or at the end if target is not a tab itself).
+     * @param existingTabPane The existing TabPane that already contains the target element
+     */
+    private void dockToParentTabPane(DockNode node, DockElement target, Integer tabIndex, DockTabPane existingTabPane) {
+        if (tabIndex != null) {
+            existingTabPane.addChild(node, tabIndex);
+        } else {
+            // Find the index of the target
+            int targetIndex = existingTabPane.getChildren().indexOf(target);
+
+            // Add the new node right after the target
+            if (targetIndex >= 0 && targetIndex < existingTabPane.getChildren().size() - 1) {
+                existingTabPane.getChildren().add(targetIndex + 1, node);
+                node.setParent(existingTabPane);
+            } else {
+                // Add at the end
+                existingTabPane.addChild(node);
+            }
+        }
+
+        // Select the newly added tab
+        existingTabPane.setSelectedIndex(existingTabPane.getChildren().indexOf(node));
+    }
+
     private void dockAsSplit(DockNode node, DockElement target, DockPosition position) {
-        Orientation orientation =
-            (position == DockPosition.LEFT || position == DockPosition.RIGHT)
-                ? Orientation.HORIZONTAL
-                : Orientation.VERTICAL;
+        Orientation orientation = getOrientationFromDockPosition(position);
 
         DockElement effectiveTarget = resolveSplitDockTarget(target, position, orientation);
         DockContainer parent = effectiveTarget.getParent();
@@ -354,6 +399,15 @@ public class DockGraph {
         }
     }
 
+    /**
+     * Determines the required SplitPane orientation based on the dock position.
+     */
+    private static Orientation getOrientationFromDockPosition(DockPosition position) {
+        return (position == DockPosition.LEFT || position == DockPosition.RIGHT)
+                ? Orientation.HORIZONTAL
+                : Orientation.VERTICAL;
+    }
+
     private DockElement resolveSplitDockTarget(DockElement target, DockPosition position, Orientation orientation) {
         if (!(target instanceof DockSplitPane splitPane)) {
             return target;
@@ -387,6 +441,20 @@ public class DockGraph {
         node.removeFromParent();
 
         // Always normalize root after removal because containers may flatten themselves.
+        DockElement newRoot = getNormalizedRoot();
+
+        if (rootWasParent || newRoot != getRoot()) {
+            setRoot(newRoot);
+        } else {
+            bumpRevision();
+        }
+    }
+
+    /**
+     * After undocking, the parent container may have flattened itself if it had only one remaining child.
+     * This method checks for that case and returns the new root if it changed, or the existing root if not.
+     */
+    private DockElement getNormalizedRoot() {
         DockElement newRoot = getRoot();
         if (getRoot() instanceof DockContainer container) {
             if (container.getChildren().isEmpty()) {
@@ -400,12 +468,7 @@ public class DockGraph {
                 newRoot = container.getChildren().getFirst();
             }
         }
-
-        if (rootWasParent || newRoot != getRoot()) {
-            setRoot(newRoot);
-        } else {
-            bumpRevision();
-        }
+        return newRoot;
     }
 
     /**
@@ -457,10 +520,7 @@ public class DockGraph {
         // Special case: Moving within the same SplitPane with the same orientation
         // Check if we're trying to dock in a way that would keep it in the same parent
         if (position != DockPosition.CENTER && sourceParent instanceof DockSplitPane sourceSplit) {
-            Orientation requiredOrientation =
-                (position == DockPosition.LEFT || position == DockPosition.RIGHT)
-                    ? Orientation.HORIZONTAL
-                    : Orientation.VERTICAL;
+            Orientation requiredOrientation = getOrientationFromDockPosition(position);
 
             // Check if target's parent is the same SplitPane with matching orientation
             if (targetParent == sourceParent && sourceSplit.getOrientation() == requiredOrientation) {
@@ -516,10 +576,7 @@ public class DockGraph {
             int nodeIndex = sourceParent.getChildren().indexOf(node);
             int targetIndex = sourceParent.getChildren().indexOf(target);
 
-            Orientation requiredOrientation =
-                (position == DockPosition.LEFT || position == DockPosition.RIGHT)
-                    ? Orientation.HORIZONTAL
-                    : Orientation.VERTICAL;
+            Orientation requiredOrientation = getOrientationFromDockPosition(position);
 
             if (sourceParent instanceof DockSplitPane split && split.getOrientation() == requiredOrientation) {
                 int expectedIndex = (position == DockPosition.LEFT || position == DockPosition.TOP) ? targetIndex : targetIndex + 1;
@@ -587,6 +644,12 @@ public class DockGraph {
         return null;
     }
 
+    /**
+     * Checks if the ancestorCandidate is an ancestor of the element in the tree.
+     * @param ancestorCandidate The potential ancestor element
+     * @param element The element to check against
+     * @return true if ancestorCandidate is an ancestor of element, false otherwise
+     */
     private boolean isAncestor(DockElement ancestorCandidate, DockElement element) {
         if (ancestorCandidate == null || element == null) {
             return false;
@@ -602,6 +665,14 @@ public class DockGraph {
         return false;
     }
 
+    /**
+     * Checks if docking the node to the target at the given position would be a no-op because it's already in that position.
+     * This specifically checks for the case of docking to the edge of a SplitPane where the node is already located.
+     * @param node The node being docked
+     * @param target The target element being docked to
+     * @param position The position relative to the target
+     * @return true if this would be a no-op, false otherwise
+     */
     private boolean isNoOpDropToParentSplitEdge(DockNode node, DockElement target, DockPosition position) {
         if (node == null || target == null || position == null) {
             return false;
@@ -615,10 +686,7 @@ public class DockGraph {
         if (node.getParent() != splitPane) {
             return false;
         }
-        Orientation requiredOrientation =
-            (position == DockPosition.LEFT || position == DockPosition.RIGHT)
-                ? Orientation.HORIZONTAL
-                : Orientation.VERTICAL;
+        Orientation requiredOrientation = getOrientationFromDockPosition(position);
         if (splitPane.getOrientation() != requiredOrientation) {
             return false;
         }
@@ -636,6 +704,12 @@ public class DockGraph {
         return nodeIndex == lastIndex;
     }
 
+    /**
+     * Resolves the target TabPane for docking as tab.
+     * If the target is a TabPane, returns it directly.
+     * If the target is a child of a TabPane, returns that TabPane.
+     * Otherwise, returns null.
+     */
     private DockTabPane resolveTargetTabPane(DockElement target) {
         if (target instanceof DockTabPane tabPane) {
             return tabPane;
@@ -647,6 +721,14 @@ public class DockGraph {
         return null;
     }
 
+    /**
+     * Moves a node within the same TabPane to a new position relative to the target tab.
+     * @param tabPane The TabPane containing both the node and the target
+     * @param node The node being moved
+     * @param target The target element to move relative to
+     * @param tabIndex Optional index to insert the new tab at. If null, the new tab will be added right after the target tab (or at the end if target is not a tab itself).
+     * @return true if the node was moved, false if it was already in the desired position
+     */
     private boolean moveWithinTabPane(DockTabPane tabPane, DockNode node, DockElement target, Integer tabIndex) {
         int sourceIndex = tabPane.getChildren().indexOf(node);
         if (sourceIndex < 0) {

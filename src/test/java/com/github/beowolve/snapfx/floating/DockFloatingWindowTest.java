@@ -3,6 +3,7 @@ package com.github.beowolve.snapfx.floating;
 import com.github.beowolve.snapfx.model.DockNode;
 import com.github.beowolve.snapfx.model.DockPosition;
 import com.github.beowolve.snapfx.model.DockTabPane;
+import com.github.beowolve.snapfx.theme.DockThemeStyleClasses;
 import com.github.beowolve.snapfx.view.DockNodeView;
 import javafx.application.Platform;
 import javafx.scene.Node;
@@ -783,8 +784,8 @@ class DockFloatingWindowTest {
             var standardControlButtons = titleBar.getChildren().stream()
                 .filter(Button.class::isInstance)
                 .map(Button.class::cast)
-                .filter(button -> button.getStyleClass().contains("dock-window-control-button"))
-                .filter(button -> !button.getStyleClass().contains("dock-window-pin-button"))
+                .filter(button -> button.getStyleClass().contains(DockThemeStyleClasses.DOCK_WINDOW_CONTROL_BUTTON))
+                .filter(button -> !button.getStyleClass().contains(DockThemeStyleClasses.DOCK_WINDOW_PIN_BUTTON))
                 .toList();
 
             assertEquals(3, standardControlButtons.size());
@@ -889,7 +890,7 @@ class DockFloatingWindowTest {
         invokeRebuildLayout(floatingWindow);
 
         DockNodeView nodeView = floatingWindow.getDockNodeView(node);
-        assertTrue(nodeView != null);
+        assertNotNull(nodeView);
         assertFalse(nodeView.isCloseButtonVisible());
         assertFalse(nodeView.isFloatButtonVisible());
     }
@@ -967,12 +968,12 @@ class DockFloatingWindowTest {
             assertNotNull(attachItem);
             assertNotNull(alwaysOnTopItem);
             assertNotNull(attachItem.getGraphic());
-            assertTrue(hasStyleClass(attachItem.getGraphic(), "dock-control-icon-attach"));
+            assertTrue(hasStyleClass(attachItem.getGraphic(), DockThemeStyleClasses.DOCK_CONTROL_ICON_ATTACH));
 
             invokeContextMenuOnShowing(contextMenu);
             assertNotNull(alwaysOnTopItem.getGraphic());
-            assertTrue(hasStyleClass(alwaysOnTopItem.getGraphic(), "dock-control-icon-pin-on")
-                || hasStyleClass(alwaysOnTopItem.getGraphic(), "dock-control-icon-pin-off"));
+            assertTrue(hasStyleClass(alwaysOnTopItem.getGraphic(), DockThemeStyleClasses.DOCK_CONTROL_ICON_PIN_ON)
+                || hasStyleClass(alwaysOnTopItem.getGraphic(), DockThemeStyleClasses.DOCK_CONTROL_ICON_PIN_OFF));
         });
     }
 
@@ -1227,7 +1228,7 @@ class DockFloatingWindowTest {
         return titleBar.getChildren().stream()
             .filter(Button.class::isInstance)
             .map(Button.class::cast)
-            .filter(button -> button.getStyleClass().contains("dock-window-pin-button"))
+            .filter(button -> button.getStyleClass().contains(DockThemeStyleClasses.DOCK_WINDOW_PIN_BUTTON))
             .findFirst()
             .orElse(null);
     }

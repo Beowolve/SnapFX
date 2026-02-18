@@ -3,6 +3,7 @@ package com.github.beowolve.snapfx.view;
 import com.github.beowolve.snapfx.close.DockCloseSource;
 import com.github.beowolve.snapfx.dnd.DockDragService;
 import com.github.beowolve.snapfx.model.*;
+import com.github.beowolve.snapfx.theme.DockThemeStyleClasses;
 import javafx.application.Platform;
 import javafx.event.Event;
 import javafx.geometry.BoundingBox;
@@ -122,7 +123,7 @@ class DockLayoutEngineTest extends ApplicationTest {
 
         TabPane tabPane = (TabPane) layoutEngine.buildSceneGraph();
         assertEquals("Node 1", tabPane.getTabs().get(0).getText());
-        assertTrue(tabPane.getTabs().get(0).getStyleClass().contains("dock-tab-graphic"));
+        assertTrue(tabPane.getTabs().get(0).getStyleClass().contains(DockThemeStyleClasses.DOCK_TAB_GRAPHIC));
 
         node1.setTitle("Renamed");
         assertEquals("Renamed", tabPane.getTabs().get(0).getText());
@@ -243,8 +244,8 @@ class DockLayoutEngineTest extends ApplicationTest {
         assertTrue(itemLabels.contains("Close Others"));
         assertTrue(itemLabels.contains("Close All"));
         assertTrue(itemLabels.contains("Float"));
-        assertMenuItemHasIcon(contextMenu, "Close", "dock-control-icon-close");
-        assertMenuItemHasIcon(contextMenu, "Float", "dock-control-icon-float");
+        assertMenuItemHasIcon(contextMenu, "Close", DockThemeStyleClasses.DOCK_CONTROL_ICON_CLOSE);
+        assertMenuItemHasIcon(contextMenu, "Float", DockThemeStyleClasses.DOCK_CONTROL_ICON_FLOAT);
     }
 
     @Test
@@ -316,14 +317,14 @@ class DockLayoutEngineTest extends ApplicationTest {
         Button closeButton = nodeView.getHeader().getChildren().stream()
             .filter(Button.class::isInstance)
             .map(Button.class::cast)
-            .filter(button -> !button.getStyleClass().contains("dock-node-float-button"))
+            .filter(button -> !button.getStyleClass().contains(DockThemeStyleClasses.DOCK_NODE_FLOAT_BUTTON))
             .findFirst()
             .orElseThrow();
 
         Node closeGraphic = closeButton.getGraphic();
         assertNotNull(closeGraphic);
-        assertTrue(closeGraphic.getStyleClass().contains("dock-control-icon"));
-        assertTrue(closeGraphic.getStyleClass().contains("dock-control-icon-close"));
+        assertTrue(closeGraphic.getStyleClass().contains(DockThemeStyleClasses.DOCK_CONTROL_ICON));
+        assertTrue(closeGraphic.getStyleClass().contains(DockThemeStyleClasses.DOCK_CONTROL_ICON_CLOSE));
 
         MouseEvent press = createPrimaryPressEvent(nodeView.getHeader(), closeButton);
         nodeView.getHeader().getOnMousePressed().handle(press);
@@ -347,7 +348,7 @@ class DockLayoutEngineTest extends ApplicationTest {
         Button closeButton = nodeView.getHeader().getChildren().stream()
             .filter(Button.class::isInstance)
             .map(Button.class::cast)
-            .filter(button -> !button.getStyleClass().contains("dock-node-float-button"))
+            .filter(button -> !button.getStyleClass().contains(DockThemeStyleClasses.DOCK_NODE_FLOAT_BUTTON))
             .findFirst()
             .orElseThrow();
 
@@ -371,14 +372,14 @@ class DockLayoutEngineTest extends ApplicationTest {
         Button floatButton = ((HBox) tabHeader).getChildren().stream()
             .filter(Button.class::isInstance)
             .map(Button.class::cast)
-            .filter(button -> button.getStyleClass().contains("dock-tab-float-button"))
+            .filter(button -> button.getStyleClass().contains(DockThemeStyleClasses.DOCK_TAB_FLOAT_BUTTON))
             .findFirst()
             .orElseThrow();
 
         Node floatGraphic = floatButton.getGraphic();
         assertNotNull(floatGraphic);
-        assertTrue(floatGraphic.getStyleClass().contains("dock-control-icon"));
-        assertTrue(floatGraphic.getStyleClass().contains("dock-control-icon-float"));
+        assertTrue(floatGraphic.getStyleClass().contains(DockThemeStyleClasses.DOCK_CONTROL_ICON));
+        assertTrue(floatGraphic.getStyleClass().contains(DockThemeStyleClasses.DOCK_CONTROL_ICON_FLOAT));
 
         MouseEvent press = createPrimaryPressEvent((HBox) tabHeader, floatButton);
         ((HBox) tabHeader).getOnMousePressed().handle(press);
@@ -469,8 +470,8 @@ class DockLayoutEngineTest extends ApplicationTest {
             .filter(item -> "Float".equals(item.getText()))
             .findFirst()
             .orElseThrow();
-        assertMenuItemHasIcon(headerContextMenu, "Close", "dock-control-icon-close");
-        assertMenuItemHasIcon(headerContextMenu, "Float", "dock-control-icon-float");
+        assertMenuItemHasIcon(headerContextMenu, "Close", DockThemeStyleClasses.DOCK_CONTROL_ICON_CLOSE);
+        assertMenuItemHasIcon(headerContextMenu, "Float", DockThemeStyleClasses.DOCK_CONTROL_ICON_FLOAT);
         floatItem.fire();
 
         assertEquals(node, floatedNode.get());

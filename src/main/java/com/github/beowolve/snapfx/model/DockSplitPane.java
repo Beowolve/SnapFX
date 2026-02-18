@@ -60,18 +60,16 @@ public class DockSplitPane implements DockContainer {
     @Override
     public void addChild(DockElement element) {
         // Smart splitting: flatten if the child has the same orientation
-        if (element instanceof DockSplitPane splitPane) {
-            if (splitPane.getOrientation() == this.orientation) {
-                // Add all children of the child split pane directly
-                List<DockElement> childElements = new ArrayList<>(splitPane.getChildren());
-                for (DockElement child : childElements) {
-                    splitPane.removeChild(child);
-                    children.add(child);
-                    child.setParent(this);
-                }
-                updateDividerPositions();
-                return;
+        if (element instanceof DockSplitPane splitPane && splitPane.getOrientation() == this.orientation) {
+            // Add all children of the child split pane directly
+            List<DockElement> childElements = new ArrayList<>(splitPane.getChildren());
+            for (DockElement child : childElements) {
+                splitPane.removeChild(child);
+                children.add(child);
+                child.setParent(this);
             }
+            updateDividerPositions();
+            return;
         }
 
         children.add(element);

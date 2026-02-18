@@ -14,6 +14,10 @@ import java.util.Map;
  * Stores the full tree structure including positions and split percentages.
  */
 public class DockLayoutSerializer {
+    public static final String DOCK_NODE = "DockNode";
+    public static final String DOCK_SPLIT_PANE = "DockSplitPane";
+    public static final String DOCK_TAB_PANE = "DockTabPane";
+
     private final DockGraph dockGraph;
     private final Gson gson;
     private final Map<String, DockNode> nodeRegistry;
@@ -186,9 +190,9 @@ public class DockLayoutSerializer {
             throw missingFieldError(path + ".type");
         }
         return switch (data.type) {
-            case "DockNode" -> deserializeDockNode(data, path);
-            case "DockSplitPane" -> deserializeSplitPane(data, path);
-            case "DockTabPane" -> deserializeTabPane(data, path);
+            case DOCK_NODE -> deserializeDockNode(data, path);
+            case DOCK_SPLIT_PANE -> deserializeSplitPane(data, path);
+            case DOCK_TAB_PANE -> deserializeTabPane(data, path);
             default -> deserializeUnknownElement(data, path);
         };
     }
@@ -344,7 +348,7 @@ public class DockLayoutSerializer {
         String resolvedLayoutId,
         String typePath
     ) {
-        String savedType = isBlank(unsupportedType) ? "DockNode" : unsupportedType;
+        String savedType = isBlank(unsupportedType) ? DOCK_NODE : unsupportedType;
         String nodeId = isBlank(resolvedDockNodeId) ? "<unknown>" : resolvedDockNodeId;
         String layoutId = isBlank(resolvedLayoutId) ? "<unknown>" : resolvedLayoutId;
         return "Unavailable node restored as placeholder.\n"
@@ -463,9 +467,9 @@ public class DockLayoutSerializer {
             String type = obj.get("type").getAsString();
 
             return switch (type) {
-                case "DockNode" -> context.deserialize(json, DockNode.class);
-                case "DockSplitPane" -> context.deserialize(json, DockSplitPane.class);
-                case "DockTabPane" -> context.deserialize(json, DockTabPane.class);
+                case DOCK_NODE -> context.deserialize(json, DockNode.class);
+                case DOCK_SPLIT_PANE -> context.deserialize(json, DockSplitPane.class);
+                case DOCK_TAB_PANE -> context.deserialize(json, DockTabPane.class);
                 default -> null;
             };
         }

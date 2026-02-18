@@ -149,7 +149,7 @@ public class SnapFX {
         this.themeStylesheetManager = new DockThemeStylesheetManager();
         resetShortcutsToDefaults();
         this.layoutEngine.setOnNodeCloseRequest(this::handleDockNodeCloseRequest);
-        this.layoutEngine.setOnNodeFloatRequest(node -> floatNode(node));
+        this.layoutEngine.setOnNodeFloatRequest(this::floatNode);
         this.dragService.setOnDropRequest(this::handleResolvedDropRequest);
         this.dragService.setOnFloatDetachRequest(this::handleUnresolvedDropRequest);
         this.dragService.setOnDragHover(this::handleDragHover);

@@ -3,6 +3,7 @@ package com.github.beowolve.snapfx.view;
 import com.github.beowolve.snapfx.dnd.DockDragService;
 import com.github.beowolve.snapfx.model.DockGraph;
 import com.github.beowolve.snapfx.model.DockNode;
+import com.github.beowolve.snapfx.theme.DockThemeStyleClasses;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.value.ChangeListener;
 import javafx.geometry.Pos;
@@ -44,11 +45,11 @@ public class DockNodeView extends VBox {
         this.dockGraph = dockGraph;
         this.dragService = dragService;
 
-        getStyleClass().add("dock-node-view");
+        getStyleClass().add(DockThemeStyleClasses.DOCK_NODE_VIEW);
 
         header = new HBox(5);
         header.setAlignment(Pos.CENTER_LEFT);
-        header.getStyleClass().add("dock-node-header");
+        header.getStyleClass().add(DockThemeStyleClasses.DOCK_NODE_HEADER);
 
         iconPane = new StackPane();
         iconPane.setPrefSize(16, 16);
@@ -71,12 +72,12 @@ public class DockNodeView extends VBox {
         iconPane.managedProperty().bind(iconPane.visibleProperty());
 
         titleLabel = new Label();
-        titleLabel.getStyleClass().add("dock-node-title-label");
+        titleLabel.getStyleClass().add(DockThemeStyleClasses.DOCK_NODE_TITLE_LABEL);
         titleLabel.textProperty().bind(dockNode.titleProperty());
 
         floatButton = new Button();
-        floatButton.getStyleClass().addAll("dock-node-close-button", "dock-node-float-button");
-        floatButton.setGraphic(createControlIcon("dock-control-icon-float"));
+        floatButton.getStyleClass().addAll(DockThemeStyleClasses.DOCK_NODE_CLOSE_BUTTON, DockThemeStyleClasses.DOCK_NODE_FLOAT_BUTTON);
+        floatButton.setGraphic(createControlIcon(DockThemeStyleClasses.DOCK_CONTROL_ICON_FLOAT));
         floatButton.setTooltip(new Tooltip("Float window"));
         floatButton.setFocusTraversable(false);
         floatButton.setOnAction(e -> { });
@@ -84,8 +85,8 @@ public class DockNodeView extends VBox {
         floatButton.managedProperty().bind(floatButton.visibleProperty());
 
         closeButton = new Button();
-        closeButton.getStyleClass().add("dock-node-close-button");
-        closeButton.setGraphic(createControlIcon("dock-control-icon-close"));
+        closeButton.getStyleClass().add(DockThemeStyleClasses.DOCK_NODE_CLOSE_BUTTON);
+        closeButton.setGraphic(createControlIcon(DockThemeStyleClasses.DOCK_CONTROL_ICON_CLOSE));
         closeButton.setTooltip(new Tooltip("Close panel"));
         closeButton.setFocusTraversable(false);
         closeButton.setOnAction(e -> dockGraph.undock(dockNode));
@@ -100,7 +101,7 @@ public class DockNodeView extends VBox {
         header.getChildren().addAll(iconPane, titleLabel, spacer, floatButton, closeButton);
 
         contentPane = new StackPane();
-        contentPane.getStyleClass().add("dock-node-content");
+        contentPane.getStyleClass().add(DockThemeStyleClasses.DOCK_NODE_CONTENT);
         VBox.setVgrow(contentPane, Priority.ALWAYS);
 
         if (dockNode.getContent() != null) {
@@ -166,7 +167,7 @@ public class DockNodeView extends VBox {
 
     private Region createControlIcon(String styleClass) {
         Region icon = new Region();
-        icon.getStyleClass().addAll("dock-control-icon", styleClass);
+        icon.getStyleClass().addAll(DockThemeStyleClasses.DOCK_CONTROL_ICON, styleClass);
         icon.setMouseTransparent(true);
         return icon;
     }

@@ -9,6 +9,7 @@ import com.github.beowolve.snapfx.model.DockGraph;
 import com.github.beowolve.snapfx.model.DockNode;
 import com.github.beowolve.snapfx.model.DockPosition;
 import com.github.beowolve.snapfx.model.DockTabPane;
+import com.github.beowolve.snapfx.theme.DockThemeStyleClasses;
 import com.github.beowolve.snapfx.view.DockDropZone;
 import com.github.beowolve.snapfx.view.DockDropZoneType;
 import com.github.beowolve.snapfx.view.DockLayoutEngine;
@@ -64,6 +65,8 @@ import java.util.function.Supplier;
  * Represents an external floating window that can host a full dock layout subtree.
  */
 public final class DockFloatingWindow {
+    private static final String TITLE_PREFIX = "SnapFX";
+
     private static final double DEFAULT_WIDTH = 640;
     private static final double DEFAULT_HEIGHT = 420;
     private static final double DEFAULT_OFFSET_X = 40;
@@ -145,11 +148,11 @@ public final class DockFloatingWindow {
     private Supplier<List<DockFloatingWindow>> snapPeerWindowsSupplier;
 
     public DockFloatingWindow(DockNode dockNode) {
-        this((DockElement) dockNode, "SnapFX", null);
+        this((DockElement) dockNode, TITLE_PREFIX, null);
     }
 
     public DockFloatingWindow(DockNode dockNode, DockDragService dragService) {
-        this((DockElement) dockNode, "SnapFX", dragService);
+        this((DockElement) dockNode, TITLE_PREFIX, dragService);
     }
 
     public DockFloatingWindow(DockNode dockNode, String titlePrefix) {
@@ -161,7 +164,7 @@ public final class DockFloatingWindow {
     }
 
     public DockFloatingWindow(DockElement floatingRoot, DockDragService dragService) {
-        this(floatingRoot, "SnapFX", dragService);
+        this(floatingRoot, TITLE_PREFIX, dragService);
     }
 
     public DockFloatingWindow(DockElement floatingRoot, String titlePrefix, DockDragService dragService) {
@@ -169,14 +172,14 @@ public final class DockFloatingWindow {
         DockElement rootElement = Objects.requireNonNull(floatingRoot, "floatingRoot");
         DockNode representative = findFirstDockNode(rootElement);
         this.primaryDockNode = Objects.requireNonNull(representative, "floatingRoot must contain at least one DockNode");
-        this.titlePrefix = (titlePrefix == null || titlePrefix.isBlank()) ? "SnapFX" : titlePrefix;
+        this.titlePrefix = (titlePrefix == null || titlePrefix.isBlank()) ? TITLE_PREFIX : titlePrefix;
         this.floatingGraph = new DockGraph();
         this.floatingLayoutEngine = new DockLayoutEngine(floatingGraph, dragService);
         this.floatingLayoutEngine.setOnNodeCloseRequest(this::handleInnerNodeCloseRequest);
         this.floatingLayoutEngine.setOnNodeFloatRequest(this::handleInnerNodeFloatRequest);
         this.floatingLayoutEngine.setCanFloatNodePredicate(node -> getDockNodes().size() > 1);
         this.layoutContainer = new StackPane();
-        this.layoutContainer.getStyleClass().add("dock-floating-layout-container");
+        this.layoutContainer.getStyleClass().add(DockThemeStyleClasses.DOCK_FLOATING_LAYOUT_CONTAINER);
         this.dropIndicator = new FloatingDropIndicator();
         this.dropZonesOverlay = new FloatingDropZonesOverlay();
         this.tabSelectionListenersCleanup = new ArrayList<>();
@@ -666,7 +669,7 @@ public final class DockFloatingWindow {
         }
 
         BorderPane root = new BorderPane();
-        root.getStyleClass().add("dock-floating-window");
+        root.getStyleClass().add(DockThemeStyleClasses.DOCK_FLOATING_WINDOW);
 
         HBox titleBar = createTitleBar(window);
         root.setTop(titleBar);
@@ -710,7 +713,7 @@ public final class DockFloatingWindow {
     private HBox createTitleBar(Stage window) {
         HBox titleBar = new HBox(6);
         titleBar.setAlignment(Pos.CENTER_LEFT);
-        titleBar.getStyleClass().addAll("dock-node-header", "dock-floating-title-bar");
+        titleBar.getStyleClass().addAll(DockThemeStyleClasses.DOCK_NODE_HEADER, DockThemeStyleClasses.DOCK_FLOATING_TITLE_BAR);
 
         iconPane = new StackPane();
         iconPane.setPrefSize(16, 16);
@@ -718,34 +721,34 @@ public final class DockFloatingWindow {
         iconPane.setMinSize(16, 16);
 
         titleLabel = new Label();
-        titleLabel.getStyleClass().add("dock-node-title-label");
+        titleLabel.getStyleClass().add(DockThemeStyleClasses.DOCK_NODE_TITLE_LABEL);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         Button attachButton = createControlButton(
-            "dock-control-icon-attach",
+                DockThemeStyleClasses.DOCK_CONTROL_ICON_ATTACH,
             "Attach to layout",
             this::requestAttach,
-            "dock-window-attach-button"
+                DockThemeStyleClasses.DOCK_WINDOW_ATTACH_BUTTON
         );
 
         maximizeTooltip = new Tooltip("Maximize window");
         maximizeButton = createControlButton(
-            "dock-control-icon-maximize",
+                DockThemeStyleClasses.DOCK_CONTROL_ICON_MAXIMIZE,
             maximizeTooltip.getText(),
             () -> toggleMaximize(window),
-            "dock-window-maximize-button"
+                DockThemeStyleClasses.DOCK_WINDOW_MAXIMIZE_BUTTON
         );
         maximizeButton.setTooltip(maximizeTooltip);
 
         pinButton = createPinButton(window);
 
         Button closeButton = createControlButton(
-            "dock-control-icon-close",
+                DockThemeStyleClasses.DOCK_CONTROL_ICON_CLOSE,
             "Close floating window",
             this::close,
-            "dock-window-close-button"
+                DockThemeStyleClasses.DOCK_WINDOW_CLOSE_BUTTON
         );
 
         titleBar.getChildren().addAll(iconPane, titleLabel, spacer, attachButton, pinButton, maximizeButton, closeButton);
@@ -766,12 +769,12 @@ public final class DockFloatingWindow {
 
     private ContextMenu createTitleBarContextMenu() {
         MenuItem attachItem = new MenuItem("Attach to Layout");
-        attachItem.setGraphic(createControlIcon("dock-control-icon-attach"));
+        attachItem.setGraphic(createControlIcon(DockThemeStyleClasses.DOCK_CONTROL_ICON_ATTACH));
         attachItem.setOnAction(this::onAttachContextMenuAction);
 
         CheckMenuItem alwaysOnTopItem = new CheckMenuItem("Always on Top");
         alwaysOnTopItem.setOnAction(event -> onAlwaysOnTopContextMenuAction(alwaysOnTopItem));
-        alwaysOnTopItem.setGraphic(createControlIcon("dock-control-icon-pin-on"));
+        alwaysOnTopItem.setGraphic(createControlIcon(DockThemeStyleClasses.DOCK_CONTROL_ICON_PIN_ON));
 
         ContextMenu contextMenu = new ContextMenu(attachItem, new SeparatorMenuItem(), alwaysOnTopItem);
         contextMenu.setOnShowing(event -> updateTitleBarContextMenuState(attachItem, alwaysOnTopItem));
@@ -802,7 +805,7 @@ public final class DockFloatingWindow {
         alwaysOnTopItem.setSelected(isAlwaysOnTop());
         alwaysOnTopItem.setDisable(floatingGraph.isLocked() || !pinToggleEnabled);
         alwaysOnTopItem.setGraphic(
-            createControlIcon(isAlwaysOnTop() ? "dock-control-icon-pin-on" : "dock-control-icon-pin-off")
+            createControlIcon(isAlwaysOnTop() ? DockThemeStyleClasses.DOCK_CONTROL_ICON_PIN_ON : DockThemeStyleClasses.DOCK_CONTROL_ICON_PIN_OFF)
         );
     }
 
@@ -816,7 +819,7 @@ public final class DockFloatingWindow {
 
     private Button createControlButton(String iconStyleClass, String tooltipText, Runnable action, String styleClass) {
         Button button = new Button();
-        button.getStyleClass().addAll("dock-node-close-button", "dock-window-control-button", styleClass);
+        button.getStyleClass().addAll(DockThemeStyleClasses.DOCK_NODE_CLOSE_BUTTON, DockThemeStyleClasses.DOCK_WINDOW_CONTROL_BUTTON, styleClass);
         button.setGraphic(createControlIcon(iconStyleClass));
         button.setFocusTraversable(false);
         button.visibleProperty().bind(floatingGraph.lockedProperty().not());
@@ -842,7 +845,7 @@ public final class DockFloatingWindow {
         pinTooltip = new Tooltip();
         Button button = new Button();
         pinButton = button;
-        button.getStyleClass().addAll("dock-node-close-button", "dock-window-control-button", "dock-window-pin-button");
+        button.getStyleClass().addAll(DockThemeStyleClasses.DOCK_NODE_CLOSE_BUTTON, DockThemeStyleClasses.DOCK_WINDOW_CONTROL_BUTTON, DockThemeStyleClasses.DOCK_WINDOW_PIN_BUTTON);
         button.setFocusTraversable(false);
         button.setTooltip(pinTooltip);
         button.setOnAction(this::onPinButtonAction);
@@ -897,7 +900,7 @@ public final class DockFloatingWindow {
             return;
         }
         boolean pinned = isAlwaysOnTop();
-        pinButton.setGraphic(createControlIcon(pinned ? "dock-control-icon-pin-on" : "dock-control-icon-pin-off"));
+        pinButton.setGraphic(createControlIcon(pinned ? DockThemeStyleClasses.DOCK_CONTROL_ICON_PIN_ON : DockThemeStyleClasses.DOCK_CONTROL_ICON_PIN_OFF));
         if (pinTooltip != null) {
             pinTooltip.setText(pinned ? "Disable always on top" : "Enable always on top");
         }
@@ -917,7 +920,7 @@ public final class DockFloatingWindow {
 
     private Region createControlIcon(String styleClass) {
         Region icon = new Region();
-        icon.getStyleClass().addAll("dock-control-icon", styleClass);
+        icon.getStyleClass().addAll(DockThemeStyleClasses.DOCK_CONTROL_ICON, styleClass);
         icon.setMouseTransparent(true);
         return icon;
     }
@@ -1231,7 +1234,7 @@ public final class DockFloatingWindow {
     }
 
     private void ensureRestoreBounds(Stage window) {
-        if (hasRestoreBounds) {
+        if (hasRestoreBounds || window == null) {
             return;
         }
         double fallbackWidth = preferredWidth > 0 ? preferredWidth : DEFAULT_WIDTH;
@@ -1274,12 +1277,12 @@ public final class DockFloatingWindow {
             return;
         }
         if (window.isMaximized()) {
-            maximizeButton.setGraphic(createControlIcon("dock-control-icon-restore"));
+            maximizeButton.setGraphic(createControlIcon(DockThemeStyleClasses.DOCK_CONTROL_ICON_RESTORE));
             if (maximizeTooltip != null) {
                 maximizeTooltip.setText("Restore window");
             }
         } else {
-            maximizeButton.setGraphic(createControlIcon("dock-control-icon-maximize"));
+            maximizeButton.setGraphic(createControlIcon(DockThemeStyleClasses.DOCK_CONTROL_ICON_MAXIMIZE));
             if (maximizeTooltip != null) {
                 maximizeTooltip.setText("Maximize window");
             }
@@ -1385,6 +1388,10 @@ public final class DockFloatingWindow {
     }
 
     private void performResize(MouseEvent event, Stage window) {
+        if (window == null) {
+            return;
+        }
+
         double deltaX = event.getScreenX() - resizeStartScreenX;
         double deltaY = event.getScreenY() - resizeStartScreenY;
         double minWidth = resolveMinimumWindowWidth(window);
@@ -1812,7 +1819,7 @@ public final class DockFloatingWindow {
             indicator.setWidth(width);
             indicator.setHeight(height);
             setVisible(true);
-            toFront();
+            super.toFront();
 
             if (insertLineX != null) {
                 Point2D lineTop = sceneToLocal(insertLineX, bounds.getMinY());
@@ -1874,7 +1881,7 @@ public final class DockFloatingWindow {
             }
             getChildren().addAll(rectangles);
             setVisible(true);
-            toFront();
+            super.toFront();
         }
 
         void hide() {

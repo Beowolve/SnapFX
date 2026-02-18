@@ -67,7 +67,7 @@ public final class DockThemeStylesheetManager {
             return DockThemeCatalog.getDefaultThemeStylesheetResourcePath();
         }
         String trimmedPath = stylesheetResourcePath.trim();
-        if (isAbsoluteUrl(trimmedPath) || trimmedPath.startsWith("/")) {
+        if (isAbsoluteUrl(trimmedPath) || trimmedPath.startsWith("/")) {    // NOSONAR - False positive, trimmedPath can't be null here
             return trimmedPath;
         }
         return "/" + trimmedPath;

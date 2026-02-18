@@ -3,6 +3,7 @@ package com.github.beowolve.snapfx.view;
 import com.github.beowolve.snapfx.close.DockCloseSource;
 import com.github.beowolve.snapfx.dnd.DockDragService;
 import com.github.beowolve.snapfx.model.*;
+import com.github.beowolve.snapfx.theme.DockThemeStyleClasses;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener;
@@ -64,7 +65,7 @@ public class DockLayoutEngine {
         this.dragService = dragService;
         this.viewCache = new HashMap<>();
         this.emptyLayoutView = new StackPane();
-        this.emptyLayoutView.getStyleClass().add("dock-empty-layout");
+        this.emptyLayoutView.getStyleClass().add(DockThemeStyleClasses.DOCK_EMPTY_LAYOUT);
     }
 
     /**
@@ -144,7 +145,7 @@ public class DockLayoutEngine {
     private Node createSplitPaneView(DockSplitPane model) {
         SplitPane splitPane = new SplitPane();
         splitPane.setOrientation(model.getOrientation());
-        splitPane.getStyleClass().add("dock-split-pane");
+        splitPane.getStyleClass().add(DockThemeStyleClasses.DOCK_SPLIT_PANE);
 
         // Add children
         for (DockElement child : model.getChildren()) {
@@ -210,13 +211,10 @@ public class DockLayoutEngine {
 
     private Node createTabPaneView(DockTabPane model) {
         TabPane tabPane = new TabPane();
-        tabPane.getStyleClass().add("dock-tab-pane");
+        tabPane.getStyleClass().add(DockThemeStyleClasses.DOCK_TAB_PANE);
 
         // Create tabs
-        for (DockElement child : model.getChildren()) {
-            Tab tab = createTab(child, model);
-            tabPane.getTabs().add(tab);
-        }
+        model.getChildren().forEach(child -> tabPane.getTabs().add(createTab(child, model)));
 
         // Bind selection
         tabPane.getSelectionModel().selectedIndexProperty().addListener((obs, old, newVal) -> {
@@ -321,7 +319,7 @@ public class DockLayoutEngine {
             tab.getProperties().put(TAB_CLEANUP_KEY, tabHeader.cleanup());
             tab.getProperties().put(TAB_DOCK_NODE_KEY, dockNode);
             tab.textProperty().bind(dockNode.titleProperty());
-            tab.getStyleClass().add("dock-tab-graphic");
+            tab.getStyleClass().add(DockThemeStyleClasses.DOCK_TAB_GRAPHIC);
             setupTabDragHandlers(tab, dockNode);
             bindTabCloseable(tab, dockNode);
             tab.setContextMenu(createTabContextMenu(ownerTabPane, dockNode));
@@ -333,7 +331,7 @@ public class DockLayoutEngine {
             TabHeader tabHeader = createContainerTabHeader(tab, element);
             tab.setGraphic(tabHeader.node());
             tab.getProperties().put(TAB_CLEANUP_KEY, tabHeader.cleanup());
-            tab.getStyleClass().add("dock-tab-graphic");
+            tab.getStyleClass().add(DockThemeStyleClasses.DOCK_TAB_GRAPHIC);
             if (!shouldShowTabCloseButton()) {
                 tab.setClosable(false);
             } else {
@@ -392,10 +390,7 @@ public class DockLayoutEngine {
 
         iconPane.getChildren().clear();
         if (representativeNode != null) {
-            ImageView icon = createDockNodeIcon(representativeNode.getIcon());
-            if (icon != null) {
-                iconPane.getChildren().add(icon);
-            }
+            iconPane.getChildren().add(createDockNodeIcon(representativeNode.getIcon()));
         }
         boolean hasIcon = !iconPane.getChildren().isEmpty();
         iconPane.setVisible(hasIcon);
@@ -485,11 +480,11 @@ public class DockLayoutEngine {
         ContextMenu contextMenu = new ContextMenu();
 
         MenuItem floatItem = new MenuItem("Float");
-        floatItem.setGraphic(createControlIcon("dock-control-icon-float"));
+        floatItem.setGraphic(createControlIcon(DockThemeStyleClasses.DOCK_CONTROL_ICON_FLOAT));
         floatItem.setOnAction(e -> handleFloatRequest(dockNode));
 
         MenuItem closeItem = new MenuItem("Close");
-        closeItem.setGraphic(createControlIcon("dock-control-icon-close"));
+        closeItem.setGraphic(createControlIcon(DockThemeStyleClasses.DOCK_CONTROL_ICON_CLOSE));
         closeItem.setOnAction(e -> handleCloseRequest(dockNode, DockCloseSource.TITLE_BAR));
 
         contextMenu.setOnShowing(e -> updateHeaderContextMenuState(floatItem, closeItem, dockNode));
@@ -509,7 +504,7 @@ public class DockLayoutEngine {
         ContextMenu contextMenu = new ContextMenu();
 
         MenuItem closeItem = new MenuItem("Close");
-        closeItem.setGraphic(createControlIcon("dock-control-icon-close"));
+        closeItem.setGraphic(createControlIcon(DockThemeStyleClasses.DOCK_CONTROL_ICON_CLOSE));
         closeItem.setOnAction(e -> handleCloseRequest(dockNode, DockCloseSource.TAB));
 
         MenuItem closeOthersItem = new MenuItem("Close Others");
@@ -519,7 +514,7 @@ public class DockLayoutEngine {
         closeAllItem.setOnAction(e -> closeTabNodes(collectClosableNodes(ownerTabPane)));
 
         MenuItem floatItem = new MenuItem("Float");
-        floatItem.setGraphic(createControlIcon("dock-control-icon-float"));
+        floatItem.setGraphic(createControlIcon(DockThemeStyleClasses.DOCK_CONTROL_ICON_FLOAT));
         floatItem.setOnAction(e -> handleFloatRequest(dockNode));
 
         SeparatorMenuItem separator = new SeparatorMenuItem();
@@ -643,8 +638,8 @@ public class DockLayoutEngine {
         tabLabel.textProperty().bind(dockNode.titleProperty());
 
         Button floatButton = new Button();
-        floatButton.getStyleClass().addAll("dock-node-close-button", "dock-tab-float-button");
-        floatButton.setGraphic(createControlIcon("dock-control-icon-float"));
+        floatButton.getStyleClass().addAll(DockThemeStyleClasses.DOCK_NODE_CLOSE_BUTTON, DockThemeStyleClasses.DOCK_TAB_FLOAT_BUTTON);
+        floatButton.setGraphic(createControlIcon(DockThemeStyleClasses.DOCK_CONTROL_ICON_FLOAT));
         floatButton.setTooltip(new Tooltip("Float window"));
         floatButton.setFocusTraversable(false);
         floatButton.visibleProperty().bind(dockGraph.lockedProperty().not());
@@ -671,7 +666,7 @@ public class DockLayoutEngine {
 
     private Region createControlIcon(String styleClass) {
         Region icon = new Region();
-        icon.getStyleClass().addAll("dock-control-icon", styleClass);
+        icon.getStyleClass().addAll(DockThemeStyleClasses.DOCK_CONTROL_ICON, styleClass);
         icon.setMouseTransparent(true);
         return icon;
     }
@@ -1273,18 +1268,9 @@ public class DockLayoutEngine {
     }
 
     /**
-     * Legacy close hook retained for compatibility.
-     * Prefer {@link #setOnNodeCloseRequest(BiConsumer)} for source-aware handling.
+     * Sets the action to be performed when a node float is requested.
+     * @param onNodeFloatRequest The action to set
      */
-    @Deprecated(forRemoval = false)
-    public void setOnNodeCloseRequest(Consumer<DockNode> onNodeCloseRequest) {
-        if (onNodeCloseRequest == null) {
-            this.onNodeCloseRequest = null;
-            return;
-        }
-        this.onNodeCloseRequest = (dockNode, source) -> onNodeCloseRequest.accept(dockNode);
-    }
-
     public void setOnNodeFloatRequest(Consumer<DockNode> onNodeFloatRequest) {
         this.onNodeFloatRequest = onNodeFloatRequest;
     }

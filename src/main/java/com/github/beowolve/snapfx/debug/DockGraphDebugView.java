@@ -3,6 +3,7 @@ package com.github.beowolve.snapfx.debug;
 import com.github.beowolve.snapfx.dnd.DockDragData;
 import com.github.beowolve.snapfx.dnd.DockDragService;
 import com.github.beowolve.snapfx.model.*;
+import com.github.beowolve.snapfx.theme.DockThemeStyleClasses;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -71,7 +72,7 @@ public class DockGraphDebugView extends BorderPane {
         this.activityLog.setPrefHeight(150);
 
         this.treeTable = new TreeTableView<>();
-        treeTable.getStyleClass().add("dock-debug-panel");
+        treeTable.getStyleClass().add(DockThemeStyleClasses.DOCK_DEBUG_PANEL);
         treeTable.setShowRoot(true);
         treeTable.setTableMenuButtonVisible(true);
 
