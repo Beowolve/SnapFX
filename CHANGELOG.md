@@ -19,6 +19,9 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Replaced theme-ID handling with a simpler named theme catalog (`Light`, `Dark`) exposed via `SnapFX.getAvailableThemeStylesheets()` / `getAvailableThemeNames()`, while keeping path-based `setThemeStylesheet(...)`.
 - ✅ Extracted stylesheet resolution/application logic from `SnapFX` into dedicated classes under `com.github.beowolve.snapfx.theme` (`DockThemeCatalog`, `DockThemeStylesheetManager`) to reduce `SnapFX` complexity.
 
+### Maintainability and Collaboration
+- ✅ Introduced `DockThemeStyleClasses`, replacing hardcoded style class constants with members of this class for better maintainability and consistency across the codebase.
+
 ### Documentation
 - ✅ Updated README/ARCHITECTURE docs for automatic stylesheet handling and runtime theme switching.
 - ✅ Added ADR `docs/adr/0002-runtime-theme-stylesheet-management.md` for theme lifecycle ownership and API behavior.
