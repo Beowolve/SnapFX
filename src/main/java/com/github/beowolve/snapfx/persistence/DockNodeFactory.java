@@ -34,7 +34,6 @@ import javafx.scene.Node;
  * was used when the layout was saved. Use the {@link DockNode#DockNode(String, Node, String)}
  * constructor with the provided nodeId.</p>
  */
-@FunctionalInterface
 public interface DockNodeFactory {
     /**
      * Creates a DockNode for the given ID.
