@@ -857,6 +857,10 @@ public final class DockFloatingWindow {
         return button;
     }
 
+    /**
+     * Handles pin button action events, toggling always-on-top if allowed.
+     * @param event the action event triggered by the pin button
+     */
     private void onPinButtonAction(ActionEvent event) {
         if (!canTogglePinFromButton()) {
             event.consume();
@@ -866,7 +870,12 @@ public final class DockFloatingWindow {
         event.consume();
     }
 
+    /**
+     * Determines whether the pin button can toggle always-on-top in the current state.
+     * @return {@code true} if the pin button can toggle always-on-top, {@code false} if the button should be disabled or non-interactive
+     */
     private boolean canTogglePinFromButton() {
+        // The button should not be clickable when toggling is disabled or when locked and pinning is disallowed while locked
         if (!pinToggleEnabled || pinButtonMode == DockFloatingPinButtonMode.NEVER) {
             return false;
         }
