@@ -15,6 +15,7 @@ import java.util.List;
  * Central data structure of the docking system.
  * Holds the root of the logical dock tree.
  * Manages automatic generation of unique layout IDs for all nodes.
+ * Provides methods for docking, undocking, and moving nodes within the tree.
  */
 public class DockGraph {
     private final BooleanProperty locked;
@@ -40,14 +41,25 @@ public class DockGraph {
         revision.set(revision.get() + 1);
     }
 
+    /**
+     * Returns the root element of the dock graph, or null if the graph is empty.
+     */
     public DockElement getRoot() {
         return root.get();
     }
 
+    /**
+     * Returns the root property of the dock graph.
+     */
     public ObjectProperty<DockElement> rootProperty() {
         return root;
     }
 
+    /**
+     * Sets the root of the dock graph. This will replace the entire layout tree.
+     * All nodes in the new tree will be assigned unique layout IDs if they don't have one already.
+     * @param newRoot The new root element, or null to clear the graph
+     */
     public void setRoot(DockElement newRoot) {
         if (newRoot != null) {
             newRoot.setParent(null);
@@ -95,20 +107,35 @@ public class DockGraph {
         return layoutIdCounter;
     }
 
+    /**
+     * Returns true if the graph is currently locked. When locked, all mutating operations (dock, undock, move) are no-ops.
+     * This can be used to temporarily disable updates while performing batch modifications or during layout loading.
+     */
     public boolean isLocked() {
         return locked.get();
     }
 
+    /**
+     * Returns the locked property. When locked, all mutating operations (dock, undock, move) are no-ops.
+     * This can be used to temporarily disable updates while performing batch modifications or during layout loading.
+     */
     public BooleanProperty lockedProperty() {
         return locked;
     }
 
+    /**
+     * Locks or unlocks the graph. When locked, all mutating operations (dock, undock, move) are no-ops.
+     * This can be used to temporarily disable updates while performing batch modifications or during layout loading.
+     */
     public void setLocked(boolean locked) {
         this.locked.set(locked);
     }
 
     /**
      * Docks a node at a specific position relative to a target element.
+     * @param node The node to dock
+     * @param target The target element to dock relative to (can be null if docking the first node)
+     * @param position The position relative to the target to dock at
      */
     public void dock(DockNode node, DockElement target, DockPosition position) {
         dock(node, target, position, null);
@@ -116,6 +143,14 @@ public class DockGraph {
 
     /**
      * Docks a node at a specific position relative to a target element with optional tab index.
+     * The tab index is only applicable when docking as a tab (position = CENTER) and will be ignored otherwise.
+     * If position is CENTER and the target is not already a TabPane, a new TabPane will be created to hold both the target and the new node.
+     * If position is CENTER and the target is already a TabPane, the new node will be added to that TabPane at the specified index (or right after the target if index is null).
+     * If position is not CENTER, the node will be docked to the edge of the target as specified.
+     * @param node The node to dock
+     * @param target The target element to dock relative to (can be null if docking the first node)
+     * @param position The position relative to the target to dock at
+     * @param tabIndex Optional index to insert the new tab at (only applies if position is CENTER and target is a TabPane or already in a TabPane). If null, the new tab will be added right after the target tab (or at the end if target is not a tab itself).
      */
     public void dock(DockNode node, DockElement target, DockPosition position, Integer tabIndex) {
         if (node == null) {
