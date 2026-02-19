@@ -407,6 +407,13 @@ public class MainDemo extends Application {
         }
     }
 
+    /**
+     * Creates a menu icon for the given DockNode by copying its original icon.
+     * This ensures that the menu uses a consistent and optimized version of the icon.
+     *
+     * @param node the DockNode whose icon should be copied for menu use
+     * @return a Node containing the copied icon, or null if the node or its icon is null
+     */
     private Node createMenuItemIcon(DockNode node) {
         if (node == null) {
             return null;
@@ -414,6 +421,13 @@ public class MainDemo extends Application {
         return copyMenuIcon(node.getIcon());
     }
 
+    /**
+     * Creates a copy of the given image optimized for menu icons.
+     * This ensures consistent sizing and performance when used in menu items.
+     *
+     * @param image the original image to copy
+     * @return a new ImageView Node containing the copied image, or null if the input image is null
+     */
     static Node copyMenuIcon(Image image) {
         if (image == null) {
             return null;
@@ -427,21 +441,24 @@ public class MainDemo extends Application {
         return copy;
     }
 
+    /**
+     * Recursively collects all DockNodes in the given element and its children.
+     * @param element the root element to start collecting from
+     * @param nodes the list to populate with found DockNodes
+     */
     private void collectDockNodes(DockElement element, List<DockNode> nodes) {
-        if (element == null) {
-            return;
-        }
         if (element instanceof DockNode node) {
             nodes.add(node);
-            return;
-        }
-        if (element instanceof DockContainer container) {
+        } else if (element instanceof DockContainer container) {
             for (DockElement child : container.getChildren()) {
                 collectDockNodes(child, nodes);
             }
         }
     }
 
+    /**
+     * Creates the toolbar with lock toggle and add-node buttons.
+     */
     private ToolBar createToolbar() {
         ToolBar toolbar = new ToolBar();
 
@@ -491,33 +508,48 @@ public class MainDemo extends Application {
         addDockNode(node);
     }
 
+    /**
+     * Adds a new Properties panel node to the right side of the current layout.
+     */
     private void addNewPropertiesNode() {
         DockNode node = demoNodeFactory.createPropertiesPanelNode();
         addDockNode(node);
     }
 
+    /**
+     * Adds a new Console panel node to the right side of the current layout.
+     */
     private void addNewConsoleNode() {
         DockNode node = demoNodeFactory.createConsolePanelNode();
         addDockNode(node);
     }
 
+    /**
+     * Adds a new generic panel node with an auto-generated name to the right side of the current layout.
+     */
     private void addNewGenericPanelNode() {
         String name = "Panel_" + (snapFX.getDockNodeCount(DockNodeType.GENERIC_PANEL.getId()) + 1);
         DockNode node = demoNodeFactory.createGenericPanelNode(name);
         addDockNode(node);
     }
 
+    /**
+     * Adds the given DockNode to the right side of the current layout and registers it if it's an editor.
+     * If there is no existing layout, sets the node as the root.
+     *
+     * @param node the DockNode to add
+     */
     private void addDockNode(DockNode node) {
         registerEditorNode(node);
         if (snapFX.getDockGraph().getRoot() == null) {
             snapFX.getDockGraph().setRoot(node);
         } else {
-            snapFX.getDockGraph().dock(node, snapFX.getDockGraph().getRoot(), DockPosition.RIGHT);
+            snapFX.dock(node, snapFX.getDockGraph().getRoot(), DockPosition.RIGHT);
         }
     }
 
     /**
-     * Setup the node factory for proper save/load support across sessions.
+     * Set up the node factory for proper save/load support across sessions.
      * The factory creates nodes based on their ID.
      */
     private void setupNodeFactory() {
