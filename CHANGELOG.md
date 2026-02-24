@@ -6,6 +6,10 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 
 ## Unreleased
 
+<!-- No unreleased changes yet -->
+
+## v0.3.0 - 2026-02-24
+
 ### Build and Test
 - ✅ Added `SnapFXTest` build-layout structure coverage for framework sidebar rendering (collapsed strip vs. pinned-open panel states), regression coverage for configurable active-icon collapse behavior in pinned sidebars, and a sidebar-restore placement regression test covering tab-parent collapse fallback; added `DockGraphTest` coverage for `unpinFromSideBar(...)`; updated sidebar menu-title helper assertions for the new pinned/collapsed wording; full suite now runs with 278 tests.
 - ✅ Added `DockGraphTest` coverage for pinned side-bar model behavior (pin/restore, side switching, lock-mode no-op behavior, and dock-node counting with pinned entries).
