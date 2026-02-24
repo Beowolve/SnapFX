@@ -2,6 +2,7 @@ package com.github.beowolve.snapfx.persistence;
 
 import com.github.beowolve.snapfx.model.*;
 import javafx.application.Platform;
+import javafx.geometry.Side;
 import javafx.scene.control.Label;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -382,5 +383,95 @@ class DockLayoutSerializerTest {
         Label content = assertInstanceOf(Label.class, restoredNode.getContent());
         assertEquals("Custom unknown node fallback", content.getText());
         assertEquals("customUnknown", restoredNode.getDockNodeId());
+    }
+
+    @Test
+    void testSerializeAndDeserializePinnedSideBarNodesWithVisibility() throws DockLayoutLoadException {
+        DockNode editor = new DockNode("editor", new Label("Editor"), "Editor");
+        DockNode console = new DockNode("console", new Label("Console"), "Console");
+
+        dockGraph.dock(editor, null, DockPosition.CENTER);
+        dockGraph.dock(console, editor, DockPosition.BOTTOM);
+        dockGraph.pinToSideBar(console, Side.LEFT);
+        dockGraph.collapsePinnedSideBar(Side.LEFT);
+
+        String json = serializer.serialize();
+        assertTrue(json.contains("\"sideBars\""));
+        assertTrue(json.contains("\"side\": \"LEFT\""));
+        assertTrue(json.contains("\"pinnedOpen\": false"));
+
+        DockGraph restoredGraph = new DockGraph();
+        DockLayoutSerializer restoredSerializer = new DockLayoutSerializer(restoredGraph);
+        restoredSerializer.setNodeFactory(nodeId -> switch (nodeId) {
+            case "editor" -> new DockNode(nodeId, new Label("Editor"), "Editor");
+            case "console" -> new DockNode(nodeId, new Label("Console"), "Console");
+            default -> null;
+        });
+
+        restoredSerializer.deserialize(json);
+
+        assertNotNull(restoredGraph.getRoot());
+        assertTrue(restoredGraph.getSideBarNodes(Side.LEFT).stream().anyMatch(node -> "console".equals(node.getDockNodeId())));
+        assertFalse(restoredGraph.isSideBarPinnedOpen(Side.LEFT), "Pinned-open sidebar state must round-trip");
+        assertEquals(1, restoredGraph.getDockNodeCount("editor"));
+        assertEquals(1, restoredGraph.getDockNodeCount("console"));
+    }
+
+    @Test
+    void testSerializeAndDeserializeSidebarRestoreAnchorsRoundTrip() throws DockLayoutLoadException {
+        DockNode left = new DockNode("left", new Label("Left"), "Left");
+        DockNode right = new DockNode("right", new Label("Right"), "Right");
+
+        dockGraph.dock(left, null, DockPosition.CENTER);
+        dockGraph.dock(right, left, DockPosition.RIGHT);
+        dockGraph.pinToSideBar(left, Side.LEFT);
+
+        String json = serializer.serialize();
+
+        DockGraph restoredGraph = new DockGraph();
+        DockLayoutSerializer restoredSerializer = new DockLayoutSerializer(restoredGraph);
+        restoredSerializer.setNodeFactory(nodeId -> switch (nodeId) {
+            case "left" -> new DockNode(nodeId, new Label("Left"), "Left");
+            case "right" -> new DockNode(nodeId, new Label("Right"), "Right");
+            default -> null;
+        });
+        restoredSerializer.deserialize(json);
+
+        DockNode restoredLeft = restoredGraph.getSideBarNodes(Side.LEFT).stream()
+            .filter(node -> "left".equals(node.getDockNodeId()))
+            .findFirst()
+            .orElseThrow();
+        DockNode restoredRight = assertInstanceOf(DockNode.class, restoredGraph.getRoot());
+
+        assertSame(restoredRight, restoredLeft.getLastKnownTarget(), "Restore anchor target should round-trip");
+        assertEquals(DockPosition.LEFT, restoredLeft.getLastKnownPosition());
+        assertNull(restoredLeft.getLastKnownTabIndex());
+
+        restoredGraph.restoreFromSideBar(restoredLeft);
+
+        DockSplitPane split = assertInstanceOf(DockSplitPane.class, restoredGraph.getRoot());
+        assertSame(restoredLeft, split.getChildren().get(0));
+        assertSame(restoredRight, split.getChildren().get(1));
+    }
+
+    @Test
+    void testSerializePinnedSideBarOnlyLayoutDoesNotCollapseToEmptyObject() throws DockLayoutLoadException {
+        DockNode detached = new DockNode("detached", new Label("Detached"), "Detached");
+        dockGraph.pinToSideBar(detached, Side.RIGHT);
+
+        String json = serializer.serialize();
+        assertNotEquals("{}", json);
+        assertTrue(json.contains("\"sideBars\""));
+
+        DockGraph restoredGraph = new DockGraph();
+        DockLayoutSerializer restoredSerializer = new DockLayoutSerializer(restoredGraph);
+        restoredSerializer.setNodeFactory(nodeId -> "detached".equals(nodeId)
+            ? new DockNode(nodeId, new Label("Detached"), "Detached")
+            : null);
+        restoredSerializer.deserialize(json);
+
+        assertNull(restoredGraph.getRoot());
+        assertEquals(1, restoredGraph.getSideBarNodes(Side.RIGHT).size());
+        assertEquals("detached", restoredGraph.getSideBarNodes(Side.RIGHT).getFirst().getDockNodeId());
     }
 }

@@ -14,6 +14,7 @@ These instructions are shared for all AI agents working on this workspace.
 - After successful changes, prepare a small, focused commit (stage relevant files and propose a commit message).
 - Always `git add` new files when preparing a commit.
 - Before creating a commit, always show the proposed commit message to the user and get confirmation.
+- Commit-message focus rule: for feature commits, describe the delivered user-visible/technical feature scope (not temporary sprint/phase labels), and do not list intermediate bug fixes encountered during feature development unless the commit is primarily a bug-fix commit.
 - Keep commits minimally mixed: one logical topic/fix per commit; avoid bundling unrelated changes.
 - Default to one commit per fix/feature so changes stay clearly separated and release notes remain precise.
 - For fix commits, use a multi-line commit message body with at least one explanation line per fix.
@@ -32,6 +33,7 @@ These instructions are shared for all AI agents working on this workspace.
 - Change-history rule: `STATUS.md` should stay current-state focused; versioned historical details belong in `CHANGELOG.md`.
 - Markdown encoding rule: preserve UTF-8 and avoid shell text-rewrite commands that can alter Unicode; prefer `apply_patch` for markdown edits.
 - Diff minimization rule: for all file changes, prefer minimal targeted edits and avoid full-file rewrites when smaller diffs are sufficient; only rewrite entire files when explicitly requested or technically required.
+- Logic deduplication rule: when new behavior overlaps existing behavior (for example restore/fallback flows), reuse or extract the existing implementation path instead of re-implementing parallel logic.
 - Unicode escape readability rule: when icon constants use `\u...` notation in code, add an inline comment showing the rendered icon.
 
 ## DnD-Specific Rules

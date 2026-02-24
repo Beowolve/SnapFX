@@ -112,6 +112,116 @@
     -fx-background-color: -fx-background;
 }
 
+/* ===== Side Bars ===== */
+.dock-sidebar-host {
+    -fx-background-color: transparent;
+}
+
+.dock-sidebar-strip {
+    -fx-padding: 6px 4px;
+    -fx-background-color: derive(-fx-background, -3%);
+    -fx-spacing: 4px;
+}
+
+.dock-sidebar-strip-left {
+    -fx-border-color: derive(-fx-background, -12%);
+    -fx-border-width: 0 1px 0 0;
+}
+
+.dock-sidebar-strip-right {
+    -fx-border-color: derive(-fx-background, -12%);
+    -fx-border-width: 0 0 0 1px;
+}
+
+.dock-sidebar-icon-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 4px;
+    -fx-border-radius: 4px;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+    -fx-alignment: center;
+    -fx-content-display: graphic-only;
+}
+
+.dock-sidebar-icon-button:hover {
+    -fx-background-color: derive(-fx-background, -8%);
+}
+
+.dock-sidebar-icon-button-active {
+    -fx-background-color: derive(-fx-background, -12%);
+}
+
+.dock-sidebar-icon-button-active:hover {
+    -fx-background-color: derive(-fx-background, -15%);
+}
+
+.dock-sidebar-icon-fallback {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-text-base-color;
+}
+
+.dock-sidebar-panel {
+    -fx-background-color: -fx-background;
+    -fx-border-color: derive(-fx-background, -12%);
+    -fx-border-width: 0 1px 0 1px;
+}
+
+.dock-sidebar-panel-overlay {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.18), 8, 0.2, 0, 1);
+}
+
+.dock-sidebar-panel-header {
+    -fx-background-color: linear-gradient(to bottom,
+        derive(-fx-background, 5%),
+        derive(-fx-background, -5%));
+    -fx-border-color: derive(-fx-background, -15%);
+    -fx-border-width: 0 0 1px 0;
+    -fx-padding: 4px 6px;
+    -fx-alignment: center-left;
+}
+
+.dock-sidebar-panel-title-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -fx-text-base-color;
+}
+
+.dock-sidebar-panel-content {
+    -fx-background-color: -fx-background;
+}
+
+.dock-sidebar-panel-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 3px;
+    -fx-padding: 2px;
+    -fx-cursor: hand;
+    -fx-min-width: 20px;
+    -fx-pref-width: 20px;
+    -fx-max-width: 20px;
+    -fx-min-height: 20px;
+    -fx-pref-height: 20px;
+    -fx-max-height: 20px;
+    -fx-alignment: center;
+    -fx-content-display: center;
+}
+
+.dock-sidebar-panel-button:hover {
+    -fx-background-color: derive(-fx-background, -8%);
+}
+
+.dock-sidebar-panel-button:pressed {
+    -fx-background-color: derive(-fx-background, -12%);
+}
+
+.dock-sidebar-panel-button:hover .dock-control-icon {
+    -fx-background-color: -fx-text-base-color;
+}
+
+.dock-sidebar-panel-button:pressed .dock-control-icon {
+    -fx-background-color: derive(-fx-text-base-color, -10%);
+}
+
 /* ===== DockSplitPane ===== */
 .dock-split-pane {
     -fx-background-color: -fx-background;

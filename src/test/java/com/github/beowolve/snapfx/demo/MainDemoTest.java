@@ -2,8 +2,10 @@ package com.github.beowolve.snapfx.demo;
 
 import com.github.beowolve.snapfx.SnapFX;
 import com.github.beowolve.snapfx.floating.DockFloatingSnapTarget;
+import com.github.beowolve.snapfx.model.DockNode;
 import com.github.beowolve.snapfx.persistence.DockLayoutLoadException;
 import javafx.application.Platform;
+import javafx.geometry.Side;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeAll;
 
@@ -24,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
@@ -184,6 +187,21 @@ class MainDemoTest {
             subset
         );
         assertEquals(EnumSet.noneOf(DockFloatingSnapTarget.class), empty);
+    }
+
+    @Test
+    void testBuildSideBarMenuTitleIncludesSideCountAndVisibility() {
+        assertEquals("Left Sidebar (2, pinned)", MainDemo.buildSideBarMenuTitle(Side.LEFT, 2, true));
+        assertEquals("Right Sidebar (0, collapsed)", MainDemo.buildSideBarMenuTitle(Side.RIGHT, 0, false));
+    }
+
+    @Test
+    void testFormatDockNodeListLabelUsesTitleAndNodeIdFallbacks() {
+        DockNode node = new DockNode("editor", new Label("Editor"), "Main Editor");
+        assertEquals("Main Editor [editor]", MainDemo.formatDockNodeListLabel(node));
+
+        DockNode untitled = new DockNode("", new Label("Empty"), "");
+        assertEquals("Untitled [unknown]", MainDemo.formatDockNodeListLabel(untitled));
     }
 
     @Test

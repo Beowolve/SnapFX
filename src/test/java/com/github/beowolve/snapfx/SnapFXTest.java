@@ -18,11 +18,14 @@ import com.github.beowolve.snapfx.model.DockPosition;
 import com.github.beowolve.snapfx.model.DockSplitPane;
 import com.github.beowolve.snapfx.model.DockTabPane;
 import com.github.beowolve.snapfx.persistence.DockLayoutLoadException;
+import com.github.beowolve.snapfx.theme.DockThemeStyleClasses;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import javafx.event.Event;
 import javafx.application.Platform;
+import javafx.geometry.Side;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TabPane;
@@ -1079,6 +1082,179 @@ class SnapFXTest {
     }
 
     @Test
+    void testSideBarApiPinsAndRestoresDockedNode() {
+        DockNode left = new DockNode("left", new Label("Left"), "Left");
+        DockNode right = new DockNode("right", new Label("Right"), "Right");
+
+        snapFX.dock(left, null, DockPosition.CENTER);
+        snapFX.dock(right, left, DockPosition.RIGHT);
+
+        snapFX.pinToSideBar(left, Side.LEFT);
+
+        assertTrue(snapFX.isPinnedToSideBar(left));
+        assertEquals(Side.LEFT, snapFX.getPinnedSide(left));
+        assertFalse(snapFX.isSideBarPinnedOpen(Side.LEFT));
+        assertTrue(snapFX.getSideBarNodes(Side.LEFT).contains(left));
+        assertFalse(isInGraph(snapFX, left));
+        assertTrue(isInGraph(snapFX, right));
+
+        snapFX.restoreFromSideBar(left);
+
+        assertFalse(snapFX.isPinnedToSideBar(left));
+        assertTrue(snapFX.getSideBarNodes(Side.LEFT).isEmpty());
+        assertTrue(isInGraph(snapFX, left));
+        DockSplitPane split = assertInstanceOf(DockSplitPane.class, snapFX.getDockGraph().getRoot());
+        assertEquals(left, split.getChildren().getFirst());
+        assertEquals(right, split.getChildren().getLast());
+    }
+
+    @Test
+    void testPinnedOpenSideBarApiDelegatesAndRespectsLock() {
+        assertFalse(snapFX.isSideBarPinnedOpen(Side.LEFT));
+
+        snapFX.pinOpenSideBar(Side.LEFT);
+        assertTrue(snapFX.isSideBarPinnedOpen(Side.LEFT));
+
+        snapFX.setLocked(true);
+        snapFX.collapsePinnedSideBar(Side.LEFT);
+        assertTrue(snapFX.isSideBarPinnedOpen(Side.LEFT), "Pinned-open sidebar change should be blocked while locked");
+
+        snapFX.setLocked(false);
+        snapFX.collapsePinnedSideBar(Side.LEFT);
+        assertFalse(snapFX.isSideBarPinnedOpen(Side.LEFT));
+    }
+
+    @Test
+    void testSaveLoadRoundTripPreservesPinnedSideBarsViaSnapFxApi() throws DockLayoutLoadException {
+        DockNode main = new DockNode("main", new Label("Main"), "Main");
+        DockNode sideTool = new DockNode("sideTool", new Label("Side Tool"), "Side Tool");
+
+        snapFX.setNodeFactory(this::createFactoryNode);
+        snapFX.dock(main, null, DockPosition.CENTER);
+        snapFX.dock(sideTool, main, DockPosition.RIGHT);
+        snapFX.pinToSideBar(sideTool, Side.RIGHT);
+        snapFX.collapsePinnedSideBar(Side.RIGHT);
+
+        String json = snapFX.saveLayout();
+
+        SnapFX restored = new SnapFX();
+        restored.setNodeFactory(this::createFactoryNode);
+        restored.loadLayout(json);
+
+        assertEquals(1, restored.getSideBarNodes(Side.RIGHT).size());
+        DockNode restoredPinnedNode = restored.getSideBarNodes(Side.RIGHT).getFirst();
+        assertEquals("sideTool", restoredPinnedNode.getDockNodeId());
+        assertFalse(restored.isSideBarPinnedOpen(Side.RIGHT));
+        assertFalse(isInGraph(restored, restoredPinnedNode));
+
+        DockNode restoredMainNode = assertInstanceOf(DockNode.class, restored.getDockGraph().getRoot());
+        assertEquals("main", restoredMainNode.getDockNodeId());
+    }
+
+    @Test
+    void testBuildLayoutShowsCollapsedSideBarStripWithoutPinnedPanel() {
+        DockNode main = new DockNode("main", new Label("Main"), "Main");
+        DockNode tool = new DockNode("tool", new Label("Tool"), "Tool");
+
+        snapFX.dock(main, null, DockPosition.CENTER);
+        snapFX.dock(tool, main, DockPosition.RIGHT);
+        snapFX.pinToSideBar(tool, Side.LEFT);
+        snapFX.collapsePinnedSideBar(Side.LEFT);
+
+        Node root = snapFX.buildLayout();
+
+        assertTrue(countNodesWithStyleClass(root, DockThemeStyleClasses.DOCK_SIDEBAR_STRIP) >= 1);
+        assertEquals(0, countNodesWithStyleClass(root, DockThemeStyleClasses.DOCK_SIDEBAR_PANEL_PINNED));
+        assertEquals(0, countNodesWithStyleClass(root, DockThemeStyleClasses.DOCK_SIDEBAR_ICON_BUTTON_ACTIVE));
+    }
+
+    @Test
+    void testBuildLayoutShowsPinnedSideBarPanelWhenSideBarIsPinnedOpen() {
+        DockNode main = new DockNode("main", new Label("Main"), "Main");
+        DockNode tool = new DockNode("tool", new Label("Tool"), "Tool");
+
+        snapFX.dock(main, null, DockPosition.CENTER);
+        snapFX.dock(tool, main, DockPosition.RIGHT);
+        snapFX.pinToSideBar(tool, Side.LEFT);
+        snapFX.pinOpenSideBar(Side.LEFT);
+
+        Node root = snapFX.buildLayout();
+
+        assertTrue(countNodesWithStyleClass(root, DockThemeStyleClasses.DOCK_SIDEBAR_STRIP) >= 1);
+        assertTrue(countNodesWithStyleClass(root, DockThemeStyleClasses.DOCK_SIDEBAR_PANEL) >= 1);
+        assertTrue(countNodesWithStyleClass(root, DockThemeStyleClasses.DOCK_SIDEBAR_PANEL_PINNED) >= 1);
+        assertTrue(countNodesWithStyleClass(root, DockThemeStyleClasses.DOCK_SIDEBAR_ICON_BUTTON_ACTIVE) >= 1);
+    }
+
+    @Test
+    void testPinnedSideBarActiveIconClickCollapsesPanelByDefault() {
+        DockNode main = new DockNode("main", new Label("Main"), "Main");
+        DockNode tool = new DockNode("tool", new Label("Tool"), "Tool");
+
+        snapFX.dock(main, null, DockPosition.CENTER);
+        snapFX.dock(tool, main, DockPosition.RIGHT);
+        snapFX.pinToSideBar(tool, Side.LEFT);
+        snapFX.pinOpenSideBar(Side.LEFT);
+        snapFX.buildLayout(); // Seeds sidebar selection state used by the icon-click handler
+
+        assertTrue(snapFX.isCollapsePinnedSideBarOnActiveIconClick());
+        assertTrue(snapFX.isSideBarPinnedOpen(Side.LEFT));
+
+        invokeSideBarIconClick(snapFX, Side.LEFT, tool);
+
+        assertTrue(snapFX.isSideBarPinnedOpen(Side.LEFT), "Pin mode should be preserved while the pinned panel is temporarily collapsed");
+        Node rootAfterCollapse = snapFX.buildLayout();
+        assertEquals(0, countNodesWithStyleClass(rootAfterCollapse, DockThemeStyleClasses.DOCK_SIDEBAR_PANEL_PINNED));
+        assertEquals(0, countNodesWithStyleClass(rootAfterCollapse, DockThemeStyleClasses.DOCK_SIDEBAR_ICON_BUTTON_ACTIVE));
+
+        invokeSideBarIconClick(snapFX, Side.LEFT, tool);
+
+        Node rootAfterReopen = snapFX.buildLayout();
+        assertTrue(countNodesWithStyleClass(rootAfterReopen, DockThemeStyleClasses.DOCK_SIDEBAR_PANEL_PINNED) >= 1);
+    }
+
+    @Test
+    void testPinnedSideBarActiveIconClickCanStayOpenWhenConfigured() {
+        DockNode main = new DockNode("main", new Label("Main"), "Main");
+        DockNode tool = new DockNode("tool", new Label("Tool"), "Tool");
+
+        snapFX.dock(main, null, DockPosition.CENTER);
+        snapFX.dock(tool, main, DockPosition.RIGHT);
+        snapFX.pinToSideBar(tool, Side.LEFT);
+        snapFX.pinOpenSideBar(Side.LEFT);
+        snapFX.setCollapsePinnedSideBarOnActiveIconClick(false);
+        snapFX.buildLayout(); // Seeds sidebar selection state used by the icon-click handler
+
+        invokeSideBarIconClick(snapFX, Side.LEFT, tool);
+
+        assertFalse(snapFX.isCollapsePinnedSideBarOnActiveIconClick());
+        assertTrue(snapFX.isSideBarPinnedOpen(Side.LEFT));
+        Node rootAfterClick = snapFX.buildLayout();
+        assertTrue(countNodesWithStyleClass(rootAfterClick, DockThemeStyleClasses.DOCK_SIDEBAR_PANEL_PINNED) >= 1);
+    }
+
+    @Test
+    void testRestoreFromSideBarUsesNeighborFallbackWhenTabbedParentCollapsed() {
+        DockNode firstTab = new DockNode("firstTab", new Label("First"), "First");
+        DockNode secondTab = new DockNode("secondTab", new Label("Second"), "Second");
+
+        snapFX.dock(firstTab, null, DockPosition.CENTER);
+        snapFX.dock(secondTab, firstTab, DockPosition.CENTER);
+
+        assertInstanceOf(DockTabPane.class, snapFX.getDockGraph().getRoot());
+
+        snapFX.pinToSideBar(secondTab, Side.RIGHT);
+        assertInstanceOf(DockNode.class, snapFX.getDockGraph().getRoot(), "Single remaining tab should flatten after pin");
+
+        snapFX.restoreFromSideBar(secondTab);
+
+        DockTabPane restoredTabs = assertInstanceOf(DockTabPane.class, snapFX.getDockGraph().getRoot());
+        assertEquals(2, restoredTabs.getChildren().size());
+        assertTrue(restoredTabs.getChildren().contains(firstTab));
+        assertTrue(restoredTabs.getChildren().contains(secondTab));
+    }
+
+    @Test
     void testSaveLayoutWithFloatingWindowIncludesSnapshotSection() {
         DockNode nodeMain = new DockNode("nodeMain", new Label("Main"), "Main");
         DockNode nodeFloat = new DockNode("nodeFloat", new Label("Float"), "Float");
@@ -1388,7 +1564,9 @@ class SnapFXTest {
 
     private TabPane buildRootTabPane(SnapFX framework) {
         var root = assertInstanceOf(javafx.scene.layout.StackPane.class, framework.buildLayout());
-        return assertInstanceOf(TabPane.class, root.getChildren().getFirst());
+        TabPane tabPane = findFirstTabPaneInView(root);
+        assertNotNull(tabPane);
+        return tabPane;
     }
 
     private boolean requestFloatDetach(SnapFX framework, DockNode node, double screenX, double screenY) {
@@ -1406,6 +1584,18 @@ class SnapFXTest {
             String detail = cause != null ? cause.toString() : exception.toString();
             fail("Failed to request float detach via drag service reflection: " + detail);
             return false;
+        }
+    }
+
+    private void invokeSideBarIconClick(SnapFX framework, Side side, DockNode node) {
+        try {
+            Method method = SnapFX.class.getDeclaredMethod("onSideBarIconClicked", Side.class, DockNode.class);
+            method.setAccessible(true);
+            method.invoke(framework, side, node);
+        } catch (ReflectiveOperationException exception) {
+            Throwable cause = exception.getCause();
+            String detail = cause != null ? cause.toString() : exception.toString();
+            fail("Failed to invoke sidebar icon click handler via reflection: " + detail);
         }
     }
 
@@ -1447,6 +1637,38 @@ class SnapFXTest {
             }
         }
         return null;
+    }
+
+    private TabPane findFirstTabPaneInView(Node current) {
+        if (current == null) {
+            return null;
+        }
+        if (current instanceof TabPane tabPane) {
+            return tabPane;
+        }
+        if (current instanceof javafx.scene.Parent parent) {
+            for (Node child : parent.getChildrenUnmodifiable()) {
+                TabPane tabPane = findFirstTabPaneInView(child);
+                if (tabPane != null) {
+                    return tabPane;
+                }
+            }
+        }
+        return null;
+    }
+
+    private int countNodesWithStyleClass(Node current, String styleClass) {
+        if (current == null || styleClass == null || styleClass.isBlank()) {
+            return 0;
+        }
+
+        int count = current.getStyleClass().contains(styleClass) ? 1 : 0;
+        if (current instanceof javafx.scene.Parent parent) {
+            for (Node child : parent.getChildrenUnmodifiable()) {
+                count += countNodesWithStyleClass(child, styleClass);
+            }
+        }
+        return count;
     }
 
     private boolean containsDockNodeId(DockElement current, String dockNodeId) {

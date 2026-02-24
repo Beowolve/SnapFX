@@ -1,11 +1,11 @@
 # Project Status
 
-**Last Updated**: 2026-02-17
+**Last Updated**: 2026-02-24
 
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 259 tests passing (latest full suite)
+✅ **Tests**: All 278 tests passing (latest full suite)
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully  
 ✅ **CI Automation**: GitHub Actions workflows added for push/PR tests and tag-triggered releases  
@@ -30,6 +30,9 @@
 - ✅ Auto-cleanup for empty containers (fixed to prevent orphaned containers)
 - ✅ Model-View separation
 - ✅ Theme management is modularized into dedicated classes (`DockThemeCatalog`, `DockThemeStylesheetManager`) to keep `SnapFX` focused on API orchestration
+- ✅ Side-bar Phase 1 model foundation is implemented in `DockGraph` (pinned entries per side, pinned-open state, deterministic pin/restore workflow)
+- ✅ Side-bar Phase 1 API + MainDemo manual-test integration is implemented (SnapFX facade + Settings/Layout-menu controls)
+- ✅ Side-bar Phase 1 framework rendering baseline is implemented in SnapFX (icon strips + pinned panels + overlay click behavior); newly pinned entries stay collapsed by default, pinned active-icon click collapse behavior is configurable (default collapse) and preserves pin mode during temporary collapse, overlay hit-testing/right-side unpin placement issues were corrected, and sidebar restore now reuses floating-style placement-memory fallback logic
 
 ### View Layer (100% ✅)
 - ✅ DockLayoutEngine (Model → SceneGraph)
@@ -74,6 +77,8 @@
 - ✅ Save/Load functionality across sessions
 - ✅ Layout state preservation
 - ✅ Locked state persistence
+- ✅ Sidebar state persistence foundation is implemented in `DockLayoutSerializer` (pinned entries, sidebar pinned-open state, and restore-anchor roundtrip)
+- ✅ Sidebar state now roundtrips through `SnapFX.saveLayout(...)` / `loadLayout(...)`, and framework side panels are rendered from that state; mixed main/floating/sidebar persistence + lock UX verification in MainDemo is completed
 
 ### Locked Mode (100% ✅)
 - ✅ Layout locking
@@ -141,20 +146,20 @@
 - ✅ Documentation updated
 
 ### Testing (100% ✅)
-- ✅ DockGraphTest (56 tests, +11 regression tests)
-- ✅ DockLayoutSerializerTest (16 tests) - Includes strict load-failure diagnostics for blank content, malformed JSON, missing required fields, invalid tab selection metadata, unknown-node placeholder diagnostics, and unsupported-type recovery with optional factory custom fallback
+- ✅ DockGraphTest (62 tests, +11 regression tests plus sidebar model coverage)
+- ✅ DockLayoutSerializerTest (19 tests) - Includes strict load-failure diagnostics for blank content, malformed JSON, missing required fields, invalid tab selection metadata, unknown-node placeholder diagnostics, unsupported-type recovery with optional factory custom fallback, and sidebar persistence/restore-anchor roundtrip coverage
 - ✅ DockLayoutEngineTest (32 tests) - Includes tab/header/splitter context-menu coverage, representative container-tab title/icon behavior, float-availability policy checks, header-context-menu dismiss-on-press regression coverage, and tiny-bounds drop-zone clamp regression coverage
-- ✅ **SnapFXTest (69 tests)** - Hide/Restore + Floating Window API tests plus configurable shortcut behavior, floating-window snap API propagation/validation, invalid-load failure handling, persistence edge-case coverage for complex floating snapshots, unknown-type layout recovery, unresolved floating-sub-layout D&D detach behavior, floating reattach placement restore/fallback behavior for both float-button and unresolved-drag detach paths, three-window floating-layout detach/attach roundtrip regression coverage (top-left/top-right/bottom cases), detach-close-remaining-attach host-restore fallback coverage, and theme stylesheet API behavior (initialize auto-apply + runtime switching + named theme catalog exposure)
+- ✅ **SnapFXTest (77 tests)** - Hide/Restore + Floating Window API tests plus configurable shortcut behavior, floating-window snap API propagation/validation, side-bar facade API behavior (pin/restore, lock-aware pinned-open state, save/load roundtrip preservation), framework sidebar build-layout rendering structure coverage (collapsed strip vs. pinned panel), configurable pinned-sidebar active-icon collapse policy coverage, sidebar-restore placement regression coverage for collapsed tab-parent fallback, invalid-load failure handling, persistence edge-case coverage for complex floating snapshots, unknown-type layout recovery, unresolved floating-sub-layout D&D detach behavior, floating reattach placement restore/fallback behavior for both float-button and unresolved-drag detach paths, three-window floating-layout detach/attach roundtrip regression coverage (top-left/top-right/bottom cases), detach-close-remaining-attach host-restore fallback coverage, and theme stylesheet API behavior (initialize auto-apply + runtime switching + named theme catalog exposure)
 - ✅ DockGraphSplitTargetDockingTest (1 test)
 - ✅ DockDragServiceTest (8 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, and ESC drag-cancel handling
 - ✅ DockFloatingWindowTest (30 tests) - Floating title bar controls, context menu behavior (attach/pin icons + attach action), pin behavior, icon rendering/sync regression coverage, single-node float-menu policy, maximize/restore interaction behavior, scene-level drag continuity (including release/reset and non-primary guard behavior), resize-min constraints, interactive-target cursor reliability, and floating/main edge snapping behavior (including overlap-guard, adjacent-edge cases, and main-window shadow-inset compensation)
 - ✅ DockFloatingSnapEngineTest (6 tests) - Snap candidate scoring, overlap-aware candidate generation, and shadow-inset compensation behavior
-- ✅ MainDemoTest (19 tests) - Demo app icon resource wiring, menu icon behavior, demo shortcut wiring, floating snap-target settings resolution coverage, load-error message formatting, owner-aware error-alert behavior, FileChooser helper coverage for shared layout/editor chooser configuration, and named theme-catalog/resource coverage
+- ✅ MainDemoTest (21 tests) - Demo app icon resource wiring, menu icon behavior, sidebar menu/list helper coverage for Phase-C manual controls, demo shortcut wiring, floating snap-target settings resolution coverage, load-error message formatting, owner-aware error-alert behavior, FileChooser helper coverage for shared layout/editor chooser configuration, and named theme-catalog/resource coverage
 - ✅ DemoNodeFactoryTest (3 tests) - Unknown-node fallback strategy coverage (framework placeholder vs. custom demo fallback node) plus SnapFX integration coverage for unsupported-type recovery with the default demo factory
 - ✅ EditorCloseDecisionPolicyTest (5 tests) - Deterministic close-decision policy checks
 - ✅ MarkdownDocumentationConsistencyTest (12 tests) - Markdown consistency guardrails
 - ✅ AboutDialogTest (2 tests) - About dialog branding resources and credit link targets
-- ✅ **259/259 tests passing** ✅
+- ✅ **278/278 tests passing** ✅
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Edge case tests** (null inputs, detached nodes, invalid move targets, no-op revision checks)
@@ -175,9 +180,11 @@
 - ✅ About dialog extracted into dedicated class with dynamic version info, large logo branding, and icon credits
 - ✅ About dialog easter egg animation (triple-click logo)
 - ✅ Debug view toggle
-- ✅ Settings tab for live layout options (title bar, close buttons, drop visualization, lock, floating pin controls, and floating-window snapping controls for enable/distance/targets)
+- ✅ Settings tab for live layout options (title bar, close buttons, drop visualization, lock, floating pin controls, floating-window snapping controls, and Phase-C pinned side-bar manual test controls for pin/restore/pin-open)
 - ✅ File workflows now use shared `FileChooser` helpers for layout open/save and editor open/save-as to keep extension filters and defaults consistent
 - ✅ Settings tab now includes a theme selector driven by the SnapFX named theme catalog (`Light`, `Dark`) and applies styles via runtime API
+- ✅ Layout menu now includes Phase-C side-bar pin/restore/pin-open test menus for left/right side bars
+- ✅ SnapFX now renders framework-level left/right sidebars (icon strips + overlay/pinned panels) in the main layout, and MainDemo uses that rendering for Phase-C manual validation
 
 ### Documentation (100% ✅)
 - ✅ README.md updated
@@ -191,6 +198,7 @@
 - ✅ ROADMAP.md now starts with overall progress, keeps legend directly below, and no longer includes a version-track block.
 - ✅ Architecture decision records are now tracked under `docs/adr/` and linked from README documentation map.
 - ✅ Runtime theme-stylesheet behavior is documented in ADR `docs/adr/0002-runtime-theme-stylesheet-management.md`
+- ✅ Sidebar overlay/pin rendering state split is documented in ADR `docs/adr/0003-sidebar-overlay-and-pin-rendering-state-split.md`
 
 ## Issues
 
@@ -204,7 +212,7 @@
 
 See [ROADMAP.md](ROADMAP.md) for detailed future development plans.
 
-**Priority**: Continue Phase 3 user-experience backlog (customizable context-menu API and interaction polish).
+**Priority**: Continue Phase 2/4 sidebar UX polish (hover auto-hide behavior and interaction rules) after completing Phase C pinned-sidebar verification and stabilization, then return to broader Phase 3 UX backlog.
 
 ---
 

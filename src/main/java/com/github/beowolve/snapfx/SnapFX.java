@@ -18,6 +18,7 @@ import com.github.beowolve.snapfx.persistence.DockLayoutSerializer;
 import com.github.beowolve.snapfx.persistence.DockLayoutLoadException;
 import com.github.beowolve.snapfx.persistence.DockNodeFactory;
 import com.github.beowolve.snapfx.theme.DockThemeCatalog;
+import com.github.beowolve.snapfx.theme.DockThemeStyleClasses;
 import com.github.beowolve.snapfx.theme.DockThemeStylesheetManager;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -36,18 +37,32 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.geometry.Orientation;
+import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -74,6 +89,11 @@ public class SnapFX {
     private static final String SNAPSHOT_FLOATING_WIDTH_KEY = "width";
     private static final String SNAPSHOT_FLOATING_HEIGHT_KEY = "height";
     private static final String SNAPSHOT_FLOATING_ALWAYS_ON_TOP_KEY = "alwaysOnTop";
+    private static final String SIDEBAR_CHROME_MARKER_KEY = "snapfx.sidebarChrome";
+    private static final double SIDEBAR_STRIP_WIDTH = 36.0;
+    private static final double SIDEBAR_PANEL_WIDTH = 300.0;
+    private static final double SIDEBAR_ICON_BUTTON_SIZE = 28.0;
+    private static final Duration SIDEBAR_TOOLTIP_SHOW_DELAY = Duration.ZERO;
     private static final KeyCombination DEFAULT_SHORTCUT_CLOSE_ACTIVE_NODE = new KeyCodeCombination(
         KeyCode.W,
         KeyCombination.SHORTCUT_DOWN
@@ -100,6 +120,7 @@ public class SnapFX {
     private final DockLayoutSerializer serializer;
     private final EnumMap<DockShortcutAction, KeyCombination> shortcuts;
     private final EventHandler<KeyEvent> shortcutKeyEventFilter;
+    private final EventHandler<MouseEvent> sideBarOverlayMouseEventFilter;
     private final ChangeListener<Scene> rootContainerSceneListener;
     private final ChangeListener<Scene> primaryStageSceneListener;
     private final Map<DockFloatingWindow, Scene> floatingShortcutScenes;
@@ -113,6 +134,10 @@ public class SnapFX {
     private final ObservableList<DockNode> hiddenNodes;
     private final ObservableList<DockFloatingWindow> floatingWindows;
     private final ObservableList<DockFloatingWindow> readOnlyFloatingWindows;
+    private final EnumMap<Side, DockNode> selectedSideBarNodes;
+    private final EnumSet<Side> openOverlaySideBars;
+    private final EnumSet<Side> collapsedPinnedSideBars;
+    private boolean collapsePinnedSideBarOnActiveIconClick = true;
     private DockCloseBehavior defaultCloseBehavior = DockCloseBehavior.HIDE;
     private Function<DockCloseRequest, DockCloseDecision> onCloseRequest;
     private Consumer<DockCloseResult> onCloseHandled;
@@ -139,6 +164,7 @@ public class SnapFX {
         this.serializer = new DockLayoutSerializer(dockGraph);
         this.shortcuts = new EnumMap<>(DockShortcutAction.class);
         this.shortcutKeyEventFilter = this::handleShortcutKeyPressed;
+        this.sideBarOverlayMouseEventFilter = this::handleRootContainerMousePressed;
         this.rootContainerSceneListener = (obs, oldScene, newScene) -> rebindShortcutScene(newScene);
         this.primaryStageSceneListener = (obs, oldScene, newScene) -> applyManagedThemeStylesheet(newScene, null);
         this.floatingShortcutScenes = new HashMap<>();
@@ -146,6 +172,9 @@ public class SnapFX {
         this.hiddenNodes = FXCollections.observableArrayList();
         this.floatingWindows = FXCollections.observableArrayList();
         this.readOnlyFloatingWindows = FXCollections.unmodifiableObservableList(floatingWindows);
+        this.selectedSideBarNodes = new EnumMap<>(Side.class);
+        this.openOverlaySideBars = EnumSet.noneOf(Side.class);
+        this.collapsedPinnedSideBars = EnumSet.noneOf(Side.class);
         this.themeStylesheetManager = new DockThemeStylesheetManager();
         resetShortcutsToDefaults();
         this.layoutEngine.setOnNodeCloseRequest(this::handleDockNodeCloseRequest);
@@ -292,18 +321,13 @@ public class SnapFX {
      * The returned Parent will automatically update when the model changes.
      */
     public Parent buildLayout() {
-        Node layout = layoutEngine.buildSceneGraph();
-
         // Wrap in a container that we can update
         if (rootContainer == null) {
             rootContainer = new StackPane();
             rootContainer.sceneProperty().addListener(rootContainerSceneListener);
         }
 
-        rootContainer.getChildren().clear();
-        if (layout != null) {
-            rootContainer.getChildren().add(layout);
-        }
+        rebuildRootContainerContent();
         rebindShortcutScene(rootContainer.getScene());
 
         return rootContainer;
@@ -314,17 +338,461 @@ public class SnapFX {
             return;
         }
 
-        Node layout = layoutEngine.buildSceneGraph();
-        rootContainer.getChildren().clear();
-        if (layout != null) {
-            rootContainer.getChildren().add(layout);
-        }
+        rebuildRootContainerContent();
     }
 
     private void requestRebuild() {
         if (rootContainer != null) {
             Platform.runLater(this::rebuildRootView);
         }
+    }
+
+    private void rebuildRootContainerContent() {
+        if (rootContainer == null) {
+            return;
+        }
+        // Detach old content first so DockNode content can be re-hosted by the rebuilt layout or sidebar panel.
+        rootContainer.getChildren().clear();
+        Node layout = layoutEngine.buildSceneGraph();
+        replaceRootContainerContent(layout);
+    }
+
+    /**
+     * Replaces the current root content with a composed layout that includes sidebar stripes, overlay panels, and
+     * pinned sidebar panels.
+     *
+     * <p>Callers clear the root container before composition so JavaFX content nodes can safely move between the
+     * main layout and sidebar panel hosts during pin/restore transitions.</p>
+     */
+    private void replaceRootContainerContent(Node layout) {
+        if (rootContainer == null) {
+            return;
+        }
+        Node composedLayout = buildSideBarDecoratedLayout(layout);
+        if (composedLayout != null) {
+            rootContainer.getChildren().add(composedLayout);
+        }
+    }
+
+    /**
+     * Builds the visual root for SnapFX and layers sidebar overlay panels above the regular dock layout.
+     *
+     * <p>Sidebar state is split into two layers:
+     * persistent model state in {@link DockGraph} (pinned entries and pinned-open side visibility)
+     * and transient view state in this class (which collapsed side currently has an overlay panel open).</p>
+     */
+    private Node buildSideBarDecoratedLayout(Node mainLayout) {
+        pruneInvalidSideBarViewState();
+
+        BorderPane host = new BorderPane();
+        if (mainLayout != null) {
+            host.setCenter(mainLayout);
+        }
+        Node leftSideHost = createSideBarSideHost(Side.LEFT);
+        if (leftSideHost != null) {
+            host.setLeft(leftSideHost);
+        }
+        Node rightSideHost = createSideBarSideHost(Side.RIGHT);
+        if (rightSideHost != null) {
+            host.setRight(rightSideHost);
+        }
+
+        StackPane layeredHost = new StackPane(host);
+        Node leftOverlay = createSideBarOverlayHost(Side.LEFT);
+        if (leftOverlay != null) {
+            StackPane.setAlignment(leftOverlay, Pos.CENTER_LEFT);
+            layeredHost.getChildren().add(leftOverlay);
+        }
+        Node rightOverlay = createSideBarOverlayHost(Side.RIGHT);
+        if (rightOverlay != null) {
+            StackPane.setAlignment(rightOverlay, Pos.CENTER_RIGHT);
+            layeredHost.getChildren().add(rightOverlay);
+        }
+        return layeredHost;
+    }
+
+    private Node createSideBarSideHost(Side side) {
+        List<DockNode> pinnedNodes = collectSideBarNodes(side);
+        if (pinnedNodes.isEmpty()) {
+            return null;
+        }
+
+        DockNode selectedNode = resolveSelectedSideBarNode(side, pinnedNodes);
+        boolean pinnedOpen = dockGraph.isSideBarPinnedOpen(side);
+        boolean pinnedPanelVisible = pinnedOpen && !collapsedPinnedSideBars.contains(side);
+        boolean sidePanelOpen = pinnedPanelVisible || openOverlaySideBars.contains(side);
+        VBox strip = createSideBarStrip(side, pinnedNodes, selectedNode, sidePanelOpen);
+        Node pinnedPanel = pinnedPanelVisible && selectedNode != null ? createSideBarPanel(side, selectedNode, true) : null;
+        if (pinnedPanel == null) {
+            return strip;
+        }
+
+        HBox host = new HBox();
+        host.getStyleClass().add(DockThemeStyleClasses.DOCK_SIDEBAR_HOST);
+        if (side == Side.LEFT) {
+            host.getChildren().addAll(strip, pinnedPanel);
+        } else {
+            host.getChildren().addAll(pinnedPanel, strip);
+        }
+        return host;
+    }
+
+    private Node createSideBarOverlayHost(Side side) {
+        if (dockGraph.isSideBarPinnedOpen(side) || !openOverlaySideBars.contains(side)) {
+            return null;
+        }
+
+        List<DockNode> pinnedNodes = collectSideBarNodes(side);
+        if (pinnedNodes.isEmpty()) {
+            return null;
+        }
+
+        DockNode selectedNode = resolveSelectedSideBarNode(side, pinnedNodes);
+        if (selectedNode == null) {
+            return null;
+        }
+
+        HBox overlayHost = new HBox();
+        overlayHost.getStyleClass().add(DockThemeStyleClasses.DOCK_SIDEBAR_OVERLAY_HOST);
+        overlayHost.setPickOnBounds(false);
+        overlayHost.setMinWidth(SIDEBAR_STRIP_WIDTH + SIDEBAR_PANEL_WIDTH);
+        overlayHost.setPrefWidth(SIDEBAR_STRIP_WIDTH + SIDEBAR_PANEL_WIDTH);
+        overlayHost.setMaxWidth(SIDEBAR_STRIP_WIDTH + SIDEBAR_PANEL_WIDTH);
+        Node spacer = createSideBarOverlaySpacer();
+        Node panel = createSideBarPanel(side, selectedNode, false);
+        if (side == Side.LEFT) {
+            overlayHost.getChildren().addAll(spacer, panel);
+        } else {
+            overlayHost.getChildren().addAll(panel, spacer);
+        }
+        markSideBarChrome(overlayHost);
+        return overlayHost;
+    }
+
+    private VBox createSideBarStrip(Side side, List<DockNode> pinnedNodes, DockNode selectedNode, boolean sidePanelOpen) {
+        VBox strip = new VBox(4);
+        strip.getStyleClass().addAll(
+            DockThemeStyleClasses.DOCK_SIDEBAR_STRIP,
+            side == Side.LEFT
+                ? DockThemeStyleClasses.DOCK_SIDEBAR_STRIP_LEFT
+                : DockThemeStyleClasses.DOCK_SIDEBAR_STRIP_RIGHT
+        );
+        strip.setMinWidth(SIDEBAR_STRIP_WIDTH);
+        strip.setPrefWidth(SIDEBAR_STRIP_WIDTH);
+        strip.setMaxWidth(SIDEBAR_STRIP_WIDTH);
+        markSideBarChrome(strip);
+
+        for (DockNode dockNode : pinnedNodes) {
+            boolean active = sidePanelOpen && dockNode == selectedNode;
+            strip.getChildren().add(createSideBarIconButton(side, dockNode, active));
+        }
+        return strip;
+    }
+
+    private Button createSideBarIconButton(Side side, DockNode dockNode, boolean active) {
+        Button button = new Button();
+        button.getStyleClass().add(DockThemeStyleClasses.DOCK_SIDEBAR_ICON_BUTTON);
+        if (active) {
+            button.getStyleClass().add(DockThemeStyleClasses.DOCK_SIDEBAR_ICON_BUTTON_ACTIVE);
+        }
+        button.setFocusTraversable(false);
+        button.setMinSize(SIDEBAR_ICON_BUTTON_SIZE, SIDEBAR_ICON_BUTTON_SIZE);
+        button.setPrefSize(SIDEBAR_ICON_BUTTON_SIZE, SIDEBAR_ICON_BUTTON_SIZE);
+        button.setMaxSize(SIDEBAR_ICON_BUTTON_SIZE, SIDEBAR_ICON_BUTTON_SIZE);
+        button.setGraphic(createSideBarDockNodeIconGraphic(dockNode));
+        Tooltip tooltip = new Tooltip(dockNode.getTitle());
+        tooltip.setShowDelay(SIDEBAR_TOOLTIP_SHOW_DELAY);
+        button.setTooltip(tooltip);
+        button.setOnAction(e -> onSideBarIconClicked(side, dockNode));
+        return button;
+    }
+
+    private Node createSideBarPanel(Side side, DockNode dockNode, boolean pinnedOpen) {
+        VBox panel = new VBox();
+        panel.getStyleClass().addAll(
+            DockThemeStyleClasses.DOCK_SIDEBAR_PANEL,
+            pinnedOpen ? DockThemeStyleClasses.DOCK_SIDEBAR_PANEL_PINNED : DockThemeStyleClasses.DOCK_SIDEBAR_PANEL_OVERLAY
+        );
+        panel.setMinWidth(SIDEBAR_PANEL_WIDTH);
+        panel.setPrefWidth(SIDEBAR_PANEL_WIDTH);
+        panel.setMaxWidth(SIDEBAR_PANEL_WIDTH);
+        markSideBarChrome(panel);
+
+        HBox header = new HBox(6);
+        header.getStyleClass().add(DockThemeStyleClasses.DOCK_SIDEBAR_PANEL_HEADER);
+
+        Node headerIcon = createSideBarDockNodeIconGraphic(dockNode);
+        Label titleLabel = new Label(dockNode.getTitle());
+        titleLabel.getStyleClass().add(DockThemeStyleClasses.DOCK_SIDEBAR_PANEL_TITLE_LABEL);
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Button pinButton = createSideBarPanelButton(
+            DockThemeStyleClasses.DOCK_SIDEBAR_PANEL_PIN_BUTTON,
+            pinnedOpen
+                ? DockThemeStyleClasses.DOCK_CONTROL_ICON_PIN_ON
+                : DockThemeStyleClasses.DOCK_CONTROL_ICON_PIN_OFF,
+            pinnedOpen ? "Unpin sidebar panel" : "Pin sidebar panel"
+        );
+        pinButton.setOnAction(e -> onSideBarPanelPinToggled(side, dockNode));
+
+        Button restoreButton = createSideBarPanelButton(
+            DockThemeStyleClasses.DOCK_SIDEBAR_PANEL_RESTORE_BUTTON,
+            DockThemeStyleClasses.DOCK_CONTROL_ICON_RESTORE,
+            "Restore to main layout"
+        );
+        restoreButton.setOnAction(e -> onSideBarPanelRestoreRequested(side, dockNode));
+
+        header.getChildren().addAll(headerIcon, titleLabel, spacer, pinButton, restoreButton);
+
+        StackPane contentHost = new StackPane();
+        contentHost.getStyleClass().add(DockThemeStyleClasses.DOCK_SIDEBAR_PANEL_CONTENT);
+        VBox.setVgrow(contentHost, Priority.ALWAYS);
+        attachDockNodeContent(contentHost, dockNode.getContent());
+
+        panel.getChildren().addAll(header, contentHost);
+        return panel;
+    }
+
+    private Node createSideBarOverlaySpacer() {
+        Region spacer = new Region();
+        spacer.setMinWidth(SIDEBAR_STRIP_WIDTH);
+        spacer.setPrefWidth(SIDEBAR_STRIP_WIDTH);
+        spacer.setMaxWidth(SIDEBAR_STRIP_WIDTH);
+        spacer.setMouseTransparent(true);
+        return spacer;
+    }
+
+    private Button createSideBarPanelButton(String buttonStyleClass, String iconStyleClass, String tooltipText) {
+        Button button = new Button();
+        button.getStyleClass().addAll(DockThemeStyleClasses.DOCK_SIDEBAR_PANEL_BUTTON, buttonStyleClass);
+        button.setFocusTraversable(false);
+        button.setGraphic(createControlIcon(iconStyleClass));
+        if (tooltipText != null && !tooltipText.isBlank()) {
+            Tooltip tooltip = new Tooltip(tooltipText);
+            tooltip.setShowDelay(SIDEBAR_TOOLTIP_SHOW_DELAY);
+            button.setTooltip(tooltip);
+        }
+        return button;
+    }
+
+    private Node createControlIcon(String styleClass) {
+        Region icon = new Region();
+        icon.getStyleClass().addAll(DockThemeStyleClasses.DOCK_CONTROL_ICON, styleClass);
+        icon.setMouseTransparent(true);
+        return icon;
+    }
+
+    private Node createSideBarDockNodeIconGraphic(DockNode dockNode) {
+        Image icon = dockNode == null ? null : dockNode.getIcon();
+        if (icon != null) {
+            ImageView imageView = new ImageView(icon);
+            imageView.setFitWidth(16);
+            imageView.setFitHeight(16);
+            imageView.setPreserveRatio(true);
+            imageView.setSmooth(true);
+            imageView.setCache(true);
+            imageView.setMouseTransparent(true);
+            return imageView;
+        }
+
+        Label fallback = new Label(buildSideBarFallbackGlyph(dockNode));
+        fallback.getStyleClass().add(DockThemeStyleClasses.DOCK_SIDEBAR_ICON_FALLBACK);
+        fallback.setMouseTransparent(true);
+        return fallback;
+    }
+
+    private String buildSideBarFallbackGlyph(DockNode dockNode) {
+        if (dockNode == null || dockNode.getTitle() == null || dockNode.getTitle().isBlank()) {
+            return "•";
+        }
+        return dockNode.getTitle().substring(0, 1).toUpperCase();
+    }
+
+    private void attachDockNodeContent(StackPane host, Node content) {
+        if (host == null || content == null) {
+            return;
+        }
+        host.getChildren().setAll(content);
+    }
+
+    private void onSideBarIconClicked(Side side, DockNode dockNode) {
+        if (side == null || dockNode == null) {
+            return;
+        }
+
+        DockNode previousSelection = selectedSideBarNodes.get(side);
+        boolean overlayWasOpen = openOverlaySideBars.contains(side);
+        selectedSideBarNodes.put(side, dockNode);
+
+        if (dockGraph.isSideBarPinnedOpen(side)) {
+            openOverlaySideBars.remove(side);
+            if (collapsedPinnedSideBars.contains(side)) {
+                collapsedPinnedSideBars.remove(side);
+            } else if (previousSelection == dockNode && collapsePinnedSideBarOnActiveIconClick) {
+                collapsedPinnedSideBars.add(side);
+            } else {
+                collapsedPinnedSideBars.remove(side);
+            }
+            requestRebuild();
+            return;
+        }
+
+        if (overlayWasOpen && previousSelection == dockNode) {
+            openOverlaySideBars.remove(side);
+        } else {
+            openOverlaySideBars.add(side);
+        }
+        requestRebuild();
+    }
+
+    /**
+     * Toggles between transient overlay mode and pinned-open mode for a sidebar panel.
+     *
+     * <p>When unpinning, the current panel remains open as an overlay so users can continue interacting with the
+     * same tool window until the next outside click.</p>
+     */
+    private void onSideBarPanelPinToggled(Side side, DockNode dockNode) {
+        if (side == null || dockNode == null) {
+            return;
+        }
+        selectedSideBarNodes.put(side, dockNode);
+
+        if (dockGraph.isSideBarPinnedOpen(side)) {
+            collapsedPinnedSideBars.remove(side);
+            dockGraph.collapsePinnedSideBar(side);
+            if (!dockGraph.isSideBarPinnedOpen(side)) {
+                openOverlaySideBars.add(side);
+            }
+        } else {
+            collapsedPinnedSideBars.remove(side);
+            dockGraph.pinOpenSideBar(side);
+            if (dockGraph.isSideBarPinnedOpen(side)) {
+                openOverlaySideBars.remove(side);
+            }
+        }
+        requestRebuild();
+    }
+
+    private void onSideBarPanelRestoreRequested(Side side, DockNode dockNode) {
+        if (dockNode == null) {
+            return;
+        }
+        openOverlaySideBars.remove(side);
+        if (selectedSideBarNodes.get(side) == dockNode) {
+            selectedSideBarNodes.remove(side);
+        }
+        restoreFromSideBar(dockNode);
+        requestRebuild();
+    }
+
+    private void handleRootContainerMousePressed(MouseEvent event) {
+        if (event == null || openOverlaySideBars.isEmpty()) {
+            return;
+        }
+        if (isInSideBarChrome(event.getTarget())) {
+            return;
+        }
+        if (closeTransientSideBarOverlays()) {
+            requestRebuild();
+        }
+    }
+
+    private boolean closeTransientSideBarOverlays() {
+        boolean changed = false;
+        for (Side side : List.of(Side.LEFT, Side.RIGHT)) {
+            if (dockGraph.isSideBarPinnedOpen(side)) {
+                continue;
+            }
+            if (openOverlaySideBars.remove(side)) {
+                changed = true;
+            }
+        }
+        return changed;
+    }
+
+    private boolean isInSideBarChrome(Object eventTarget) {
+        if (!(eventTarget instanceof Node node)) {
+            return false;
+        }
+        Node current = node;
+        while (current != null) {
+            if (Boolean.TRUE.equals(current.getProperties().get(SIDEBAR_CHROME_MARKER_KEY))) {
+                return true;
+            }
+            current = current.getParent();
+        }
+        return false;
+    }
+
+    private void markSideBarChrome(Node node) {
+        if (node != null) {
+            node.getProperties().put(SIDEBAR_CHROME_MARKER_KEY, Boolean.TRUE);
+        }
+    }
+
+    private void pruneInvalidSideBarViewState() {
+        for (Side side : List.of(Side.LEFT, Side.RIGHT)) {
+            List<DockNode> pinnedNodes = collectSideBarNodes(side);
+            if (pinnedNodes.isEmpty()) {
+                selectedSideBarNodes.remove(side);
+                openOverlaySideBars.remove(side);
+                collapsedPinnedSideBars.remove(side);
+                continue;
+            }
+
+            DockNode selected = selectedSideBarNodes.get(side);
+            if (selected == null || !pinnedNodes.contains(selected)) {
+                selectedSideBarNodes.put(side, pinnedNodes.getFirst());
+            }
+            if (dockGraph.isSideBarPinnedOpen(side)) {
+                openOverlaySideBars.remove(side);
+            } else {
+                collapsedPinnedSideBars.remove(side);
+            }
+        }
+    }
+
+    private DockNode resolveSelectedSideBarNode(Side side, List<DockNode> pinnedNodes) {
+        if (pinnedNodes == null || pinnedNodes.isEmpty()) {
+            selectedSideBarNodes.remove(side);
+            return null;
+        }
+        DockNode selectedNode = selectedSideBarNodes.get(side);
+        if (selectedNode == null || !pinnedNodes.contains(selectedNode)) {
+            selectedNode = pinnedNodes.getFirst();
+            selectedSideBarNodes.put(side, selectedNode);
+        }
+        return selectedNode;
+    }
+
+    private List<DockNode> collectSideBarNodes(Side side) {
+        ObservableList<DockNode> entries = dockGraph.getSideBarNodes(side);
+        if (entries == null || entries.isEmpty()) {
+            return List.of();
+        }
+        return List.copyOf(entries);
+    }
+
+    private void resetSideBarTransientViewState() {
+        selectedSideBarNodes.clear();
+        openOverlaySideBars.clear();
+        collapsedPinnedSideBars.clear();
+    }
+
+    private void forgetTransientSideBarStateForNode(DockNode node) {
+        if (node == null) {
+            return;
+        }
+        selectedSideBarNodes.entrySet().removeIf(entry -> entry.getValue() == node);
+        openOverlaySideBars.removeIf(side -> {
+            DockNode selectedNode = selectedSideBarNodes.get(side);
+            return selectedNode == null || selectedNode == node;
+        });
+        collapsedPinnedSideBars.removeIf(side -> {
+            DockNode selectedNode = selectedSideBarNodes.get(side);
+            return selectedNode == null || selectedNode == node;
+        });
     }
 
     /**
@@ -399,10 +867,12 @@ public class SnapFX {
         }
         if (shortcutScene != null) {
             shortcutScene.removeEventFilter(KeyEvent.KEY_PRESSED, shortcutKeyEventFilter);
+            shortcutScene.removeEventFilter(MouseEvent.MOUSE_PRESSED, sideBarOverlayMouseEventFilter);
         }
         shortcutScene = scene;
         if (shortcutScene != null) {
             shortcutScene.addEventFilter(KeyEvent.KEY_PRESSED, shortcutKeyEventFilter);
+            shortcutScene.addEventFilter(MouseEvent.MOUSE_PRESSED, sideBarOverlayMouseEventFilter);
         }
     }
 
@@ -794,6 +1264,7 @@ public class SnapFX {
 
         clearFloatingDropPreviews();
         closeAllFloatingWindows(false);
+        resetSideBarTransientViewState();
         if (snapshot != null) {
             serializer.deserialize(SNAPSHOT_GSON.toJson(snapshot.mainLayout()));
             restoreFloatingWindows(snapshot.floatingWindows());
@@ -878,6 +1349,127 @@ public class SnapFX {
             return;
         }
         dockAtRememberedOrFallback(node);
+    }
+
+    /**
+     * Pins a dock node into a sidebar on the given side.
+     *
+     * <p>If the node is currently hidden, it is removed from the hidden list first. If it is inside a floating
+     * window, it is detached from that floating host before pinning.</p>
+     *
+     * <p>Pinning keeps the target sidebar in its current pinned-open/collapsed state. New pinned entries are
+     * therefore collapsed by default unless the sidebar is explicitly opened with {@link #pinOpenSideBar(Side)}.</p>
+     */
+    public void pinToSideBar(DockNode node, Side side) {
+        if (node == null || side == null) {
+            return;
+        }
+
+        hiddenNodes.remove(node);
+        if (isInGraph(node)) {
+            // Capture richer neighbor-aware restore anchors before DockGraph removes the node into the sidebar.
+            rememberLastKnownPlacement(node);
+        }
+
+        DockFloatingWindow floatingWindow = findFloatingWindow(node);
+        if (floatingWindow != null) {
+            rememberLastKnownPlacement(node, floatingWindow);
+            rememberFloatingBoundsForNodes(floatingWindow);
+            floatingWindow.undockNode(node);
+            if (floatingWindow.isEmpty()) {
+                removeFloatingWindowSilently(floatingWindow);
+            }
+        }
+
+        selectedSideBarNodes.put(side, node);
+        openOverlaySideBars.remove(side);
+        dockGraph.pinToSideBar(node, side);
+    }
+
+    /**
+     * Restores a pinned sidebar node back to the main layout.
+     *
+     * <p>Restore reuses the same remembered placement strategy used for floating-window attach operations:
+     * preferred anchor, neighbor anchors, then fallback docking.</p>
+     */
+    public void restoreFromSideBar(DockNode node) {
+        forgetTransientSideBarStateForNode(node);
+        if (node == null || !dockGraph.unpinFromSideBar(node)) {
+            return;
+        }
+        dockAtRememberedOrFallback(node);
+    }
+
+    /**
+     * Opens the sidebar panel for the given side in pinned (layout-consuming) mode.
+     */
+    public void pinOpenSideBar(Side side) {
+        dockGraph.pinOpenSideBar(side);
+        if (dockGraph.isSideBarPinnedOpen(side)) {
+            openOverlaySideBars.remove(side);
+            collapsedPinnedSideBars.remove(side);
+        }
+    }
+
+    /**
+     * Collapses the sidebar panel for the given side back to icon-strip mode.
+     */
+    public void collapsePinnedSideBar(Side side) {
+        dockGraph.collapsePinnedSideBar(side);
+        if (!dockGraph.isSideBarPinnedOpen(side)) {
+            collapsedPinnedSideBars.remove(side);
+        }
+    }
+
+    /**
+     * Returns whether the sidebar panel for the given side is currently pinned-open (layout-consuming).
+     *
+     * <p>When {@link #isCollapsePinnedSideBarOnActiveIconClick()} is enabled, a pinned side panel can be
+     * temporarily collapsed via active-icon click while this method still returns {@code true} (pin mode preserved).
+     * The temporary collapsed/expanded state is managed as transient view state in SnapFX.</p>
+     */
+    public boolean isSideBarPinnedOpen(Side side) {
+        return dockGraph.isSideBarPinnedOpen(side);
+    }
+
+    /**
+     * Returns whether clicking the active side-bar icon collapses a pinned-open side panel.
+     *
+     * <p>When enabled (default), clicking the icon of the currently open pinned panel collapses the panel back to
+     * icon-strip mode. When disabled, the click keeps the pinned panel open.</p>
+     */
+    public boolean isCollapsePinnedSideBarOnActiveIconClick() {
+        return collapsePinnedSideBarOnActiveIconClick;
+    }
+
+    /**
+     * Controls whether clicking the active side-bar icon collapses a pinned-open side panel.
+     *
+     * <p>Default is {@code true}.</p>
+     */
+    public void setCollapsePinnedSideBarOnActiveIconClick(boolean collapsePinnedSideBarOnActiveIconClick) {
+        this.collapsePinnedSideBarOnActiveIconClick = collapsePinnedSideBarOnActiveIconClick;
+    }
+
+    /**
+     * Returns the read-only list of pinned sidebar nodes for the given side.
+     */
+    public ObservableList<DockNode> getSideBarNodes(Side side) {
+        return dockGraph.getSideBarNodes(side);
+    }
+
+    /**
+     * Returns whether the node is currently pinned to any sidebar.
+     */
+    public boolean isPinnedToSideBar(DockNode node) {
+        return dockGraph.isPinnedToSideBar(node);
+    }
+
+    /**
+     * Returns the sidebar side of the node, or {@code null} if the node is not pinned.
+     */
+    public Side getPinnedSide(DockNode node) {
+        return dockGraph.getPinnedSide(node);
     }
 
     /**
@@ -993,7 +1585,8 @@ public class SnapFX {
     }
 
     /**
-     * Returns all currently open floating windows.
+     * Returns all currently open floating windows. (read-only)
+     * @return read-only list of floating windows
      */
     public ObservableList<DockFloatingWindow> getFloatingWindows() {
         return readOnlyFloatingWindows;

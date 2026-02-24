@@ -553,6 +553,34 @@ SnapFX uses host-aware placement memory to restore nodes after floating-window a
 - Hidden/closed floating windows are never treated as valid restore hosts.
 - No user dialogs are shown when restore anchors are invalid; attach always resolves via fallback.
 
+### Sidebar Overlay and Pinned Panel Rendering
+
+Phase-C side bars split state across model and view layers on purpose:
+
+- `DockGraph` persists pinned entries per side and a side-bar pinned-open flag.
+- SnapFX uses the pinned-open flag as the persistent "pinned open" state for left/right side panels.
+- `SnapFX` keeps transient UI-only state for collapsed overlay panels (selected node per side + whether an overlay is currently open).
+
+Rendering architecture:
+
+- The main dock layout still comes from `DockLayoutEngine.buildSceneGraph()`.
+- `SnapFX.buildLayout()` wraps that layout in a composed root (`BorderPane` inside `StackPane`).
+- Left/right side hosts render icon strips plus optional pinned side panels that consume layout space.
+- Overlay panels are rendered in a top `StackPane` layer so they can overlap the main layout without changing the model.
+
+Interaction rules (Phase-C visual baseline):
+
+- Side-bar strips show icon buttons for pinned `DockNode`s (title tooltip with zero show delay).
+- Pinning a node into a side bar keeps the strip collapsed by default; callers/UI explicitly open pinned panels.
+- In collapsed mode, clicking an icon opens an overlay panel for that side.
+- Clicking the same icon again closes the overlay; clicking a different icon switches the overlay content.
+- Outside clicks close collapsed overlays.
+- In pinned-open mode, clicking the active icon collapses the panel by default; this policy is configurable via SnapFX API for alternative UX preferences.
+- This icon-collapse for pinned panels is transient UI state in `SnapFX` and does not change the underlying pinned-mode flag in `DockGraph`.
+- Pin toggle moves the panel between overlay mode and pinned-open mode without moving/removing the pinned `DockNode`.
+- Only one side-bar panel is open per side at a time.
+- Sidebar restore from `SnapFX` reuses the same remembered placement strategy as floating-window attach (preferred anchor, neighbor anchors, fallback), which avoids common restore misplacements when parent containers collapse during pinning.
+
 ## 7. Design Patterns
 
 ### 1. Model-View-Controller (MVC)

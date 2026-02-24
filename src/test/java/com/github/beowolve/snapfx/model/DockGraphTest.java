@@ -1,6 +1,7 @@
 package com.github.beowolve.snapfx.model;
 
 import javafx.application.Platform;
+import javafx.geometry.Side;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Region;
@@ -1412,6 +1413,130 @@ class DockGraphTest {
             assertEquals(expectedRemaining, collectLeafNodes(dockGraph.getRoot()).size());
             assertNoEmptyContainers(dockGraph.getRoot());
         });
+    }
+
+    @Test
+    void testPinToSideBarRemovesNodeFromMainLayoutAndCapturesRestoreAnchor() {
+        DockNode left = new DockNode(new Label("Left"), "Left");
+        DockNode right = new DockNode(new Label("Right"), "Right");
+
+        dockGraph.dock(left, null, DockPosition.CENTER);
+        dockGraph.dock(right, left, DockPosition.RIGHT);
+
+        dockGraph.pinToSideBar(left, Side.LEFT);
+
+        assertSame(right, dockGraph.getRoot(), "Remaining node should become root after pinning sibling");
+        assertNull(left.getParent(), "Pinned node must be detached from main layout");
+        assertTrue(dockGraph.getSideBarNodes(Side.LEFT).contains(left));
+        assertEquals(Side.LEFT, dockGraph.getPinnedSide(left));
+        assertTrue(dockGraph.isPinnedToSideBar(left));
+        assertFalse(dockGraph.isSideBarPinnedOpen(Side.LEFT), "Pinning should keep the sidebar collapsed by default");
+
+        assertSame(right, left.getLastKnownTarget(), "Left node should restore relative to its former sibling");
+        assertEquals(DockPosition.LEFT, left.getLastKnownPosition());
+        assertNull(left.getLastKnownTabIndex());
+        assertNoEmptyContainers(dockGraph.getRoot());
+    }
+
+    @Test
+    void testRestoreFromSideBarReinsertsNodeAtRememberedPosition() {
+        DockNode left = new DockNode(new Label("Left"), "Left");
+        DockNode right = new DockNode(new Label("Right"), "Right");
+
+        dockGraph.dock(left, null, DockPosition.CENTER);
+        dockGraph.dock(right, left, DockPosition.RIGHT);
+        dockGraph.pinToSideBar(left, Side.LEFT);
+
+        dockGraph.restoreFromSideBar(left);
+
+        assertFalse(dockGraph.isPinnedToSideBar(left));
+        assertTrue(dockGraph.getSideBarNodes(Side.LEFT).isEmpty());
+        assertInstanceOf(DockSplitPane.class, dockGraph.getRoot());
+
+        DockSplitPane rootSplit = (DockSplitPane) dockGraph.getRoot();
+        assertEquals(Orientation.HORIZONTAL, rootSplit.getOrientation());
+        assertEquals(2, rootSplit.getChildren().size());
+        assertSame(left, rootSplit.getChildren().get(0));
+        assertSame(right, rootSplit.getChildren().get(1));
+        assertNoEmptyContainers(dockGraph.getRoot());
+    }
+
+    @Test
+    void testPinningPinnedNodeToDifferentSideMovesSidebarEntryDeterministically() {
+        DockNode first = new DockNode(new Label("First"), "First");
+        DockNode second = new DockNode(new Label("Second"), "Second");
+        DockNode third = new DockNode(new Label("Third"), "Third");
+
+        dockGraph.pinToSideBar(first, Side.LEFT);
+        dockGraph.pinToSideBar(second, Side.LEFT);
+        dockGraph.pinToSideBar(third, Side.RIGHT);
+
+        dockGraph.pinToSideBar(first, Side.RIGHT);
+
+        assertEquals(List.of(second), List.copyOf(dockGraph.getSideBarNodes(Side.LEFT)));
+        assertEquals(List.of(third, first), List.copyOf(dockGraph.getSideBarNodes(Side.RIGHT)));
+        assertEquals(Side.RIGHT, dockGraph.getPinnedSide(first));
+    }
+
+    @Test
+    void testSideBarMutationsAreNoOpsWhileLocked() {
+        DockNode left = new DockNode(new Label("Left"), "Left");
+        DockNode right = new DockNode(new Label("Right"), "Right");
+
+        dockGraph.dock(left, null, DockPosition.CENTER);
+        dockGraph.dock(right, left, DockPosition.RIGHT);
+        dockGraph.setLocked(true);
+
+        long revisionBeforePinAttempt = dockGraph.getRevision();
+        dockGraph.pinToSideBar(left, Side.LEFT);
+        dockGraph.pinOpenSideBar(Side.LEFT);
+
+        assertEquals(revisionBeforePinAttempt, dockGraph.getRevision());
+        assertFalse(dockGraph.isPinnedToSideBar(left));
+        assertFalse(dockGraph.isSideBarPinnedOpen(Side.LEFT));
+
+        dockGraph.setLocked(false);
+        dockGraph.pinToSideBar(left, Side.LEFT);
+        assertTrue(dockGraph.isPinnedToSideBar(left));
+        dockGraph.pinOpenSideBar(Side.LEFT);
+        assertTrue(dockGraph.isSideBarPinnedOpen(Side.LEFT));
+
+        dockGraph.setLocked(true);
+        long revisionBeforeRestoreAttempt = dockGraph.getRevision();
+        dockGraph.restoreFromSideBar(left);
+        dockGraph.collapsePinnedSideBar(Side.LEFT);
+
+        assertEquals(revisionBeforeRestoreAttempt, dockGraph.getRevision());
+        assertTrue(dockGraph.isPinnedToSideBar(left));
+        assertTrue(dockGraph.isSideBarPinnedOpen(Side.LEFT));
+    }
+
+    @Test
+    void testGetDockNodeCountIncludesPinnedSidebarNodes() {
+        DockNode panelA = new DockNode("panel", new Label("A"), "A");
+        DockNode panelB = new DockNode("panel", new Label("B"), "B");
+
+        dockGraph.dock(panelA, null, DockPosition.CENTER);
+        dockGraph.dock(panelB, panelA, DockPosition.RIGHT);
+        dockGraph.pinToSideBar(panelB, Side.RIGHT);
+
+        assertEquals(2, dockGraph.getDockNodeCount("panel"));
+    }
+
+    @Test
+    void testUnpinFromSideBarRemovesEntryWithoutRestoringToMainLayout() {
+        DockNode left = new DockNode(new Label("Left"), "Left");
+        DockNode right = new DockNode(new Label("Right"), "Right");
+
+        dockGraph.dock(left, null, DockPosition.CENTER);
+        dockGraph.dock(right, left, DockPosition.RIGHT);
+        dockGraph.pinToSideBar(right, Side.RIGHT);
+
+        assertTrue(dockGraph.unpinFromSideBar(right));
+        assertFalse(dockGraph.isPinnedToSideBar(right));
+        assertFalse(dockGraph.getSideBarNodes(Side.RIGHT).contains(right));
+        assertNull(right.getParent(), "Unpinned-only helper should not restore into the main layout");
+        assertSame(left, dockGraph.getRoot());
     }
 
     private List<DockNode> buildLargeLayout(int nodeCount) {

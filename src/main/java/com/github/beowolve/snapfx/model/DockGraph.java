@@ -6,9 +6,13 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
+import javafx.geometry.Side;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
 
 /**
@@ -21,12 +25,24 @@ public class DockGraph {
     private final BooleanProperty locked;
     private final LongProperty revision;
     private final ObjectProperty<DockElement> root;
+    private final EnumMap<Side, ObservableList<DockNode>> sideBarNodes;
+    private final EnumMap<Side, ObservableList<DockNode>> readOnlySideBarNodes;
+    private final EnumMap<Side, BooleanProperty> sideBarPinnedOpen;
     private long layoutIdCounter = 0; // Counter for generating unique layout IDs
 
     public DockGraph() {
         this.locked = new SimpleBooleanProperty(false);
         this.revision = new SimpleLongProperty(0);
         this.root = new SimpleObjectProperty<>(null);
+        this.sideBarNodes = new EnumMap<>(Side.class);
+        this.readOnlySideBarNodes = new EnumMap<>(Side.class);
+        this.sideBarPinnedOpen = new EnumMap<>(Side.class);
+        for (Side side : Side.values()) {
+            ObservableList<DockNode> nodes = FXCollections.observableArrayList();
+            sideBarNodes.put(side, nodes);
+            readOnlySideBarNodes.put(side, FXCollections.unmodifiableObservableList(nodes));
+            sideBarPinnedOpen.put(side, new SimpleBooleanProperty(false));
+        }
     }
 
     public LongProperty revisionProperty() {
@@ -129,6 +145,182 @@ public class DockGraph {
      */
     public void setLocked(boolean locked) {
         this.locked.set(locked);
+    }
+
+    /**
+     * Returns the read-only list of pinned nodes for a sidebar side.
+     */
+    public ObservableList<DockNode> getSideBarNodes(Side side) {
+        if (side == null) {
+            return FXCollections.unmodifiableObservableList(FXCollections.observableArrayList());
+        }
+        return readOnlySideBarNodes.getOrDefault(side, FXCollections.unmodifiableObservableList(FXCollections.observableArrayList()));
+    }
+
+    /**
+     * Returns whether the sidebar for the given side is pinned-open (layout-consuming).
+     */
+    public boolean isSideBarPinnedOpen(Side side) {
+        if (side == null) {
+            return false;
+        }
+        BooleanProperty pinnedOpenProperty = sideBarPinnedOpen.get(side);
+        return pinnedOpenProperty != null && pinnedOpenProperty.get();
+    }
+
+    /**
+     * Returns the pinned-open state property for a sidebar side.
+     */
+    public BooleanProperty sideBarPinnedOpenProperty(Side side) {
+        if (side == null) {
+            return new SimpleBooleanProperty(false);
+        }
+        return sideBarPinnedOpen.computeIfAbsent(side, ignored -> new SimpleBooleanProperty(false));
+    }
+
+    /**
+     * Sets whether a sidebar is pinned-open (layout-consuming) or collapsed to the icon strip.
+     */
+    public void setSideBarPinnedOpen(Side side, boolean pinnedOpen) {
+        if (side == null || isLocked()) {
+            return;
+        }
+        BooleanProperty property = sideBarPinnedOpen.get(side);
+        if (property == null || property.get() == pinnedOpen) {
+            return;
+        }
+        property.set(pinnedOpen);
+        bumpRevision();
+    }
+
+    /**
+     * Convenience method to pin-open a sidebar.
+     */
+    public void pinOpenSideBar(Side side) {
+        setSideBarPinnedOpen(side, true);
+    }
+
+    /**
+     * Convenience method to collapse a pinned sidebar back to strip mode.
+     */
+    public void collapsePinnedSideBar(Side side) {
+        setSideBarPinnedOpen(side, false);
+    }
+
+    /**
+     * Pins a node to a sidebar, removing it from the main layout if necessary.
+     * The last main-layout placement is captured for deterministic restore behavior.
+     *
+     * <p>Pinning preserves the sidebar's current pinned-open/collapsed state. Newly pinned nodes therefore stay
+     * collapsed by default unless callers explicitly open the sidebar via {@link #pinOpenSideBar(Side)}.</p>
+     */
+    public void pinToSideBar(DockNode node, Side side) {
+        if (node == null || side == null || isLocked()) {
+            return;
+        }
+
+        if (node.getId() == null || node.getId().equals(node.getDockNodeId())) {
+            node.setLayoutId(generateLayoutId());
+        }
+
+        Side currentSide = findPinnedSide(node);
+        if (currentSide == side) {
+            return;
+        }
+
+        if (currentSide != null) {
+            ObservableList<DockNode> currentEntries = sideBarNodes.get(currentSide);
+            ObservableList<DockNode> targetEntries = sideBarNodes.get(side);
+            if (currentEntries == null || targetEntries == null) {
+                return;
+            }
+            currentEntries.remove(node);
+            targetEntries.add(node);
+            bumpRevision();
+            return;
+        }
+
+        if (isInMainTree(node)) {
+            rememberLastKnownPlacementForSideBarRestore(node);
+            undock(node);
+        }
+
+        ObservableList<DockNode> targetEntries = sideBarNodes.get(side);
+        if (targetEntries == null || targetEntries.contains(node)) {
+            return;
+        }
+        targetEntries.add(node);
+        bumpRevision();
+    }
+
+    /**
+     * Restores a pinned sidebar node back to the main layout using remembered placement or a root fallback.
+     */
+    public void restoreFromSideBar(DockNode node) {
+        if (node == null || isLocked()) {
+            return;
+        }
+        if (!unpinFromSideBar(node)) {
+            return;
+        }
+
+        if (!tryRestorePinnedNodeToRememberedPlacement(node)) {
+            if (getRoot() == null) {
+                setRoot(node);
+            } else {
+                dock(node, getRoot(), DockPosition.RIGHT);
+            }
+        }
+    }
+
+    /**
+     * Returns whether a node is currently pinned in any sidebar.
+     */
+    public boolean isPinnedToSideBar(DockNode node) {
+        return findPinnedSide(node) != null;
+    }
+
+    /**
+     * Returns the sidebar side the node is pinned to, or {@code null} if it is not pinned.
+     */
+    public Side getPinnedSide(DockNode node) {
+        return findPinnedSide(node);
+    }
+
+    /**
+     * Removes a node from its sidebar without restoring it to the main layout.
+     *
+     * <p>This is primarily used by higher-level hosts (for example {@code SnapFX}) that apply a custom
+     * restore strategy after removing the node from the sidebar.</p>
+     *
+     * @return {@code true} if the node was removed from a sidebar; otherwise {@code false}
+     */
+    public boolean unpinFromSideBar(DockNode node) {
+        if (node == null || isLocked()) {
+            return false;
+        }
+        Side side = findPinnedSide(node);
+        if (side == null) {
+            return false;
+        }
+
+        ObservableList<DockNode> entries = sideBarNodes.get(side);
+        if (entries == null || !entries.remove(node)) {
+            return false;
+        }
+        bumpRevision();
+        return true;
+    }
+
+    /**
+     * Removes all pinned sidebar nodes and resets pinned-open sidebar state.
+     * Nodes are not restored to the main layout.
+     */
+    public void clearSideBars() {
+        if (isLocked()) {
+            return;
+        }
+        clearSideBarsInternal(true);
     }
 
     /**
@@ -795,11 +987,50 @@ public class DockGraph {
         return true;
     }
 
+    /**
+     * Finds a dock element by layout ID across the main layout and pinned sidebars.
+     */
+    public DockElement findElementByLayoutId(String layoutId) {
+        if (layoutId == null) {
+            return null;
+        }
+
+        DockElement mainMatch = findElementById(getRoot(), layoutId);
+        if (mainMatch != null) {
+            return mainMatch;
+        }
+
+        for (Side side : Side.values()) {
+            ObservableList<DockNode> entries = sideBarNodes.get(side);
+            if (entries == null) {
+                continue;
+            }
+            for (DockNode node : entries) {
+                if (layoutId.equals(node.getId())) {
+                    return node;
+                }
+            }
+        }
+        return null;
+    }
+
     public int getDockNodeCount(String dockNodeId) {
-        if (getRoot() == null || dockNodeId == null) {
+        if (dockNodeId == null) {
             return 0;
         }
-        return countDockNodeId(getRoot(), dockNodeId);
+        int count = countDockNodeId(getRoot(), dockNodeId);
+        for (Side side : Side.values()) {
+            ObservableList<DockNode> entries = sideBarNodes.get(side);
+            if (entries == null || entries.isEmpty()) {
+                continue;
+            }
+            for (DockNode node : entries) {
+                if (dockNodeId.equals(node.getDockNodeId())) {
+                    count++;
+                }
+            }
+        }
+        return count;
     }
 
     private int countDockNodeId(DockElement root, String dockNodeId) {
@@ -814,5 +1045,139 @@ public class DockGraph {
             }
         }
         return count;
+    }
+
+    private void clearSideBarsInternal(boolean resetVisibility) {
+        boolean changed = false;
+        for (Side side : Side.values()) {
+            ObservableList<DockNode> entries = sideBarNodes.get(side);
+            if (entries != null && !entries.isEmpty()) {
+                entries.clear();
+                changed = true;
+            }
+            if (resetVisibility) {
+                BooleanProperty property = sideBarPinnedOpen.get(side);
+                if (property != null && property.get()) {
+                    property.set(false);
+                    changed = true;
+                }
+            }
+        }
+        if (changed) {
+            bumpRevision();
+        }
+    }
+
+    private Side findPinnedSide(DockNode node) {
+        if (node == null) {
+            return null;
+        }
+        for (Side side : Side.values()) {
+            ObservableList<DockNode> entries = sideBarNodes.get(side);
+            if (entries != null && entries.contains(node)) {
+                return side;
+            }
+        }
+        return null;
+    }
+
+    private boolean isInMainTree(DockElement target) {
+        if (target == null) {
+            return false;
+        }
+        return target == getRoot() || findInTree(getRoot(), target);
+    }
+
+    private boolean findInTree(DockElement current, DockElement target) {
+        if (current == null || target == null) {
+            return false;
+        }
+        if (current == target) {
+            return true;
+        }
+        if (current instanceof DockContainer container) {
+            for (DockElement child : container.getChildren()) {
+                if (findInTree(child, target)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Captures main-layout restore anchors before moving a node into a sidebar.
+     * The algorithm prefers a neighbor-relative placement, and falls back to the parent container if needed.
+     */
+    private void rememberLastKnownPlacementForSideBarRestore(DockNode node) {
+        if (node == null || node.getParent() == null) {
+            return;
+        }
+
+        DockContainer parent = node.getParent();
+        int index = parent.getChildren().indexOf(node);
+        if (index < 0) {
+            return;
+        }
+
+        DockElement previousNeighbor = index > 0 ? parent.getChildren().get(index - 1) : null;
+        DockElement nextNeighbor = index < parent.getChildren().size() - 1
+            ? parent.getChildren().get(index + 1)
+            : null;
+
+        DockElement target;
+        DockPosition position;
+        Integer tabIndex = null;
+
+        if (parent instanceof DockTabPane tabPane) {
+            target = tabPane;
+            position = DockPosition.CENTER;
+            tabIndex = index;
+        } else if (parent instanceof DockSplitPane splitPane) {
+            Orientation orientation = splitPane.getOrientation();
+            if (previousNeighbor != null) {
+                target = previousNeighbor;
+                position = orientation == Orientation.HORIZONTAL ? DockPosition.RIGHT : DockPosition.BOTTOM;
+            } else if (nextNeighbor != null) {
+                target = nextNeighbor;
+                position = orientation == Orientation.HORIZONTAL ? DockPosition.LEFT : DockPosition.TOP;
+            } else {
+                target = parent;
+                position = DockPosition.CENTER;
+                tabIndex = 0;
+            }
+        } else {
+            if (previousNeighbor != null) {
+                target = previousNeighbor;
+                position = DockPosition.RIGHT;
+            } else if (nextNeighbor != null) {
+                target = nextNeighbor;
+                position = DockPosition.LEFT;
+            } else {
+                target = parent;
+                position = DockPosition.CENTER;
+                tabIndex = 0;
+            }
+        }
+
+        node.setLastKnownTarget(target);
+        node.setLastKnownPosition(position);
+        node.setLastKnownTabIndex(position == DockPosition.CENTER ? tabIndex : null);
+    }
+
+    private boolean tryRestorePinnedNodeToRememberedPlacement(DockNode node) {
+        if (node == null) {
+            return false;
+        }
+
+        DockElement target = node.getLastKnownTarget();
+        DockPosition position = node.getLastKnownPosition();
+        Integer tabIndex = node.getLastKnownTabIndex();
+        if (target == null || position == null || !isInMainTree(target)) {
+            return false;
+        }
+
+        dock(node, target, position, position == DockPosition.CENTER ? tabIndex : null);
+        return true;
     }
 }

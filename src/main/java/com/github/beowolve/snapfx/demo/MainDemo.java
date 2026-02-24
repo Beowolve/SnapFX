@@ -28,6 +28,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -89,6 +90,10 @@ public class MainDemo extends Application {
     private Menu hiddenWindowsMenu;
     private Menu floatNodeMenu;
     private Menu floatingWindowsMenu;
+    private Menu pinLeftSideBarMenu;
+    private Menu pinRightSideBarMenu;
+    private Menu leftSideBarMenu;
+    private Menu rightSideBarMenu;
 
     // Shared lock state property
     private final BooleanProperty lockLayoutProperty = new SimpleBooleanProperty(false);
@@ -98,6 +103,12 @@ public class MainDemo extends Application {
     private final BooleanProperty promptOnEditorCloseProperty = new SimpleBooleanProperty(true);
     private final Map<DockNode, EditorDocumentState> editorDocumentStates = new HashMap<>();
     private EditorCloseDecisionPolicy editorCloseDecisionPolicy;
+    private ListView<DockNode> sideBarDockedNodesListView;
+    private ListView<DockNode> leftSideBarNodesListView;
+    private ListView<DockNode> rightSideBarNodesListView;
+    private CheckBox leftSideBarPinnedOpenCheckBox;
+    private CheckBox rightSideBarPinnedOpenCheckBox;
+    private boolean updatingSideBarSettingsControls;
 
     private static final class EditorDocumentState {
         private String baseTitle;
@@ -166,7 +177,7 @@ public class MainDemo extends Application {
         snapFX.initialize(stage);
 
         // Listen to lock state changes
-        lockLayoutProperty.addListener((obs, oldVal, newVal) -> snapFX.setLocked(newVal));
+        lockLayoutProperty.addListener((obs, oldVal, newVal) -> onLockLayoutChanged(Boolean.TRUE.equals(newVal)));
 
         stage.show();
 
@@ -180,6 +191,13 @@ public class MainDemo extends Application {
             return;
         }
         primaryStage.setFullScreen(!primaryStage.isFullScreen());
+    }
+
+    private void onLockLayoutChanged(boolean locked) {
+        snapFX.setLocked(locked);
+        updateDockLayout();
+        updateSideBarMenus();
+        refreshSideBarSettingsViews();
     }
 
     static List<String> getAppIconResources() {
@@ -291,6 +309,12 @@ public class MainDemo extends Application {
         hiddenWindowsMenu = new Menu("Hidden Windows");
         updateHiddenWindowsMenu();
 
+        pinLeftSideBarMenu = new Menu("Move to Left Sidebar");
+        pinRightSideBarMenu = new Menu("Move to Right Sidebar");
+        leftSideBarMenu = new Menu("Left Sidebar");
+        rightSideBarMenu = new Menu("Right Sidebar");
+        updateSideBarMenus();
+
         floatNodeMenu = new Menu("Float Node");
         floatingWindowsMenu = new Menu("Floating Windows");
         updateFloatingMenus();
@@ -301,7 +325,7 @@ public class MainDemo extends Application {
         );
 
         snapFX.getDockGraph().revisionProperty().addListener((obs, oldVal, newVal) ->
-            updateFloatingMenus()
+            onDockGraphRevisionChanged()
         );
         snapFX.getFloatingWindows().addListener((ListChangeListener<DockFloatingWindow>) c ->
             updateFloatingMenus()
@@ -312,6 +336,11 @@ public class MainDemo extends Application {
             lockItem,
             sep2,
             hiddenWindowsMenu,
+            new SeparatorMenuItem(),
+            pinLeftSideBarMenu,
+            pinRightSideBarMenu,
+            leftSideBarMenu,
+            rightSideBarMenu,
             new SeparatorMenuItem(),
             floatNodeMenu,
             floatingWindowsMenu
@@ -346,6 +375,241 @@ public class MainDemo extends Application {
                 hiddenWindowsMenu.getItems().add(item);
             }
         }
+    }
+
+    private void onDockGraphRevisionChanged() {
+        updateDockLayout();
+        updateSideBarMenus();
+        updateFloatingMenus();
+        refreshSideBarSettingsViews();
+    }
+
+    private void updateSideBarMenus() {
+        if (pinLeftSideBarMenu != null) {
+            updatePinToSideBarMenu(pinLeftSideBarMenu, Side.LEFT);
+        }
+        if (pinRightSideBarMenu != null) {
+            updatePinToSideBarMenu(pinRightSideBarMenu, Side.RIGHT);
+        }
+        if (leftSideBarMenu != null) {
+            updatePinnedSideBarMenu(leftSideBarMenu, Side.LEFT);
+        }
+        if (rightSideBarMenu != null) {
+            updatePinnedSideBarMenu(rightSideBarMenu, Side.RIGHT);
+        }
+    }
+
+    private void updatePinToSideBarMenu(Menu menu, Side side) {
+        if (menu == null || side == null) {
+            return;
+        }
+        menu.getItems().clear();
+
+        List<DockNode> dockedNodes = collectDockedNodesInMainLayout();
+        if (dockedNodes.isEmpty()) {
+            MenuItem emptyItem = new MenuItem("(no docked nodes)");
+            emptyItem.setDisable(true);
+            menu.getItems().add(emptyItem);
+            return;
+        }
+
+        for (DockNode node : dockedNodes) {
+            MenuItem item = new MenuItem(node.getTitle());
+            item.setGraphic(createMenuItemIcon(node));
+            item.setDisable(lockLayoutProperty.get());
+            item.setOnAction(e -> pinNodeToSideBar(node, side));
+            menu.getItems().add(item);
+        }
+    }
+
+    private void updatePinnedSideBarMenu(Menu menu, Side side) {
+        if (menu == null || side == null) {
+            return;
+        }
+
+        List<DockNode> pinnedNodes = new ArrayList<>(snapFX.getSideBarNodes(side));
+        boolean pinnedOpen = snapFX.isSideBarPinnedOpen(side);
+        menu.setText(buildSideBarMenuTitle(side, pinnedNodes.size(), pinnedOpen));
+        menu.getItems().clear();
+
+        CheckMenuItem pinnedOpenItem = new CheckMenuItem("Pinned Open");
+        pinnedOpenItem.setSelected(pinnedOpen);
+        pinnedOpenItem.setDisable(lockLayoutProperty.get());
+        pinnedOpenItem.setOnAction(e -> onSideBarPinnedOpenMenuToggled(side, pinnedOpenItem.isSelected()));
+        menu.getItems().add(pinnedOpenItem);
+
+        if (pinnedNodes.isEmpty()) {
+            menu.getItems().add(new SeparatorMenuItem());
+            MenuItem emptyItem = new MenuItem("(no pinned nodes)");
+            emptyItem.setDisable(true);
+            menu.getItems().add(emptyItem);
+            return;
+        }
+
+        MenuItem restoreAllItem = new MenuItem("Restore All");
+        restoreAllItem.setDisable(lockLayoutProperty.get());
+        restoreAllItem.setOnAction(e -> restoreAllPinnedNodesFromSideBar(side));
+        menu.getItems().add(restoreAllItem);
+        menu.getItems().add(new SeparatorMenuItem());
+
+        for (DockNode node : pinnedNodes) {
+            MenuItem item = new MenuItem(node.getTitle());
+            item.setGraphic(createMenuItemIcon(node));
+            item.setDisable(lockLayoutProperty.get());
+            item.setOnAction(e -> restorePinnedNodeFromSideBar(node));
+            menu.getItems().add(item);
+        }
+    }
+
+    static String buildSideBarMenuTitle(Side side, int pinnedCount, boolean pinnedOpen) {
+        if (side == null) {
+            return "Sidebar";
+        }
+        String sideLabel = switch (side) {
+            case LEFT -> "Left";
+            case RIGHT -> "Right";
+            case TOP -> "Top";
+            case BOTTOM -> "Bottom";
+        };
+        String state = pinnedOpen ? "pinned" : "collapsed";
+        return sideLabel + " Sidebar (" + pinnedCount + ", " + state + ")";
+    }
+
+    static String formatDockNodeListLabel(DockNode node) {
+        if (node == null) {
+            return "(none)";
+        }
+        String title = node.getTitle() == null || node.getTitle().isBlank() ? "Untitled" : node.getTitle();
+        String nodeId = node.getDockNodeId() == null || node.getDockNodeId().isBlank() ? "unknown" : node.getDockNodeId();
+        return title + " [" + nodeId + "]";
+    }
+
+    private void pinNodeToSideBar(DockNode node, Side side) {
+        if (node == null || side == null) {
+            return;
+        }
+        snapFX.pinToSideBar(node, side);
+    }
+
+    private void restorePinnedNodeFromSideBar(DockNode node) {
+        if (node == null) {
+            return;
+        }
+        snapFX.restoreFromSideBar(node);
+    }
+
+    private void restoreAllPinnedNodesFromSideBar(Side side) {
+        if (side == null) {
+            return;
+        }
+        List<DockNode> pinnedNodes = new ArrayList<>(snapFX.getSideBarNodes(side));
+        for (DockNode node : pinnedNodes) {
+            snapFX.restoreFromSideBar(node);
+        }
+    }
+
+    private void onSideBarPinnedOpenMenuToggled(Side side, boolean pinnedOpen) {
+        if (pinnedOpen) {
+            snapFX.pinOpenSideBar(side);
+        } else {
+            snapFX.collapsePinnedSideBar(side);
+        }
+    }
+
+    private List<DockNode> collectDockedNodesInMainLayout() {
+        List<DockNode> nodes = new ArrayList<>();
+        collectDockNodes(snapFX.getDockGraph().getRoot(), nodes);
+        return nodes;
+    }
+
+    private void refreshSideBarSettingsViews() {
+        if (sideBarDockedNodesListView == null || leftSideBarNodesListView == null || rightSideBarNodesListView == null) {
+            return;
+        }
+
+        replaceListItemsPreservingSelection(sideBarDockedNodesListView, collectDockedNodesInMainLayout());
+        replaceListItemsPreservingSelection(leftSideBarNodesListView, List.copyOf(snapFX.getSideBarNodes(Side.LEFT)));
+        replaceListItemsPreservingSelection(rightSideBarNodesListView, List.copyOf(snapFX.getSideBarNodes(Side.RIGHT)));
+
+        updatingSideBarSettingsControls = true;
+        try {
+            if (leftSideBarPinnedOpenCheckBox != null) {
+                leftSideBarPinnedOpenCheckBox.setSelected(snapFX.isSideBarPinnedOpen(Side.LEFT));
+            }
+            if (rightSideBarPinnedOpenCheckBox != null) {
+                rightSideBarPinnedOpenCheckBox.setSelected(snapFX.isSideBarPinnedOpen(Side.RIGHT));
+            }
+        } finally {
+            updatingSideBarSettingsControls = false;
+        }
+    }
+
+    private void replaceListItemsPreservingSelection(ListView<DockNode> listView, List<DockNode> nodes) {
+        if (listView == null) {
+            return;
+        }
+        DockNode selected = listView.getSelectionModel().getSelectedItem();
+        String selectedId = selected == null ? null : selected.getId();
+        listView.getItems().setAll(nodes == null ? List.of() : nodes);
+        if (selectedId == null || listView.getItems().isEmpty()) {
+            return;
+        }
+        for (DockNode node : listView.getItems()) {
+            if (selectedId.equals(node.getId())) {
+                listView.getSelectionModel().select(node);
+                break;
+            }
+        }
+    }
+
+    private ListView<DockNode> createDockNodeListView() {
+        ListView<DockNode> listView = new ListView<>();
+        listView.setPrefHeight(120);
+        listView.setCellFactory(ignored -> new ListCell<>() {
+            @Override
+            protected void updateItem(DockNode item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty ? null : formatDockNodeListLabel(item));
+                setGraphic(null);
+            }
+        });
+        return listView;
+    }
+
+    private void onSideBarPinnedOpenCheckBoxChanged(Side side, Boolean pinnedOpen) {
+        if (side == null || pinnedOpen == null || updatingSideBarSettingsControls) {
+            return;
+        }
+        if (Boolean.TRUE.equals(pinnedOpen)) {
+            snapFX.pinOpenSideBar(side);
+        } else {
+            snapFX.collapsePinnedSideBar(side);
+        }
+    }
+
+    private void pinSelectedDockedNodeToSideBar(Side side) {
+        if (sideBarDockedNodesListView == null) {
+            return;
+        }
+        pinNodeToSideBar(sideBarDockedNodesListView.getSelectionModel().getSelectedItem(), side);
+    }
+
+    private void restoreSelectedSideBarNode(Side side) {
+        ListView<DockNode> sideBarList = getSideBarListView(side);
+        if (sideBarList == null) {
+            return;
+        }
+        restorePinnedNodeFromSideBar(sideBarList.getSelectionModel().getSelectedItem());
+    }
+
+    private ListView<DockNode> getSideBarListView(Side side) {
+        if (side == Side.LEFT) {
+            return leftSideBarNodesListView;
+        }
+        if (side == Side.RIGHT) {
+            return rightSideBarNodesListView;
+        }
+        return null;
     }
 
     private void updateFloatingMenus() {
@@ -670,12 +934,22 @@ public class MainDemo extends Application {
     }
 
     private void resetLayoutToDefault() {
+        boolean wasLocked = snapFX.isLocked();
+        if (wasLocked) {
+            snapFX.setLocked(false);
+        }
         snapFX.closeFloatingWindows(false);
         snapFX.getHiddenNodes().clear();
+        snapFX.getDockGraph().clearSideBars();
         createDemoLayout();
         updateDockLayout();
         updateHiddenWindowsMenu();
+        updateSideBarMenus();
+        refreshSideBarSettingsViews();
         updateFloatingMenus();
+        if (wasLocked) {
+            snapFX.setLocked(true);
+        }
     }
 
     private void installDebugPanel() {
@@ -844,11 +1118,103 @@ public class MainDemo extends Application {
         promptEditorCloseCheckBox.selectedProperty().bindBidirectional(promptOnEditorCloseProperty);
         grid.addRow(12, new Label("Close Hook"), promptEditorCloseCheckBox);
 
+        VBox sideBarSection = createSideBarSettingsSection();
         Label hint = new Label("Changes apply immediately. Dirty editors are marked with '*'.");
 
-        VBox panel = new VBox(12, header, grid, hint);
+        VBox panel = new VBox(12, header, grid, sideBarSection, hint);
         panel.setPadding(new Insets(10));
         return panel;
+    }
+
+    private VBox createSideBarSettingsSection() {
+        Label sectionHeader = new Label("Pinned Side Bars (Phase 1)");
+        sectionHeader.setStyle(FX_FONT_WEIGHT_BOLD);
+
+        sideBarDockedNodesListView = createDockNodeListView();
+        leftSideBarNodesListView = createDockNodeListView();
+        rightSideBarNodesListView = createDockNodeListView();
+
+        Label dockedNodesLabel = new Label("Docked Nodes (select a node to move)");
+        Button pinLeftButton = new Button("Move Selected -> Left");
+        pinLeftButton.setOnAction(e -> pinSelectedDockedNodeToSideBar(Side.LEFT));
+        pinLeftButton.disableProperty().bind(lockLayoutProperty);
+
+        Button pinRightButton = new Button("Move Selected -> Right");
+        pinRightButton.setOnAction(e -> pinSelectedDockedNodeToSideBar(Side.RIGHT));
+        pinRightButton.disableProperty().bind(lockLayoutProperty);
+
+        HBox pinButtons = new HBox(8, pinLeftButton, pinRightButton);
+        pinButtons.setAlignment(Pos.CENTER_LEFT);
+
+        VBox sourceBox = new VBox(6, dockedNodesLabel, sideBarDockedNodesListView, pinButtons);
+
+        VBox leftBox = createSideBarSettingsColumn("Left Sidebar", Side.LEFT);
+        VBox rightBox = createSideBarSettingsColumn("Right Sidebar", Side.RIGHT);
+
+        HBox sideBarsBox = new HBox(12, leftBox, rightBox);
+        sideBarsBox.setAlignment(Pos.TOP_LEFT);
+        HBox.setHgrow(leftBox, Priority.ALWAYS);
+        HBox.setHgrow(rightBox, Priority.ALWAYS);
+
+        CheckBox collapsePinnedOnActiveIconClickCheckBox = new CheckBox("Collapse pinned panel on active icon click");
+        collapsePinnedOnActiveIconClickCheckBox.setSelected(snapFX.isCollapsePinnedSideBarOnActiveIconClick());
+        collapsePinnedOnActiveIconClickCheckBox.selectedProperty().addListener((obs, oldVal, newVal) ->
+            snapFX.setCollapsePinnedSideBarOnActiveIconClick(Boolean.TRUE.equals(newVal))
+        );
+
+        Label note = new Label(
+            "Phase 1 test controls: side-bar state is model/persistence-backed and rendered by the framework; hover auto-hide polish is planned next."
+        );
+        note.setWrapText(true);
+
+        VBox section = new VBox(8, sectionHeader, sourceBox, sideBarsBox, collapsePinnedOnActiveIconClickCheckBox, note);
+        refreshSideBarSettingsViews();
+        return section;
+    }
+
+    private VBox createSideBarSettingsColumn(String title, Side side) {
+        Label header = new Label(title);
+        header.setStyle(FX_FONT_WEIGHT_BOLD);
+
+        CheckBox pinnedOpenCheckBox = new CheckBox("Pinned Open");
+        pinnedOpenCheckBox.selectedProperty().addListener((obs, oldVal, newVal) ->
+            onSideBarPinnedOpenCheckBoxChanged(side, newVal)
+        );
+        pinnedOpenCheckBox.disableProperty().bind(lockLayoutProperty);
+
+        if (side == Side.LEFT) {
+            leftSideBarPinnedOpenCheckBox = pinnedOpenCheckBox;
+        } else if (side == Side.RIGHT) {
+            rightSideBarPinnedOpenCheckBox = pinnedOpenCheckBox;
+        }
+
+        ListView<DockNode> listView = getSideBarListView(side);
+
+        Button restoreSelectedButton = new Button("Restore Selected");
+        restoreSelectedButton.setOnAction(e -> restoreSelectedSideBarNode(side));
+        restoreSelectedButton.disableProperty().bind(lockLayoutProperty);
+
+        Button restoreAllButton = new Button("Restore All");
+        restoreAllButton.setOnAction(e -> restoreAllPinnedNodesFromSideBar(side));
+        restoreAllButton.disableProperty().bind(lockLayoutProperty);
+
+        Button pinOpenButton = new Button("Pin Open");
+        pinOpenButton.setOnAction(e -> snapFX.pinOpenSideBar(side));
+        pinOpenButton.disableProperty().bind(lockLayoutProperty);
+
+        Button collapseButton = new Button("Collapse");
+        collapseButton.setOnAction(e -> snapFX.collapsePinnedSideBar(side));
+        collapseButton.disableProperty().bind(lockLayoutProperty);
+
+        HBox actionRow = new HBox(6, restoreSelectedButton, restoreAllButton);
+        actionRow.setAlignment(Pos.CENTER_LEFT);
+        HBox pinnedOpenRow = new HBox(6, pinnedOpenCheckBox, pinOpenButton, collapseButton);
+        pinnedOpenRow.setAlignment(Pos.CENTER_LEFT);
+
+        VBox column = new VBox(6, header, pinnedOpenRow, listView, actionRow);
+        VBox.setVgrow(listView, Priority.ALWAYS);
+        column.setPrefWidth(0);
+        return column;
     }
 
     private void updateDockLayout() {
@@ -900,6 +1266,8 @@ public class MainDemo extends Application {
 
                 // Synchronize lock state from loaded layout
                 lockLayoutProperty.set(snapFX.isLocked());
+                updateSideBarMenus();
+                refreshSideBarSettingsViews();
 
                 // Success - no popup needed for better UX
             } catch (DockLayoutLoadException e) {
@@ -1216,6 +1584,8 @@ public class MainDemo extends Application {
             nodes.addAll(floatingWindow.getDockNodes());
         }
         nodes.addAll(snapFX.getHiddenNodes());
+        nodes.addAll(snapFX.getSideBarNodes(Side.LEFT));
+        nodes.addAll(snapFX.getSideBarNodes(Side.RIGHT));
         for (DockNode node : nodes) {
             registerEditorNode(node);
         }

@@ -7,12 +7,31 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 ## Unreleased
 
 ### Build and Test
+- ✅ Added `SnapFXTest` build-layout structure coverage for framework sidebar rendering (collapsed strip vs. pinned-open panel states), regression coverage for configurable active-icon collapse behavior in pinned sidebars, and a sidebar-restore placement regression test covering tab-parent collapse fallback; added `DockGraphTest` coverage for `unpinFromSideBar(...)`; updated sidebar menu-title helper assertions for the new pinned/collapsed wording; full suite now runs with 278 tests.
+- ✅ Added `DockGraphTest` coverage for pinned side-bar model behavior (pin/restore, side switching, lock-mode no-op behavior, and dock-node counting with pinned entries).
+- ✅ Added `DockLayoutSerializerTest` coverage for side-bar persistence roundtrips (sidebar pinned-open state, pinned entries, restore-anchor roundtrip behavior, and sidebar-only layouts); full suite now runs with 267 tests.
+- ✅ Added `SnapFXTest` coverage for the new side-bar facade APIs (pin/restore, pinned-open behavior under lock, and save/load roundtrip preservation via `SnapFX.saveLayout(...)` / `loadLayout(...)`).
+- ✅ Added `MainDemoTest` coverage for sidebar menu/list label helpers used by the new Phase-C manual test controls; full suite now runs with 272 tests.
 - ✅ Added `MainDemoTest` coverage for the `MainDemo` FileChooser helper refactor (shared layout/editor chooser builders and editor save-default resolution), plus theme-resource coverage for runtime theme switching in settings.
 - ✅ Added `SnapFXTest` coverage for automatic default stylesheet application during `initialize(...)` and runtime theme switching via the new theme stylesheet API (including floating-scene propagation and invalid-resource validation).
 - ✅ Added named-theme catalog coverage (`Light`/`Dark`) in `SnapFXTest` and `MainDemoTest` (named map/list exposure plus fallback name resolution), and validated the refactored theme helpers after extraction from `SnapFX`.
 - ✅ Removed obsolete `SimpleExampleTest` stylesheet checks after framework-managed default stylesheet wiring, and moved `DockFloatingWindowTest` into the `floating` package for test-structure alignment; full suite now runs with 259 tests.
 
 ### Framework and UI
+- ✅ Pre-release sidebar naming cleanup (without compatibility aliases): renamed API/model methods from ambiguous `show/hide/is...Visible` semantics to `pinOpen...`, `collapse...`, and `is...PinnedOpen`, and renamed serialized sidebar state key from `visible` to `pinnedOpen`.
+- ✅ `SnapFX.restoreFromSideBar(...)` now reuses the same placement-memory restore pipeline as floating attach (preferred + neighbor anchors + fallback), fixing sidebar restore misplacement cases when pinning collapses the original parent container.
+- ✅ Added `DockGraph.unpinFromSideBar(...)` to support higher-level restore strategies (for example `SnapFX` placement-memory restore) without forcing immediate model-level fallback docking.
+- ✅ Added `SnapFX` option `setCollapsePinnedSideBarOnActiveIconClick(...)` (default `true`) so pinned-side-panel active-icon click collapse behavior is configurable; MainDemo exposes it in the Settings tab.
+- ✅ Fixed pinned active-icon collapse so it now preserves pin mode (temporary collapse only) instead of switching the sidebar entry back to overlay/unpinned behavior.
+- ✅ Fixed Phase-C sidebar interaction polish regressions: newly pinned nodes now stay collapsed by default, overlay hit-testing no longer blocks sidebar icon/panel buttons, right-side overlay panels keep the correct side on unpin, and outside-click overlay close works consistently across the main scene.
+- ✅ Renamed MainDemo sidebar move actions from `Pin to ... Sidebar` to `Move to ... Sidebar` (and corresponding settings labels) to better match the actual operation.
+- ✅ SnapFX now renders framework-level side bars (left/right icon strips) with IDE-like panel behavior: immediate tooltips, click-to-open overlay panels, same-icon click to close, side-local icon switching, outside-click overlay close, and pin/unpin toggle between overlay and layout-consuming side panel modes.
+- ✅ MainDemo now uses the framework-rendered sidebar UI for Phase-C testing and updates sidebar wording to `Pinned Open` / `Collapse` (`pinned` / `collapsed`) to match the new behavior semantics.
+- ✅ Added Phase-C side-bar foundations in `DockGraph`: pinned sidebar state per side, pinned-open sidebar flags, deterministic `pinToSideBar(...)` / `restoreFromSideBar(...)` workflows, and layout-ID assignment for detached pinned nodes.
+- ✅ Extended `DockLayoutSerializer` to persist and restore sidebar entries (including pinned-open state and remembered main-layout restore anchors), and to support sidebar-only layout payloads without a main root.
+- ✅ Added `SnapFX` facade APIs for side bars (`pinToSideBar`, `restoreFromSideBar`, `pinOpenSideBar`, `collapsePinnedSideBar`, pinned-open/query accessors) so Phase-C workflows are testable without direct `DockGraph` calls.
+- ✅ MainDemo now includes Phase-C pinned side-bar manual test controls in the Settings tab (dock-node pin actions, left/right pinned lists, restore actions, pin-open/collapse toggles) and Layout-menu entries for pin/restore/pin-open workflows.
+- ✅ MainDemo now renders visible left/right sidebar strips for pinned nodes (driven by the new sidebar model state + pinned-open flags) with restore and side-switch actions for manual Phase-C validation.
 - ✅ Refactored `MainDemo` FileChooser setup into reusable helper functions shared by `saveLayout`/`loadLayout` and `openTextFileInEditor`/`chooseEditorSaveTargetFile`, with centralized extension-filter constants.
 - ✅ SnapFX now applies the default stylesheet automatically during `initialize(...)` and exposes runtime theme switching via `setThemeStylesheet(...)`.
 - ✅ Added `snapfx-dark.css` and wired a theme selector into MainDemo Settings so light/dark switching uses the SnapFX API live.
@@ -23,6 +42,14 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Introduced `DockThemeStyleClasses`, replacing hardcoded style class constants with members of this class for better maintainability and consistency across the codebase.
 
 ### Documentation
+- ✅ Documented sidebar overlay/pin rendering state split in `ARCHITECTURE.md` and ADR `docs/adr/0003-sidebar-overlay-and-pin-rendering-state-split.md`.
+- ✅ Updated sidebar interaction docs to include the configurable pinned active-icon collapse policy (default collapse).
+- ✅ Documented that sidebar restore now reuses the floating-style placement-memory restore strategy in architecture/ADR docs.
+- ✅ Updated `STATUS.md`, `DONE.md`, and `ROADMAP.md` to reflect framework-level sidebar rendering progress and current test totals.
+- ✅ Refreshed `docs/images/main-demo.png` after switching MainDemo back to framework-rendered sidebars.
+- ✅ Updated `STATUS.md`, `DONE.md`, and `ROADMAP.md` to reflect the Phase-C sidebar foundation slice and current test totals.
+- ✅ Updated `docs/images/main-demo.png` preview after MainDemo Settings/Layout menu changes for Phase-C sidebar testing controls.
+- ✅ Refreshed `docs/images/main-demo.png` again after adding visible pinned-sidebar strips to the MainDemo layout.
 - ✅ Updated README/ARCHITECTURE docs for automatic stylesheet handling and runtime theme switching.
 - ✅ Added ADR `docs/adr/0002-runtime-theme-stylesheet-management.md` for theme lifecycle ownership and API behavior.
 

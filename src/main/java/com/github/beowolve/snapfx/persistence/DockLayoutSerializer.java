@@ -2,11 +2,14 @@ package com.github.beowolve.snapfx.persistence;
 
 import com.github.beowolve.snapfx.model.*;
 import com.google.gson.*;
+import javafx.geometry.Side;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Label;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -62,22 +65,28 @@ public class DockLayoutSerializer {
      */
     public String serialize() {
         DockElement root = dockGraph.getRoot();
-        if (root == null) {
+        boolean hasSideBars = hasSerializedSideBarState();
+        if (root == null && !hasSideBars) {
             return "{}";
         }
 
         // Collect all DockNodes in the tree
         collectNodes(root);
+        collectSideBarNodes();
 
         LayoutData data = new LayoutData();
         data.locked = dockGraph.isLocked();
         data.layoutIdCounter = dockGraph.getLayoutIdCounter();
-        data.root = serializeElement(root);
+        data.root = root == null ? null : serializeElement(root);
+        data.sideBars = serializeSideBars();
 
         return gson.toJson(data);
     }
 
     private void collectNodes(DockElement element) {
+        if (element == null) {
+            return;
+        }
         if (element instanceof DockNode node) {
             registerNode(node);
         } else if (element instanceof DockContainer container) {
@@ -85,6 +94,52 @@ public class DockLayoutSerializer {
                 collectNodes(child);
             }
         }
+    }
+
+    private void collectSideBarNodes() {
+        for (Side side : Side.values()) {
+            for (DockNode node : dockGraph.getSideBarNodes(side)) {
+                registerNode(node);
+            }
+        }
+    }
+
+    private boolean hasSerializedSideBarState() {
+        for (Side side : Side.values()) {
+            if (dockGraph.isSideBarPinnedOpen(side) || !dockGraph.getSideBarNodes(side).isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private SideBarData[] serializeSideBars() {
+        List<SideBarData> sideBars = new ArrayList<>();
+        for (Side side : Side.values()) {
+            var entries = dockGraph.getSideBarNodes(side);
+            boolean pinnedOpen = dockGraph.isSideBarPinnedOpen(side);
+            if (entries.isEmpty() && !pinnedOpen) {
+                continue;
+            }
+
+            SideBarData sideBarData = new SideBarData();
+            sideBarData.side = side.name();
+            sideBarData.pinnedOpen = pinnedOpen;
+            sideBarData.entries = new SideBarEntryData[entries.size()];
+            for (int i = 0; i < entries.size(); i++) {
+                DockNode node = entries.get(i);
+                SideBarEntryData entryData = new SideBarEntryData();
+                entryData.node = serializeElement(node);
+                DockElement restoreTarget = node.getLastKnownTarget();
+                entryData.restoreTargetId = restoreTarget == null ? null : restoreTarget.getId();
+                DockPosition restorePosition = node.getLastKnownPosition();
+                entryData.restorePosition = restorePosition == null ? null : restorePosition.name();
+                entryData.restoreTabIndex = restorePosition == DockPosition.CENTER ? node.getLastKnownTabIndex() : null;
+                sideBarData.entries[i] = entryData;
+            }
+            sideBars.add(sideBarData);
+        }
+        return sideBars.isEmpty() ? null : sideBars.toArray(SideBarData[]::new);
     }
 
     private ElementData serializeElement(DockElement element) {
@@ -145,21 +200,29 @@ public class DockLayoutSerializer {
         String normalizedJson = json.trim();
         JsonObject rootObject = parseRootJsonObject(normalizedJson);
         if (rootObject.isEmpty()) {
+            boolean previouslyLocked = dockGraph.isLocked();
+            dockGraph.setLocked(false);
             dockGraph.setRoot(null);
+            dockGraph.clearSideBars();
+            dockGraph.setLocked(previouslyLocked);
             return;
-        }
-        if (!rootObject.has("root")) {
-            throw missingFieldError("$.root");
         }
 
         LayoutData data = parseLayoutData(rootObject);
+        if (!rootObject.has("root") && (data.sideBars == null || data.sideBars.length == 0)) {
+            throw missingFieldError("$.root");
+        }
         DockElement root = data.root == null ? null : deserializeElement(data.root, "$.root");
+        List<DeserializedSideBar> sideBars = deserializeSideBars(data.sideBars, root);
 
-        dockGraph.setLocked(data.locked);
+        dockGraph.setLocked(false);
+        dockGraph.setRoot(root);
+        dockGraph.clearSideBars();
+        applyDeserializedSideBars(sideBars);
         if (data.layoutIdCounter > 0) {
             dockGraph.setLayoutIdCounter(data.layoutIdCounter);
         }
-        dockGraph.setRoot(root);
+        dockGraph.setLocked(data.locked);
     }
 
     private JsonObject parseRootJsonObject(String json) throws DockLayoutLoadException {
@@ -183,6 +246,74 @@ public class DockLayoutSerializer {
             return data;
         } catch (JsonParseException e) {
             throw loadError("Layout JSON could not be parsed.", "$", e);
+        }
+    }
+
+    private List<DeserializedSideBar> deserializeSideBars(SideBarData[] sideBars, DockElement root)
+        throws DockLayoutLoadException {
+        List<DeserializedSideBar> result = new ArrayList<>();
+        if (sideBars == null || sideBars.length == 0) {
+            return result;
+        }
+
+        for (int i = 0; i < sideBars.length; i++) {
+            SideBarData sideBarData = sideBars[i];
+            String sideBarPath = "$.sideBars[" + i + "]";
+            if (sideBarData == null) {
+                throw loadError("Sidebar entry is missing.", sideBarPath);
+            }
+
+            Side side = parseSideBarSide(sideBarData.side, sideBarPath + ".side");
+            List<DeserializedSideBarEntry> entries = new ArrayList<>();
+            if (sideBarData.entries != null) {
+                for (int j = 0; j < sideBarData.entries.length; j++) {
+                    SideBarEntryData entryData = sideBarData.entries[j];
+                    String entryPath = sideBarPath + ".entries[" + j + "]";
+                    if (entryData == null || entryData.node == null) {
+                        throw loadError("Sidebar node entry is missing.", entryPath + ".node");
+                    }
+
+                    DockElement element = deserializeElement(entryData.node, entryPath + ".node");
+                    if (!(element instanceof DockNode node)) {
+                        throw loadError("Sidebar entries must be DockNode elements.", entryPath + ".node" + TYPE_JSON_SUFFIX);
+                    }
+
+                    DockPosition restorePosition = parseOptionalDockPosition(
+                        entryData.restorePosition,
+                        entryPath + ".restorePosition"
+                    );
+                    Integer restoreTabIndex = restorePosition == DockPosition.CENTER ? entryData.restoreTabIndex : null;
+                    DockElement restoreTarget = resolveElementById(root, entryData.restoreTargetId);
+                    entries.add(new DeserializedSideBarEntry(node, restoreTarget, restorePosition, restoreTabIndex));
+                }
+            }
+            result.add(new DeserializedSideBar(side, sideBarData.pinnedOpen, entries));
+        }
+
+        return result;
+    }
+
+    private void applyDeserializedSideBars(List<DeserializedSideBar> sideBars) {
+        if (sideBars == null || sideBars.isEmpty()) {
+            return;
+        }
+
+        for (DeserializedSideBar sideBar : sideBars) {
+            if (sideBar == null || sideBar.side() == null) {
+                continue;
+            }
+            for (DeserializedSideBarEntry entry : sideBar.entries()) {
+                if (entry == null || entry.node() == null) {
+                    continue;
+                }
+                dockGraph.pinToSideBar(entry.node(), sideBar.side());
+                entry.node().setLastKnownTarget(entry.restoreTarget());
+                entry.node().setLastKnownPosition(entry.restorePosition());
+                entry.node().setLastKnownTabIndex(
+                    entry.restorePosition() == DockPosition.CENTER ? entry.restoreTabIndex() : null
+                );
+            }
+            dockGraph.setSideBarPinnedOpen(sideBar.side(), sideBar.pinnedOpen());
         }
     }
 
@@ -422,6 +553,46 @@ public class DockLayoutSerializer {
         return tabPane;
     }
 
+    private Side parseSideBarSide(String sideValue, String path) throws DockLayoutLoadException {
+        if (isBlank(sideValue)) {
+            throw missingFieldError(path);
+        }
+        try {
+            return Side.valueOf(sideValue);
+        } catch (IllegalArgumentException e) {
+            throw loadError("Unsupported sidebar side '" + sideValue + "'.", path, e);
+        }
+    }
+
+    private DockPosition parseOptionalDockPosition(String positionValue, String path) throws DockLayoutLoadException {
+        if (isBlank(positionValue)) {
+            return null;
+        }
+        try {
+            return DockPosition.valueOf(positionValue);
+        } catch (IllegalArgumentException e) {
+            throw loadError("Unsupported dock position '" + positionValue + "'.", path, e);
+        }
+    }
+
+    private DockElement resolveElementById(DockElement root, String id) {
+        if (root == null || isBlank(id)) {
+            return null;
+        }
+        if (id.equals(root.getId())) {
+            return root;
+        }
+        if (root instanceof DockContainer container) {
+            for (DockElement child : container.getChildren()) {
+                DockElement resolved = resolveElementById(child, id);
+                if (resolved != null) {
+                    return resolved;
+                }
+            }
+        }
+        return null;
+    }
+
     private boolean isBlank(String value) {
         return value == null || value.isBlank();
     }
@@ -443,6 +614,7 @@ public class DockLayoutSerializer {
         boolean locked;
         long layoutIdCounter; // Counter for unique layout IDs
         ElementData root;
+        SideBarData[] sideBars;
     }
 
     private static class ElementData {
@@ -456,6 +628,30 @@ public class DockLayoutSerializer {
         ElementData[] children;
         double[] dividerPositions;
         JsonObject contentData; // For serializable content
+    }
+
+    private static class SideBarData {
+        String side;
+        boolean pinnedOpen;
+        SideBarEntryData[] entries;
+    }
+
+    private static class SideBarEntryData {
+        ElementData node;
+        String restoreTargetId;
+        String restorePosition;
+        Integer restoreTabIndex;
+    }
+
+    private record DeserializedSideBar(Side side, boolean pinnedOpen, List<DeserializedSideBarEntry> entries) {
+    }
+
+    private record DeserializedSideBarEntry(
+        DockNode node,
+        DockElement restoreTarget,
+        DockPosition restorePosition,
+        Integer restoreTabIndex
+    ) {
     }
 
     // Gson adapters
