@@ -776,6 +776,8 @@ public class SnapFX {
         handle.setMinWidth(SIDEBAR_RESIZE_HANDLE_WIDTH);
         handle.setPrefWidth(SIDEBAR_RESIZE_HANDLE_WIDTH);
         handle.setMaxWidth(SIDEBAR_RESIZE_HANDLE_WIDTH);
+        handle.setPickOnBounds(true);
+        handle.setViewOrder(-1.0);
         handle.setCursor(Cursor.H_RESIZE);
         markSideBarChrome(handle);
         handle.setOnMousePressed(event -> onSideBarResizeHandleMousePressed(side, event));

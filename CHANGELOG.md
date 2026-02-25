@@ -17,6 +17,7 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Added `MainDemoTest` coverage for the temporary MainDemo DockDebugOverlay HUD disable switch used while sidebar interaction work is in progress.
 - ✅ Added `MainDemoTest` coverage for sidebar Settings width controls (API-to-settings parity wiring).
 - ✅ Added `MainDemoTest` regression coverage to keep the MainDemo outer Debug/Settings split divider stable while dock layouts rebuild.
+- ✅ Added `SnapFXTest` regression coverage for right sidebar overlay resize-handle pick/z-order behavior and width updates in unpinned mode.
 
 ### Framework and UI
 - ✅ Added `DockGraph.pinToSideBar(DockNode, Side, int)` for deterministic sidebar insertion/reordering with clamped index handling, enabling upcoming sidebar DnD drop-position support.
@@ -26,6 +27,7 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Added per-side resizable sidebar panel widths in `SnapFX` (shared by pinned and overlay modes) with runtime clamping, resize handles, `SnapFX` width APIs, `DockGraph` width state, and `DockLayoutSerializer` persistence (`panelWidth`).
 - ✅ Temporarily disabled the MainDemo `DockDebugOverlay` D&D HUD while sidebar interaction work continues; a post-sidebar fix/re-enable follow-up is tracked for background rendering, top-left clipping, and incorrect `none` diagnostics text.
 - ✅ Fixed MainDemo debug/settings split divider jumps during dock-layout rebuilds by updating dock content inside a persistent split-host container instead of replacing the split item.
+- ✅ Fixed unpinned right-sidebar overlay resizing by making resize handles explicitly bounds-pickable and rendering them above overlay panel chrome/shadow (prevents right-side hit-target occlusion).
 
 ### Documentation
 - ✅ Re-scoped the next sidebar Phase 2 work from hover auto-hide to higher-value interaction parity (sidebar DnD, framework context-menu actions, and resizable sidebar widths) in planning/status docs.
@@ -36,6 +38,7 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Added a post-sidebar `DockDebugOverlay` fix/re-enable follow-up to roadmap/status docs and documented the temporary MainDemo HUD disable.
 - ✅ Refreshed `docs/images/main-demo.png` after temporarily disabling the MainDemo `DockDebugOverlay` HUD during sidebar work.
 - ✅ Updated planning/status docs to note the MainDemo debug/settings split divider stability fix while sidebar work continues.
+- ✅ Updated planning/status docs to track the right-overlay sidebar resize-handle reliability fix during Phase 2 sidebar interaction work.
 
 ## v0.3.0 - 2026-02-24
 

@@ -34,6 +34,9 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TabPane;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.PickResult;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
@@ -1503,6 +1506,41 @@ class SnapFXTest {
     }
 
     @Test
+    void testRightOverlaySideBarResizeHandleIsPickableAndUpdatesWidth() {
+        DockNode main = new DockNode("main", new Label("Main"), "Main");
+        DockNode tool = new DockNode("tool", new Label("Tool"), "Tool");
+        snapFX.dock(main, null, DockPosition.CENTER);
+        snapFX.dock(tool, main, DockPosition.RIGHT);
+        snapFX.pinToSideBar(tool, Side.RIGHT);
+        snapFX.setSideBarPanelWidth(Side.RIGHT, 300.0);
+        snapFX.buildLayout();
+        invokeSideBarIconClick(snapFX, Side.RIGHT, tool);
+
+        Scene scene = new Scene(snapFX.buildLayout(), 1000, 700);
+        scene.getRoot().applyCss();
+        scene.getRoot().layout();
+
+        Node handle = findNodeWithStyleClass(scene.getRoot(), DockThemeStyleClasses.DOCK_SIDEBAR_RESIZE_HANDLE);
+        assertNotNull(handle);
+
+        Bounds handleBounds = handle.localToScene(handle.getBoundsInLocal());
+        double centerSceneX = (handleBounds.getMinX() + handleBounds.getMaxX()) / 2.0;
+        double centerSceneY = (handleBounds.getMinY() + handleBounds.getMaxY()) / 2.0;
+
+        Node overlayPanel = findNodeWithStyleClass(scene.getRoot(), DockThemeStyleClasses.DOCK_SIDEBAR_PANEL_OVERLAY);
+        assertNotNull(overlayPanel);
+        assertTrue(handle.isPickOnBounds());
+        assertTrue(handle.getViewOrder() < overlayPanel.getViewOrder());
+
+        double startWidth = snapFX.getSideBarPanelWidth(Side.RIGHT);
+        Event.fireEvent(handle, createMouseEvent(handle, handle, MouseEvent.MOUSE_PRESSED, centerSceneX, centerSceneY, centerSceneX, centerSceneY));
+        Event.fireEvent(handle, createMouseEvent(handle, handle, MouseEvent.MOUSE_DRAGGED, centerSceneX - 40.0, centerSceneY, centerSceneX - 40.0, centerSceneY));
+        Event.fireEvent(handle, createMouseEvent(handle, handle, MouseEvent.MOUSE_RELEASED, centerSceneX - 40.0, centerSceneY, centerSceneX - 40.0, centerSceneY));
+
+        assertTrue(snapFX.getSideBarPanelWidth(Side.RIGHT) > startWidth);
+    }
+
+    @Test
     void testSideBarPanelWidthIsRuntimeClampedByAvailableLayoutWidth() {
         DockNode main = new DockNode("main", new Label("Main"), "Main");
         DockNode tool = new DockNode("tool", new Label("Tool"), "Tool");
@@ -2064,6 +2102,39 @@ class SnapFXTest {
         if (contextMenu != null && contextMenu.getOnShowing() != null) {
             contextMenu.getOnShowing().handle(null);
         }
+    }
+
+    private MouseEvent createMouseEvent(
+        Node source,
+        Node target,
+        javafx.event.EventType<MouseEvent> type,
+        double x,
+        double y,
+        double screenX,
+        double screenY
+    ) {
+        return new MouseEvent(
+            source,
+            target,
+            type,
+            x,
+            y,
+            screenX,
+            screenY,
+            MouseButton.PRIMARY,
+            1,
+            false,
+            false,
+            false,
+            false,
+            true,
+            false,
+            false,
+            true,
+            false,
+            false,
+            new PickResult(target, x, y)
+        );
     }
 
     private Node findNodeWithStyleClass(Node current, String styleClass) {
