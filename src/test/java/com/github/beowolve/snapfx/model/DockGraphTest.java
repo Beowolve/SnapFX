@@ -1618,6 +1618,45 @@ class DockGraphTest {
         assertSame(left, dockGraph.getRoot());
     }
 
+    @Test
+    void testSideBarPanelWidthDefaultsAndCanBeUpdatedPerSide() {
+        assertEquals(DockGraph.DEFAULT_SIDE_BAR_PANEL_WIDTH, dockGraph.getSideBarPanelWidth(Side.LEFT), 0.0001);
+        assertEquals(DockGraph.DEFAULT_SIDE_BAR_PANEL_WIDTH, dockGraph.getSideBarPanelWidth(Side.RIGHT), 0.0001);
+
+        dockGraph.setSideBarPanelWidth(Side.LEFT, 360.0);
+        dockGraph.setSideBarPanelWidth(Side.RIGHT, 280.0);
+
+        assertEquals(360.0, dockGraph.getSideBarPanelWidth(Side.LEFT), 0.0001);
+        assertEquals(280.0, dockGraph.getSideBarPanelWidth(Side.RIGHT), 0.0001);
+    }
+
+    @Test
+    void testSideBarPanelWidthRejectsInvalidValues() {
+        dockGraph.setSideBarPanelWidth(Side.LEFT, 320.0);
+
+        dockGraph.setSideBarPanelWidth(Side.LEFT, Double.NaN);
+        dockGraph.setSideBarPanelWidth(Side.LEFT, Double.POSITIVE_INFINITY);
+        dockGraph.setSideBarPanelWidth(Side.LEFT, 0.0);
+        dockGraph.setSideBarPanelWidth(Side.LEFT, -10.0);
+        dockGraph.setSideBarPanelWidth(null, 250.0);
+
+        assertEquals(320.0, dockGraph.getSideBarPanelWidth(Side.LEFT), 0.0001);
+    }
+
+    @Test
+    void testSideBarPanelWidthCanChangeWhileLockedAndClearSideBarsResetsToDefault() {
+        dockGraph.setSideBarPanelWidth(Side.LEFT, 355.0);
+        dockGraph.setLocked(true);
+
+        dockGraph.setSideBarPanelWidth(Side.LEFT, 390.0);
+        assertEquals(390.0, dockGraph.getSideBarPanelWidth(Side.LEFT), 0.0001);
+
+        dockGraph.setLocked(false);
+        dockGraph.clearSideBars();
+
+        assertEquals(DockGraph.DEFAULT_SIDE_BAR_PANEL_WIDTH, dockGraph.getSideBarPanelWidth(Side.LEFT), 0.0001);
+    }
+
     private List<DockNode> buildLargeLayout(int nodeCount) {
         List<DockNode> nodes = new ArrayList<>(nodeCount);
         if (nodeCount <= 0) {

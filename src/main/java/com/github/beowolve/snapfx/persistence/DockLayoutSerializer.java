@@ -105,8 +105,10 @@ public class DockLayoutSerializer {
     }
 
     private boolean hasSerializedSideBarState() {
-        for (Side side : Side.values()) {
-            if (dockGraph.isSideBarPinnedOpen(side) || !dockGraph.getSideBarNodes(side).isEmpty()) {
+        for (Side side : List.of(Side.LEFT, Side.RIGHT)) {
+            if (dockGraph.isSideBarPinnedOpen(side)
+                || !dockGraph.getSideBarNodes(side).isEmpty()
+                || Double.compare(dockGraph.getSideBarPanelWidth(side), DockGraph.DEFAULT_SIDE_BAR_PANEL_WIDTH) != 0) {
                 return true;
             }
         }
@@ -115,16 +117,19 @@ public class DockLayoutSerializer {
 
     private SideBarData[] serializeSideBars() {
         List<SideBarData> sideBars = new ArrayList<>();
-        for (Side side : Side.values()) {
+        for (Side side : List.of(Side.LEFT, Side.RIGHT)) {
             var entries = dockGraph.getSideBarNodes(side);
             boolean pinnedOpen = dockGraph.isSideBarPinnedOpen(side);
-            if (entries.isEmpty() && !pinnedOpen) {
+            double panelWidth = dockGraph.getSideBarPanelWidth(side);
+            boolean hasCustomPanelWidth = Double.compare(panelWidth, DockGraph.DEFAULT_SIDE_BAR_PANEL_WIDTH) != 0;
+            if (entries.isEmpty() && !pinnedOpen && !hasCustomPanelWidth) {
                 continue;
             }
 
             SideBarData sideBarData = new SideBarData();
             sideBarData.side = side.name();
             sideBarData.pinnedOpen = pinnedOpen;
+            sideBarData.panelWidth = hasCustomPanelWidth ? panelWidth : null;
             sideBarData.entries = new SideBarEntryData[entries.size()];
             for (int i = 0; i < entries.size(); i++) {
                 DockNode node = entries.get(i);
@@ -287,7 +292,11 @@ public class DockLayoutSerializer {
                     entries.add(new DeserializedSideBarEntry(node, restoreTarget, restorePosition, restoreTabIndex));
                 }
             }
-            result.add(new DeserializedSideBar(side, sideBarData.pinnedOpen, entries));
+            Double panelWidth = sideBarData.panelWidth;
+            if (panelWidth != null && (!Double.isFinite(panelWidth) || panelWidth <= 0.0)) {
+                panelWidth = null;
+            }
+            result.add(new DeserializedSideBar(side, sideBarData.pinnedOpen, panelWidth, entries));
         }
 
         return result;
@@ -312,6 +321,9 @@ public class DockLayoutSerializer {
                 entry.node().setLastKnownTabIndex(
                     entry.restorePosition() == DockPosition.CENTER ? entry.restoreTabIndex() : null
                 );
+            }
+            if (sideBar.panelWidth() != null) {
+                dockGraph.setSideBarPanelWidth(sideBar.side(), sideBar.panelWidth());
             }
             dockGraph.setSideBarPinnedOpen(sideBar.side(), sideBar.pinnedOpen());
         }
@@ -633,6 +645,7 @@ public class DockLayoutSerializer {
     private static class SideBarData {
         String side;
         boolean pinnedOpen;
+        Double panelWidth;
         SideBarEntryData[] entries;
     }
 
@@ -643,7 +656,7 @@ public class DockLayoutSerializer {
         Integer restoreTabIndex;
     }
 
-    private record DeserializedSideBar(Side side, boolean pinnedOpen, List<DeserializedSideBarEntry> entries) {
+    private record DeserializedSideBar(Side side, boolean pinnedOpen, Double panelWidth, List<DeserializedSideBarEntry> entries) {
     }
 
     private record DeserializedSideBarEntry(

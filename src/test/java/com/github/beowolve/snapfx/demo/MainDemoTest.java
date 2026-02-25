@@ -28,6 +28,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
+import javafx.scene.control.Spinner;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
@@ -38,6 +39,8 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -202,6 +205,33 @@ class MainDemoTest {
     }
 
     @Test
+    void testSideBarSettingsSectionIncludesPanelWidthControlsBoundToSnapFxApi() {
+        runOnFxThreadAndWait(() -> {
+            MainDemo demo = new MainDemo();
+            SnapFX framework = new SnapFX();
+            setPrivateField(demo, "snapFX", framework);
+
+            invokePrivateMethod(demo, "createSideBarSettingsSection");
+
+            Spinner<Double> leftSpinner = readPrivateField(demo, "leftSideBarPanelWidthSpinner", Spinner.class);
+            Spinner<Double> rightSpinner = readPrivateField(demo, "rightSideBarPanelWidthSpinner", Spinner.class);
+            assertNotNull(leftSpinner);
+            assertNotNull(rightSpinner);
+            assertNotNull(leftSpinner.getValueFactory());
+            assertNotNull(rightSpinner.getValueFactory());
+
+            assertEquals(framework.getSideBarPanelWidth(Side.LEFT), leftSpinner.getValueFactory().getValue(), 0.0001);
+            assertEquals(framework.getSideBarPanelWidth(Side.RIGHT), rightSpinner.getValueFactory().getValue(), 0.0001);
+
+            leftSpinner.getValueFactory().setValue(360.0);
+            rightSpinner.getValueFactory().setValue(290.0);
+
+            assertEquals(360.0, framework.getSideBarPanelWidth(Side.LEFT), 0.0001);
+            assertEquals(290.0, framework.getSideBarPanelWidth(Side.RIGHT), 0.0001);
+        });
+    }
+
+    @Test
     void testFormatDockNodeListLabelUsesTitleAndNodeIdFallbacks() {
         DockNode node = new DockNode("editor", new Label("Editor"), "Main Editor");
         assertEquals("Main Editor [editor]", MainDemo.formatDockNodeListLabel(node));
@@ -296,6 +326,37 @@ class MainDemoTest {
         }
         if (error.get() != null) {
             throw new AssertionError("JavaFX action failed", error.get());
+        }
+    }
+
+    private void invokePrivateMethod(Object target, String methodName) {
+        try {
+            Method method = target.getClass().getDeclaredMethod(methodName);
+            method.setAccessible(true);
+            method.invoke(target);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Unable to invoke private method: " + methodName, e);
+        }
+    }
+
+    private void setPrivateField(Object target, String fieldName, Object value) {
+        try {
+            Field field = target.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            field.set(target, value);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Unable to set private field: " + fieldName, e);
+        }
+    }
+
+    private <T> T readPrivateField(Object target, String fieldName, Class<T> type) {
+        try {
+            Field field = target.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            Object value = field.get(target);
+            return type.cast(value);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Unable to read private field: " + fieldName, e);
         }
     }
 }

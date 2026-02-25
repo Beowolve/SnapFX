@@ -418,6 +418,52 @@ class DockLayoutSerializerTest {
     }
 
     @Test
+    void testSerializeAndDeserializeSideBarPanelWidthsRoundTrip() throws DockLayoutLoadException {
+        DockNode tool = new DockNode("tool", new Label("Tool"), "Tool");
+        dockGraph.pinToSideBar(tool, Side.LEFT);
+        dockGraph.setSideBarPanelWidth(Side.LEFT, 372.5);
+        dockGraph.setSideBarPanelWidth(Side.RIGHT, 255.0);
+
+        String json = serializer.serialize();
+
+        assertTrue(json.contains("\"panelWidth\": 372.5"));
+        assertTrue(json.contains("\"panelWidth\": 255.0"));
+
+        DockGraph restoredGraph = new DockGraph();
+        DockLayoutSerializer restoredSerializer = new DockLayoutSerializer(restoredGraph);
+        restoredSerializer.setNodeFactory(nodeId -> "tool".equals(nodeId)
+            ? new DockNode(nodeId, new Label("Tool"), "Tool")
+            : null);
+        restoredSerializer.deserialize(json);
+
+        assertEquals(372.5, restoredGraph.getSideBarPanelWidth(Side.LEFT), 0.0001);
+        assertEquals(255.0, restoredGraph.getSideBarPanelWidth(Side.RIGHT), 0.0001);
+    }
+
+    @Test
+    void testDeserializeMissingSideBarPanelWidthFallsBackToDefault() throws DockLayoutLoadException {
+        dockGraph.setSideBarPanelWidth(Side.LEFT, 420.0);
+
+        String legacyJson = """
+            {
+              "locked": false,
+              "layoutIdCounter": 2,
+              "sideBars": [
+                {
+                  "side": "LEFT",
+                  "pinnedOpen": false,
+                  "entries": []
+                }
+              ]
+            }
+            """;
+
+        serializer.deserialize(legacyJson);
+
+        assertEquals(DockGraph.DEFAULT_SIDE_BAR_PANEL_WIDTH, dockGraph.getSideBarPanelWidth(Side.LEFT), 0.0001);
+    }
+
+    @Test
     void testSerializeAndDeserializeSidebarRestoreAnchorsRoundTrip() throws DockLayoutLoadException {
         DockNode left = new DockNode("left", new Label("Left"), "Left");
         DockNode right = new DockNode("right", new Label("Right"), "Right");

@@ -13,6 +13,7 @@ import com.github.beowolve.snapfx.floating.DockFloatingSnapTarget;
 import com.github.beowolve.snapfx.floating.DockFloatingWindow;
 import com.github.beowolve.snapfx.model.DockContainer;
 import com.github.beowolve.snapfx.model.DockElement;
+import com.github.beowolve.snapfx.model.DockGraph;
 import com.github.beowolve.snapfx.model.DockNode;
 import com.github.beowolve.snapfx.model.DockPosition;
 import com.github.beowolve.snapfx.model.DockSplitPane;
@@ -1129,6 +1130,23 @@ class SnapFXTest {
     }
 
     @Test
+    void testSideBarPanelWidthApiValidatesAndAllowsChangesWhileLocked() {
+        assertEquals(DockGraph.DEFAULT_SIDE_BAR_PANEL_WIDTH, snapFX.getSideBarPanelWidth(Side.LEFT), 0.0001);
+
+        snapFX.setSideBarPanelWidth(Side.LEFT, 360.0);
+        assertEquals(360.0, snapFX.getSideBarPanelWidth(Side.LEFT), 0.0001);
+
+        snapFX.setLocked(true);
+        snapFX.setSideBarPanelWidth(Side.LEFT, 340.0);
+        assertEquals(340.0, snapFX.getSideBarPanelWidth(Side.LEFT), 0.0001);
+
+        snapFX.setSideBarPanelWidth(Side.LEFT, Double.NaN);
+        snapFX.setSideBarPanelWidth(Side.LEFT, -5.0);
+        snapFX.setSideBarPanelWidth(null, 220.0);
+        assertEquals(340.0, snapFX.getSideBarPanelWidth(Side.LEFT), 0.0001);
+    }
+
+    @Test
     void testSaveLoadRoundTripPreservesPinnedSideBarsViaSnapFxApi() throws DockLayoutLoadException {
         DockNode main = new DockNode("main", new Label("Main"), "Main");
         DockNode sideTool = new DockNode("sideTool", new Label("Side Tool"), "Side Tool");
@@ -1138,6 +1156,8 @@ class SnapFXTest {
         snapFX.dock(sideTool, main, DockPosition.RIGHT);
         snapFX.pinToSideBar(sideTool, Side.RIGHT);
         snapFX.collapsePinnedSideBar(Side.RIGHT);
+        snapFX.setSideBarPanelWidth(Side.LEFT, 345.0);
+        snapFX.setSideBarPanelWidth(Side.RIGHT, 288.0);
 
         String json = snapFX.saveLayout();
 
@@ -1150,6 +1170,8 @@ class SnapFXTest {
         assertEquals("sideTool", restoredPinnedNode.getDockNodeId());
         assertFalse(restored.isSideBarPinnedOpen(Side.RIGHT));
         assertFalse(isInGraph(restored, restoredPinnedNode));
+        assertEquals(345.0, restored.getSideBarPanelWidth(Side.LEFT), 0.0001);
+        assertEquals(288.0, restored.getSideBarPanelWidth(Side.RIGHT), 0.0001);
 
         DockNode restoredMainNode = assertInstanceOf(DockNode.class, restored.getDockGraph().getRoot());
         assertEquals("main", restoredMainNode.getDockNodeId());
@@ -1433,6 +1455,70 @@ class SnapFXTest {
         assertTrue(restoreItem.isDisable());
         assertTrue(moveRightItem.isDisable());
         assertTrue(pinPanelItem.isDisable());
+    }
+
+    @Test
+    void testPinnedSideBarPanelUsesConfiguredWidthAndRendersResizeHandle() {
+        DockNode main = new DockNode("main", new Label("Main"), "Main");
+        DockNode tool = new DockNode("tool", new Label("Tool"), "Tool");
+        snapFX.dock(main, null, DockPosition.CENTER);
+        snapFX.dock(tool, main, DockPosition.RIGHT);
+        snapFX.pinToSideBar(tool, Side.LEFT);
+        snapFX.setSideBarPanelWidth(Side.LEFT, 420.0);
+        snapFX.pinOpenSideBar(Side.LEFT);
+
+        Scene pinnedScene = new Scene(snapFX.buildLayout(), 800, 600);
+        pinnedScene.getRoot().applyCss();
+        pinnedScene.getRoot().layout();
+
+        Node pinnedPanel = findNodeWithStyleClass(pinnedScene.getRoot(), DockThemeStyleClasses.DOCK_SIDEBAR_PANEL_PINNED);
+        assertInstanceOf(javafx.scene.layout.VBox.class, pinnedPanel);
+        assertEquals(420.0, ((javafx.scene.layout.VBox) pinnedPanel).getPrefWidth(), 0.0001);
+        assertNotNull(findNodeWithStyleClass(pinnedScene.getRoot(), DockThemeStyleClasses.DOCK_SIDEBAR_RESIZE_HANDLE));
+    }
+
+    @Test
+    void testOverlaySideBarPanelUsesConfiguredWidthAndRendersResizeHandle() {
+        DockNode main = new DockNode("main", new Label("Main"), "Main");
+        DockNode tool = new DockNode("tool", new Label("Tool"), "Tool");
+        snapFX.dock(main, null, DockPosition.CENTER);
+        snapFX.dock(tool, main, DockPosition.RIGHT);
+        snapFX.pinToSideBar(tool, Side.LEFT);
+        snapFX.setSideBarPanelWidth(Side.LEFT, 420.0);
+        snapFX.buildLayout();
+        invokeSideBarIconClick(snapFX, Side.LEFT, tool);
+
+        Scene scene = new Scene(snapFX.buildLayout(), 800, 600);
+        scene.getRoot().applyCss();
+        scene.getRoot().layout();
+
+        Node overlayPanel = findNodeWithStyleClass(scene.getRoot(), DockThemeStyleClasses.DOCK_SIDEBAR_PANEL_OVERLAY);
+        assertInstanceOf(javafx.scene.layout.VBox.class, overlayPanel);
+        assertEquals(420.0, ((javafx.scene.layout.VBox) overlayPanel).getPrefWidth(), 0.0001);
+
+        Node overlayHost = findNodeWithStyleClass(scene.getRoot(), DockThemeStyleClasses.DOCK_SIDEBAR_OVERLAY_HOST);
+        assertInstanceOf(javafx.scene.layout.HBox.class, overlayHost);
+        assertEquals(461.0, ((javafx.scene.layout.HBox) overlayHost).getPrefWidth(), 0.5);
+        assertNotNull(findNodeWithStyleClass(scene.getRoot(), DockThemeStyleClasses.DOCK_SIDEBAR_RESIZE_HANDLE));
+    }
+
+    @Test
+    void testSideBarPanelWidthIsRuntimeClampedByAvailableLayoutWidth() {
+        DockNode main = new DockNode("main", new Label("Main"), "Main");
+        DockNode tool = new DockNode("tool", new Label("Tool"), "Tool");
+        snapFX.dock(main, null, DockPosition.CENTER);
+        snapFX.dock(tool, main, DockPosition.RIGHT);
+        snapFX.pinToSideBar(tool, Side.LEFT);
+        snapFX.pinOpenSideBar(Side.LEFT);
+        snapFX.setSideBarPanelWidth(Side.LEFT, 1000.0);
+
+        Scene scene = new Scene(snapFX.buildLayout(), 800, 600);
+        scene.getRoot().applyCss();
+        scene.getRoot().layout();
+
+        Node pinnedPanel = findNodeWithStyleClass(scene.getRoot(), DockThemeStyleClasses.DOCK_SIDEBAR_PANEL_PINNED);
+        assertInstanceOf(javafx.scene.layout.VBox.class, pinnedPanel);
+        assertEquals(480.0, ((javafx.scene.layout.VBox) pinnedPanel).getPrefWidth(), 0.5);
     }
 
     @Test

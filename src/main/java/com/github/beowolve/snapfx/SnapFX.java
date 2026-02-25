@@ -33,6 +33,7 @@ import com.github.beowolve.snapfx.view.DockLayoutEngine;
 import com.github.beowolve.snapfx.view.DockNodeView;
 import com.github.beowolve.snapfx.view.DockTitleBarMode;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -45,6 +46,7 @@ import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.Cursor;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
@@ -58,6 +60,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -99,7 +102,9 @@ public class SnapFX {
     private static final String SIDEBAR_CHROME_MARKER_KEY = "snapfx.sidebarChrome";
     private static final String SIDEBAR_NODE_CONTEXT_MENU_PROPERTY_KEY = "snapfx.sideBarNodeContextMenu";
     private static final double SIDEBAR_STRIP_WIDTH = 36.0;
-    private static final double SIDEBAR_PANEL_WIDTH = 300.0;
+    private static final double SIDEBAR_PANEL_MIN_WIDTH = 180.0;
+    private static final double SIDEBAR_PANEL_MAX_WIDTH = 520.0;
+    private static final double SIDEBAR_RESIZE_HANDLE_WIDTH = 5.0;
     private static final double SIDEBAR_ICON_BUTTON_SIZE = 28.0;
     private static final double SIDEBAR_DROP_INSERT_LINE_THICKNESS = 3.0;
     private static final double SIDEBAR_DROP_INSERT_LINE_HORIZONTAL_INSET = 3.0;
@@ -148,6 +153,9 @@ public class SnapFX {
     private final EnumMap<Side, VBox> renderedSideBarStrips;
     private final EnumSet<Side> openOverlaySideBars;
     private final EnumSet<Side> collapsedPinnedSideBars;
+    private Side activeSideBarResizeSide;
+    private double sideBarResizeDragStartScreenX;
+    private double sideBarResizeDragStartWidth;
     private Region sideBarDropInsertLine;
     private boolean collapsePinnedSideBarOnActiveIconClick = true;
     private DockCloseBehavior defaultCloseBehavior = DockCloseBehavior.HIDE;
@@ -442,13 +450,14 @@ public class SnapFX {
         if (pinnedPanel == null) {
             return strip;
         }
+        Region resizeHandle = createSideBarResizeHandle(side);
 
         HBox host = new HBox();
         host.getStyleClass().add(DockThemeStyleClasses.DOCK_SIDEBAR_HOST);
         if (side == Side.LEFT) {
-            host.getChildren().addAll(strip, pinnedPanel);
+            host.getChildren().addAll(strip, pinnedPanel, resizeHandle);
         } else {
-            host.getChildren().addAll(pinnedPanel, strip);
+            host.getChildren().addAll(resizeHandle, pinnedPanel, strip);
         }
         return host;
     }
@@ -471,15 +480,14 @@ public class SnapFX {
         HBox overlayHost = new HBox();
         overlayHost.getStyleClass().add(DockThemeStyleClasses.DOCK_SIDEBAR_OVERLAY_HOST);
         overlayHost.setPickOnBounds(false);
-        overlayHost.setMinWidth(SIDEBAR_STRIP_WIDTH + SIDEBAR_PANEL_WIDTH);
-        overlayHost.setPrefWidth(SIDEBAR_STRIP_WIDTH + SIDEBAR_PANEL_WIDTH);
-        overlayHost.setMaxWidth(SIDEBAR_STRIP_WIDTH + SIDEBAR_PANEL_WIDTH);
+        bindSideBarOverlayHostWidth(overlayHost, side);
         Node spacer = createSideBarOverlaySpacer();
         Node panel = createSideBarPanel(side, selectedNode, false);
+        Region resizeHandle = createSideBarResizeHandle(side);
         if (side == Side.LEFT) {
-            overlayHost.getChildren().addAll(spacer, panel);
+            overlayHost.getChildren().addAll(spacer, panel, resizeHandle);
         } else {
-            overlayHost.getChildren().addAll(panel, spacer);
+            overlayHost.getChildren().addAll(resizeHandle, panel, spacer);
         }
         markSideBarChrome(overlayHost);
         return overlayHost;
@@ -651,9 +659,7 @@ public class SnapFX {
             DockThemeStyleClasses.DOCK_SIDEBAR_PANEL,
             pinnedOpen ? DockThemeStyleClasses.DOCK_SIDEBAR_PANEL_PINNED : DockThemeStyleClasses.DOCK_SIDEBAR_PANEL_OVERLAY
         );
-        panel.setMinWidth(SIDEBAR_PANEL_WIDTH);
-        panel.setPrefWidth(SIDEBAR_PANEL_WIDTH);
-        panel.setMaxWidth(SIDEBAR_PANEL_WIDTH);
+        bindSideBarPanelWidth(panel, side);
         markSideBarChrome(panel);
 
         HBox header = new HBox(6);
@@ -701,6 +707,135 @@ public class SnapFX {
         spacer.setMaxWidth(SIDEBAR_STRIP_WIDTH);
         spacer.setMouseTransparent(true);
         return spacer;
+    }
+
+    private void bindSideBarPanelWidth(Region panel, Side side) {
+        if (panel == null || side == null) {
+            return;
+        }
+        if (rootContainer != null) {
+            panel.minWidthProperty().bind(Bindings.createDoubleBinding(
+                () -> resolveRenderedSideBarPanelWidth(side),
+                dockGraph.sideBarPanelWidthProperty(side),
+                rootContainer.widthProperty()
+            ));
+            panel.prefWidthProperty().bind(Bindings.createDoubleBinding(
+                () -> resolveRenderedSideBarPanelWidth(side),
+                dockGraph.sideBarPanelWidthProperty(side),
+                rootContainer.widthProperty()
+            ));
+            panel.maxWidthProperty().bind(Bindings.createDoubleBinding(
+                () -> resolveRenderedSideBarPanelWidth(side),
+                dockGraph.sideBarPanelWidthProperty(side),
+                rootContainer.widthProperty()
+            ));
+            return;
+        }
+        double width = resolveRenderedSideBarPanelWidth(side);
+        panel.setMinWidth(width);
+        panel.setPrefWidth(width);
+        panel.setMaxWidth(width);
+    }
+
+    private void bindSideBarOverlayHostWidth(HBox overlayHost, Side side) {
+        if (overlayHost == null || side == null) {
+            return;
+        }
+        if (rootContainer != null) {
+            overlayHost.minWidthProperty().bind(Bindings.createDoubleBinding(
+                () -> resolveRenderedSideBarOverlayHostWidth(side),
+                dockGraph.sideBarPanelWidthProperty(side),
+                rootContainer.widthProperty()
+            ));
+            overlayHost.prefWidthProperty().bind(Bindings.createDoubleBinding(
+                () -> resolveRenderedSideBarOverlayHostWidth(side),
+                dockGraph.sideBarPanelWidthProperty(side),
+                rootContainer.widthProperty()
+            ));
+            overlayHost.maxWidthProperty().bind(Bindings.createDoubleBinding(
+                () -> resolveRenderedSideBarOverlayHostWidth(side),
+                dockGraph.sideBarPanelWidthProperty(side),
+                rootContainer.widthProperty()
+            ));
+            return;
+        }
+        double width = resolveRenderedSideBarOverlayHostWidth(side);
+        overlayHost.setMinWidth(width);
+        overlayHost.setPrefWidth(width);
+        overlayHost.setMaxWidth(width);
+    }
+
+    private Region createSideBarResizeHandle(Side side) {
+        Region handle = new Region();
+        handle.getStyleClass().addAll(
+            DockThemeStyleClasses.DOCK_SIDEBAR_RESIZE_HANDLE,
+            side == Side.LEFT
+                ? DockThemeStyleClasses.DOCK_SIDEBAR_RESIZE_HANDLE_LEFT
+                : DockThemeStyleClasses.DOCK_SIDEBAR_RESIZE_HANDLE_RIGHT
+        );
+        handle.setMinWidth(SIDEBAR_RESIZE_HANDLE_WIDTH);
+        handle.setPrefWidth(SIDEBAR_RESIZE_HANDLE_WIDTH);
+        handle.setMaxWidth(SIDEBAR_RESIZE_HANDLE_WIDTH);
+        handle.setCursor(Cursor.H_RESIZE);
+        markSideBarChrome(handle);
+        handle.setOnMousePressed(event -> onSideBarResizeHandleMousePressed(side, event));
+        handle.setOnMouseDragged(event -> onSideBarResizeHandleMouseDragged(side, event));
+        handle.setOnMouseReleased(event -> onSideBarResizeHandleMouseReleased(side, event));
+        return handle;
+    }
+
+    private void onSideBarResizeHandleMousePressed(Side side, MouseEvent event) {
+        if (side == null || event == null || event.getButton() != MouseButton.PRIMARY) {
+            return;
+        }
+        activeSideBarResizeSide = side;
+        sideBarResizeDragStartScreenX = event.getScreenX();
+        sideBarResizeDragStartWidth = getSideBarPanelWidth(side);
+        event.consume();
+    }
+
+    private void onSideBarResizeHandleMouseDragged(Side side, MouseEvent event) {
+        if (side == null || event == null || activeSideBarResizeSide != side) {
+            return;
+        }
+        double deltaX = event.getScreenX() - sideBarResizeDragStartScreenX;
+        double candidateWidth = side == Side.LEFT
+            ? sideBarResizeDragStartWidth + deltaX
+            : sideBarResizeDragStartWidth - deltaX;
+        setSideBarPanelWidth(side, candidateWidth);
+        event.consume();
+    }
+
+    private void onSideBarResizeHandleMouseReleased(Side side, MouseEvent event) {
+        if (event == null || activeSideBarResizeSide != side) {
+            return;
+        }
+        activeSideBarResizeSide = null;
+        event.consume();
+    }
+
+    private double resolveRenderedSideBarPanelWidth(Side side) {
+        return clampSideBarPanelWidthForCurrentLayout(dockGraph.getSideBarPanelWidth(side));
+    }
+
+    private double resolveRenderedSideBarOverlayHostWidth(Side side) {
+        return SIDEBAR_STRIP_WIDTH + resolveRenderedSideBarPanelWidth(side) + SIDEBAR_RESIZE_HANDLE_WIDTH;
+    }
+
+    private double clampSideBarPanelWidthForCurrentLayout(double width) {
+        double fallback = DockGraph.DEFAULT_SIDE_BAR_PANEL_WIDTH;
+        double base = (Double.isFinite(width) && width > 0.0) ? width : fallback;
+        double maxWidth = resolveSideBarPanelMaxWidthForCurrentLayout();
+        return Math.clamp(base, SIDEBAR_PANEL_MIN_WIDTH, maxWidth);
+    }
+
+    private double resolveSideBarPanelMaxWidthForCurrentLayout() {
+        double configuredMax = SIDEBAR_PANEL_MAX_WIDTH;
+        double layoutWidth = rootContainer == null ? 0.0 : rootContainer.getWidth();
+        if (Double.isFinite(layoutWidth) && layoutWidth > 0.0) {
+            configuredMax = Math.min(configuredMax, layoutWidth * 0.6);
+        }
+        return Math.max(SIDEBAR_PANEL_MIN_WIDTH, configuredMax);
     }
 
     private Button createSideBarPanelButton(String buttonStyleClass, String iconStyleClass, String tooltipText) {
@@ -1667,6 +1802,29 @@ public class SnapFX {
      */
     public void setCollapsePinnedSideBarOnActiveIconClick(boolean collapsePinnedSideBarOnActiveIconClick) {
         this.collapsePinnedSideBarOnActiveIconClick = collapsePinnedSideBarOnActiveIconClick;
+    }
+
+    /**
+     * Returns the preferred sidebar panel width for the given side.
+     *
+     * <p>The returned value is the persisted preference. Rendering may clamp the effective width depending on the
+     * current layout size.</p>
+     */
+    public double getSideBarPanelWidth(Side side) {
+        return dockGraph.getSideBarPanelWidth(side);
+    }
+
+    /**
+     * Sets the preferred sidebar panel width for the given side.
+     *
+     * <p>The value is validated and clamped to the current SnapFX sidebar width policy. The effective rendered width
+     * may still be smaller on narrow scenes due to runtime clamping.</p>
+     */
+    public void setSideBarPanelWidth(Side side, double width) {
+        if (side == null || !Double.isFinite(width) || width <= 0.0) {
+            return;
+        }
+        dockGraph.setSideBarPanelWidth(side, clampSideBarPanelWidthForCurrentLayout(width));
     }
 
     /**

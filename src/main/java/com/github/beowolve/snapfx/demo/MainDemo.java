@@ -109,6 +109,8 @@ public class MainDemo extends Application {
     private ListView<DockNode> rightSideBarNodesListView;
     private CheckBox leftSideBarPinnedOpenCheckBox;
     private CheckBox rightSideBarPinnedOpenCheckBox;
+    private Spinner<Double> leftSideBarPanelWidthSpinner;
+    private Spinner<Double> rightSideBarPanelWidthSpinner;
     private boolean updatingSideBarSettingsControls;
 
     private static final class EditorDocumentState {
@@ -544,6 +546,12 @@ public class MainDemo extends Application {
             if (rightSideBarPinnedOpenCheckBox != null) {
                 rightSideBarPinnedOpenCheckBox.setSelected(snapFX.isSideBarPinnedOpen(Side.RIGHT));
             }
+            if (leftSideBarPanelWidthSpinner != null && leftSideBarPanelWidthSpinner.getValueFactory() != null) {
+                leftSideBarPanelWidthSpinner.getValueFactory().setValue(snapFX.getSideBarPanelWidth(Side.LEFT));
+            }
+            if (rightSideBarPanelWidthSpinner != null && rightSideBarPanelWidthSpinner.getValueFactory() != null) {
+                rightSideBarPanelWidthSpinner.getValueFactory().setValue(snapFX.getSideBarPanelWidth(Side.RIGHT));
+            }
         } finally {
             updatingSideBarSettingsControls = false;
         }
@@ -590,6 +598,14 @@ public class MainDemo extends Application {
         } else {
             snapFX.collapsePinnedSideBar(side);
         }
+    }
+
+    private void onSideBarPanelWidthChanged(Side side, Double width) {
+        if (side == null || width == null || updatingSideBarSettingsControls) {
+            return;
+        }
+        snapFX.setSideBarPanelWidth(side, width);
+        refreshSideBarSettingsViews();
     }
 
     private void pinSelectedDockedNodeToSideBar(Side side) {
@@ -1134,7 +1150,7 @@ public class MainDemo extends Application {
     }
 
     private VBox createSideBarSettingsSection() {
-        Label sectionHeader = new Label("Pinned Side Bars (Phase 1)");
+        Label sectionHeader = new Label("Pinned Side Bars (Phase 2)");
         sectionHeader.setStyle(FX_FONT_WEIGHT_BOLD);
 
         sideBarDockedNodesListView = createDockNodeListView();
@@ -1170,7 +1186,7 @@ public class MainDemo extends Application {
         );
 
         Label note = new Label(
-            "Phase 1 test controls: side-bar state is model/persistence-backed and rendered by the framework; hover auto-hide polish is planned next."
+            "Phase 2 test controls: framework side bars now support DnD/context-menu parity and per-side panel widths (resizable at runtime, persisted in layouts)."
         );
         note.setWrapText(true);
 
@@ -1195,6 +1211,22 @@ public class MainDemo extends Application {
             rightSideBarPinnedOpenCheckBox = pinnedOpenCheckBox;
         }
 
+        Spinner<Double> panelWidthSpinner = new Spinner<>();
+        panelWidthSpinner.setValueFactory(new SpinnerValueFactory.DoubleSpinnerValueFactory(
+            180.0,
+            800.0,
+            snapFX.getSideBarPanelWidth(side),
+            10.0
+        ));
+        panelWidthSpinner.setEditable(true);
+        panelWidthSpinner.setMaxWidth(Double.MAX_VALUE);
+        panelWidthSpinner.valueProperty().addListener((obs, oldVal, newVal) -> onSideBarPanelWidthChanged(side, newVal));
+        if (side == Side.LEFT) {
+            leftSideBarPanelWidthSpinner = panelWidthSpinner;
+        } else if (side == Side.RIGHT) {
+            rightSideBarPanelWidthSpinner = panelWidthSpinner;
+        }
+
         ListView<DockNode> listView = getSideBarListView(side);
 
         Button restoreSelectedButton = new Button("Restore Selected");
@@ -1217,8 +1249,11 @@ public class MainDemo extends Application {
         actionRow.setAlignment(Pos.CENTER_LEFT);
         HBox pinnedOpenRow = new HBox(6, pinnedOpenCheckBox, pinOpenButton, collapseButton);
         pinnedOpenRow.setAlignment(Pos.CENTER_LEFT);
+        HBox widthRow = new HBox(6, new Label("Panel Width"), panelWidthSpinner);
+        widthRow.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(panelWidthSpinner, Priority.ALWAYS);
 
-        VBox column = new VBox(6, header, pinnedOpenRow, listView, actionRow);
+        VBox column = new VBox(6, header, pinnedOpenRow, widthRow, listView, actionRow);
         VBox.setVgrow(listView, Priority.ALWAYS);
         column.setPrefWidth(0);
         return column;

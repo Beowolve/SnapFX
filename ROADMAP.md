@@ -206,11 +206,11 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 - ✅ **Phase 2 sidebar DnD baseline (strip target)**: `SnapFX` now accepts unresolved drops onto visible sidebar icon strips with exact insertion index resolution, renders a sidebar insert-position line during drag hover, supports strip-icon drag as a sidebar DnD source, and reuses the sidebar-ordering model semantics for reorder/cross-source moves; pinned sidebar nodes are also handled correctly as DnD sources for main/floating drops
 - ✅ **Framework sidebar move context menus**: Built-in `Move to Left Sidebar` / `Move to Right Sidebar` actions are now available in framework dock-node header and tab context menus (including floating layouts), wired to SnapFX sidebar pinning with lock-aware disabling
 - ✅ **Framework sidebar node context menus**: Sidebar strip icons and expanded sidebar panel headers now provide built-in restore/move/pin actions (`Restore from Sidebar`, `Move to Left/Right Sidebar`, `Pin/Unpin Sidebar Panel`) with lock-aware disabling
+- ✅ **Resizable sidebar panel widths**: Sidebar panels are resizable per side via framework resize handles; pinned and overlay modes share the same per-side width with runtime clamping and MainDemo Settings controls
+- ✅ **Sidebar width persistence**: Per-side sidebar panel widths now roundtrip via `DockLayoutSerializer` side-bar state (`panelWidth`) with backward-compatible default fallback
 - 📋 **Sidebar view extraction/refactor**: Optional extraction of the current framework sidebar rendering from `SnapFX` into a dedicated view/controller component if complexity grows further
 - 📋 **Sidebar DnD parity (Phase 2)**: Extend sidebar DnD beyond the current strip-target baseline (for example broader sidebar-surface targeting around pinned/overlay panels) while keeping deterministic target resolution and lock-aware behavior
 - 📋 **Sidebar DnD preview polish**: Extend/align sidebar insertion preview behavior beyond the current strip-target line baseline (for example additional target surfaces or richer preview states)
-- 📋 **Resizable sidebar panel widths**: Per-side sidebar panel width resize (overlay + pinned-open) with runtime clamping and shared behavior
-- 📋 **Sidebar width persistence**: Save/load roundtrip for per-side sidebar panel widths with backward-compatible defaults
 
 **Estimated Time**: 3 days
 

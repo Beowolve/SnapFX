@@ -72,23 +72,23 @@ SnapFX has been fully implemented with core functionality and is production-read
   - Tests for flattening logic
   - Performance stress tests for large layouts (50+ nodes)
   - Edge case tests for null/no-op/detached-target handling
-- ✅ `DockLayoutSerializerTest` (19 tests) - Persistence functionality and strict load-failure diagnostics for blank content, malformed JSON, missing required fields, invalid tab selection metadata, unknown-node placeholder diagnostics, unsupported-type recovery with optional factory custom fallback, plus sidebar persistence/restore-anchor roundtrip coverage
+- ✅ `DockLayoutSerializerTest` (21 tests) - Persistence functionality and strict load-failure diagnostics for blank content, malformed JSON, missing required fields, invalid tab selection metadata, unknown-node placeholder diagnostics, unsupported-type recovery with optional factory custom fallback, plus sidebar persistence/restore-anchor/width roundtrip coverage (including legacy width fallback)
   - **+1 regression test** for locked state synchronization (2026-02-10)
 - ✅ `DockLayoutEngineTest` (35 tests) - View creation with TestFX, context-menu interaction coverage, representative container-tab title/icon behavior, float-availability policy checks, sidebar move-to-sidebar context-menu callback/lock-state coverage, header-context-menu dismiss-on-press regression coverage, and tiny-bounds drop-zone clamp regression coverage
   - Memory cleanup tests for cache boundedness and undock/rebuild cycles
   - Layout optimization tests for empty/single-child roots
-- ✅ `SnapFXTest` (77 tests) - Hide/Restore + Floating Window API behavior, configurable shortcut behavior, floating-window snap API propagation/validation, side-bar facade API coverage (pin/restore, lock-aware pinned-open state, save/load roundtrip preservation), framework sidebar build-layout rendering structure coverage (collapsed strip vs. pinned-open panel), configurable pinned-sidebar active-icon collapse policy coverage, sidebar-restore placement regression coverage for collapsed tab-parent fallback, invalid-load failure handling, persistence edge-case coverage for complex floating snapshots, unknown-type layout recovery, unresolved floating-sub-layout D&D detach coverage, host-aware floating reattach placement restore/fallback coverage, three-window floating-layout detach/attach roundtrip coverage for top-left/top-right/bottom nodes, detach-close-remaining-attach host-restore fallback coverage, and theme stylesheet API behavior (initialize auto-apply + runtime switching + named theme catalog exposure)
+- ✅ `SnapFXTest` (90 tests) - Hide/Restore + Floating Window API behavior, configurable shortcut behavior, floating-window snap API propagation/validation, side-bar facade API coverage (pin/restore, lock-aware pinned-open state, save/load roundtrip preservation, panel-width API/roundtrip behavior), framework sidebar build-layout rendering structure coverage (collapsed strip vs. pinned/overlay panels, resize-handle presence, runtime width clamping), configurable pinned-sidebar active-icon collapse policy coverage, sidebar-restore placement regression coverage for collapsed tab-parent fallback, invalid-load failure handling, persistence edge-case coverage for complex floating snapshots, unknown-type layout recovery, unresolved floating-sub-layout D&D detach coverage, host-aware floating reattach placement restore/fallback coverage, three-window floating-layout detach/attach roundtrip coverage for top-left/top-right/bottom nodes, detach-close-remaining-attach host-restore fallback coverage, and theme stylesheet API behavior (initialize auto-apply + runtime switching + named theme catalog exposure)
 - ✅ `DockGraphSplitTargetDockingTest` (1 test) - Split-target docking regression coverage
 - ✅ `DockDragServiceTest` (8 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, and ESC drag-cancel handling
 - ✅ `DockFloatingWindowTest` (31 tests) - Floating title-bar controls, context-menu behavior (attach/pin icons + attach action), floating-header sidebar move-menu callback forwarding, pin behavior, icon rendering/sync regression coverage, single-node float-menu policy, maximize/restore interaction behavior, scene-level drag continuity (including release/reset and non-primary guard behavior), resize-min constraints, interactive-target cursor reliability, and floating/main edge snapping behavior (including overlap-guard, adjacent-edge cases, and main-window shadow-inset compensation)
 - ✅ `DockFloatingSnapEngineTest` (6 tests) - Snap candidate scoring, overlap-aware candidate generation, and shadow-inset compensation coverage
-- ✅ `MainDemoTest` (21 tests) - Application icon resources, menu icon behavior, sidebar menu/list helper coverage for Phase-C manual controls, demo shortcut wiring, floating snap-target settings resolution coverage, load-error message formatting, owner-aware error-alert behavior, FileChooser helper coverage for shared layout/editor chooser configuration, and named theme-catalog/resource coverage
+- ✅ `MainDemoTest` (22 tests) - Application icon resources, menu icon behavior, sidebar menu/list helper coverage for Phase-C manual controls, sidebar settings width-control API-parity wiring, demo shortcut wiring, floating snap-target settings resolution coverage, load-error message formatting, owner-aware error-alert behavior, FileChooser helper coverage for shared layout/editor chooser configuration, and named theme-catalog/resource coverage
 - ✅ `DemoNodeFactoryTest` (3 tests) - Unknown-node fallback strategy coverage (framework placeholder vs. demo custom fallback), plus SnapFX integration coverage for unsupported-type recovery with the default demo factory
 - ✅ `AboutDialogTest` (2 tests) - About dialog resources and credit link targets
 - ✅ `EditorCloseDecisionPolicyTest` (5 tests) - Deterministic close-decision behavior for dirty editor nodes
 - ✅ `MarkdownDocumentationConsistencyTest` (12 tests) - Documentation consistency guardrails
 - ✅ CI flake guard for critical interaction suites (`SnapFXTest`, `DockFloatingWindowTest`, `DockDragServiceTest`) runs 3x per CI execution
-- ✅ All tests passing (278/278) ✅
+- ✅ All tests passing (306/306) ✅
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
 - ✅ Mandatory regression tests for all bug fixes
 
@@ -215,6 +215,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **Sidebar DnD strip-target baseline**: Unresolved drag releases can drop onto visible sidebar icon strips with exact insertion positioning, sidebar strip icons now act as drag sources (including drag-outside float fallback), the sidebar strip renders an insert-position line during drag hover, and pinned sidebar nodes now participate correctly as DnD sources for main-layout, floating-window, and float-fallback drops
 - ✅ **Framework sidebar move context-menu baseline**: Dock-node header and tab context menus now expose built-in `Move to Left Sidebar` / `Move to Right Sidebar` actions (including floating layouts) wired to the SnapFX sidebar pinning flow with lock-aware disabling
 - ✅ **Sidebar node context-menu parity**: Sidebar strip icons and expanded sidebar panel headers now expose built-in restore/move/pin actions (`Restore from Sidebar`, `Move to Left/Right Sidebar`, `Pin/Unpin Sidebar Panel`) with lock-aware disabling
+- ✅ **Resizable sidebar panel widths**: Sidebar panels can now be resized per side via framework resize handles, use shared width state for pinned/overlay modes, clamp at runtime to available layout width, and persist via `DockLayoutSerializer`
 - ✅ **Drop Zones**: Detection for SplitPane areas
 - ✅ **Drop zone visualization modes (ALL/SUBTREE/DEFAULT/ACTIVE/OFF)**
 - ✅ **Per-tab insert targeting with visible insert line**
@@ -314,7 +315,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 
 See [ROADMAP.md](ROADMAP.md) for planned features and improvements.
 
-**Current Priority**: Continue sidebar interaction parity (remaining DnD parity/polish and resizable sidebar widths) after completing Phase C pinned-sidebar verification/stabilization, then return to the Phase 3 user-experience backlog.
+**Current Priority**: Continue sidebar interaction parity (remaining DnD parity/polish) after completing Phase C pinned-sidebar verification/stabilization, then return to the Phase 3 user-experience backlog.
 
 ---
 

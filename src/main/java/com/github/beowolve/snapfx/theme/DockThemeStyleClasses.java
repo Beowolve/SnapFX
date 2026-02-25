@@ -49,6 +49,9 @@ public class DockThemeStyleClasses {
     public static final String DOCK_SIDEBAR_PANEL_BUTTON = "dock-sidebar-panel-button";
     public static final String DOCK_SIDEBAR_PANEL_PIN_BUTTON = "dock-sidebar-panel-pin-button";
     public static final String DOCK_SIDEBAR_PANEL_RESTORE_BUTTON = "dock-sidebar-panel-restore-button";
+    public static final String DOCK_SIDEBAR_RESIZE_HANDLE = "dock-sidebar-resize-handle";
+    public static final String DOCK_SIDEBAR_RESIZE_HANDLE_LEFT = "dock-sidebar-resize-handle-left";
+    public static final String DOCK_SIDEBAR_RESIZE_HANDLE_RIGHT = "dock-sidebar-resize-handle-right";
     public static final String DOCK_FLOATING_WINDOW = "dock-floating-window";
     public static final String DOCK_FLOATING_TITLE_BAR = "dock-floating-title-bar";
     public static final String DOCK_FLOATING_LAYOUT_CONTAINER = "dock-floating-layout-container";

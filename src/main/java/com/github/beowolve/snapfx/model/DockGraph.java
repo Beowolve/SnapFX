@@ -1,9 +1,11 @@
 package com.github.beowolve.snapfx.model;
 
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.LongProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -22,12 +24,18 @@ import java.util.List;
  * Provides methods for docking, undocking, and moving nodes within the tree.
  */
 public class DockGraph {
+    /**
+     * Default preferred width (in pixels) for sidebar panels.
+     */
+    public static final double DEFAULT_SIDE_BAR_PANEL_WIDTH = 300.0;
+
     private final BooleanProperty locked;
     private final LongProperty revision;
     private final ObjectProperty<DockElement> root;
     private final EnumMap<Side, ObservableList<DockNode>> sideBarNodes;
     private final EnumMap<Side, ObservableList<DockNode>> readOnlySideBarNodes;
     private final EnumMap<Side, BooleanProperty> sideBarPinnedOpen;
+    private final EnumMap<Side, DoubleProperty> sideBarPanelWidths;
     private long layoutIdCounter = 0; // Counter for generating unique layout IDs
 
     public DockGraph() {
@@ -37,11 +45,13 @@ public class DockGraph {
         this.sideBarNodes = new EnumMap<>(Side.class);
         this.readOnlySideBarNodes = new EnumMap<>(Side.class);
         this.sideBarPinnedOpen = new EnumMap<>(Side.class);
+        this.sideBarPanelWidths = new EnumMap<>(Side.class);
         for (Side side : Side.values()) {
             ObservableList<DockNode> nodes = FXCollections.observableArrayList();
             sideBarNodes.put(side, nodes);
             readOnlySideBarNodes.put(side, FXCollections.unmodifiableObservableList(nodes));
             sideBarPinnedOpen.put(side, new SimpleBooleanProperty(false));
+            sideBarPanelWidths.put(side, new SimpleDoubleProperty(DEFAULT_SIDE_BAR_PANEL_WIDTH));
         }
     }
 
@@ -205,6 +215,53 @@ public class DockGraph {
      */
     public void collapsePinnedSideBar(Side side) {
         setSideBarPinnedOpen(side, false);
+    }
+
+    /**
+     * Returns the preferred sidebar panel width for the given side.
+     *
+     * <p>This is a persisted preference value. View hosts (for example {@code SnapFX}) may apply additional runtime
+     * clamping depending on scene size and resize policies.</p>
+     */
+    public double getSideBarPanelWidth(Side side) {
+        if (side == null) {
+            return DEFAULT_SIDE_BAR_PANEL_WIDTH;
+        }
+        DoubleProperty property = sideBarPanelWidths.get(side);
+        if (property == null) {
+            return DEFAULT_SIDE_BAR_PANEL_WIDTH;
+        }
+        double width = property.get();
+        return Double.isFinite(width) && width > 0.0 ? width : DEFAULT_SIDE_BAR_PANEL_WIDTH;
+    }
+
+    /**
+     * Returns the preferred sidebar panel width property for the given side.
+     *
+     * <p>The property stores the persisted preferred width. Consumers should clamp it at render time as needed.</p>
+     */
+    public DoubleProperty sideBarPanelWidthProperty(Side side) {
+        if (side == null) {
+            return new SimpleDoubleProperty(DEFAULT_SIDE_BAR_PANEL_WIDTH);
+        }
+        return sideBarPanelWidths.computeIfAbsent(side, ignored -> new SimpleDoubleProperty(DEFAULT_SIDE_BAR_PANEL_WIDTH));
+    }
+
+    /**
+     * Sets the preferred sidebar panel width for the given side.
+     *
+     * <p>This updates a persisted view preference and is intentionally allowed while the graph is locked because it
+     * does not mutate the docking structure.</p>
+     */
+    public void setSideBarPanelWidth(Side side, double width) {
+        if (side == null || !Double.isFinite(width) || width <= 0.0) {
+            return;
+        }
+        DoubleProperty property = sideBarPanelWidthProperty(side);
+        if (Double.compare(property.get(), width) == 0) {
+            return;
+        }
+        property.set(width);
     }
 
     /**
@@ -1084,6 +1141,10 @@ public class DockGraph {
                 if (property != null && property.get()) {
                     property.set(false);
                     changed = true;
+                }
+                DoubleProperty widthProperty = sideBarPanelWidths.get(side);
+                if (widthProperty != null && Double.compare(widthProperty.get(), DEFAULT_SIDE_BAR_PANEL_WIDTH) != 0) {
+                    widthProperty.set(DEFAULT_SIDE_BAR_PANEL_WIDTH);
                 }
             }
         }

@@ -70,6 +70,14 @@
     -fx-opacity: 0.98;
 }
 
+.dock-sidebar-resize-handle {
+    -fx-border-color: #2f3440;
+}
+
+.dock-sidebar-resize-handle:hover {
+    -fx-background-color: rgba(93, 169, 255, 0.14);
+}
+
 .dock-debug-panel {
     -fx-background-color: #25272c;
     -fx-border-color: #1f2125;

@@ -228,6 +228,25 @@
     -fx-background-color: derive(-fx-text-base-color, -10%);
 }
 
+.dock-sidebar-resize-handle {
+    -fx-background-color: transparent;
+    -fx-border-color: derive(-fx-background, -18%);
+    -fx-border-width: 0;
+    -fx-cursor: h_resize;
+}
+
+.dock-sidebar-resize-handle:hover {
+    -fx-background-color: rgba(75, 140, 245, 0.12);
+}
+
+.dock-sidebar-resize-handle-left {
+    -fx-border-width: 0 0 0 1px;
+}
+
+.dock-sidebar-resize-handle-right {
+    -fx-border-width: 0 1px 0 0;
+}
+
 /* ===== DockSplitPane ===== */
 .dock-split-pane {
     -fx-background-color: -fx-background;

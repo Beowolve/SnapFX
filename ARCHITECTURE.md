@@ -558,6 +558,7 @@ SnapFX uses host-aware placement memory to restore nodes after floating-window a
 Phase-C side bars split state across model and view layers on purpose:
 
 - `DockGraph` persists pinned entries per side and a side-bar pinned-open flag.
+- `DockGraph` also persists a preferred side-bar panel width per side (LEFT/RIGHT) for layout roundtrips.
 - SnapFX uses the pinned-open flag as the persistent "pinned open" state for left/right side panels.
 - `SnapFX` keeps transient UI-only state for collapsed overlay panels (selected node per side + whether an overlay is currently open).
 
@@ -566,6 +567,8 @@ Rendering architecture:
 - The main dock layout still comes from `DockLayoutEngine.buildSceneGraph()`.
 - `SnapFX.buildLayout()` wraps that layout in a composed root (`BorderPane` inside `StackPane`).
 - Left/right side hosts render icon strips plus optional pinned side panels that consume layout space.
+- Both pinned and overlay side-bar panels read the same per-side preferred width and apply runtime clamping based on current layout width.
+- A dedicated resize handle is rendered on the inner panel edge (left panel = right edge, right panel = left edge).
 - Overlay panels are rendered in a top `StackPane` layer so they can overlap the main layout without changing the model.
 
 Interaction rules (Phase-C visual baseline):
@@ -580,6 +583,8 @@ Interaction rules (Phase-C visual baseline):
 - Pin toggle moves the panel between overlay mode and pinned-open mode without moving/removing the pinned `DockNode`.
 - Only one side-bar panel is open per side at a time.
 - Sidebar restore from `SnapFX` reuses the same remembered placement strategy as floating-window attach (preferred anchor, neighbor anchors, fallback), which avoids common restore misplacements when parent containers collapse during pinning.
+- Sidebar strip icons and expanded panel headers expose built-in framework context menus for restore/move/pin actions, so host apps do not need demo-specific menus for common sidebar workflows.
+- Sidebar panel width changes (resize handle or API) are treated as persisted view preferences; they remain available while the layout is locked because they do not mutate docking structure topology.
 
 ## 7. Design Patterns
 
