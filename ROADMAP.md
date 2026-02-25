@@ -203,9 +203,10 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 - ✅ **Phase 1 persistence UX coverage**: Manual SnapFX/MainDemo verification for mixed main/floating/sidebar save-load and lock-mode scenarios is completed on top of the model/serializer/test coverage
 - ✅ **Phase 2 scope refinement**: Hover auto-hide/reveal behavior was dropped from the near-term plan in favor of higher-value sidebar interaction parity (DnD, framework context menus, and resize)
 - ✅ **Phase 2 model foundation (sidebar ordering)**: `DockGraph` now supports index-based sidebar insertion/reordering and cross-side moves with clamped bounds, providing the base semantics for sidebar DnD drop-positioning
+- ✅ **Phase 2 sidebar DnD baseline (strip target)**: `SnapFX` now accepts unresolved drops onto visible sidebar icon strips with exact insertion index resolution, renders a sidebar insert-position line during drag hover, supports strip-icon drag as a sidebar DnD source, and reuses the sidebar-ordering model semantics for reorder/cross-source moves; pinned sidebar nodes are also handled correctly as DnD sources for main/floating drops
 - 📋 **Sidebar view extraction/refactor**: Optional extraction of the current framework sidebar rendering from `SnapFX` into a dedicated view/controller component if complexity grows further
-- 📋 **Sidebar DnD parity (Phase 2)**: Drag dock nodes into/out of side bars (including floating windows) with deterministic target resolution and lock-aware behavior
-- 📋 **Sidebar DnD insertion preview**: Visual insertion marker/preview for exact sidebar drop position (top/between/bottom icon slots)
+- 📋 **Sidebar DnD parity (Phase 2)**: Extend sidebar DnD beyond the current strip-target baseline (for example broader sidebar-surface targeting around pinned/overlay panels) while keeping deterministic target resolution and lock-aware behavior
+- 📋 **Sidebar DnD preview polish**: Extend/align sidebar insertion preview behavior beyond the current strip-target line baseline (for example additional target surfaces or richer preview states)
 - 📋 **Framework sidebar context menus**: Built-in sidebar move/restore actions in framework node/tab context menus (not only MainDemo menus)
 - 📋 **Resizable sidebar panel widths**: Per-side sidebar panel width resize (overlay + pinned-open) with runtime clamping and shared behavior
 - 📋 **Sidebar width persistence**: Save/load roundtrip for per-side sidebar panel widths with backward-compatible defaults

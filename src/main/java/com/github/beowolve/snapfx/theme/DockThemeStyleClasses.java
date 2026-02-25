@@ -35,6 +35,7 @@ public class DockThemeStyleClasses {
     public static final String DOCK_SIDEBAR_STRIP = "dock-sidebar-strip";
     public static final String DOCK_SIDEBAR_STRIP_LEFT = "dock-sidebar-strip-left";
     public static final String DOCK_SIDEBAR_STRIP_RIGHT = "dock-sidebar-strip-right";
+    public static final String DOCK_SIDEBAR_DROP_INSERT_LINE = "dock-sidebar-drop-insert-line";
     public static final String DOCK_SIDEBAR_ICON_BUTTON = "dock-sidebar-icon-button";
     public static final String DOCK_SIDEBAR_ICON_BUTTON_ACTIVE = "dock-sidebar-icon-button-active";
     public static final String DOCK_SIDEBAR_ICON_FALLBACK = "dock-sidebar-icon-fallback";

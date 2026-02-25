@@ -185,6 +185,8 @@
 - ✅ Settings tab now includes a theme selector driven by the SnapFX named theme catalog (`Light`, `Dark`) and applies styles via runtime API
 - ✅ Layout menu now includes Phase-C side-bar pin/restore/pin-open test menus for left/right side bars
 - ✅ SnapFX now renders framework-level left/right sidebars (icon strips + overlay/pinned panels) in the main layout, and MainDemo uses that rendering for Phase-C manual validation
+- ✅ Phase-D sidebar DnD baseline is started in `SnapFX`: unresolved drag releases can now drop into visible sidebar icon strips with exact insertion positioning (including reorder/cross-source handling via the new `DockGraph` sidebar index semantics), sidebar strip icons are now drag sources, and the sidebar strip shows a visible insert-position line during drag hover
+- ✅ DnD source handling now supports pinned sidebar nodes in `SnapFX` drop paths (drop back into main layout, drop into floating windows, and unresolved float fallback)
 
 ### Documentation (100% ✅)
 - ✅ README.md updated

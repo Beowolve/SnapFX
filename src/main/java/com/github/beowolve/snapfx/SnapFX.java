@@ -5,6 +5,7 @@ import com.github.beowolve.snapfx.close.DockCloseDecision;
 import com.github.beowolve.snapfx.close.DockCloseRequest;
 import com.github.beowolve.snapfx.close.DockCloseResult;
 import com.github.beowolve.snapfx.close.DockCloseSource;
+import com.github.beowolve.snapfx.dnd.DockDragData;
 import com.github.beowolve.snapfx.dnd.DockDragService;
 import com.github.beowolve.snapfx.dnd.DockDropVisualizationMode;
 import com.github.beowolve.snapfx.floating.DockFloatingPinButtonMode;
@@ -36,7 +37,9 @@ import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
+import javafx.geometry.Bounds;
 import javafx.geometry.Orientation;
+import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
 import javafx.scene.Node;
@@ -93,6 +96,8 @@ public class SnapFX {
     private static final double SIDEBAR_STRIP_WIDTH = 36.0;
     private static final double SIDEBAR_PANEL_WIDTH = 300.0;
     private static final double SIDEBAR_ICON_BUTTON_SIZE = 28.0;
+    private static final double SIDEBAR_DROP_INSERT_LINE_THICKNESS = 3.0;
+    private static final double SIDEBAR_DROP_INSERT_LINE_HORIZONTAL_INSET = 3.0;
     private static final Duration SIDEBAR_TOOLTIP_SHOW_DELAY = Duration.ZERO;
     private static final KeyCombination DEFAULT_SHORTCUT_CLOSE_ACTIVE_NODE = new KeyCodeCombination(
         KeyCode.W,
@@ -135,8 +140,10 @@ public class SnapFX {
     private final ObservableList<DockFloatingWindow> floatingWindows;
     private final ObservableList<DockFloatingWindow> readOnlyFloatingWindows;
     private final EnumMap<Side, DockNode> selectedSideBarNodes;
+    private final EnumMap<Side, VBox> renderedSideBarStrips;
     private final EnumSet<Side> openOverlaySideBars;
     private final EnumSet<Side> collapsedPinnedSideBars;
+    private Region sideBarDropInsertLine;
     private boolean collapsePinnedSideBarOnActiveIconClick = true;
     private DockCloseBehavior defaultCloseBehavior = DockCloseBehavior.HIDE;
     private Function<DockCloseRequest, DockCloseDecision> onCloseRequest;
@@ -173,6 +180,7 @@ public class SnapFX {
         this.floatingWindows = FXCollections.observableArrayList();
         this.readOnlyFloatingWindows = FXCollections.unmodifiableObservableList(floatingWindows);
         this.selectedSideBarNodes = new EnumMap<>(Side.class);
+        this.renderedSideBarStrips = new EnumMap<>(Side.class);
         this.openOverlaySideBars = EnumSet.noneOf(Side.class);
         this.collapsedPinnedSideBars = EnumSet.noneOf(Side.class);
         this.themeStylesheetManager = new DockThemeStylesheetManager();
@@ -182,7 +190,7 @@ public class SnapFX {
         this.dragService.setOnDropRequest(this::handleResolvedDropRequest);
         this.dragService.setOnFloatDetachRequest(this::handleUnresolvedDropRequest);
         this.dragService.setOnDragHover(this::handleDragHover);
-        this.dragService.setOnDragFinished(this::clearFloatingDropPreviews);
+        this.dragService.setOnDragFinished(this::clearDragPreviews);
         this.dragService.setSuppressMainDropAtScreenPoint(this::isMainDropSuppressedByFloatingWindow);
 
         // Auto-rebuild view when revision changes (after D&D, dock/undock operations)
@@ -355,6 +363,7 @@ public class SnapFX {
         rootContainer.getChildren().clear();
         Node layout = layoutEngine.buildSceneGraph();
         replaceRootContainerContent(layout);
+        reattachSideBarDropInsertLine();
     }
 
     /**
@@ -383,6 +392,7 @@ public class SnapFX {
      */
     private Node buildSideBarDecoratedLayout(Node mainLayout) {
         pruneInvalidSideBarViewState();
+        renderedSideBarStrips.clear();
 
         BorderPane host = new BorderPane();
         if (mainLayout != null) {
@@ -481,6 +491,7 @@ public class SnapFX {
         strip.setPrefWidth(SIDEBAR_STRIP_WIDTH);
         strip.setMaxWidth(SIDEBAR_STRIP_WIDTH);
         markSideBarChrome(strip);
+        renderedSideBarStrips.put(side, strip);
 
         for (DockNode dockNode : pinnedNodes) {
             boolean active = sidePanelOpen && dockNode == selectedNode;
@@ -503,8 +514,18 @@ public class SnapFX {
         Tooltip tooltip = new Tooltip(dockNode.getTitle());
         tooltip.setShowDelay(SIDEBAR_TOOLTIP_SHOW_DELAY);
         button.setTooltip(tooltip);
+        installSideBarIconDragHandlers(button, dockNode);
         button.setOnAction(e -> onSideBarIconClicked(side, dockNode));
         return button;
+    }
+
+    private void installSideBarIconDragHandlers(Button button, DockNode dockNode) {
+        if (button == null || dockNode == null) {
+            return;
+        }
+        button.setOnMousePressed(event -> onSideBarStripIconMousePressed(dockNode, event));
+        button.setOnMouseDragged(event -> onSideBarStripIconMouseDragged(dockNode, event));
+        button.setOnMouseReleased(event -> onSideBarStripIconMouseReleased(dockNode, event));
     }
 
     private Node createSideBarPanel(Side side, DockNode dockNode, boolean pinnedOpen) {
@@ -544,6 +565,7 @@ public class SnapFX {
         restoreButton.setOnAction(e -> onSideBarPanelRestoreRequested(side, dockNode));
 
         header.getChildren().addAll(headerIcon, titleLabel, spacer, pinButton, restoreButton);
+        installSideBarPanelHeaderDragHandlers(header, dockNode);
 
         StackPane contentHost = new StackPane();
         contentHost.getStyleClass().add(DockThemeStyleClasses.DOCK_SIDEBAR_PANEL_CONTENT);
@@ -686,6 +708,79 @@ public class SnapFX {
         requestRebuild();
     }
 
+    private void installSideBarPanelHeaderDragHandlers(HBox header, DockNode dockNode) {
+        if (header == null || dockNode == null) {
+            return;
+        }
+        header.setOnMousePressed(event -> onSideBarPanelHeaderMousePressed(dockNode, event));
+        header.setOnMouseDragged(event -> onSideBarPanelHeaderMouseDragged(dockNode, event));
+        header.setOnMouseReleased(event -> onSideBarPanelHeaderMouseReleased(dockNode, event));
+    }
+
+    private void onSideBarPanelHeaderMousePressed(DockNode dockNode, MouseEvent event) {
+        if (dockNode == null || event == null || isSideBarPanelHeaderControlTarget(event.getTarget())) {
+            return;
+        }
+        dragService.startDrag(dockNode, event);
+    }
+
+    private void onSideBarPanelHeaderMouseDragged(DockNode dockNode, MouseEvent event) {
+        if (dockNode == null || event == null || !isDragServiceTrackingNode(dockNode)) {
+            return;
+        }
+        dragService.updateDrag(event);
+    }
+
+    private void onSideBarPanelHeaderMouseReleased(DockNode dockNode, MouseEvent event) {
+        if (dockNode == null || event == null || !isDragServiceTrackingNode(dockNode)) {
+            return;
+        }
+        dragService.endDrag(event);
+    }
+
+    private boolean isSideBarPanelHeaderControlTarget(Object eventTarget) {
+        if (!(eventTarget instanceof Node node)) {
+            return false;
+        }
+        Node current = node;
+        while (current != null) {
+            if (current instanceof Button) {
+                return true;
+            }
+            current = current.getParent();
+        }
+        return false;
+    }
+
+    private boolean isDragServiceTrackingNode(DockNode dockNode) {
+        if (dockNode == null) {
+            return false;
+        }
+        DockDragData currentDrag = dragService.getCurrentDrag();
+        return currentDrag != null && currentDrag.getDraggedNode() == dockNode;
+    }
+
+    private void onSideBarStripIconMousePressed(DockNode dockNode, MouseEvent event) {
+        if (dockNode == null || event == null) {
+            return;
+        }
+        dragService.startDrag(dockNode, event);
+    }
+
+    private void onSideBarStripIconMouseDragged(DockNode dockNode, MouseEvent event) {
+        if (dockNode == null || event == null || !isDragServiceTrackingNode(dockNode)) {
+            return;
+        }
+        dragService.updateDrag(event);
+    }
+
+    private void onSideBarStripIconMouseReleased(DockNode dockNode, MouseEvent event) {
+        if (dockNode == null || event == null || !isDragServiceTrackingNode(dockNode)) {
+            return;
+        }
+        dragService.endDrag(event);
+    }
+
     private void handleRootContainerMousePressed(MouseEvent event) {
         if (event == null || openOverlaySideBars.isEmpty()) {
             return;
@@ -776,6 +871,7 @@ public class SnapFX {
 
     private void resetSideBarTransientViewState() {
         selectedSideBarNodes.clear();
+        renderedSideBarStrips.clear();
         openOverlaySideBars.clear();
         collapsedPinnedSideBars.clear();
     }
@@ -1502,6 +1598,10 @@ public class SnapFX {
         }
 
         hiddenNodes.remove(node);
+        if (dockGraph.isPinnedToSideBar(node)) {
+            forgetTransientSideBarStateForNode(node);
+            dockGraph.unpinFromSideBar(node);
+        }
 
         DockFloatingWindow sourceFloatingWindow = null;
         if (isInGraph(node)) {
@@ -1612,6 +1712,15 @@ public class SnapFX {
         DockNode draggedNode = request.draggedNode();
         DockFloatingWindow sourceWindow = findFloatingWindow(draggedNode);
 
+        if (dockGraph.isPinnedToSideBar(draggedNode)) {
+            forgetTransientSideBarStateForNode(draggedNode);
+            if (!dockGraph.unpinFromSideBar(draggedNode)) {
+                return;
+            }
+            dockGraph.dock(draggedNode, request.target(), request.position(), request.tabIndex());
+            return;
+        }
+
         if (sourceWindow == null) {
             dockGraph.move(draggedNode, request.target(), request.position(), request.tabIndex());
             return;
@@ -1631,6 +1740,9 @@ public class SnapFX {
         if (request == null || request.draggedNode() == null) {
             return;
         }
+        if (tryDropIntoSideBar(request.draggedNode(), request.screenX(), request.screenY())) {
+            return;
+        }
         if (tryDropIntoFloatingWindow(request.draggedNode(), request.screenX(), request.screenY())) {
             return;
         }
@@ -1643,13 +1755,20 @@ public class SnapFX {
     }
 
     private void handleDragHover(DockDragService.DragHoverEvent hoverEvent) {
-        if (hoverEvent == null || hoverEvent.draggedNode() == null || floatingWindows.isEmpty()) {
-            clearFloatingDropPreviews();
+        if (hoverEvent == null || hoverEvent.draggedNode() == null) {
+            clearDragPreviews();
             return;
         }
 
         DockFloatingWindow topWindow = findTopFloatingWindowAt(hoverEvent.screenX(), hoverEvent.screenY());
         if (topWindow == null) {
+            updateSideBarDropPreview(hoverEvent.draggedNode(), hoverEvent.screenX(), hoverEvent.screenY());
+            clearFloatingDropPreviews();
+            return;
+        }
+
+        clearSideBarDropPreview();
+        if (floatingWindows.isEmpty()) {
             clearFloatingDropPreviews();
             return;
         }
@@ -1667,6 +1786,11 @@ public class SnapFX {
             }
             floatingWindow.clearDropPreview();
         }
+    }
+
+    private void clearDragPreviews() {
+        clearFloatingDropPreviews();
+        clearSideBarDropPreview();
     }
 
     private void clearFloatingDropPreviews() {
@@ -1698,6 +1822,11 @@ public class SnapFX {
         if (isInGraph(node)) {
             rememberLastKnownPlacement(node);
             dockGraph.undock(node);
+        } else if (dockGraph.isPinnedToSideBar(node)) {
+            forgetTransientSideBarStateForNode(node);
+            if (!dockGraph.unpinFromSideBar(node)) {
+                return false;
+            }
         } else if (sourceWindow != null) {
             rememberLastKnownPlacement(node, sourceWindow);
             rememberFloatingBoundsForNodes(sourceWindow);
@@ -1711,6 +1840,230 @@ public class SnapFX {
         topWindow.dockNode(node, bestTarget.target(), bestTarget.position(), bestTarget.tabIndex());
         topWindow.toFront();
         return true;
+    }
+
+    private boolean tryDropIntoSideBar(DockNode node, double screenX, double screenY) {
+        Point2D scenePoint = toRootContainerScenePoint(screenX, screenY);
+        if (scenePoint == null) {
+            return false;
+        }
+        return tryDropIntoSideBarAtScenePoint(node, scenePoint.getX(), scenePoint.getY());
+    }
+
+    private boolean tryDropIntoSideBarAtScenePoint(DockNode node, double sceneX, double sceneY) {
+        clearSideBarDropPreview();
+        SideBarDropTarget dropTarget = resolveSideBarDropTargetAtScenePoint(sceneX, sceneY);
+        if (dropTarget == null) {
+            return false;
+        }
+        return applySideBarDropTarget(node, dropTarget);
+    }
+
+    private SideBarDropTarget resolveSideBarDropTargetAtScenePoint(double sceneX, double sceneY) {
+        for (Side side : List.of(Side.LEFT, Side.RIGHT)) {
+            VBox strip = renderedSideBarStrips.get(side);
+            if (strip == null || strip.getScene() == null) {
+                continue;
+            }
+            Bounds stripBounds = strip.localToScene(strip.getBoundsInLocal());
+            if (stripBounds == null || !stripBounds.contains(sceneX, sceneY)) {
+                continue;
+            }
+            return new SideBarDropTarget(side, resolveSideBarInsertIndex(strip, sceneY));
+        }
+        return null;
+    }
+
+    private int resolveSideBarInsertIndex(VBox strip, double sceneY) {
+        if (strip == null) {
+            return 0;
+        }
+        int index = 0;
+        for (Node child : strip.getChildren()) {
+            Bounds childBounds = child.localToScene(child.getBoundsInLocal());
+            if (childBounds == null) {
+                continue;
+            }
+            double centerY = (childBounds.getMinY() + childBounds.getMaxY()) / 2.0;
+            if (sceneY < centerY) {
+                return index;
+            }
+            index++;
+        }
+        return index;
+    }
+
+    private boolean applySideBarDropTarget(DockNode node, SideBarDropTarget dropTarget) {
+        if (node == null || dropTarget == null || dockGraph.isLocked()) {
+            return false;
+        }
+
+        hiddenNodes.remove(node);
+        if (dockGraph.isPinnedToSideBar(node)) {
+            forgetTransientSideBarStateForNode(node);
+            dockGraph.pinToSideBar(node, dropTarget.side(), dropTarget.insertIndex());
+        } else {
+            DockFloatingWindow sourceWindow = findFloatingWindow(node);
+            if (sourceWindow != null) {
+                rememberLastKnownPlacement(node, sourceWindow);
+                rememberFloatingBoundsForNodes(sourceWindow);
+                sourceWindow.undockNode(node);
+                if (sourceWindow.isEmpty()) {
+                    removeFloatingWindowSilently(sourceWindow);
+                }
+            } else if (isInGraph(node)) {
+                rememberLastKnownPlacement(node);
+                dockGraph.undock(node);
+            }
+            dockGraph.pinToSideBar(node, dropTarget.side(), dropTarget.insertIndex());
+        }
+
+        if (!dockGraph.isPinnedToSideBar(node)) {
+            return false;
+        }
+        selectedSideBarNodes.put(dropTarget.side(), node);
+        openOverlaySideBars.remove(dropTarget.side());
+        return true;
+    }
+
+    private void updateSideBarDropPreview(DockNode draggedNode, double screenX, double screenY) {
+        if (draggedNode == null || dockGraph.isLocked()) {
+            clearSideBarDropPreview();
+            return;
+        }
+        Point2D scenePoint = toRootContainerScenePoint(screenX, screenY);
+        if (scenePoint == null) {
+            clearSideBarDropPreview();
+            return;
+        }
+        updateSideBarDropPreviewAtScenePoint(draggedNode, scenePoint.getX(), scenePoint.getY());
+    }
+
+    private boolean updateSideBarDropPreviewAtScenePoint(DockNode draggedNode, double sceneX, double sceneY) {
+        if (draggedNode == null || dockGraph.isLocked()) {
+            clearSideBarDropPreview();
+            return false;
+        }
+        SideBarDropTarget dropTarget = resolveSideBarDropTargetAtScenePoint(sceneX, sceneY);
+        if (dropTarget == null) {
+            clearSideBarDropPreview();
+            return false;
+        }
+
+        VBox strip = renderedSideBarStrips.get(dropTarget.side());
+        SideBarDropPreview preview = buildSideBarDropPreview(strip, dropTarget);
+        if (preview == null) {
+            clearSideBarDropPreview();
+            return false;
+        }
+        showSideBarDropPreview(preview);
+        return true;
+    }
+
+    private SideBarDropPreview buildSideBarDropPreview(VBox strip, SideBarDropTarget dropTarget) {
+        if (strip == null || dropTarget == null || rootContainer == null) {
+            return null;
+        }
+        Bounds stripBounds = strip.localToScene(strip.getBoundsInLocal());
+        if (stripBounds == null) {
+            return null;
+        }
+        int childCount = strip.getChildren().size();
+        int insertIndex = Math.clamp(dropTarget.insertIndex(), 0, childCount);
+
+        double lineSceneY;
+        if (childCount <= 0) {
+            lineSceneY = stripBounds.getMinY() + 8.0;
+        } else if (insertIndex <= 0) {
+            Node firstChild = strip.getChildren().getFirst();
+            Bounds firstBounds = firstChild.localToScene(firstChild.getBoundsInLocal());
+            lineSceneY = firstBounds != null ? firstBounds.getMinY() : stripBounds.getMinY() + 8.0;
+        } else if (insertIndex >= childCount) {
+            Node lastChild = strip.getChildren().getLast();
+            Bounds lastBounds = lastChild.localToScene(lastChild.getBoundsInLocal());
+            lineSceneY = lastBounds != null ? lastBounds.getMaxY() : stripBounds.getMaxY() - 8.0;
+        } else {
+            Node previousChild = strip.getChildren().get(insertIndex - 1);
+            Node nextChild = strip.getChildren().get(insertIndex);
+            Bounds previousBounds = previousChild.localToScene(previousChild.getBoundsInLocal());
+            Bounds nextBounds = nextChild.localToScene(nextChild.getBoundsInLocal());
+            if (previousBounds == null || nextBounds == null) {
+                return null;
+            }
+            lineSceneY = (previousBounds.getMaxY() + nextBounds.getMinY()) / 2.0;
+        }
+
+        double lineSceneX = stripBounds.getMinX() + SIDEBAR_DROP_INSERT_LINE_HORIZONTAL_INSET;
+        double lineWidth = Math.max(2.0, stripBounds.getWidth() - SIDEBAR_DROP_INSERT_LINE_HORIZONTAL_INSET * 2.0);
+        return new SideBarDropPreview(dropTarget.side(), insertIndex, lineSceneX, lineSceneY, lineWidth);
+    }
+
+    private void showSideBarDropPreview(SideBarDropPreview preview) {
+        if (preview == null || rootContainer == null) {
+            clearSideBarDropPreview();
+            return;
+        }
+        Region line = ensureSideBarDropInsertLine();
+        if (line == null) {
+            return;
+        }
+        Point2D localPoint = rootContainer.sceneToLocal(preview.sceneX(), preview.sceneY());
+        if (localPoint == null) {
+            clearSideBarDropPreview();
+            return;
+        }
+        line.resizeRelocate(
+            localPoint.getX(),
+            localPoint.getY() - SIDEBAR_DROP_INSERT_LINE_THICKNESS / 2.0,
+            preview.width(),
+            SIDEBAR_DROP_INSERT_LINE_THICKNESS
+        );
+        line.setVisible(true);
+        line.toFront();
+    }
+
+    private Region ensureSideBarDropInsertLine() {
+        if (rootContainer == null) {
+            return null;
+        }
+        if (sideBarDropInsertLine == null) {
+            sideBarDropInsertLine = new Region();
+            sideBarDropInsertLine.getStyleClass().add(DockThemeStyleClasses.DOCK_SIDEBAR_DROP_INSERT_LINE);
+            sideBarDropInsertLine.setManaged(false);
+            sideBarDropInsertLine.setMouseTransparent(true);
+            sideBarDropInsertLine.setVisible(false);
+        }
+        if (!rootContainer.getChildren().contains(sideBarDropInsertLine)) {
+            rootContainer.getChildren().add(sideBarDropInsertLine);
+        }
+        return sideBarDropInsertLine;
+    }
+
+    private void reattachSideBarDropInsertLine() {
+        if (sideBarDropInsertLine == null || rootContainer == null) {
+            return;
+        }
+        sideBarDropInsertLine.setVisible(false);
+        if (!rootContainer.getChildren().contains(sideBarDropInsertLine)) {
+            rootContainer.getChildren().add(sideBarDropInsertLine);
+        }
+    }
+
+    private void clearSideBarDropPreview() {
+        if (sideBarDropInsertLine != null) {
+            sideBarDropInsertLine.setVisible(false);
+        }
+    }
+
+    private Point2D toRootContainerScenePoint(double screenX, double screenY) {
+        if (rootContainer == null || rootContainer.getScene() == null) {
+            return null;
+        }
+        Point2D localPoint = rootContainer.screenToLocal(screenX, screenY);
+        if (localPoint == null) {
+            return null;
+        }
+        return rootContainer.localToScene(localPoint);
     }
 
     private void configureFloatingWindowCallbacks(DockFloatingWindow floatingWindow) {
@@ -2856,6 +3209,12 @@ public class SnapFX {
         DockPosition positionRelativeToNextNeighbor,
         Integer tabIndexRelativeToNextNeighbor
     ) {
+    }
+
+    private record SideBarDropTarget(Side side, int insertIndex) {
+    }
+
+    private record SideBarDropPreview(Side side, int insertIndex, double sceneX, double sceneY, double width) {
     }
 
     private record LayoutSnapshot(JsonObject mainLayout, List<FloatingWindowSnapshot> floatingWindows) {

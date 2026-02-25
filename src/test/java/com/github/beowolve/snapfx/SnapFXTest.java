@@ -24,9 +24,11 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import javafx.event.Event;
 import javafx.application.Platform;
+import javafx.geometry.Bounds;
 import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyCode;
@@ -1255,6 +1257,158 @@ class SnapFXTest {
     }
 
     @Test
+    void testSidebarDropAtScenePointPinsDockedNodeAtExactInsertIndex() {
+        DockNode main = new DockNode("main", new Label("Main"), "Main");
+        DockNode toolA = new DockNode("toolA", new Label("Tool A"), "Tool A");
+        DockNode toolB = new DockNode("toolB", new Label("Tool B"), "Tool B");
+
+        snapFX.dock(main, null, DockPosition.CENTER);
+        snapFX.dock(toolA, main, DockPosition.RIGHT);
+        snapFX.dock(toolB, main, DockPosition.BOTTOM);
+        snapFX.pinToSideBar(toolA, Side.LEFT);
+        snapFX.pinToSideBar(toolB, Side.LEFT);
+
+        Scene scene = new Scene(snapFX.buildLayout(), 800, 600);
+        scene.getRoot().applyCss();
+        scene.getRoot().layout();
+
+        javafx.scene.layout.VBox leftStrip = findSideBarStrip(scene.getRoot(), Side.LEFT);
+        assertNotNull(leftStrip);
+        List<Button> iconButtons = findSideBarIconButtons(leftStrip);
+        assertEquals(2, iconButtons.size());
+
+        Bounds firstBounds = iconButtons.get(0).localToScene(iconButtons.get(0).getBoundsInLocal());
+        Bounds secondBounds = iconButtons.get(1).localToScene(iconButtons.get(1).getBoundsInLocal());
+        double sceneX = (firstBounds.getMinX() + firstBounds.getMaxX()) / 2.0;
+        double sceneY = (firstBounds.getMaxY() + secondBounds.getMinY()) / 2.0;
+
+        assertTrue(tryDropIntoSideBarAtScenePoint(snapFX, main, sceneX, sceneY));
+        assertEquals(List.of(toolA, main, toolB), List.copyOf(snapFX.getSideBarNodes(Side.LEFT)));
+        assertTrue(snapFX.isPinnedToSideBar(main));
+        assertFalse(isInGraph(snapFX, main));
+    }
+
+    @Test
+    void testSidebarDropAtScenePointReordersPinnedNodeWithinStrip() {
+        DockNode toolA = new DockNode("toolA", new Label("Tool A"), "Tool A");
+        DockNode toolB = new DockNode("toolB", new Label("Tool B"), "Tool B");
+        DockNode toolC = new DockNode("toolC", new Label("Tool C"), "Tool C");
+
+        snapFX.pinToSideBar(toolA, Side.LEFT);
+        snapFX.pinToSideBar(toolB, Side.LEFT);
+        snapFX.pinToSideBar(toolC, Side.LEFT);
+
+        Scene scene = new Scene(snapFX.buildLayout(), 800, 600);
+        scene.getRoot().applyCss();
+        scene.getRoot().layout();
+
+        javafx.scene.layout.VBox leftStrip = findSideBarStrip(scene.getRoot(), Side.LEFT);
+        assertNotNull(leftStrip);
+        List<Button> iconButtons = findSideBarIconButtons(leftStrip);
+        assertEquals(3, iconButtons.size());
+
+        Button lastButton = iconButtons.getLast();
+        Bounds lastBounds = lastButton.localToScene(lastButton.getBoundsInLocal());
+        double sceneX = (lastBounds.getMinX() + lastBounds.getMaxX()) / 2.0;
+        double sceneY = lastBounds.getMaxY() + 8.0;
+
+        assertTrue(tryDropIntoSideBarAtScenePoint(snapFX, toolB, sceneX, sceneY));
+        assertEquals(List.of(toolA, toolC, toolB), List.copyOf(snapFX.getSideBarNodes(Side.LEFT)));
+    }
+
+    @Test
+    void testSidebarStripIconButtonsExposeDragHandlersForDnDSourceParity() {
+        DockNode tool = new DockNode("tool", new Label("Tool"), "Tool");
+        snapFX.pinToSideBar(tool, Side.LEFT);
+
+        Scene scene = new Scene(snapFX.buildLayout(), 800, 600);
+        scene.getRoot().applyCss();
+        scene.getRoot().layout();
+
+        javafx.scene.layout.VBox leftStrip = findSideBarStrip(scene.getRoot(), Side.LEFT);
+        assertNotNull(leftStrip);
+        Button iconButton = assertDoesNotThrow(() -> findSideBarIconButtons(leftStrip).getFirst());
+
+        assertNotNull(iconButton.getOnMousePressed());
+        assertNotNull(iconButton.getOnMouseDragged());
+        assertNotNull(iconButton.getOnMouseReleased());
+    }
+
+    @Test
+    void testSidebarDropPreviewLineIsShownForStripHoverAndClearedOutsideStrip() {
+        DockNode main = new DockNode("main", new Label("Main"), "Main");
+        DockNode toolA = new DockNode("toolA", new Label("Tool A"), "Tool A");
+        DockNode toolB = new DockNode("toolB", new Label("Tool B"), "Tool B");
+
+        snapFX.dock(main, null, DockPosition.CENTER);
+        snapFX.dock(toolA, main, DockPosition.RIGHT);
+        snapFX.dock(toolB, main, DockPosition.BOTTOM);
+        snapFX.pinToSideBar(toolA, Side.LEFT);
+        snapFX.pinToSideBar(toolB, Side.LEFT);
+
+        Scene scene = new Scene(snapFX.buildLayout(), 800, 600);
+        scene.getRoot().applyCss();
+        scene.getRoot().layout();
+
+        javafx.scene.layout.VBox leftStrip = findSideBarStrip(scene.getRoot(), Side.LEFT);
+        assertNotNull(leftStrip);
+        List<Button> iconButtons = findSideBarIconButtons(leftStrip);
+        assertEquals(2, iconButtons.size());
+
+        Bounds firstBounds = iconButtons.get(0).localToScene(iconButtons.get(0).getBoundsInLocal());
+        Bounds secondBounds = iconButtons.get(1).localToScene(iconButtons.get(1).getBoundsInLocal());
+        double stripSceneX = (firstBounds.getMinX() + firstBounds.getMaxX()) / 2.0;
+        double betweenSceneY = (firstBounds.getMaxY() + secondBounds.getMinY()) / 2.0;
+
+        assertTrue(updateSideBarDropPreviewAtScenePoint(snapFX, main, stripSceneX, betweenSceneY));
+        Node previewLine = findNodeWithStyleClass(scene.getRoot(), DockThemeStyleClasses.DOCK_SIDEBAR_DROP_INSERT_LINE);
+        assertNotNull(previewLine);
+        assertTrue(previewLine.isVisible());
+
+        assertFalse(updateSideBarDropPreviewAtScenePoint(snapFX, main, 400.0, 300.0));
+        assertFalse(previewLine.isVisible());
+    }
+
+    @Test
+    void testResolvedDropRequestUnpinsSidebarNodeBeforeDockingToMainLayout() {
+        DockNode left = new DockNode("left", new Label("Left"), "Left");
+        DockNode right = new DockNode("right", new Label("Right"), "Right");
+
+        snapFX.dock(left, null, DockPosition.CENTER);
+        snapFX.dock(right, left, DockPosition.RIGHT);
+        snapFX.pinToSideBar(left, Side.LEFT);
+
+        invokeResolvedDropRequest(
+            snapFX,
+            new DockDragService.DropRequest(left, right, DockPosition.LEFT, null)
+        );
+
+        assertFalse(snapFX.isPinnedToSideBar(left));
+        DockSplitPane split = assertInstanceOf(DockSplitPane.class, snapFX.getDockGraph().getRoot());
+        assertEquals(left, split.getChildren().getFirst());
+        assertEquals(right, split.getChildren().getLast());
+    }
+
+    @Test
+    void testUnresolvedDropRequestCanFloatPinnedSidebarNode() {
+        DockNode main = new DockNode("main", new Label("Main"), "Main");
+        DockNode tool = new DockNode("tool", new Label("Tool"), "Tool");
+
+        snapFX.dock(main, null, DockPosition.CENTER);
+        snapFX.dock(tool, main, DockPosition.RIGHT);
+        snapFX.pinToSideBar(tool, Side.LEFT);
+
+        invokeUnresolvedDropRequest(
+            snapFX,
+            new DockDragService.FloatDetachRequest(tool, -10_000.0, -10_000.0)
+        );
+
+        assertFalse(snapFX.isPinnedToSideBar(tool));
+        assertEquals(1, snapFX.getFloatingWindows().size());
+        assertTrue(snapFX.getFloatingWindows().getFirst().getDockNodes().contains(tool));
+    }
+
+    @Test
     void testSaveLayoutWithFloatingWindowIncludesSnapshotSection() {
         DockNode nodeMain = new DockNode("nodeMain", new Label("Main"), "Main");
         DockNode nodeFloat = new DockNode("nodeFloat", new Label("Float"), "Float");
@@ -1597,6 +1751,122 @@ class SnapFXTest {
             String detail = cause != null ? cause.toString() : exception.toString();
             fail("Failed to invoke sidebar icon click handler via reflection: " + detail);
         }
+    }
+
+    private boolean tryDropIntoSideBarAtScenePoint(SnapFX framework, DockNode node, double sceneX, double sceneY) {
+        try {
+            Method method = SnapFX.class.getDeclaredMethod(
+                "tryDropIntoSideBarAtScenePoint",
+                DockNode.class,
+                double.class,
+                double.class
+            );
+            method.setAccessible(true);
+            return (boolean) method.invoke(framework, node, sceneX, sceneY);
+        } catch (ReflectiveOperationException exception) {
+            Throwable cause = exception.getCause();
+            String detail = cause != null ? cause.toString() : exception.toString();
+            fail("Failed to invoke sidebar scene-point drop helper via reflection: " + detail);
+            return false;
+        }
+    }
+
+    private boolean updateSideBarDropPreviewAtScenePoint(SnapFX framework, DockNode node, double sceneX, double sceneY) {
+        try {
+            Method method = SnapFX.class.getDeclaredMethod(
+                "updateSideBarDropPreviewAtScenePoint",
+                DockNode.class,
+                double.class,
+                double.class
+            );
+            method.setAccessible(true);
+            return (boolean) method.invoke(framework, node, sceneX, sceneY);
+        } catch (ReflectiveOperationException exception) {
+            Throwable cause = exception.getCause();
+            String detail = cause != null ? cause.toString() : exception.toString();
+            fail("Failed to invoke sidebar drop-preview helper via reflection: " + detail);
+            return false;
+        }
+    }
+
+    private void invokeResolvedDropRequest(SnapFX framework, DockDragService.DropRequest request) {
+        try {
+            Method method = SnapFX.class.getDeclaredMethod("handleResolvedDropRequest", DockDragService.DropRequest.class);
+            method.setAccessible(true);
+            method.invoke(framework, request);
+        } catch (ReflectiveOperationException exception) {
+            Throwable cause = exception.getCause();
+            String detail = cause != null ? cause.toString() : exception.toString();
+            fail("Failed to invoke resolved drop handler via reflection: " + detail);
+        }
+    }
+
+    private void invokeUnresolvedDropRequest(SnapFX framework, DockDragService.FloatDetachRequest request) {
+        try {
+            Method method = SnapFX.class.getDeclaredMethod("handleUnresolvedDropRequest", DockDragService.FloatDetachRequest.class);
+            method.setAccessible(true);
+            method.invoke(framework, request);
+        } catch (ReflectiveOperationException exception) {
+            Throwable cause = exception.getCause();
+            String detail = cause != null ? cause.toString() : exception.toString();
+            fail("Failed to invoke unresolved drop handler via reflection: " + detail);
+        }
+    }
+
+    private javafx.scene.layout.VBox findSideBarStrip(Node current, Side side) {
+        if (current == null) {
+            return null;
+        }
+        if (current instanceof javafx.scene.layout.VBox strip) {
+            String sideStyle = side == Side.LEFT
+                ? DockThemeStyleClasses.DOCK_SIDEBAR_STRIP_LEFT
+                : DockThemeStyleClasses.DOCK_SIDEBAR_STRIP_RIGHT;
+            if (strip.getStyleClass().contains(DockThemeStyleClasses.DOCK_SIDEBAR_STRIP)
+                && strip.getStyleClass().contains(sideStyle)) {
+                return strip;
+            }
+        }
+        if (current instanceof javafx.scene.Parent parent) {
+            for (Node child : parent.getChildrenUnmodifiable()) {
+                javafx.scene.layout.VBox match = findSideBarStrip(child, side);
+                if (match != null) {
+                    return match;
+                }
+            }
+        }
+        return null;
+    }
+
+    private List<Button> findSideBarIconButtons(javafx.scene.layout.VBox strip) {
+        List<Button> result = new java.util.ArrayList<>();
+        if (strip == null) {
+            return result;
+        }
+        for (Node child : strip.getChildren()) {
+            if (child instanceof Button button
+                && button.getStyleClass().contains(DockThemeStyleClasses.DOCK_SIDEBAR_ICON_BUTTON)) {
+                result.add(button);
+            }
+        }
+        return result;
+    }
+
+    private Node findNodeWithStyleClass(Node current, String styleClass) {
+        if (current == null || styleClass == null) {
+            return null;
+        }
+        if (current.getStyleClass().contains(styleClass)) {
+            return current;
+        }
+        if (current instanceof javafx.scene.Parent parent) {
+            for (Node child : parent.getChildrenUnmodifiable()) {
+                Node match = findNodeWithStyleClass(child, styleClass);
+                if (match != null) {
+                    return match;
+                }
+            }
+        }
+        return null;
     }
 
     // Helper method to check if node is in graph

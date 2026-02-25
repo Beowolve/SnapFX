@@ -211,6 +211,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **Floating window save/load persistence**: Open floating windows and bounds are restored via layout snapshots
 - ✅ **Sidebar persistence foundation**: `DockLayoutSerializer` now serializes/deserializes pinned sidebar entries, pinned-open sidebar state, and remembered restore anchors (including sidebar-only payloads without a main root)
 - ✅ **Floating drag/drop feedback parity**: Floating windows render drop zones and active drop indicator during drag
+- ✅ **Sidebar DnD strip-target baseline**: Unresolved drag releases can drop onto visible sidebar icon strips with exact insertion positioning, sidebar strip icons now act as drag sources (including drag-outside float fallback), the sidebar strip renders an insert-position line during drag hover, and pinned sidebar nodes now participate correctly as DnD sources for main-layout, floating-window, and float-fallback drops
 - ✅ **Drop Zones**: Detection for SplitPane areas
 - ✅ **Drop zone visualization modes (ALL/SUBTREE/DEFAULT/ACTIVE/OFF)**
 - ✅ **Per-tab insert targeting with visible insert line**

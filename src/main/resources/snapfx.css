@@ -133,6 +133,12 @@
     -fx-border-width: 0 0 0 1px;
 }
 
+.dock-sidebar-drop-insert-line {
+    -fx-background-color: #d32f2f;
+    -fx-background-radius: 2px;
+    -fx-opacity: 0.95;
+}
+
 .dock-sidebar-icon-button {
     -fx-background-color: transparent;
     -fx-background-radius: 4px;

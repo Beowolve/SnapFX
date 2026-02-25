@@ -8,12 +8,15 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 
 ### Build and Test
 - ✅ Added `DockGraphTest` coverage for index-based sidebar insertion, same-side reorder, cross-side moves, clamped insertion bounds, and lock-mode no-op behavior (foundation for exact-position sidebar DnD).
+- ✅ Added `SnapFXTest` coverage for sidebar strip-target DnD insertion/reordering, sidebar insert-preview visibility, sidebar strip icon drag wiring, and pinned-sidebar-node source handling in resolved/unresolved drop paths (main-layout drop + float fallback).
 
 ### Framework and UI
 - ✅ Added `DockGraph.pinToSideBar(DockNode, Side, int)` for deterministic sidebar insertion/reordering with clamped index handling, enabling upcoming sidebar DnD drop-position support.
+- ✅ Added a Phase-D sidebar DnD baseline in `SnapFX`: unresolved drag releases can now drop into visible sidebar icon strips with exact insertion index resolution, sidebar strip icons now act as drag sources (including drag-outside fallback), the strip renders a visible insert-position line during drag hover, and pinned sidebar nodes are handled correctly when dragged back to the main layout, into floating windows, or into float fallback.
 
 ### Documentation
 - ✅ Re-scoped the next sidebar Phase 2 work from hover auto-hide to higher-value interaction parity (sidebar DnD, framework context-menu actions, and resizable sidebar widths) in planning/status docs.
+- ✅ Updated planning/status docs to mark the sidebar DnD strip-target baseline (including strip-icon drag source + insert-position line feedback) as completed and narrow the remaining Phase 2 DnD parity work.
 
 ## v0.3.0 - 2026-02-24
 

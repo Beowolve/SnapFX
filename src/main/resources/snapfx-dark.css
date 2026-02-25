@@ -65,6 +65,11 @@
     -fx-border-color: #4b8cf5;
 }
 
+.dock-sidebar-drop-insert-line {
+    -fx-background-color: #ff6b6b;
+    -fx-opacity: 0.98;
+}
+
 .dock-debug-panel {
     -fx-background-color: #25272c;
     -fx-border-color: #1f2125;
