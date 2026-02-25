@@ -515,9 +515,12 @@ public class DockLayoutEngine {
     ) {
         boolean locked = dockGraph.isLocked();
         boolean canFloat = !locked && canFloatNode(dockNode);
-        boolean canPinToSideBar = !locked && canPinNodeToSideBar(dockNode);
+        boolean sideBarMoveAvailable = canPinNodeToSideBar(dockNode);
+        boolean canPinToSideBar = !locked && sideBarMoveAvailable;
         floatItem.setVisible(canFloat);
         floatItem.setDisable(!canFloat);
+        moveLeftSideBarItem.setVisible(sideBarMoveAvailable);
+        moveRightSideBarItem.setVisible(sideBarMoveAvailable);
         moveLeftSideBarItem.setDisable(!canPinToSideBar);
         moveRightSideBarItem.setDisable(!canPinToSideBar);
         closeItem.setDisable(locked || dockNode == null || !dockNode.isCloseable());
@@ -583,12 +586,15 @@ public class DockLayoutEngine {
     ) {
         boolean locked = dockGraph.isLocked();
         boolean canFloat = !locked && canFloatNode(dockNode);
-        boolean canPinToSideBar = !locked && canPinNodeToSideBar(dockNode);
+        boolean sideBarMoveAvailable = canPinNodeToSideBar(dockNode);
+        boolean canPinToSideBar = !locked && sideBarMoveAvailable;
         closeItem.setDisable(locked || dockNode == null || !dockNode.isCloseable());
         closeOthersItem.setDisable(locked || collectSiblingClosableNodes(ownerTabPane, dockNode).isEmpty());
         closeAllItem.setDisable(locked || collectClosableNodes(ownerTabPane).isEmpty());
         floatItem.setVisible(canFloat);
         floatItem.setDisable(!canFloat);
+        moveLeftSideBarItem.setVisible(sideBarMoveAvailable);
+        moveRightSideBarItem.setVisible(sideBarMoveAvailable);
         moveLeftSideBarItem.setDisable(!canPinToSideBar);
         moveRightSideBarItem.setDisable(!canPinToSideBar);
         separator.setVisible(canFloat);

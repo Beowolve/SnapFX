@@ -209,12 +209,14 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 - ✅ **Framework sidebar node context menus**: Sidebar strip icons and expanded sidebar panel headers now provide built-in restore/move/pin actions (`Restore from Sidebar`, `Move to Left/Right Sidebar`, `Pin/Unpin Sidebar Panel`) with lock-aware disabling
 - ✅ **Resizable sidebar panel widths**: Sidebar panels are resizable per side via framework resize handles; pinned and overlay modes share the same per-side width with runtime clamping and MainDemo Settings controls
 - ✅ **Sidebar width persistence**: Per-side sidebar panel widths now roundtrip via `DockLayoutSerializer` side-bar state (`panelWidth`) with backward-compatible default fallback
+- ✅ **Sidebar visibility mode API (`DockSideBarMode`)**: SnapFX now exposes `ALWAYS` / `AUTO` / `NEVER` sidebar UI modes; `ALWAYS` renders empty strips for direct DnD targets, `AUTO` keeps the current behavior, and `NEVER` suppresses sidebar UI plus framework sidebar move context-menu actions
 - ✅ **Right overlay sidebar resize handle reliability**: Unpinned right sidebar overlays now resize correctly after raising the resize handle above overlay panel chrome/shadow and making the full handle bounds explicitly pickable
+- ✅ **Phase 2 completion (current scope)**: Sidebar interaction parity scope is complete for the current release target (DnD strip baseline, framework/sidebar context menus, resize + persistence, and sidebar visibility mode); broader panel-surface DnD targeting/polish is deferred to optional backlog
 - 📋 **Sidebar view extraction/refactor**: Optional extraction of the current framework sidebar rendering from `SnapFX` into a dedicated view/controller component if complexity grows further
-- 📋 **Sidebar DnD parity (Phase 2)**: Extend sidebar DnD beyond the current strip-target baseline (for example broader sidebar-surface targeting around pinned/overlay panels) while keeping deterministic target resolution and lock-aware behavior
-- 📋 **Sidebar DnD preview polish**: Extend/align sidebar insertion preview behavior beyond the current strip-target line baseline (for example additional target surfaces or richer preview states)
+- 💡 **Optional sidebar DnD panel-surface targeting**: Extend sidebar DnD beyond the current strip-target baseline (for example broader sidebar-surface targeting around pinned/overlay panels) while keeping deterministic target resolution and lock-aware behavior
+- 💡 **Optional sidebar DnD preview polish**: Extend/align sidebar insertion preview behavior beyond the current strip-target line baseline (for example additional target surfaces or richer preview states)
 
-**Estimated Time**: 3 days
+**Status**: ✅ Completed for current scope (optional follow-ups remain in backlog)
 
 ---
 

@@ -1,11 +1,11 @@
 # Project Status
 
-**Last Updated**: 2026-02-24
+**Last Updated**: 2026-02-25
 
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 278 tests passing (latest full suite)
+✅ **Tests**: All 313 tests passing (latest full suite)
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully  
 ✅ **CI Automation**: GitHub Actions workflows added for push/PR tests and tag-triggered releases  
@@ -148,18 +148,18 @@
 ### Testing (100% ✅)
 - ✅ DockGraphTest (69 tests, +11 regression tests plus sidebar model coverage) - Includes sidebar width preference defaults/validation/lock-policy coverage
 - ✅ DockLayoutSerializerTest (21 tests) - Includes strict load-failure diagnostics for blank content, malformed JSON, missing required fields, invalid tab selection metadata, unknown-node placeholder diagnostics, unsupported-type recovery with optional factory custom fallback, and sidebar persistence/restore-anchor/width roundtrip coverage (including legacy width fallback)
-- ✅ DockLayoutEngineTest (35 tests) - Includes tab/header/splitter context-menu coverage, representative container-tab title/icon behavior, float-availability policy checks, sidebar move-to-sidebar context-menu callback/lock-state coverage, header-context-menu dismiss-on-press regression coverage, and tiny-bounds drop-zone clamp regression coverage
-- ✅ **SnapFXTest (91 tests)** - Hide/Restore + Floating Window API tests plus configurable shortcut behavior, floating-window snap API propagation/validation, side-bar facade API behavior (pin/restore, lock-aware pinned-open state, save/load roundtrip preservation), side-bar panel width API/roundtrip coverage, framework sidebar build-layout rendering structure coverage (collapsed strip vs. pinned/overlay panels, resize handle presence, width runtime clamping, and right-overlay resize-handle pick/z-order regression coverage), configurable pinned-sidebar active-icon collapse policy coverage, sidebar-restore placement regression coverage for collapsed tab-parent fallback, sidebar strip/panel context-menu action and lock-state coverage, invalid-load failure handling, persistence edge-case coverage for complex floating snapshots, unknown-type layout recovery, unresolved floating-sub-layout D&D detach behavior, floating reattach placement restore/fallback behavior for both float-button and unresolved-drag detach paths, three-window floating-layout detach/attach roundtrip regression coverage (top-left/top-right/bottom cases), detach-close-remaining-attach host-restore fallback coverage, and theme stylesheet API behavior (initialize auto-apply + runtime switching + named theme catalog exposure)
+- ✅ DockLayoutEngineTest (36 tests) - Includes tab/header/splitter context-menu coverage, representative container-tab title/icon behavior, float-availability policy checks, sidebar move-to-sidebar context-menu callback/lock-state coverage, hidden sidebar move-menu state when framework sidebar callbacks are unavailable, header-context-menu dismiss-on-press regression coverage, and tiny-bounds drop-zone clamp regression coverage
+- ✅ **SnapFXTest (94 tests)** - Hide/Restore + Floating Window API tests plus configurable shortcut behavior, floating-window snap API propagation/validation, side-bar facade API behavior (pin/restore, lock-aware pinned-open state, save/load roundtrip preservation), side-bar panel width API/roundtrip coverage, framework sidebar build-layout rendering structure coverage (collapsed strip vs. pinned/overlay panels, resize handle presence, width runtime clamping, right-overlay resize-handle pick/z-order regression coverage, and sidebar visibility mode rendering behavior for `AUTO`/`ALWAYS`/`NEVER`), configurable pinned-sidebar active-icon collapse policy coverage, sidebar-restore placement regression coverage for collapsed tab-parent fallback, sidebar strip/panel context-menu action and lock-state coverage, invalid-load failure handling, persistence edge-case coverage for complex floating snapshots, unknown-type layout recovery, unresolved floating-sub-layout D&D detach behavior, floating reattach placement restore/fallback behavior for both float-button and unresolved-drag detach paths, three-window floating-layout detach/attach roundtrip regression coverage (top-left/top-right/bottom cases), detach-close-remaining-attach host-restore fallback coverage, and theme stylesheet API behavior (initialize auto-apply + runtime switching + named theme catalog exposure)
 - ✅ DockGraphSplitTargetDockingTest (1 test)
 - ✅ DockDragServiceTest (8 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, and ESC drag-cancel handling
 - ✅ DockFloatingWindowTest (31 tests) - Floating title bar controls, context menu behavior (attach/pin icons + attach action), floating-header sidebar move-menu callback forwarding, pin behavior, icon rendering/sync regression coverage, single-node float-menu policy, maximize/restore interaction behavior, scene-level drag continuity (including release/reset and non-primary guard behavior), resize-min constraints, interactive-target cursor reliability, and floating/main edge snapping behavior (including overlap-guard, adjacent-edge cases, and main-window shadow-inset compensation)
 - ✅ DockFloatingSnapEngineTest (6 tests) - Snap candidate scoring, overlap-aware candidate generation, and shadow-inset compensation behavior
-- ✅ MainDemoTest (23 tests) - Demo app icon resource wiring, menu icon behavior, sidebar menu/list helper coverage for Phase-C manual controls, sidebar settings width-control API-parity wiring, debug/settings outer-split divider-stability regression coverage, demo shortcut wiring, floating snap-target settings resolution coverage, load-error message formatting, owner-aware error-alert behavior, FileChooser helper coverage for shared layout/editor chooser configuration, and named theme-catalog/resource coverage
+- ✅ MainDemoTest (24 tests) - Demo app icon resource wiring, menu icon behavior, sidebar menu/list helper coverage for Phase-C manual controls, sidebar settings width-control API-parity wiring (including `DockSideBarMode` settings control), debug/settings outer-split divider-stability regression coverage, demo shortcut wiring, floating snap-target settings resolution coverage, load-error message formatting, owner-aware error-alert behavior, FileChooser helper coverage for shared layout/editor chooser configuration, and named theme-catalog/resource coverage
 - ✅ DemoNodeFactoryTest (3 tests) - Unknown-node fallback strategy coverage (framework placeholder vs. custom demo fallback node) plus SnapFX integration coverage for unsupported-type recovery with the default demo factory
 - ✅ EditorCloseDecisionPolicyTest (5 tests) - Deterministic close-decision policy checks
 - ✅ MarkdownDocumentationConsistencyTest (12 tests) - Markdown consistency guardrails
 - ✅ AboutDialogTest (2 tests) - About dialog branding resources and credit link targets
-- ✅ **308/308 tests passing** ✅
+- ✅ **313/313 tests passing** ✅
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Edge case tests** (null inputs, detached nodes, invalid move targets, no-op revision checks)
@@ -191,6 +191,8 @@
 - ✅ Sidebar nodes now expose framework context menus on both sidebar strip icons and expanded sidebar panel headers (restore, move left/right, pin/unpin panel), with lock-aware disable states
 - ✅ Sidebar panels are now resizable per side (LEFT/RIGHT) via framework resize handles, with shared pinned/overlay widths, runtime clamping, layout serializer persistence, and MainDemo Settings parity controls
 - ✅ Right sidebar overlay resize now works in unpinned mode as well; resize handles are explicitly bounds-pickable and rendered above overlay panel chrome/shadow to prevent right-side hit-target occlusion
+- ✅ SnapFX now exposes `DockSideBarMode` (`ALWAYS`, `AUTO`, `NEVER`) with MainDemo Settings parity; `ALWAYS` renders empty strips for direct DnD targets and `NEVER` suppresses framework sidebar UI plus built-in sidebar move context-menu actions
+- ✅ Sidebar Phase 2 interaction parity is complete for the current scope; broader panel-surface sidebar DnD target expansion/polish is deferred to optional backlog items
 - ✅ MainDemo debug/settings outer `SplitPane` divider no longer jumps during dock-layout rebuilds; the demo now updates dock content inside a stable host container instead of replacing the split item
 
 ### Documentation (100% ✅)
@@ -207,6 +209,7 @@
 - ✅ Runtime theme-stylesheet behavior is documented in ADR `docs/adr/0002-runtime-theme-stylesheet-management.md`
 - ✅ Sidebar overlay/pin rendering state split is documented in ADR `docs/adr/0003-sidebar-overlay-and-pin-rendering-state-split.md`
 - ✅ Sidebar panel width state/runtime-clamping behavior is documented in ADR `docs/adr/0004-sidebar-panel-width-state-and-runtime-clamping.md`
+- ✅ Sidebar visibility mode and framework sidebar-menu gating behavior are documented in ADR `docs/adr/0005-sidebar-visibility-mode-and-framework-menu-gating.md`
 
 ## Issues
 
@@ -215,13 +218,13 @@
 - ⚠️ Memory: Automated heap profiling in CI not implemented
 - ⚠️ UI: Global interaction animations missing (only About dialog easter egg animation exists; tracked in `ROADMAP.md` Phase 3.3)
 - ⚠️ UI: Context-menu extensibility API for custom menu items is not implemented yet (tracked in `ROADMAP.md` Phase 3.2)
-- ⚠️ UI: `DockDebugOverlay` HUD in MainDemo is temporarily disabled until sidebar work is completed; follow-up fix tracked in `ROADMAP.md` Phase 1.2 (background rendering, top-left clipping, and `none` diagnostics text)
+- ⚠️ UI: `DockDebugOverlay` HUD in MainDemo is temporarily disabled; sidebar Phase 2 is complete and the next follow-up is the tracked HUD fix/re-enable in `ROADMAP.md` Phase 1.2 (background rendering, top-left clipping, and `none` diagnostics text)
 
 ## Next Steps
 
 See [ROADMAP.md](ROADMAP.md) for detailed future development plans.
 
-**Priority**: Continue Phase 2/4 sidebar interaction parity (remaining DnD parity/polish) after completing Phase C pinned-sidebar verification and stabilization, then return to broader Phase 3 UX backlog.
+**Priority**: Sidebar Phase 2 interaction parity is complete for the current scope; next focus is the `DockDebugOverlay` HUD fix/re-enable follow-up, then return to the broader Phase 3 UX backlog.
 
 ---
 

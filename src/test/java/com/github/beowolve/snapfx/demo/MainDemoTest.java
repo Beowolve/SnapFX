@@ -4,6 +4,7 @@ import com.github.beowolve.snapfx.SnapFX;
 import com.github.beowolve.snapfx.floating.DockFloatingSnapTarget;
 import com.github.beowolve.snapfx.model.DockNode;
 import com.github.beowolve.snapfx.persistence.DockLayoutLoadException;
+import com.github.beowolve.snapfx.sidebar.DockSideBarMode;
 import javafx.application.Platform;
 import javafx.geometry.Side;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SplitPane;
@@ -230,6 +232,28 @@ class MainDemoTest {
 
             assertEquals(360.0, framework.getSideBarPanelWidth(Side.LEFT), 0.0001);
             assertEquals(290.0, framework.getSideBarPanelWidth(Side.RIGHT), 0.0001);
+        });
+    }
+
+    @Test
+    void testSideBarSettingsSectionIncludesSideBarModeControlBoundToSnapFxApi() {
+        runOnFxThreadAndWait(() -> {
+            MainDemo demo = new MainDemo();
+            SnapFX framework = new SnapFX();
+            setPrivateField(demo, "snapFX", framework);
+
+            invokePrivateMethod(demo, "createSideBarSettingsSection");
+
+            ComboBox<DockSideBarMode> sideBarModeComboBox =
+                readPrivateField(demo, "sideBarModeComboBox", ComboBox.class);
+            assertNotNull(sideBarModeComboBox);
+            assertEquals(DockSideBarMode.AUTO, sideBarModeComboBox.getValue());
+
+            sideBarModeComboBox.setValue(DockSideBarMode.ALWAYS);
+            assertEquals(DockSideBarMode.ALWAYS, framework.getSideBarMode());
+
+            sideBarModeComboBox.setValue(DockSideBarMode.NEVER);
+            assertEquals(DockSideBarMode.NEVER, framework.getSideBarMode());
         });
     }
 

@@ -19,6 +19,7 @@ import com.github.beowolve.snapfx.model.DockPosition;
 import com.github.beowolve.snapfx.model.DockSplitPane;
 import com.github.beowolve.snapfx.model.DockTabPane;
 import com.github.beowolve.snapfx.persistence.DockLayoutLoadException;
+import com.github.beowolve.snapfx.sidebar.DockSideBarMode;
 import com.github.beowolve.snapfx.theme.DockThemeStyleClasses;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -103,6 +104,50 @@ class SnapFXTest {
             new KeyCodeCombination(KeyCode.P, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN),
             snapFX.getShortcut(DockShortcutAction.TOGGLE_ACTIVE_FLOATING_ALWAYS_ON_TOP)
         );
+    }
+
+    @Test
+    void testSideBarModeDefaultsToAutoAndNullFallsBackToAuto() {
+        assertEquals(DockSideBarMode.AUTO, snapFX.getSideBarMode());
+
+        snapFX.setSideBarMode(DockSideBarMode.ALWAYS);
+        assertEquals(DockSideBarMode.ALWAYS, snapFX.getSideBarMode());
+
+        snapFX.setSideBarMode(null);
+        assertEquals(DockSideBarMode.AUTO, snapFX.getSideBarMode());
+    }
+
+    @Test
+    void testSideBarModeAlwaysRendersEmptySideBarStrips() {
+        snapFX.setSideBarMode(DockSideBarMode.ALWAYS);
+
+        Scene scene = new Scene(snapFX.buildLayout(), 800, 600);
+        scene.getRoot().applyCss();
+        scene.getRoot().layout();
+
+        assertNotNull(findSideBarStrip(scene.getRoot(), Side.LEFT));
+        assertNotNull(findSideBarStrip(scene.getRoot(), Side.RIGHT));
+    }
+
+    @Test
+    void testSideBarModeNeverHidesRenderedSideBarsWhilePreservingPinnedState() {
+        DockNode main = new DockNode("main", new Label("Main"), "Main");
+        DockNode tool = new DockNode("tool", new Label("Tool"), "Tool");
+        snapFX.dock(main, null, DockPosition.CENTER);
+        snapFX.dock(tool, main, DockPosition.RIGHT);
+        snapFX.pinToSideBar(tool, Side.LEFT);
+        assertTrue(snapFX.isPinnedToSideBar(tool));
+
+        snapFX.setSideBarMode(DockSideBarMode.NEVER);
+
+        Scene scene = new Scene(snapFX.buildLayout(), 800, 600);
+        scene.getRoot().applyCss();
+        scene.getRoot().layout();
+
+        assertNull(findSideBarStrip(scene.getRoot(), Side.LEFT));
+        assertNull(findSideBarStrip(scene.getRoot(), Side.RIGHT));
+        assertNull(findNodeWithStyleClass(scene.getRoot(), DockThemeStyleClasses.DOCK_SIDEBAR_PANEL_PINNED));
+        assertTrue(snapFX.isPinnedToSideBar(tool), "Mode NEVER should hide sidebars without losing pinned model state");
     }
 
     @Test

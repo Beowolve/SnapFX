@@ -17,6 +17,9 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Added `MainDemoTest` coverage for the temporary MainDemo DockDebugOverlay HUD disable switch used while sidebar interaction work is in progress.
 - ✅ Added `MainDemoTest` coverage for sidebar Settings width controls (API-to-settings parity wiring).
 - ✅ Added `MainDemoTest` regression coverage to keep the MainDemo outer Debug/Settings split divider stable while dock layouts rebuild.
+- ✅ Added `SnapFXTest` coverage for `DockSideBarMode` defaults and sidebar rendering behavior (`AUTO`, `ALWAYS`, `NEVER`), including hidden-sidebar state preservation under `NEVER`.
+- ✅ Added `DockLayoutEngineTest` coverage to hide framework `Move to Left/Right Sidebar` context-menu items when sidebar move callbacks are unavailable (used by `DockSideBarMode.NEVER`).
+- ✅ Added `MainDemoTest` coverage for the new sidebar mode Settings control (`DockSideBarMode`) and SnapFX API parity wiring.
 - ✅ Added `SnapFXTest` regression coverage for right sidebar overlay resize-handle pick/z-order behavior and width updates in unpinned mode.
 
 ### Framework and UI
@@ -25,6 +28,7 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Added framework `Move to Left Sidebar` / `Move to Right Sidebar` actions to dock-node header and tab context menus (including floating layouts), wired to the existing SnapFX pin-to-sidebar flow with lock-aware disabling.
 - ✅ Added framework sidebar-node context menus on sidebar strip icons and expanded sidebar panel headers with built-in `Restore from Sidebar`, `Move to Left/Right Sidebar`, and `Pin/Unpin Sidebar Panel` actions (lock-aware).
 - ✅ Added per-side resizable sidebar panel widths in `SnapFX` (shared by pinned and overlay modes) with runtime clamping, resize handles, `SnapFX` width APIs, `DockGraph` width state, and `DockLayoutSerializer` persistence (`panelWidth`).
+- ✅ Added `DockSideBarMode` (`ALWAYS` / `AUTO` / `NEVER`) to SnapFX and MainDemo Settings, with empty-strip rendering in `ALWAYS` and framework sidebar move context-menu suppression in `NEVER`.
 - ✅ Temporarily disabled the MainDemo `DockDebugOverlay` D&D HUD while sidebar interaction work continues; a post-sidebar fix/re-enable follow-up is tracked for background rendering, top-left clipping, and incorrect `none` diagnostics text.
 - ✅ Fixed MainDemo debug/settings split divider jumps during dock-layout rebuilds by updating dock content inside a persistent split-host container instead of replacing the split item.
 - ✅ Fixed unpinned right-sidebar overlay resizing by making resize handles explicitly bounds-pickable and rendering them above overlay panel chrome/shadow (prevents right-side hit-target occlusion).
@@ -39,6 +43,8 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Refreshed `docs/images/main-demo.png` after temporarily disabling the MainDemo `DockDebugOverlay` HUD during sidebar work.
 - ✅ Updated planning/status docs to note the MainDemo debug/settings split divider stability fix while sidebar work continues.
 - ✅ Updated planning/status docs to track the right-overlay sidebar resize-handle reliability fix during Phase 2 sidebar interaction work.
+- ✅ Marked sidebar interaction parity (Phase 2 current scope) as complete after adding `DockSideBarMode`, and deferred broader panel-surface sidebar DnD targeting/preview extensions to optional backlog items.
+- ✅ Documented sidebar visibility mode and framework sidebar-menu gating behavior in `ARCHITECTURE.md` and ADR `docs/adr/0005-sidebar-visibility-mode-and-framework-menu-gating.md`.
 
 ## v0.3.0 - 2026-02-24
 

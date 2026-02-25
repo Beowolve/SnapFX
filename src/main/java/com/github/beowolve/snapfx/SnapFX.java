@@ -18,6 +18,7 @@ import com.github.beowolve.snapfx.model.*;
 import com.github.beowolve.snapfx.persistence.DockLayoutSerializer;
 import com.github.beowolve.snapfx.persistence.DockLayoutLoadException;
 import com.github.beowolve.snapfx.persistence.DockNodeFactory;
+import com.github.beowolve.snapfx.sidebar.DockSideBarMode;
 import com.github.beowolve.snapfx.theme.DockThemeCatalog;
 import com.github.beowolve.snapfx.theme.DockThemeStyleClasses;
 import com.github.beowolve.snapfx.theme.DockThemeStylesheetManager;
@@ -157,6 +158,7 @@ public class SnapFX {
     private double sideBarResizeDragStartScreenX;
     private double sideBarResizeDragStartWidth;
     private Region sideBarDropInsertLine;
+    private DockSideBarMode sideBarMode = DockSideBarMode.AUTO;
     private boolean collapsePinnedSideBarOnActiveIconClick = true;
     private DockCloseBehavior defaultCloseBehavior = DockCloseBehavior.HIDE;
     private Function<DockCloseRequest, DockCloseDecision> onCloseRequest;
@@ -407,6 +409,9 @@ public class SnapFX {
     private Node buildSideBarDecoratedLayout(Node mainLayout) {
         pruneInvalidSideBarViewState();
         renderedSideBarStrips.clear();
+        if (sideBarMode == DockSideBarMode.NEVER) {
+            return mainLayout;
+        }
 
         BorderPane host = new BorderPane();
         if (mainLayout != null) {
@@ -437,7 +442,8 @@ public class SnapFX {
 
     private Node createSideBarSideHost(Side side) {
         List<DockNode> pinnedNodes = collectSideBarNodes(side);
-        if (pinnedNodes.isEmpty()) {
+        boolean showStripWithoutNodes = sideBarMode == DockSideBarMode.ALWAYS;
+        if (pinnedNodes.isEmpty() && !showStripWithoutNodes) {
             return null;
         }
 
@@ -1807,6 +1813,33 @@ public class SnapFX {
     }
 
     /**
+     * Controls framework sidebar rendering and sidebar move action availability.
+     *
+     * <p>{@link DockSideBarMode#AUTO} is the default and renders sidebars only when they contain pinned nodes.
+     * {@link DockSideBarMode#ALWAYS} keeps empty left/right strips visible, while
+     * {@link DockSideBarMode#NEVER} disables framework sidebar UI and built-in sidebar move context-menu actions.</p>
+     */
+    public void setSideBarMode(DockSideBarMode mode) {
+        DockSideBarMode nextMode = mode == null ? DockSideBarMode.AUTO : mode;
+        if (sideBarMode == nextMode) {
+            return;
+        }
+        sideBarMode = nextMode;
+        applySideBarModeToFrameworkMenus();
+        if (sideBarMode == DockSideBarMode.NEVER) {
+            clearSideBarDropPreview();
+        }
+        requestRebuild();
+    }
+
+    /**
+     * Returns the current framework sidebar rendering mode.
+     */
+    public DockSideBarMode getSideBarMode() {
+        return sideBarMode;
+    }
+
+    /**
      * Returns the preferred sidebar panel width for the given side.
      *
      * <p>The returned value is the persisted preference. Rendering may clamp the effective width depending on the
@@ -2368,12 +2401,19 @@ public class SnapFX {
         });
         floatingWindow.setOnNodeCloseRequest(this::handleDockNodeCloseRequest);
         floatingWindow.setOnNodeFloatRequest(this::floatNodeFromFloatingLayout);
-        floatingWindow.setOnNodePinToSideBarRequest(this::pinToSideBar);
+        floatingWindow.setOnNodePinToSideBarRequest(sideBarMode == DockSideBarMode.NEVER ? null : this::pinToSideBar);
         floatingWindow.setOnAlwaysOnTopChanged((alwaysOnTop, source) ->
             handleFloatingPinChanged(floatingWindow, alwaysOnTop, source)
         );
         applyFloatingPinSettings(floatingWindow);
         applyFloatingSnapSettings(floatingWindow);
+    }
+
+    private void applySideBarModeToFrameworkMenus() {
+        layoutEngine.setOnNodePinToSideBarRequest(sideBarMode == DockSideBarMode.NEVER ? null : this::pinToSideBar);
+        for (DockFloatingWindow floatingWindow : floatingWindows) {
+            floatingWindow.setOnNodePinToSideBarRequest(sideBarMode == DockSideBarMode.NEVER ? null : this::pinToSideBar);
+        }
     }
 
     private void applyFloatingPinSettings(DockFloatingWindow floatingWindow) {

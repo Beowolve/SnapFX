@@ -18,6 +18,7 @@ import com.github.beowolve.snapfx.model.DockElement;
 import com.github.beowolve.snapfx.model.DockNode;
 import com.github.beowolve.snapfx.model.DockPosition;
 import com.github.beowolve.snapfx.persistence.DockLayoutLoadException;
+import com.github.beowolve.snapfx.sidebar.DockSideBarMode;
 import com.github.beowolve.snapfx.view.DockCloseButtonMode;
 import com.github.beowolve.snapfx.view.DockTitleBarMode;
 import javafx.application.Application;
@@ -110,6 +111,7 @@ public class MainDemo extends Application {
     private ListView<DockNode> rightSideBarNodesListView;
     private CheckBox leftSideBarPinnedOpenCheckBox;
     private CheckBox rightSideBarPinnedOpenCheckBox;
+    private ComboBox<DockSideBarMode> sideBarModeComboBox;
     private Spinner<Double> leftSideBarPanelWidthSpinner;
     private Spinner<Double> rightSideBarPanelWidthSpinner;
     private boolean updatingSideBarSettingsControls;
@@ -496,6 +498,9 @@ public class MainDemo extends Application {
         if (node == null || side == null) {
             return;
         }
+        if (snapFX.getSideBarMode() == DockSideBarMode.NEVER) {
+            return;
+        }
         snapFX.pinToSideBar(node, side);
     }
 
@@ -546,6 +551,9 @@ public class MainDemo extends Application {
             }
             if (rightSideBarPinnedOpenCheckBox != null) {
                 rightSideBarPinnedOpenCheckBox.setSelected(snapFX.isSideBarPinnedOpen(Side.RIGHT));
+            }
+            if (sideBarModeComboBox != null) {
+                sideBarModeComboBox.setValue(snapFX.getSideBarMode());
             }
             if (leftSideBarPanelWidthSpinner != null && leftSideBarPanelWidthSpinner.getValueFactory() != null) {
                 leftSideBarPanelWidthSpinner.getValueFactory().setValue(snapFX.getSideBarPanelWidth(Side.LEFT));
@@ -861,6 +869,15 @@ public class MainDemo extends Application {
         }
     }
 
+    private void onSideBarModeChanged(DockSideBarMode mode) {
+        if (mode == null || updatingSideBarSettingsControls) {
+            return;
+        }
+        snapFX.setSideBarMode(mode);
+        updateSideBarMenus();
+        refreshSideBarSettingsViews();
+    }
+
     private void onDropVisualizationModeChanged(DockDropVisualizationMode mode) {
         if (mode != null) {
             snapFX.setDropVisualizationMode(mode);
@@ -1158,6 +1175,15 @@ public class MainDemo extends Application {
         Label sectionHeader = new Label("Pinned Side Bars (Phase 2)");
         sectionHeader.setStyle(FX_FONT_WEIGHT_BOLD);
 
+        sideBarModeComboBox = new ComboBox<>();
+        sideBarModeComboBox.getItems().setAll(DockSideBarMode.values());
+        sideBarModeComboBox.setValue(snapFX.getSideBarMode());
+        sideBarModeComboBox.setMaxWidth(Double.MAX_VALUE);
+        sideBarModeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> onSideBarModeChanged(newVal));
+        HBox sideBarModeRow = new HBox(6, new Label("Sidebar Mode"), sideBarModeComboBox);
+        sideBarModeRow.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(sideBarModeComboBox, Priority.ALWAYS);
+
         sideBarDockedNodesListView = createDockNodeListView();
         leftSideBarNodesListView = createDockNodeListView();
         rightSideBarNodesListView = createDockNodeListView();
@@ -1195,7 +1221,15 @@ public class MainDemo extends Application {
         );
         note.setWrapText(true);
 
-        VBox section = new VBox(8, sectionHeader, sourceBox, sideBarsBox, collapsePinnedOnActiveIconClickCheckBox, note);
+        VBox section = new VBox(
+            8,
+            sectionHeader,
+            sideBarModeRow,
+            sourceBox,
+            sideBarsBox,
+            collapsePinnedOnActiveIconClickCheckBox,
+            note
+        );
         refreshSideBarSettingsViews();
         return section;
     }

@@ -532,6 +532,54 @@ class DockLayoutEngineTest extends ApplicationTest {
     }
 
     @Test
+    void testHeaderAndTabContextMenusHideSideBarMoveActionsWhenNoCallbackIsConfigured() {
+        DockNode node1 = new DockNode(new Label("Test1"), "Node 1");
+        DockNode node2 = new DockNode(new Label("Test2"), "Node 2");
+        dockGraph.dock(node1, null, DockPosition.CENTER);
+        dockGraph.dock(node2, node1, DockPosition.CENTER);
+        layoutEngine.setOnNodePinToSideBarRequest(null);
+
+        TabPane tabPane = assertInstanceOf(TabPane.class, layoutEngine.buildSceneGraph());
+        ContextMenu tabContextMenu = tabPane.getTabs().getFirst().getContextMenu();
+        assertNotNull(tabContextMenu);
+        MenuItem tabMoveLeftItem = tabContextMenu.getItems().stream()
+            .filter(item -> "Move to Left Sidebar".equals(item.getText()))
+            .findFirst()
+            .orElseThrow();
+        MenuItem tabMoveRightItem = tabContextMenu.getItems().stream()
+            .filter(item -> "Move to Right Sidebar".equals(item.getText()))
+            .findFirst()
+            .orElseThrow();
+
+        invokeContextMenuOnShowing(tabContextMenu);
+
+        assertFalse(tabMoveLeftItem.isVisible());
+        assertFalse(tabMoveRightItem.isVisible());
+        assertTrue(tabMoveLeftItem.isDisable());
+        assertTrue(tabMoveRightItem.isDisable());
+
+        DockNodeView nodeView = layoutEngine.getDockNodeView(node1);
+        assertNotNull(nodeView);
+        ContextMenu headerContextMenu = nodeView.getHeaderContextMenu();
+        assertNotNull(headerContextMenu);
+        MenuItem headerMoveLeftItem = headerContextMenu.getItems().stream()
+            .filter(item -> "Move to Left Sidebar".equals(item.getText()))
+            .findFirst()
+            .orElseThrow();
+        MenuItem headerMoveRightItem = headerContextMenu.getItems().stream()
+            .filter(item -> "Move to Right Sidebar".equals(item.getText()))
+            .findFirst()
+            .orElseThrow();
+
+        invokeContextMenuOnShowing(headerContextMenu);
+
+        assertFalse(headerMoveLeftItem.isVisible());
+        assertFalse(headerMoveRightItem.isVisible());
+        assertTrue(headerMoveLeftItem.isDisable());
+        assertTrue(headerMoveRightItem.isDisable());
+    }
+
+    @Test
     void testHeaderContextMenuHidesFloatWhenPredicateBlocksNode() {
         DockNode node = new DockNode(new Label("Test"), "Node 1");
         dockGraph.setRoot(node);

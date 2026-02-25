@@ -561,12 +561,14 @@ Phase-C side bars split state across model and view layers on purpose:
 - `DockGraph` also persists a preferred side-bar panel width per side (LEFT/RIGHT) for layout roundtrips.
 - SnapFX uses the pinned-open flag as the persistent "pinned open" state for left/right side panels.
 - `SnapFX` keeps transient UI-only state for collapsed overlay panels (selected node per side + whether an overlay is currently open).
+- `SnapFX` also applies a framework sidebar visibility mode (`AUTO`, `ALWAYS`, `NEVER`) that controls sidebar UI rendering and built-in sidebar move context-menu availability without deleting persisted sidebar model state.
 
 Rendering architecture:
 
 - The main dock layout still comes from `DockLayoutEngine.buildSceneGraph()`.
 - `SnapFX.buildLayout()` wraps that layout in a composed root (`BorderPane` inside `StackPane`).
 - Left/right side hosts render icon strips plus optional pinned side panels that consume layout space.
+- `DockSideBarMode.AUTO` renders sidebars only when pinned entries exist; `ALWAYS` renders empty left/right strips to allow direct D&D targets; `NEVER` suppresses framework sidebar UI rendering entirely.
 - Both pinned and overlay side-bar panels read the same per-side preferred width and apply runtime clamping based on current layout width.
 - A dedicated resize handle is rendered on the inner panel edge (left panel = right edge, right panel = left edge).
 - Overlay panels are rendered in a top `StackPane` layer so they can overlap the main layout without changing the model.
@@ -584,6 +586,7 @@ Interaction rules (Phase-C visual baseline):
 - Only one side-bar panel is open per side at a time.
 - Sidebar restore from `SnapFX` reuses the same remembered placement strategy as floating-window attach (preferred anchor, neighbor anchors, fallback), which avoids common restore misplacements when parent containers collapse during pinning.
 - Sidebar strip icons and expanded panel headers expose built-in framework context menus for restore/move/pin actions, so host apps do not need demo-specific menus for common sidebar workflows.
+- When `DockSideBarMode.NEVER` is active, framework `Move to Left/Right Sidebar` node/tab context-menu actions are hidden (not only disabled), so hosts can disable sidebar workflows cleanly at the framework UI layer.
 - Sidebar panel width changes (resize handle or API) are treated as persisted view preferences; they remain available while the layout is locked because they do not mutate docking structure topology.
 
 ## 7. Design Patterns
