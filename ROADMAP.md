@@ -57,6 +57,7 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 - ✅ **Floating drag-state regression hardening**: Added scene-level drag release/reset and non-primary activation guard coverage for floating title-bar movement
 - ✅ **Persistence edge-case hardening**: Added complex floating snapshot roundtrip coverage and invalid floating snapshot validation/no-partial-apply tests
 - ✅ **CI flake guard for critical interactions**: CI now reruns `SnapFXTest`, `DockFloatingWindowTest`, and `DockDragServiceTest` three times per run
+- ✅ **Sidebar overlay width test CI race hardening**: `SnapFXTest` overlay-width/resize-handle tests avoid prebuilding `SnapFX` before reflective sidebar icon clicks, preventing an async sidebar `requestRebuild()` race before the final scene build on CI
 - ✅ **Floating reattach structure hardening**: Added three-window floating-layout detach/attach roundtrip regression coverage (top-left/top-right/bottom nodes), plus detach-close-remaining-attach host-restore fallback cases
 
 **Estimated Time**: Completed

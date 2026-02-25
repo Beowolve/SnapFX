@@ -1533,7 +1533,7 @@ class SnapFXTest {
         snapFX.dock(tool, main, DockPosition.RIGHT);
         snapFX.pinToSideBar(tool, Side.LEFT);
         snapFX.setSideBarPanelWidth(Side.LEFT, 420.0);
-        snapFX.buildLayout();
+        // Prebuilding here can schedule an async sidebar rebuild via icon-click handling and race the next buildLayout().
         invokeSideBarIconClick(snapFX, Side.LEFT, tool);
 
         Scene scene = new Scene(snapFX.buildLayout(), 800, 600);
@@ -1558,7 +1558,7 @@ class SnapFXTest {
         snapFX.dock(tool, main, DockPosition.RIGHT);
         snapFX.pinToSideBar(tool, Side.RIGHT);
         snapFX.setSideBarPanelWidth(Side.RIGHT, 300.0);
-        snapFX.buildLayout();
+        // Keep rootContainer uninitialized until the final scene build to avoid async rebuild races in CI.
         invokeSideBarIconClick(snapFX, Side.RIGHT, tool);
 
         Scene scene = new Scene(snapFX.buildLayout(), 1000, 700);
