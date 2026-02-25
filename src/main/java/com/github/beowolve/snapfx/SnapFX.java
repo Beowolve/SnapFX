@@ -46,10 +46,14 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
@@ -93,6 +97,7 @@ public class SnapFX {
     private static final String SNAPSHOT_FLOATING_HEIGHT_KEY = "height";
     private static final String SNAPSHOT_FLOATING_ALWAYS_ON_TOP_KEY = "alwaysOnTop";
     private static final String SIDEBAR_CHROME_MARKER_KEY = "snapfx.sidebarChrome";
+    private static final String SIDEBAR_NODE_CONTEXT_MENU_PROPERTY_KEY = "snapfx.sideBarNodeContextMenu";
     private static final double SIDEBAR_STRIP_WIDTH = 36.0;
     private static final double SIDEBAR_PANEL_WIDTH = 300.0;
     private static final double SIDEBAR_ICON_BUTTON_SIZE = 28.0;
@@ -187,6 +192,7 @@ public class SnapFX {
         resetShortcutsToDefaults();
         this.layoutEngine.setOnNodeCloseRequest(this::handleDockNodeCloseRequest);
         this.layoutEngine.setOnNodeFloatRequest(this::floatNode);
+        this.layoutEngine.setOnNodePinToSideBarRequest(this::pinToSideBar);
         this.dragService.setOnDropRequest(this::handleResolvedDropRequest);
         this.dragService.setOnFloatDetachRequest(this::handleUnresolvedDropRequest);
         this.dragService.setOnDragHover(this::handleDragHover);
@@ -515,6 +521,7 @@ public class SnapFX {
         tooltip.setShowDelay(SIDEBAR_TOOLTIP_SHOW_DELAY);
         button.setTooltip(tooltip);
         installSideBarIconDragHandlers(button, dockNode);
+        installSideBarIconContextMenu(button, dockNode);
         button.setOnAction(e -> onSideBarIconClicked(side, dockNode));
         return button;
     }
@@ -526,6 +533,116 @@ public class SnapFX {
         button.setOnMousePressed(event -> onSideBarStripIconMousePressed(dockNode, event));
         button.setOnMouseDragged(event -> onSideBarStripIconMouseDragged(dockNode, event));
         button.setOnMouseReleased(event -> onSideBarStripIconMouseReleased(dockNode, event));
+    }
+
+    private void installSideBarIconContextMenu(Button button, DockNode dockNode) {
+        if (button == null || dockNode == null) {
+            return;
+        }
+        button.setContextMenu(createSideBarNodeContextMenu(dockNode));
+    }
+
+    private void installSideBarPanelHeaderContextMenu(HBox header, DockNode dockNode) {
+        if (header == null || dockNode == null) {
+            return;
+        }
+        ContextMenu contextMenu = createSideBarNodeContextMenu(dockNode);
+        header.getProperties().put(SIDEBAR_NODE_CONTEXT_MENU_PROPERTY_KEY, contextMenu);
+        header.setOnContextMenuRequested(event -> onSideBarPanelHeaderContextMenuRequested(header, contextMenu, event));
+    }
+
+    private void onSideBarPanelHeaderContextMenuRequested(HBox header, ContextMenu contextMenu, ContextMenuEvent event) {
+        if (header == null || contextMenu == null || event == null) {
+            return;
+        }
+        contextMenu.show(header, event.getScreenX(), event.getScreenY());
+        event.consume();
+    }
+
+    private ContextMenu createSideBarNodeContextMenu(DockNode dockNode) {
+        ContextMenu contextMenu = new ContextMenu();
+
+        MenuItem restoreItem = new MenuItem("Restore from Sidebar");
+        restoreItem.setOnAction(e -> onSideBarNodeContextRestoreRequested(dockNode));
+
+        MenuItem moveLeftItem = new MenuItem("Move to Left Sidebar");
+        moveLeftItem.setOnAction(e -> onSideBarNodeContextMoveRequested(dockNode, Side.LEFT));
+
+        MenuItem moveRightItem = new MenuItem("Move to Right Sidebar");
+        moveRightItem.setOnAction(e -> onSideBarNodeContextMoveRequested(dockNode, Side.RIGHT));
+
+        MenuItem pinPanelItem = new MenuItem("Pin Sidebar Panel");
+        pinPanelItem.setOnAction(e -> onSideBarNodeContextPinPanelToggleRequested(dockNode));
+
+        contextMenu.setOnShowing(e -> updateSideBarNodeContextMenuState(
+            dockNode,
+            restoreItem,
+            moveLeftItem,
+            moveRightItem,
+            pinPanelItem
+        ));
+        contextMenu.getItems().addAll(
+            restoreItem,
+            moveLeftItem,
+            moveRightItem,
+            new SeparatorMenuItem(),
+            pinPanelItem
+        );
+        return contextMenu;
+    }
+
+    private void updateSideBarNodeContextMenuState(
+        DockNode dockNode,
+        MenuItem restoreItem,
+        MenuItem moveLeftItem,
+        MenuItem moveRightItem,
+        MenuItem pinPanelItem
+    ) {
+        Side pinnedSide = dockGraph.getPinnedSide(dockNode);
+        boolean locked = dockGraph.isLocked();
+        boolean pinned = pinnedSide != null;
+        boolean canMutate = !locked && pinned;
+
+        restoreItem.setDisable(!canMutate);
+        moveLeftItem.setDisable(!canMutate || pinnedSide == Side.LEFT);
+        moveRightItem.setDisable(!canMutate || pinnedSide == Side.RIGHT);
+
+        boolean pinnedOpen = pinnedSide != null && dockGraph.isSideBarPinnedOpen(pinnedSide);
+        pinPanelItem.setText(pinnedOpen ? "Unpin Sidebar Panel" : "Pin Sidebar Panel");
+        pinPanelItem.setDisable(!canMutate);
+    }
+
+    private void onSideBarNodeContextRestoreRequested(DockNode dockNode) {
+        if (dockNode == null || dockGraph.isLocked()) {
+            return;
+        }
+        Side pinnedSide = dockGraph.getPinnedSide(dockNode);
+        if (pinnedSide == null) {
+            return;
+        }
+        onSideBarPanelRestoreRequested(pinnedSide, dockNode);
+    }
+
+    private void onSideBarNodeContextMoveRequested(DockNode dockNode, Side targetSide) {
+        if (dockNode == null || targetSide == null || dockGraph.isLocked()) {
+            return;
+        }
+        Side pinnedSide = dockGraph.getPinnedSide(dockNode);
+        if (pinnedSide == null || pinnedSide == targetSide) {
+            return;
+        }
+        pinToSideBar(dockNode, targetSide);
+    }
+
+    private void onSideBarNodeContextPinPanelToggleRequested(DockNode dockNode) {
+        if (dockNode == null || dockGraph.isLocked()) {
+            return;
+        }
+        Side pinnedSide = dockGraph.getPinnedSide(dockNode);
+        if (pinnedSide == null) {
+            return;
+        }
+        onSideBarPanelPinToggled(pinnedSide, dockNode);
     }
 
     private Node createSideBarPanel(Side side, DockNode dockNode, boolean pinnedOpen) {
@@ -565,6 +682,7 @@ public class SnapFX {
         restoreButton.setOnAction(e -> onSideBarPanelRestoreRequested(side, dockNode));
 
         header.getChildren().addAll(headerIcon, titleLabel, spacer, pinButton, restoreButton);
+        installSideBarPanelHeaderContextMenu(header, dockNode);
         installSideBarPanelHeaderDragHandlers(header, dockNode);
 
         StackPane contentHost = new StackPane();
@@ -1457,7 +1575,7 @@ public class SnapFX {
      * therefore collapsed by default unless the sidebar is explicitly opened with {@link #pinOpenSideBar(Side)}.</p>
      */
     public void pinToSideBar(DockNode node, Side side) {
-        if (node == null || side == null) {
+        if (node == null || side == null || dockGraph.isLocked()) {
             return;
         }
 
@@ -1477,6 +1595,7 @@ public class SnapFX {
             }
         }
 
+        forgetTransientSideBarStateForNode(node);
         selectedSideBarNodes.put(side, node);
         openOverlaySideBars.remove(side);
         dockGraph.pinToSideBar(node, side);
@@ -1489,8 +1608,11 @@ public class SnapFX {
      * preferred anchor, neighbor anchors, then fallback docking.</p>
      */
     public void restoreFromSideBar(DockNode node) {
+        if (node == null || dockGraph.isLocked()) {
+            return;
+        }
         forgetTransientSideBarStateForNode(node);
-        if (node == null || !dockGraph.unpinFromSideBar(node)) {
+        if (!dockGraph.unpinFromSideBar(node)) {
             return;
         }
         dockAtRememberedOrFallback(node);
@@ -2086,6 +2208,7 @@ public class SnapFX {
         });
         floatingWindow.setOnNodeCloseRequest(this::handleDockNodeCloseRequest);
         floatingWindow.setOnNodeFloatRequest(this::floatNodeFromFloatingLayout);
+        floatingWindow.setOnNodePinToSideBarRequest(this::pinToSideBar);
         floatingWindow.setOnAlwaysOnTopChanged((alwaysOnTop, source) ->
             handleFloatingPinChanged(floatingWindow, alwaysOnTop, source)
         );

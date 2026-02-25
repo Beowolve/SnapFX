@@ -21,6 +21,7 @@ import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
+import javafx.geometry.Side;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -104,6 +105,7 @@ public final class DockFloatingWindow {
     private BooleanSupplier onCloseRequested;
     private BiConsumer<DockNode, DockCloseSource> onNodeCloseRequest;
     private Consumer<DockNode> onNodeFloatRequest;
+    private BiConsumer<DockNode, Side> onNodePinToSideBarRequest;
     private boolean suppressCloseRequestHandling;
 
     private StackPane iconPane;
@@ -394,6 +396,16 @@ public final class DockFloatingWindow {
 
     public void setOnNodeFloatRequest(Consumer<DockNode> onNodeFloatRequest) {
         this.onNodeFloatRequest = onNodeFloatRequest;
+    }
+
+    /**
+     * Sets a callback used by inner dock-node context menus to move nodes into a SnapFX sidebar.
+     */
+    public void setOnNodePinToSideBarRequest(BiConsumer<DockNode, Side> onNodePinToSideBarRequest) {
+        this.onNodePinToSideBarRequest = onNodePinToSideBarRequest;
+        floatingLayoutEngine.setOnNodePinToSideBarRequest(
+            onNodePinToSideBarRequest == null ? null : this::handleInnerNodePinToSideBarRequest
+        );
     }
 
     /**
@@ -1936,6 +1948,15 @@ public final class DockFloatingWindow {
         }
         if (onNodeFloatRequest != null) {
             onNodeFloatRequest.accept(node);
+        }
+    }
+
+    private void handleInnerNodePinToSideBarRequest(DockNode node, Side side) {
+        if (node == null || side == null || floatingGraph.isLocked()) {
+            return;
+        }
+        if (onNodePinToSideBarRequest != null) {
+            onNodePinToSideBarRequest.accept(node, side);
         }
     }
 

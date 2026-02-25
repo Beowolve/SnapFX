@@ -9,6 +9,7 @@ import javafx.event.Event;
 import javafx.geometry.BoundingBox;
 import javafx.geometry.Bounds;
 import javafx.geometry.Orientation;
+import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
@@ -478,6 +479,59 @@ class DockLayoutEngineTest extends ApplicationTest {
     }
 
     @Test
+    void testHeaderContextMenuMoveToSideBarActionUsesCallback() {
+        DockNode node = new DockNode(new Label("Test"), "Node 1");
+        dockGraph.setRoot(node);
+
+        AtomicReference<DockNode> pinnedNode = new AtomicReference<>();
+        AtomicReference<Side> pinnedSide = new AtomicReference<>();
+        layoutEngine.setOnNodePinToSideBarRequest((dockNode, side) -> {
+            pinnedNode.set(dockNode);
+            pinnedSide.set(side);
+        });
+
+        DockNodeView nodeView = assertInstanceOf(DockNodeView.class, layoutEngine.buildSceneGraph());
+        ContextMenu headerContextMenu = nodeView.getHeaderContextMenu();
+        assertNotNull(headerContextMenu);
+
+        MenuItem moveLeftItem = headerContextMenu.getItems().stream()
+            .filter(item -> "Move to Left Sidebar".equals(item.getText()))
+            .findFirst()
+            .orElseThrow();
+
+        moveLeftItem.fire();
+
+        assertEquals(node, pinnedNode.get());
+        assertEquals(Side.LEFT, pinnedSide.get());
+    }
+
+    @Test
+    void testHeaderContextMenuDisablesSideBarMoveActionsWhenLocked() {
+        DockNode node = new DockNode(new Label("Test"), "Node 1");
+        dockGraph.setRoot(node);
+        layoutEngine.setOnNodePinToSideBarRequest((dockNode, side) -> {});
+        dockGraph.setLocked(true);
+
+        DockNodeView nodeView = assertInstanceOf(DockNodeView.class, layoutEngine.buildSceneGraph());
+        ContextMenu headerContextMenu = nodeView.getHeaderContextMenu();
+        assertNotNull(headerContextMenu);
+
+        MenuItem moveLeftItem = headerContextMenu.getItems().stream()
+            .filter(item -> "Move to Left Sidebar".equals(item.getText()))
+            .findFirst()
+            .orElseThrow();
+        MenuItem moveRightItem = headerContextMenu.getItems().stream()
+            .filter(item -> "Move to Right Sidebar".equals(item.getText()))
+            .findFirst()
+            .orElseThrow();
+
+        invokeContextMenuOnShowing(headerContextMenu);
+
+        assertTrue(moveLeftItem.isDisable());
+        assertTrue(moveRightItem.isDisable());
+    }
+
+    @Test
     void testHeaderContextMenuHidesFloatWhenPredicateBlocksNode() {
         DockNode node = new DockNode(new Label("Test"), "Node 1");
         dockGraph.setRoot(node);
@@ -538,6 +592,34 @@ class DockLayoutEngineTest extends ApplicationTest {
         assertFalse(floatItem.isVisible());
         assertTrue(floatItem.isDisable());
         assertFalse(separator.isVisible());
+    }
+
+    @Test
+    void testTabContextMenuMoveToSideBarActionUsesCallback() {
+        DockNode node1 = new DockNode(new Label("Test1"), "Node 1");
+        DockNode node2 = new DockNode(new Label("Test2"), "Node 2");
+        dockGraph.dock(node1, null, DockPosition.CENTER);
+        dockGraph.dock(node2, node1, DockPosition.CENTER);
+
+        AtomicReference<DockNode> pinnedNode = new AtomicReference<>();
+        AtomicReference<Side> pinnedSide = new AtomicReference<>();
+        layoutEngine.setOnNodePinToSideBarRequest((dockNode, side) -> {
+            pinnedNode.set(dockNode);
+            pinnedSide.set(side);
+        });
+
+        TabPane tabPane = assertInstanceOf(TabPane.class, layoutEngine.buildSceneGraph());
+        ContextMenu contextMenu = tabPane.getTabs().getFirst().getContextMenu();
+        assertNotNull(contextMenu);
+        MenuItem moveRightItem = contextMenu.getItems().stream()
+            .filter(item -> "Move to Right Sidebar".equals(item.getText()))
+            .findFirst()
+            .orElseThrow();
+
+        moveRightItem.fire();
+
+        assertEquals(node1, pinnedNode.get());
+        assertEquals(Side.RIGHT, pinnedSide.get());
     }
 
     @Test

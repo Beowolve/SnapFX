@@ -10,6 +10,7 @@ import javafx.collections.ListChangeListener;
 import javafx.geometry.BoundingBox;
 import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
@@ -58,6 +59,7 @@ public class DockLayoutEngine {
     private DockTitleBarMode titleBarMode = DockTitleBarMode.AUTO;
     private BiConsumer<DockNode, DockCloseSource> onNodeCloseRequest;
     private Consumer<DockNode> onNodeFloatRequest;
+    private BiConsumer<DockNode, Side> onNodePinToSideBarRequest;
     private Predicate<DockNode> canFloatNodePredicate = dockNode -> true;
 
     public DockLayoutEngine(DockGraph dockGraph, DockDragService dragService) {
@@ -483,20 +485,41 @@ public class DockLayoutEngine {
         floatItem.setGraphic(createControlIcon(DockThemeStyleClasses.DOCK_CONTROL_ICON_FLOAT));
         floatItem.setOnAction(e -> handleFloatRequest(dockNode));
 
+        MenuItem moveLeftSideBarItem = new MenuItem("Move to Left Sidebar");
+        moveLeftSideBarItem.setOnAction(e -> handlePinToSideBarRequest(dockNode, Side.LEFT));
+
+        MenuItem moveRightSideBarItem = new MenuItem("Move to Right Sidebar");
+        moveRightSideBarItem.setOnAction(e -> handlePinToSideBarRequest(dockNode, Side.RIGHT));
+
         MenuItem closeItem = new MenuItem("Close");
         closeItem.setGraphic(createControlIcon(DockThemeStyleClasses.DOCK_CONTROL_ICON_CLOSE));
         closeItem.setOnAction(e -> handleCloseRequest(dockNode, DockCloseSource.TITLE_BAR));
 
-        contextMenu.setOnShowing(e -> updateHeaderContextMenuState(floatItem, closeItem, dockNode));
-        contextMenu.getItems().addAll(floatItem, closeItem);
+        contextMenu.setOnShowing(e -> updateHeaderContextMenuState(
+            floatItem,
+            moveLeftSideBarItem,
+            moveRightSideBarItem,
+            closeItem,
+            dockNode
+        ));
+        contextMenu.getItems().addAll(floatItem, moveLeftSideBarItem, moveRightSideBarItem, closeItem);
         return contextMenu;
     }
 
-    private void updateHeaderContextMenuState(MenuItem floatItem, MenuItem closeItem, DockNode dockNode) {
+    private void updateHeaderContextMenuState(
+        MenuItem floatItem,
+        MenuItem moveLeftSideBarItem,
+        MenuItem moveRightSideBarItem,
+        MenuItem closeItem,
+        DockNode dockNode
+    ) {
         boolean locked = dockGraph.isLocked();
         boolean canFloat = !locked && canFloatNode(dockNode);
+        boolean canPinToSideBar = !locked && canPinNodeToSideBar(dockNode);
         floatItem.setVisible(canFloat);
         floatItem.setDisable(!canFloat);
+        moveLeftSideBarItem.setDisable(!canPinToSideBar);
+        moveRightSideBarItem.setDisable(!canPinToSideBar);
         closeItem.setDisable(locked || dockNode == null || !dockNode.isCloseable());
     }
 
@@ -517,17 +540,33 @@ public class DockLayoutEngine {
         floatItem.setGraphic(createControlIcon(DockThemeStyleClasses.DOCK_CONTROL_ICON_FLOAT));
         floatItem.setOnAction(e -> handleFloatRequest(dockNode));
 
+        MenuItem moveLeftSideBarItem = new MenuItem("Move to Left Sidebar");
+        moveLeftSideBarItem.setOnAction(e -> handlePinToSideBarRequest(dockNode, Side.LEFT));
+
+        MenuItem moveRightSideBarItem = new MenuItem("Move to Right Sidebar");
+        moveRightSideBarItem.setOnAction(e -> handlePinToSideBarRequest(dockNode, Side.RIGHT));
+
         SeparatorMenuItem separator = new SeparatorMenuItem();
         contextMenu.setOnShowing(e -> updateTabContextMenuState(
             closeItem,
             closeOthersItem,
             closeAllItem,
             floatItem,
+            moveLeftSideBarItem,
+            moveRightSideBarItem,
             separator,
             ownerTabPane,
             dockNode
         ));
-        contextMenu.getItems().addAll(closeItem, closeOthersItem, closeAllItem, separator, floatItem);
+        contextMenu.getItems().addAll(
+            closeItem,
+            closeOthersItem,
+            closeAllItem,
+            separator,
+            floatItem,
+            moveLeftSideBarItem,
+            moveRightSideBarItem
+        );
         return contextMenu;
     }
 
@@ -536,17 +575,22 @@ public class DockLayoutEngine {
         MenuItem closeOthersItem,
         MenuItem closeAllItem,
         MenuItem floatItem,
+        MenuItem moveLeftSideBarItem,
+        MenuItem moveRightSideBarItem,
         SeparatorMenuItem separator,
         DockTabPane ownerTabPane,
         DockNode dockNode
     ) {
         boolean locked = dockGraph.isLocked();
         boolean canFloat = !locked && canFloatNode(dockNode);
+        boolean canPinToSideBar = !locked && canPinNodeToSideBar(dockNode);
         closeItem.setDisable(locked || dockNode == null || !dockNode.isCloseable());
         closeOthersItem.setDisable(locked || collectSiblingClosableNodes(ownerTabPane, dockNode).isEmpty());
         closeAllItem.setDisable(locked || collectClosableNodes(ownerTabPane).isEmpty());
         floatItem.setVisible(canFloat);
         floatItem.setDisable(!canFloat);
+        moveLeftSideBarItem.setDisable(!canPinToSideBar);
+        moveRightSideBarItem.setDisable(!canPinToSideBar);
         separator.setVisible(canFloat);
         separator.setDisable(!canFloat);
     }
@@ -785,11 +829,22 @@ public class DockLayoutEngine {
         }
     }
 
+    private void handlePinToSideBarRequest(DockNode dockNode, Side side) {
+        if (dockGraph.isLocked() || side == null || !canPinNodeToSideBar(dockNode)) {
+            return;
+        }
+        onNodePinToSideBarRequest.accept(dockNode, side);
+    }
+
     private boolean canFloatNode(DockNode dockNode) {
         if (dockNode == null) {
             return false;
         }
         return canFloatNodePredicate != null && canFloatNodePredicate.test(dockNode);
+    }
+
+    private boolean canPinNodeToSideBar(DockNode dockNode) {
+        return dockNode != null && onNodePinToSideBarRequest != null;
     }
 
     /**
@@ -1273,6 +1328,14 @@ public class DockLayoutEngine {
      */
     public void setOnNodeFloatRequest(Consumer<DockNode> onNodeFloatRequest) {
         this.onNodeFloatRequest = onNodeFloatRequest;
+    }
+
+    /**
+     * Sets the action to be performed when a node should be moved to a sidebar.
+     * @param onNodePinToSideBarRequest The action to set
+     */
+    public void setOnNodePinToSideBarRequest(BiConsumer<DockNode, Side> onNodePinToSideBarRequest) {
+        this.onNodePinToSideBarRequest = onNodePinToSideBarRequest;
     }
 
     /**

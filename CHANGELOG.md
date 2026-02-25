@@ -9,16 +9,22 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 ### Build and Test
 - ✅ Added `DockGraphTest` coverage for index-based sidebar insertion, same-side reorder, cross-side moves, clamped insertion bounds, and lock-mode no-op behavior (foundation for exact-position sidebar DnD).
 - ✅ Added `SnapFXTest` coverage for sidebar strip-target DnD insertion/reordering, sidebar insert-preview visibility, sidebar strip icon drag wiring, and pinned-sidebar-node source handling in resolved/unresolved drop paths (main-layout drop + float fallback).
+- ✅ Added `SnapFXTest` coverage for sidebar strip/panel context menus (restore, move-to-other-side, pin-panel toggle, and lock-aware disabled state).
+- ✅ Added `DockLayoutEngineTest` and `DockFloatingWindowTest` coverage for framework sidebar move context-menu actions (header/tab menu callbacks, lock-aware disabling, and floating-layout callback forwarding).
 - ✅ Added `MainDemoTest` coverage for the temporary MainDemo DockDebugOverlay HUD disable switch used while sidebar interaction work is in progress.
 
 ### Framework and UI
 - ✅ Added `DockGraph.pinToSideBar(DockNode, Side, int)` for deterministic sidebar insertion/reordering with clamped index handling, enabling upcoming sidebar DnD drop-position support.
 - ✅ Added a Phase-D sidebar DnD baseline in `SnapFX`: unresolved drag releases can now drop into visible sidebar icon strips with exact insertion index resolution, sidebar strip icons now act as drag sources (including drag-outside fallback), the strip renders a visible insert-position line during drag hover, and pinned sidebar nodes are handled correctly when dragged back to the main layout, into floating windows, or into float fallback.
+- ✅ Added framework `Move to Left Sidebar` / `Move to Right Sidebar` actions to dock-node header and tab context menus (including floating layouts), wired to the existing SnapFX pin-to-sidebar flow with lock-aware disabling.
+- ✅ Added framework sidebar-node context menus on sidebar strip icons and expanded sidebar panel headers with built-in `Restore from Sidebar`, `Move to Left/Right Sidebar`, and `Pin/Unpin Sidebar Panel` actions (lock-aware).
 - ✅ Temporarily disabled the MainDemo `DockDebugOverlay` D&D HUD while sidebar interaction work continues; a post-sidebar fix/re-enable follow-up is tracked for background rendering, top-left clipping, and incorrect `none` diagnostics text.
 
 ### Documentation
 - ✅ Re-scoped the next sidebar Phase 2 work from hover auto-hide to higher-value interaction parity (sidebar DnD, framework context-menu actions, and resizable sidebar widths) in planning/status docs.
 - ✅ Updated planning/status docs to mark the sidebar DnD strip-target baseline (including strip-icon drag source + insert-position line feedback) as completed and narrow the remaining Phase 2 DnD parity work.
+- ✅ Updated planning/status docs to mark the framework sidebar move context-menu baseline as completed and narrow the remaining context-menu scope to sidebar restore/context parity plus resize work.
+- ✅ Updated planning/status docs to mark sidebar strip/panel context-menu parity as completed and re-focus remaining Phase 2 work on DnD parity/polish plus resizable sidebar widths.
 - ✅ Added a post-sidebar `DockDebugOverlay` fix/re-enable follow-up to roadmap/status docs and documented the temporary MainDemo HUD disable.
 - ✅ Refreshed `docs/images/main-demo.png` after temporarily disabling the MainDemo `DockDebugOverlay` HUD during sidebar work.
 

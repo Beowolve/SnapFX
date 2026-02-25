@@ -29,7 +29,9 @@ import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
@@ -1335,6 +1337,105 @@ class SnapFXTest {
     }
 
     @Test
+    void testSidebarStripIconContextMenuCanMovePinnedNodeToOtherSide() {
+        DockNode tool = new DockNode("tool", new Label("Tool"), "Tool");
+        snapFX.pinToSideBar(tool, Side.LEFT);
+
+        Scene scene = new Scene(snapFX.buildLayout(), 800, 600);
+        scene.getRoot().applyCss();
+        scene.getRoot().layout();
+
+        javafx.scene.layout.VBox leftStrip = findSideBarStrip(scene.getRoot(), Side.LEFT);
+        assertNotNull(leftStrip);
+        Button iconButton = assertDoesNotThrow(() -> findSideBarIconButtons(leftStrip).getFirst());
+        ContextMenu contextMenu = iconButton.getContextMenu();
+        assertNotNull(contextMenu);
+
+        invokeContextMenuOnShowing(contextMenu);
+        MenuItem moveLeftItem = findMenuItem(contextMenu, "Move to Left Sidebar");
+        MenuItem moveRightItem = findMenuItem(contextMenu, "Move to Right Sidebar");
+        assertNotNull(moveLeftItem);
+        assertNotNull(moveRightItem);
+        assertTrue(moveLeftItem.isDisable());
+        assertFalse(moveRightItem.isDisable());
+
+        moveRightItem.fire();
+
+        assertEquals(Side.RIGHT, snapFX.getPinnedSide(tool));
+        assertTrue(snapFX.getSideBarNodes(Side.LEFT).isEmpty());
+        assertEquals(List.of(tool), List.copyOf(snapFX.getSideBarNodes(Side.RIGHT)));
+    }
+
+    @Test
+    void testSidebarStripIconContextMenuSupportsRestoreAndPinPanelActions() {
+        DockNode main = new DockNode("main", new Label("Main"), "Main");
+        DockNode tool = new DockNode("tool", new Label("Tool"), "Tool");
+        snapFX.dock(main, null, DockPosition.CENTER);
+        snapFX.dock(tool, main, DockPosition.RIGHT);
+        snapFX.pinToSideBar(tool, Side.LEFT);
+
+        Scene scene = new Scene(snapFX.buildLayout(), 800, 600);
+        scene.getRoot().applyCss();
+        scene.getRoot().layout();
+
+        javafx.scene.layout.VBox leftStrip = findSideBarStrip(scene.getRoot(), Side.LEFT);
+        assertNotNull(leftStrip);
+        Button iconButton = assertDoesNotThrow(() -> findSideBarIconButtons(leftStrip).getFirst());
+        ContextMenu contextMenu = iconButton.getContextMenu();
+        assertNotNull(contextMenu);
+
+        invokeContextMenuOnShowing(contextMenu);
+        MenuItem pinPanelItem = findMenuItem(contextMenu, "Pin Sidebar Panel");
+        MenuItem restoreItem = findMenuItem(contextMenu, "Restore from Sidebar");
+        assertNotNull(pinPanelItem);
+        assertNotNull(restoreItem);
+
+        pinPanelItem.fire();
+        assertTrue(snapFX.isSideBarPinnedOpen(Side.LEFT));
+
+        restoreItem.fire();
+        assertFalse(snapFX.isPinnedToSideBar(tool));
+        assertTrue(isInGraph(snapFX, tool));
+    }
+
+    @Test
+    void testSidebarPanelHeaderContextMenuExistsAndIsLockAware() {
+        DockNode main = new DockNode("main", new Label("Main"), "Main");
+        DockNode tool = new DockNode("tool", new Label("Tool"), "Tool");
+        snapFX.dock(main, null, DockPosition.CENTER);
+        snapFX.dock(tool, main, DockPosition.RIGHT);
+        snapFX.pinToSideBar(tool, Side.LEFT);
+        snapFX.pinOpenSideBar(Side.LEFT);
+
+        Scene scene = new Scene(snapFX.buildLayout(), 800, 600);
+        scene.getRoot().applyCss();
+        scene.getRoot().layout();
+
+        Node headerNode = findNodeWithStyleClass(scene.getRoot(), DockThemeStyleClasses.DOCK_SIDEBAR_PANEL_HEADER);
+        assertInstanceOf(javafx.scene.layout.HBox.class, headerNode);
+        ContextMenu contextMenu = readContextMenuFromNodeProperties(headerNode);
+        assertNotNull(contextMenu);
+
+        invokeContextMenuOnShowing(contextMenu);
+        MenuItem restoreItem = findMenuItem(contextMenu, "Restore from Sidebar");
+        MenuItem moveRightItem = findMenuItem(contextMenu, "Move to Right Sidebar");
+        MenuItem pinPanelItem = findMenuItem(contextMenu, "Unpin Sidebar Panel");
+        assertNotNull(restoreItem);
+        assertNotNull(moveRightItem);
+        assertNotNull(pinPanelItem);
+        assertFalse(restoreItem.isDisable());
+        assertFalse(moveRightItem.isDisable());
+        assertFalse(pinPanelItem.isDisable());
+
+        snapFX.setLocked(true);
+        invokeContextMenuOnShowing(contextMenu);
+
+        assertTrue(restoreItem.isDisable());
+        assertTrue(moveRightItem.isDisable());
+        assertTrue(pinPanelItem.isDisable());
+    }
+
+    @Test
     void testSidebarDropPreviewLineIsShownForStripHoverAndClearedOutsideStrip() {
         DockNode main = new DockNode("main", new Label("Main"), "Main");
         DockNode toolA = new DockNode("toolA", new Label("Tool A"), "Tool A");
@@ -1849,6 +1950,34 @@ class SnapFXTest {
             }
         }
         return result;
+    }
+
+    private ContextMenu readContextMenuFromNodeProperties(Node node) {
+        if (node == null) {
+            return null;
+        }
+        for (Object value : node.getProperties().values()) {
+            if (value instanceof ContextMenu contextMenu) {
+                return contextMenu;
+            }
+        }
+        return null;
+    }
+
+    private MenuItem findMenuItem(ContextMenu contextMenu, String label) {
+        if (contextMenu == null || label == null) {
+            return null;
+        }
+        return contextMenu.getItems().stream()
+            .filter(item -> label.equals(item.getText()))
+            .findFirst()
+            .orElse(null);
+    }
+
+    private void invokeContextMenuOnShowing(ContextMenu contextMenu) {
+        if (contextMenu != null && contextMenu.getOnShowing() != null) {
+            contextMenu.getOnShowing().handle(null);
+        }
     }
 
     private Node findNodeWithStyleClass(Node current, String styleClass) {

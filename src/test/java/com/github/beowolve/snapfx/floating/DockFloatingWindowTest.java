@@ -14,6 +14,7 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
+import javafx.geometry.Side;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
@@ -1033,6 +1034,33 @@ class DockFloatingWindowTest {
 
             invokeContextMenuOnShowing(headerContextMenu);
             assertTrue(floatItem.isVisible());
+        });
+    }
+
+    @Test
+    void testFloatingHeaderContextMenuMoveToSideBarActionUsesCallback() {
+        runOnFxThreadAndWait(() -> {
+            DockNode node = new DockNode(new Label("Node"), "Node");
+            DockFloatingWindow floatingWindow = new DockFloatingWindow(node);
+            AtomicReference<DockNode> pinnedNode = new AtomicReference<>();
+            AtomicReference<Side> pinnedSide = new AtomicReference<>();
+            floatingWindow.setOnNodePinToSideBarRequest((dockNode, side) -> {
+                pinnedNode.set(dockNode);
+                pinnedSide.set(side);
+            });
+            invokeRebuildLayout(floatingWindow);
+
+            DockNodeView nodeView = floatingWindow.getDockNodeView(node);
+            assertNotNull(nodeView);
+            ContextMenu headerContextMenu = readHeaderContextMenu(nodeView);
+            assertNotNull(headerContextMenu);
+            MenuItem moveLeftItem = findMenuItem(headerContextMenu, "Move to Left Sidebar");
+            assertNotNull(moveLeftItem);
+
+            moveLeftItem.fire();
+
+            assertEquals(node, pinnedNode.get());
+            assertEquals(Side.LEFT, pinnedSide.get());
         });
     }
 
