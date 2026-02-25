@@ -73,6 +73,7 @@ public class MainDemo extends Application {
     private static final String SAVE_EDITOR_CHOOSER_TITLE = "Save editor content";
     private static final String DEFAULT_LAYOUT_FILE_NAME = "snapfx-layout.json";
     private static final String DOCUMENTS_DIRECTORY_NAME = "Documents";
+    private static final boolean ENABLE_DOCK_DEBUG_HUD = false;
     private static final List<String> APP_ICON_RESOURCES = List.of(
         "/images/16/snapfx.png",
         "/images/24/snapfx.png",
@@ -210,6 +211,10 @@ public class MainDemo extends Application {
 
     static List<String> getThemeStylesheetResources() {
         return List.copyOf(getNamedThemeStylesheets().values());
+    }
+
+    static boolean isDockDebugHudEnabled() {
+        return ENABLE_DOCK_DEBUG_HUD;
     }
 
     static String resolveThemeNameByStylesheetPath(String stylesheetResourcePath) {
@@ -977,15 +982,17 @@ public class MainDemo extends Application {
         mainSplit.getItems().addAll(dockLayout, debugTabs);
         mainSplit.setDividerPositions(0.72);
 
-        // Add a small HUD overlay that shows current D&D state
-        DockDebugOverlay hud = new DockDebugOverlay(snapFX.getDockGraph(), snapFX.getDragService());
-        StackPane stack = new StackPane(mainSplit, hud);
-        StackPane.setAlignment(hud, Pos.TOP_LEFT);
-        StackPane.setMargin(hud, new Insets(10));
-
-        // Replace center with the new stack containing split + HUD
-        mainLayout.setCenter(stack);
-
+        if (ENABLE_DOCK_DEBUG_HUD) {
+            // Temporary local demo HUD for D&D diagnostics. Disabled while sidebar interaction work is in progress
+            // and until DockDebugOverlay issues (background/clipping/data text) are fixed.
+            DockDebugOverlay hud = new DockDebugOverlay(snapFX.getDockGraph(), snapFX.getDragService());
+            StackPane stack = new StackPane(mainSplit, hud);
+            StackPane.setAlignment(hud, Pos.TOP_LEFT);
+            StackPane.setMargin(hud, new Insets(10));
+            mainLayout.setCenter(stack);
+        } else {
+            mainLayout.setCenter(mainSplit);
+        }
         // Rebuild debug tree when layout is rebuilt
         debugView.rebuildTree();
 

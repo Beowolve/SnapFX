@@ -209,6 +209,7 @@
 - ⚠️ Memory: Automated heap profiling in CI not implemented
 - ⚠️ UI: Global interaction animations missing (only About dialog easter egg animation exists; tracked in `ROADMAP.md` Phase 3.3)
 - ⚠️ UI: Context-menu extensibility API for custom menu items is not implemented yet (tracked in `ROADMAP.md` Phase 3.2)
+- ⚠️ UI: `DockDebugOverlay` HUD in MainDemo is temporarily disabled until sidebar work is completed; follow-up fix tracked in `ROADMAP.md` Phase 1.2 (background rendering, top-left clipping, and `none` diagnostics text)
 
 ## Next Steps
 

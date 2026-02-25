@@ -9,14 +9,18 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 ### Build and Test
 - ✅ Added `DockGraphTest` coverage for index-based sidebar insertion, same-side reorder, cross-side moves, clamped insertion bounds, and lock-mode no-op behavior (foundation for exact-position sidebar DnD).
 - ✅ Added `SnapFXTest` coverage for sidebar strip-target DnD insertion/reordering, sidebar insert-preview visibility, sidebar strip icon drag wiring, and pinned-sidebar-node source handling in resolved/unresolved drop paths (main-layout drop + float fallback).
+- ✅ Added `MainDemoTest` coverage for the temporary MainDemo DockDebugOverlay HUD disable switch used while sidebar interaction work is in progress.
 
 ### Framework and UI
 - ✅ Added `DockGraph.pinToSideBar(DockNode, Side, int)` for deterministic sidebar insertion/reordering with clamped index handling, enabling upcoming sidebar DnD drop-position support.
 - ✅ Added a Phase-D sidebar DnD baseline in `SnapFX`: unresolved drag releases can now drop into visible sidebar icon strips with exact insertion index resolution, sidebar strip icons now act as drag sources (including drag-outside fallback), the strip renders a visible insert-position line during drag hover, and pinned sidebar nodes are handled correctly when dragged back to the main layout, into floating windows, or into float fallback.
+- ✅ Temporarily disabled the MainDemo `DockDebugOverlay` D&D HUD while sidebar interaction work continues; a post-sidebar fix/re-enable follow-up is tracked for background rendering, top-left clipping, and incorrect `none` diagnostics text.
 
 ### Documentation
 - ✅ Re-scoped the next sidebar Phase 2 work from hover auto-hide to higher-value interaction parity (sidebar DnD, framework context-menu actions, and resizable sidebar widths) in planning/status docs.
 - ✅ Updated planning/status docs to mark the sidebar DnD strip-target baseline (including strip-icon drag source + insert-position line feedback) as completed and narrow the remaining Phase 2 DnD parity work.
+- ✅ Added a post-sidebar `DockDebugOverlay` fix/re-enable follow-up to roadmap/status docs and documented the temporary MainDemo HUD disable.
+- ✅ Refreshed `docs/images/main-demo.png` after temporarily disabling the MainDemo `DockDebugOverlay` HUD during sidebar work.
 
 ## v0.3.0 - 2026-02-24
 

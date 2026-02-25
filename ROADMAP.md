@@ -45,7 +45,7 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 ### 1.2 Debug & Monitoring
 **Priority**: 🟡 High
 
-- 📋 No planned items; see `CHANGELOG.md` for completed fixes.
+- 📋 **DockDebugOverlay HUD fix + re-enable (after sidebar Phase 2)**: Re-enable the temporary MainDemo D&D HUD after fixing missing background rendering, top-left clipping, and incorrect `none` values for target/zone text during active drags
 
 ### 1.3 Testing & Quality Assurance  
 **Priority**: 🟡 High
