@@ -215,6 +215,20 @@ public class DockGraph {
      * collapsed by default unless callers explicitly open the sidebar via {@link #pinOpenSideBar(Side)}.</p>
      */
     public void pinToSideBar(DockNode node, Side side) {
+        pinToSideBarInternal(node, side, null);
+    }
+
+    /**
+     * Pins a node to a sidebar and inserts it at the requested sidebar index.
+     *
+     * <p>If the node is already pinned on the same side, this reorders the sidebar entry. The index is clamped
+     * into the valid insertion range {@code [0..size]}.</p>
+     */
+    public void pinToSideBar(DockNode node, Side side, int index) {
+        pinToSideBarInternal(node, side, index);
+    }
+
+    private void pinToSideBarInternal(DockNode node, Side side, Integer desiredIndex) {
         if (node == null || side == null || isLocked()) {
             return;
         }
@@ -225,6 +239,14 @@ public class DockGraph {
 
         Side currentSide = findPinnedSide(node);
         if (currentSide == side) {
+            if (desiredIndex == null) {
+                return;
+            }
+            ObservableList<DockNode> entries = sideBarNodes.get(side);
+            if (entries == null || !moveSideBarEntry(entries, node, desiredIndex)) {
+                return;
+            }
+            bumpRevision();
             return;
         }
 
@@ -234,8 +256,10 @@ public class DockGraph {
             if (currentEntries == null || targetEntries == null) {
                 return;
             }
-            currentEntries.remove(node);
-            targetEntries.add(node);
+            if (!currentEntries.remove(node)) {
+                return;
+            }
+            addSideBarEntry(targetEntries, node, desiredIndex);
             bumpRevision();
             return;
         }
@@ -249,7 +273,7 @@ public class DockGraph {
         if (targetEntries == null || targetEntries.contains(node)) {
             return;
         }
-        targetEntries.add(node);
+        addSideBarEntry(targetEntries, node, desiredIndex);
         bumpRevision();
     }
 
@@ -1066,6 +1090,40 @@ public class DockGraph {
         if (changed) {
             bumpRevision();
         }
+    }
+
+    private void addSideBarEntry(ObservableList<DockNode> entries, DockNode node, Integer desiredIndex) {
+        if (entries == null || node == null) {
+            return;
+        }
+        if (desiredIndex == null) {
+            entries.add(node);
+            return;
+        }
+        int insertIndex = Math.clamp(desiredIndex, 0, entries.size());
+        entries.add(insertIndex, node);
+    }
+
+    private boolean moveSideBarEntry(ObservableList<DockNode> entries, DockNode node, int desiredIndex) {
+        if (entries == null || node == null) {
+            return false;
+        }
+        int sourceIndex = entries.indexOf(node);
+        if (sourceIndex < 0) {
+            return false;
+        }
+
+        int insertIndex = Math.clamp(desiredIndex, 0, entries.size());
+        if (sourceIndex < insertIndex) {
+            insertIndex--;
+        }
+        if (sourceIndex == insertIndex) {
+            return false;
+        }
+
+        entries.remove(sourceIndex);
+        entries.add(insertIndex, node);
+        return true;
     }
 
     private Side findPinnedSide(DockNode node) {

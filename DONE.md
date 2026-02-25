@@ -147,6 +147,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **Undock**: Remove nodes from the layout
 - ✅ **Move**: Reposition nodes within the layout
 - ✅ **Pinned side-bar model foundation**: `DockGraph` now supports pinned sidebar entries per side, pinned-open sidebar state flags, and deterministic pin/restore workflows for Phase C groundwork
+- ✅ **Sidebar ordered-insert/reorder model foundation**: `DockGraph` now supports index-based sidebar insertion/reordering and cross-side moves with clamped bounds (foundation for exact-position sidebar DnD)
 - ✅ **Side-bar facade API foundation**: `SnapFX` now exposes pinned side-bar pin/restore/pin-open/collapse/query operations so Phase C behavior is testable without direct model access
 - ✅ **Smart Flattening**: Automatic optimization to prevent nested containers with same orientation
 - ✅ **SplitPane optimization verified**: No nested same-orientation SplitPanes (horizontal + vertical coverage)
@@ -309,7 +310,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 
 See [ROADMAP.md](ROADMAP.md) for planned features and improvements.
 
-**Current Priority**: Continue sidebar auto-hide UX polish (hover behavior and interaction rules) after completing Phase C pinned-sidebar verification/stabilization, then return to the Phase 3 user-experience backlog.
+**Current Priority**: Continue sidebar interaction parity (DnD into/out of sidebars with exact positioning, framework context-menu actions, and resizable sidebar widths) after completing Phase C pinned-sidebar verification/stabilization, then return to the Phase 3 user-experience backlog.
 
 ---
 
@@ -317,4 +318,4 @@ See [ROADMAP.md](ROADMAP.md) for planned features and improvements.
 **Status**: Production-ready for large applications  
 **License**: MIT (personal and commercial use)  
 **Developed**: 2026-02  
-**Last Update**: 2026-02-16
+**Last Update**: 2026-02-25

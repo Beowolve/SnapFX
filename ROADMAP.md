@@ -191,7 +191,7 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 
 ---
 
-### 4.2 Side Bars (Pinned + Auto-Hide)
+### 4.2 Side Bars (Pinned + Interaction Parity)
 **Priority**: 🟢 Medium
 
 - ✅ **Phase 1 API + MainDemo manual controls**: `SnapFX` facade APIs and MainDemo Settings/Layout-menu controls now exercise pinned side-bar model/persistence foundations (pinned entries, pinned-open state, deterministic restore anchors)
@@ -199,13 +199,16 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 - ✅ **Phase 1 visual side-panel integration**: SnapFX now renders framework-level left/right side bars (icon strips + pinned side panels) connected to the existing model/persistence state
 - ✅ **Phase 1 restore placement reliability**: Sidebar restore in `SnapFX` now reuses the floating-style placement-memory fallback pipeline (preferred + neighbor anchors + fallback) to restore nodes to their remembered layout context more reliably
 - ✅ **Phase 1 naming cleanup (pre-release)**: Sidebar API/model semantics were renamed to `pinOpen...` / `collapse...` / `is...PinnedOpen` and serializer state key `visible` -> `pinnedOpen` (no compatibility aliases while project is private)
-- ✅ **Phase 1 overlay interaction baseline**: Click-to-open/click-to-toggle overlay panels, outside-click close, pin/unpin transitions, configurable pinned active-icon collapse policy (with pin-mode-preserving temporary collapse), default-collapsed pinning, and hit-testing/side placement fixes are implemented; hover-reveal polish remains Phase 2 work
+- ✅ **Phase 1 overlay interaction baseline**: Click-to-open/click-to-toggle overlay panels, outside-click close, pin/unpin transitions, configurable pinned active-icon collapse policy (with pin-mode-preserving temporary collapse), default-collapsed pinning, and hit-testing/side placement fixes are implemented
 - ✅ **Phase 1 persistence UX coverage**: Manual SnapFX/MainDemo verification for mixed main/floating/sidebar save-load and lock-mode scenarios is completed on top of the model/serializer/test coverage
+- ✅ **Phase 2 scope refinement**: Hover auto-hide/reveal behavior was dropped from the near-term plan in favor of higher-value sidebar interaction parity (DnD, framework context menus, and resize)
+- ✅ **Phase 2 model foundation (sidebar ordering)**: `DockGraph` now supports index-based sidebar insertion/reordering and cross-side moves with clamped bounds, providing the base semantics for sidebar DnD drop-positioning
 - 📋 **Sidebar view extraction/refactor**: Optional extraction of the current framework sidebar rendering from `SnapFX` into a dedicated view/controller component if complexity grows further
-- 📋 **Auto-hide behavior (Phase 2)**: IntelliJ-like sidebar auto-hide/reveal rules (hover-triggered expand/collapse and timing)
-- 📋 **Pin/unpin UX toggle**: Switch between pinned and auto-hide modes from the UI
-- 📋 **Hover to expand**: Show auto-hidden side bars on hover
-- 📋 **Click to pin**: Make auto-hidden content permanently visible
+- 📋 **Sidebar DnD parity (Phase 2)**: Drag dock nodes into/out of side bars (including floating windows) with deterministic target resolution and lock-aware behavior
+- 📋 **Sidebar DnD insertion preview**: Visual insertion marker/preview for exact sidebar drop position (top/between/bottom icon slots)
+- 📋 **Framework sidebar context menus**: Built-in sidebar move/restore actions in framework node/tab context menus (not only MainDemo menus)
+- 📋 **Resizable sidebar panel widths**: Per-side sidebar panel width resize (overlay + pinned-open) with runtime clamping and shared behavior
+- 📋 **Sidebar width persistence**: Save/load roundtrip for per-side sidebar panel widths with backward-compatible defaults
 
 **Estimated Time**: 3 days
 

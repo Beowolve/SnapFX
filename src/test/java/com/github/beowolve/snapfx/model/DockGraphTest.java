@@ -1479,6 +1479,67 @@ class DockGraphTest {
     }
 
     @Test
+    void testPinToSideBarWithIndexInsertsNewEntriesAtRequestedPositionWithClamp() {
+        DockNode first = new DockNode(new Label("First"), "First");
+        DockNode second = new DockNode(new Label("Second"), "Second");
+        DockNode third = new DockNode(new Label("Third"), "Third");
+        DockNode inserted = new DockNode(new Label("Inserted"), "Inserted");
+        DockNode clampedFront = new DockNode(new Label("ClampedFront"), "ClampedFront");
+        DockNode clampedBack = new DockNode(new Label("ClampedBack"), "ClampedBack");
+
+        dockGraph.pinToSideBar(first, Side.LEFT);
+        dockGraph.pinToSideBar(second, Side.LEFT);
+        dockGraph.pinToSideBar(third, Side.LEFT);
+
+        dockGraph.pinToSideBar(inserted, Side.LEFT, 1);
+        dockGraph.pinToSideBar(clampedFront, Side.LEFT, -10);
+        dockGraph.pinToSideBar(clampedBack, Side.LEFT, 999);
+
+        assertEquals(
+            List.of(clampedFront, first, inserted, second, third, clampedBack),
+            List.copyOf(dockGraph.getSideBarNodes(Side.LEFT))
+        );
+    }
+
+    @Test
+    void testPinToSideBarWithIndexReordersNodeWithinSameSidebar() {
+        DockNode first = new DockNode(new Label("First"), "First");
+        DockNode second = new DockNode(new Label("Second"), "Second");
+        DockNode third = new DockNode(new Label("Third"), "Third");
+        DockNode fourth = new DockNode(new Label("Fourth"), "Fourth");
+
+        dockGraph.pinToSideBar(first, Side.LEFT);
+        dockGraph.pinToSideBar(second, Side.LEFT);
+        dockGraph.pinToSideBar(third, Side.LEFT);
+        dockGraph.pinToSideBar(fourth, Side.LEFT);
+
+        dockGraph.pinToSideBar(second, Side.LEFT, 4);
+        assertEquals(List.of(first, third, fourth, second), List.copyOf(dockGraph.getSideBarNodes(Side.LEFT)));
+
+        dockGraph.pinToSideBar(fourth, Side.LEFT, 0);
+        assertEquals(List.of(fourth, first, third, second), List.copyOf(dockGraph.getSideBarNodes(Side.LEFT)));
+    }
+
+    @Test
+    void testPinToSideBarWithIndexMovesPinnedNodeAcrossSidebarsAtRequestedPosition() {
+        DockNode leftA = new DockNode(new Label("LeftA"), "LeftA");
+        DockNode leftB = new DockNode(new Label("LeftB"), "LeftB");
+        DockNode rightA = new DockNode(new Label("RightA"), "RightA");
+        DockNode rightB = new DockNode(new Label("RightB"), "RightB");
+
+        dockGraph.pinToSideBar(leftA, Side.LEFT);
+        dockGraph.pinToSideBar(leftB, Side.LEFT);
+        dockGraph.pinToSideBar(rightA, Side.RIGHT);
+        dockGraph.pinToSideBar(rightB, Side.RIGHT);
+
+        dockGraph.pinToSideBar(leftB, Side.RIGHT, 1);
+
+        assertEquals(List.of(leftA), List.copyOf(dockGraph.getSideBarNodes(Side.LEFT)));
+        assertEquals(List.of(rightA, leftB, rightB), List.copyOf(dockGraph.getSideBarNodes(Side.RIGHT)));
+        assertEquals(Side.RIGHT, dockGraph.getPinnedSide(leftB));
+    }
+
+    @Test
     void testSideBarMutationsAreNoOpsWhileLocked() {
         DockNode left = new DockNode(new Label("Left"), "Left");
         DockNode right = new DockNode(new Label("Right"), "Right");
@@ -1509,6 +1570,24 @@ class DockGraphTest {
         assertEquals(revisionBeforeRestoreAttempt, dockGraph.getRevision());
         assertTrue(dockGraph.isPinnedToSideBar(left));
         assertTrue(dockGraph.isSideBarPinnedOpen(Side.LEFT));
+    }
+
+    @Test
+    void testPinToSideBarWithIndexReorderIsNoOpWhileLocked() {
+        DockNode first = new DockNode(new Label("First"), "First");
+        DockNode second = new DockNode(new Label("Second"), "Second");
+        DockNode third = new DockNode(new Label("Third"), "Third");
+
+        dockGraph.pinToSideBar(first, Side.LEFT);
+        dockGraph.pinToSideBar(second, Side.LEFT);
+        dockGraph.pinToSideBar(third, Side.LEFT);
+
+        dockGraph.setLocked(true);
+        long revisionBeforeReorderAttempt = dockGraph.getRevision();
+        dockGraph.pinToSideBar(first, Side.LEFT, 3);
+
+        assertEquals(revisionBeforeReorderAttempt, dockGraph.getRevision());
+        assertEquals(List.of(first, second, third), List.copyOf(dockGraph.getSideBarNodes(Side.LEFT)));
     }
 
     @Test

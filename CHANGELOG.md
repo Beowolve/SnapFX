@@ -6,7 +6,14 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 
 ## Unreleased
 
-<!-- No unreleased changes yet -->
+### Build and Test
+- ✅ Added `DockGraphTest` coverage for index-based sidebar insertion, same-side reorder, cross-side moves, clamped insertion bounds, and lock-mode no-op behavior (foundation for exact-position sidebar DnD).
+
+### Framework and UI
+- ✅ Added `DockGraph.pinToSideBar(DockNode, Side, int)` for deterministic sidebar insertion/reordering with clamped index handling, enabling upcoming sidebar DnD drop-position support.
+
+### Documentation
+- ✅ Re-scoped the next sidebar Phase 2 work from hover auto-hide to higher-value interaction parity (sidebar DnD, framework context-menu actions, and resizable sidebar widths) in planning/status docs.
 
 ## v0.3.0 - 2026-02-24
 

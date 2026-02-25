@@ -212,7 +212,7 @@
 
 See [ROADMAP.md](ROADMAP.md) for detailed future development plans.
 
-**Priority**: Continue Phase 2/4 sidebar UX polish (hover auto-hide behavior and interaction rules) after completing Phase C pinned-sidebar verification and stabilization, then return to broader Phase 3 UX backlog.
+**Priority**: Continue Phase 2/4 sidebar interaction parity (DnD into/out of sidebars with exact positioning, framework context-menu actions, and resizable sidebar widths) after completing Phase C pinned-sidebar verification and stabilization, then return to broader Phase 3 UX backlog.
 
 ---
 
