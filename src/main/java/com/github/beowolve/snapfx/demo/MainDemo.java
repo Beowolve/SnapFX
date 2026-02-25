@@ -86,6 +86,7 @@ public class MainDemo extends Application {
     private Stage primaryStage;
     private BorderPane mainLayout;
     private SplitPane mainSplit;
+    private StackPane dockLayoutHost;
 
     // Menu for hidden windows
     private Menu hiddenWindowsMenu;
@@ -976,6 +977,10 @@ public class MainDemo extends Application {
     private void installDebugPanel() {
         // Get the current dock layout from mainLayout
         Node dockLayout = mainLayout.getCenter();
+        dockLayoutHost = new StackPane();
+        if (dockLayout != null) {
+            dockLayoutHost.getChildren().setAll(dockLayout);
+        }
 
         DockGraphDebugView debugView = new DockGraphDebugView(snapFX.getDockGraph(), snapFX.getDragService());
         debugView.setPrefWidth(420);
@@ -995,7 +1000,7 @@ public class MainDemo extends Application {
 
         // Create split pane with dock layout on left and debug view on right
         mainSplit = new SplitPane();
-        mainSplit.getItems().addAll(dockLayout, debugTabs);
+        mainSplit.getItems().addAll(dockLayoutHost, debugTabs);
         mainSplit.setDividerPositions(0.72);
 
         if (ENABLE_DOCK_DEBUG_HUD) {
@@ -1264,16 +1269,13 @@ public class MainDemo extends Application {
 
         // If we have a split pane (with debug panel), update only the dock layout part
         if (mainSplit != null && !mainSplit.getItems().isEmpty()) {
-            // Save divider position
-            double[] dividerPositions = mainSplit.getDividerPositions();
-
-            // Replace the dock layout (first item in split)
-            mainSplit.getItems().set(0, dockLayout);
-
-            // Restore divider position
-            if (dividerPositions.length > 0) {
-                Platform.runLater(() -> mainSplit.setDividerPositions(dividerPositions));
+            if (dockLayoutHost == null) {
+                dockLayoutHost = new StackPane();
+                if (!mainSplit.getItems().isEmpty()) {
+                    mainSplit.getItems().set(0, dockLayoutHost);
+                }
             }
+            dockLayoutHost.getChildren().setAll(dockLayout);
         } else {
             // No debug panel, just set dock layout directly
             mainLayout.setCenter(dockLayout);

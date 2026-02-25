@@ -29,11 +29,13 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
+import javafx.scene.control.SplitPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -228,6 +230,36 @@ class MainDemoTest {
 
             assertEquals(360.0, framework.getSideBarPanelWidth(Side.LEFT), 0.0001);
             assertEquals(290.0, framework.getSideBarPanelWidth(Side.RIGHT), 0.0001);
+        });
+    }
+
+    @Test
+    void testUpdateDockLayoutKeepsDebugSplitLeftItemStable() {
+        runOnFxThreadAndWait(() -> {
+            MainDemo demo = new MainDemo();
+            SnapFX framework = new SnapFX();
+            framework.getDockGraph().setRoot(new DockNode("root", new Label("Root"), "Root"));
+
+            SplitPane splitPane = new SplitPane();
+            StackPane dockLayoutHost = new StackPane(new Label("placeholder"));
+            splitPane.getItems().addAll(dockLayoutHost, new StackPane(new Label("debug")));
+            splitPane.setDividerPositions(0.63);
+
+            setPrivateField(demo, "snapFX", framework);
+            setPrivateField(demo, "mainLayout", new BorderPane());
+            setPrivateField(demo, "mainSplit", splitPane);
+            setPrivateField(demo, "dockLayoutHost", dockLayoutHost);
+
+            Node originalLeftItem = splitPane.getItems().getFirst();
+            double originalDividerPosition = splitPane.getDividerPositions()[0];
+
+            invokePrivateMethod(demo, "updateDockLayout");
+
+            assertSame(originalLeftItem, splitPane.getItems().getFirst());
+            assertSame(dockLayoutHost, splitPane.getItems().getFirst());
+            assertEquals(originalDividerPosition, splitPane.getDividerPositions()[0], 0.0001);
+            assertEquals(1, dockLayoutHost.getChildren().size());
+            assertFalse(dockLayoutHost.getChildren().getFirst() instanceof Label);
         });
     }
 
