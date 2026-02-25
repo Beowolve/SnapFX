@@ -6,6 +6,8 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 
 ## Unreleased
 
+## v0.4.0 - 2026-02-25
+
 ### Build and Test
 - ✅ Added `DockGraphTest` coverage for sidebar panel width defaults/validation/lock behavior.
 - ✅ Added `DockLayoutSerializerTest` coverage for sidebar panel width roundtrip persistence and legacy missing-width fallback behavior.
