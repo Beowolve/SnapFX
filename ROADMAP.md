@@ -45,7 +45,7 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 ### 1.2 Debug & Monitoring
 **Priority**: 🟡 High
 
-- 📋 **DockDebugOverlay HUD fix + re-enable (after sidebar Phase 2)**: Re-enable the temporary MainDemo D&D HUD after fixing missing background rendering, top-left clipping, and incorrect `none` values for target/zone text during active drags
+- ✅ **DockDebugOverlay HUD fixes**: Fixed missing panel background rendering (layout sizing), top-left clipping, and stale `none` target/zone diagnostics text during active drags; MainDemo HUD remains a local debug-toggle option
 - ✅ **MainDemo debug/settings split divider stability**: The outer demo split divider between the dock area and Debug/Settings tabs now remains stable during dock-layout rebuilds by updating a persistent left-side host container instead of replacing the split item
 
 ### 1.3 Testing & Quality Assurance  

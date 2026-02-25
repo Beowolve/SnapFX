@@ -1021,8 +1021,7 @@ public class MainDemo extends Application {
         mainSplit.setDividerPositions(0.72);
 
         if (ENABLE_DOCK_DEBUG_HUD) {
-            // Temporary local demo HUD for D&D diagnostics. Disabled while sidebar interaction work is in progress
-            // and until DockDebugOverlay issues (background/clipping/data text) are fixed.
+            // Local demo HUD for D&D diagnostics.
             DockDebugOverlay hud = new DockDebugOverlay(snapFX.getDockGraph(), snapFX.getDragService());
             StackPane stack = new StackPane(mainSplit, hud);
             StackPane.setAlignment(hud, Pos.TOP_LEFT);

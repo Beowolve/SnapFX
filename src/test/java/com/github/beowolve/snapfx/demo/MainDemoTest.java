@@ -92,11 +92,6 @@ class MainDemoTest {
     }
 
     @Test
-    void testDockDebugHudIsTemporarilyDisabledDuringSidebarWork() {
-        assertFalse(MainDemo.isDockDebugHudEnabled());
-    }
-
-    @Test
     void testResolveThemeNameByStylesheetPathUsesCatalogAndFallback() {
         assertEquals("Dark", MainDemo.resolveThemeNameByStylesheetPath("/snapfx-dark.css"));
         assertEquals(SnapFX.getDefaultThemeName(), MainDemo.resolveThemeNameByStylesheetPath("/unknown-theme.css"));

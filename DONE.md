@@ -88,7 +88,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `EditorCloseDecisionPolicyTest` (5 tests) - Deterministic close-decision behavior for dirty editor nodes
 - ✅ `MarkdownDocumentationConsistencyTest` (12 tests) - Documentation consistency guardrails
 - ✅ CI flake guard for critical interaction suites (`SnapFXTest`, `DockFloatingWindowTest`, `DockDragServiceTest`) runs 3x per CI execution
-- ✅ All tests passing (313/313) ✅
+- ✅ All tests passing (314/314) ✅
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
 - ✅ Mandatory regression tests for all bug fixes
 
@@ -181,6 +181,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **Framework sidebar visual baseline**: SnapFX now renders left/right sidebar icon strips with immediate title tooltips, click-to-open overlay panels, same-icon toggle close, outside-click overlay close, and pin/unpin switching to layout-consuming side panels
 - ✅ **MainDemo framework-sidebar validation path**: MainDemo now uses the framework-rendered sidebar UI again (instead of the temporary demo-only strip wrapper) for Phase-C manual testing
 - ✅ **MainDemo D&D debug HUD temporary disable**: `DockDebugOverlay` HUD overlay is temporarily disabled in MainDemo until sidebar interaction work is completed; a post-sidebar fix/re-enable follow-up is tracked for background/clipping/data-text issues
+- ✅ **DockDebugOverlay HUD fixes**: `DockDebugOverlay` now renders as a managed pref-sized HUD panel again (background and top-left clipping fixed), refreshes live target/zone diagnostics during drag even when `DockDragData` mutates in place, and shows dock-node target titles in the HUD; MainDemo keeps the HUD behind a local debug toggle
 - ✅ **Phase-C sidebar interaction polish fixes**: Pinning now starts collapsed by default, overlay hit-testing no longer blocks sidebar interactions, and right-side unpin keeps overlay panels on the correct side
 - ✅ **Pinned active-icon collapse policy option**: SnapFX now exposes a configurable policy for clicking the active icon of a pinned-open sidebar panel (default collapses), and MainDemo exposes the toggle in Settings for manual UX validation
 - ✅ **Pinned active-icon collapse pin-preservation fix**: Collapsing a pinned-open sidebar panel via active icon now keeps the sidebar in pinned mode and reopens pinned on the next icon click
@@ -318,7 +319,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 
 See [ROADMAP.md](ROADMAP.md) for planned features and improvements.
 
-**Current Priority**: Sidebar interaction parity (Phase 2, current scope) is complete; next focus is the `DockDebugOverlay` HUD fix/re-enable follow-up, then return to the Phase 3 user-experience backlog.
+**Current Priority**: Sidebar interaction parity (Phase 2, current scope) and the `DockDebugOverlay` HUD follow-up are complete; next focus returns to the Phase 3 user-experience backlog.
 
 ---
 

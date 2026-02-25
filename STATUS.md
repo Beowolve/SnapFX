@@ -154,12 +154,13 @@
 - ✅ DockDragServiceTest (8 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, and ESC drag-cancel handling
 - ✅ DockFloatingWindowTest (31 tests) - Floating title bar controls, context menu behavior (attach/pin icons + attach action), floating-header sidebar move-menu callback forwarding, pin behavior, icon rendering/sync regression coverage, single-node float-menu policy, maximize/restore interaction behavior, scene-level drag continuity (including release/reset and non-primary guard behavior), resize-min constraints, interactive-target cursor reliability, and floating/main edge snapping behavior (including overlap-guard, adjacent-edge cases, and main-window shadow-inset compensation)
 - ✅ DockFloatingSnapEngineTest (6 tests) - Snap candidate scoring, overlap-aware candidate generation, and shadow-inset compensation behavior
-- ✅ MainDemoTest (24 tests) - Demo app icon resource wiring, menu icon behavior, sidebar menu/list helper coverage for Phase-C manual controls, sidebar settings width-control API-parity wiring (including `DockSideBarMode` settings control), debug/settings outer-split divider-stability regression coverage, demo shortcut wiring, floating snap-target settings resolution coverage, load-error message formatting, owner-aware error-alert behavior, FileChooser helper coverage for shared layout/editor chooser configuration, and named theme-catalog/resource coverage
+- ✅ DockDebugOverlayTest (2 tests) - HUD layout-state defaults (managed + pref-sized panel background) and live diagnostics refresh coverage for mutated drag-state updates (`Target`/`Zone` no longer stuck at `none`)
+- ✅ MainDemoTest (23 tests) - Demo app icon resource wiring, menu icon behavior, sidebar menu/list helper coverage for Phase-C manual controls, sidebar settings width-control API-parity wiring (including `DockSideBarMode` settings control), debug/settings outer-split divider-stability regression coverage, demo shortcut wiring, floating snap-target settings resolution coverage, load-error message formatting, owner-aware error-alert behavior, FileChooser helper coverage for shared layout/editor chooser configuration, and named theme-catalog/resource coverage
 - ✅ DemoNodeFactoryTest (3 tests) - Unknown-node fallback strategy coverage (framework placeholder vs. custom demo fallback node) plus SnapFX integration coverage for unsupported-type recovery with the default demo factory
 - ✅ EditorCloseDecisionPolicyTest (5 tests) - Deterministic close-decision policy checks
 - ✅ MarkdownDocumentationConsistencyTest (12 tests) - Markdown consistency guardrails
 - ✅ AboutDialogTest (2 tests) - About dialog branding resources and credit link targets
-- ✅ **313/313 tests passing** ✅
+- ✅ **314/314 tests passing** ✅
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Edge case tests** (null inputs, detached nodes, invalid move targets, no-op revision checks)
@@ -180,6 +181,7 @@
 - ✅ About dialog extracted into dedicated class with dynamic version info, large logo branding, and icon credits
 - ✅ About dialog easter egg animation (triple-click logo)
 - ✅ Debug view toggle
+- ✅ DockDebugOverlay HUD issues are fixed after sidebar Phase 2 (panel layout/background rendering, top-left clipping, and live target/zone diagnostics updates during drag); MainDemo keeps the HUD behind a local debug toggle
 - ✅ Settings tab for live layout options (title bar, close buttons, drop visualization, lock, floating pin controls, floating-window snapping controls, and Phase-C pinned side-bar manual test controls for pin/restore/pin-open)
 - ✅ File workflows now use shared `FileChooser` helpers for layout open/save and editor open/save-as to keep extension filters and defaults consistent
 - ✅ Settings tab now includes a theme selector driven by the SnapFX named theme catalog (`Light`, `Dark`) and applies styles via runtime API
@@ -218,13 +220,12 @@
 - ⚠️ Memory: Automated heap profiling in CI not implemented
 - ⚠️ UI: Global interaction animations missing (only About dialog easter egg animation exists; tracked in `ROADMAP.md` Phase 3.3)
 - ⚠️ UI: Context-menu extensibility API for custom menu items is not implemented yet (tracked in `ROADMAP.md` Phase 3.2)
-- ⚠️ UI: `DockDebugOverlay` HUD in MainDemo is temporarily disabled; sidebar Phase 2 is complete and the next follow-up is the tracked HUD fix/re-enable in `ROADMAP.md` Phase 1.2 (background rendering, top-left clipping, and `none` diagnostics text)
 
 ## Next Steps
 
 See [ROADMAP.md](ROADMAP.md) for detailed future development plans.
 
-**Priority**: Sidebar Phase 2 interaction parity is complete for the current scope; next focus is the `DockDebugOverlay` HUD fix/re-enable follow-up, then return to the broader Phase 3 UX backlog.
+**Priority**: Sidebar Phase 2 interaction parity and the `DockDebugOverlay` HUD follow-up are complete for the current scope; next focus returns to the broader Phase 3 UX backlog (context-menu extensibility API and global interaction animation polish).
 
 ---
 

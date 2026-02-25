@@ -1,13 +1,15 @@
 package com.github.beowolve.snapfx.debug;
 
+import com.github.beowolve.snapfx.model.DockNode;
+import com.github.beowolve.snapfx.theme.DockThemeStyleClasses;
 import com.github.beowolve.snapfx.dnd.DockDragData;
 import com.github.beowolve.snapfx.dnd.DockDragService;
 import com.github.beowolve.snapfx.model.DockElement;
 import com.github.beowolve.snapfx.model.DockGraph;
 import com.github.beowolve.snapfx.model.DockPosition;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.animation.AnimationTimer;
 import javafx.geometry.Insets;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
@@ -18,24 +20,26 @@ import java.util.Objects;
  * Lightweight debug overlay that renders the current D&D state as a small HUD.
  */
 public class DockDebugOverlay extends StackPane {
-    private final ObjectProperty<DockDragData> currentDrag;
+    private final DockDragService dragService;
+    private final AnimationTimer refreshTimer;
 
     private final Text hudText;
+    private String lastRenderedText;
+    private boolean lastVisible;
 
     public DockDebugOverlay(DockGraph dockGraph, DockDragService dragService) {
         Objects.requireNonNull(dockGraph, "dockGraph");
-        Objects.requireNonNull(dragService, "dragService");
-
-        this.currentDrag = new SimpleObjectProperty<>(dragService.currentDragProperty().get());
+        this.dragService = Objects.requireNonNull(dragService, "dragService");
 
         setMouseTransparent(true);
-        setManaged(false);
         setPickOnBounds(false);
-
+        setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
         setPadding(new Insets(8));
+        setVisible(false);
+        getStyleClass().add(DockThemeStyleClasses.DOCK_DEBUG_PANEL);
 
         hudText = new Text();
-        hudText.setFill(Color.WHITE);
+        hudText.setFill(Color.RED);
 
         var bg = new Background(new BackgroundFill(Color.rgb(0, 0, 0, 0.55), new CornerRadii(6), Insets.EMPTY));
         setBackground(bg);
@@ -44,20 +48,40 @@ public class DockDebugOverlay extends StackPane {
         StackPane.setMargin(hudText, new Insets(8));
 
         dragService.currentDragProperty().addListener((obs, old, cur) -> {
-            currentDrag.set(cur);
-            updateText(cur);
+            refreshFromDragService();
         });
 
-        updateText(currentDrag.get());
+        refreshTimer = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                refreshFromDragService();
+            }
+        };
+        sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene == null) {
+                refreshTimer.stop();
+            } else {
+                refreshTimer.start();
+                refreshFromDragService();
+            }
+        });
+
+        refreshFromDragService();
+    }
+
+    void refreshFromDragService() {
+        updateText(dragService.getCurrentDrag());
+    }
+
+    String getHudTextForTest() {
+        return hudText.getText();
     }
 
     private void updateText(DockDragData data) {
         if (data == null) {
-            setVisible(false);
+            applyHudState(false, null);
             return;
         }
-
-        setVisible(true);
 
         DockElement target = data.getDropTarget();
         DockPosition pos = data.getDropPosition();
@@ -65,7 +89,24 @@ public class DockDebugOverlay extends StackPane {
         String targetText = target == null ? "none" : target.getClass().getSimpleName();
         String posText = pos == null ? "none" : pos.name();
 
-        hudText.setText("Drag: " + safeTitle(data) + "\nTarget: " + targetText + "\nZone: " + posText);
+        if (target instanceof DockNode dockNode) {
+            targetText = dockNode.getTitle();
+        }
+
+        applyHudState(
+            true,
+            "Drag: " + safeTitle(data) + "\nTarget: " + targetText + "\nZone: " + posText
+        );
+    }
+
+    private void applyHudState(boolean visible, String text) {
+        if (lastVisible == visible && Objects.equals(lastRenderedText, text)) {
+            return;
+        }
+        lastVisible = visible;
+        lastRenderedText = text;
+        setVisible(visible);
+        hudText.setText(text);
     }
 
     private String safeTitle(DockDragData data) {

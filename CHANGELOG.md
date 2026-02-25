@@ -6,6 +6,17 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 
 ## Unreleased
 
+### Build and Test
+- ✅ Added `DockDebugOverlayTest` coverage for HUD layout defaults (managed pref-sized panel + background presence) and live target/zone diagnostics refresh when drag data mutates in place.
+
+### Framework and UI
+- ✅ Fixed `DockDebugOverlay` HUD rendering and diagnostics behavior used by MainDemo debugging: the HUD panel now lays out correctly with visible background (no top-left clipping), and target/zone text updates live during active drags instead of staying at `none`.
+- ✅ Improved `DockDebugOverlay` target diagnostics text to show the dragged hover target dock-node title for `DockNode` targets (instead of the generic `DockNode` type label).
+- ✅ Kept the MainDemo `DockDebugOverlay` HUD as a local debug-toggle option after the overlay fixes (no default-on requirement).
+
+### Documentation
+- ✅ Updated roadmap/status/done docs to mark the `DockDebugOverlay` HUD fixes follow-up as completed (while noting the MainDemo HUD remains opt-in) and return current priority focus to the Phase 3 UX backlog.
+
 ## v0.4.0 - 2026-02-25
 
 ### Build and Test
