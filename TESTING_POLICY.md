@@ -3,7 +3,7 @@
 **Last Updated**: 2026-02-16
 
 This document defines stable testing rules only.  
-Current test counts, trends, and recent bug history belong in `STATUS.md` and `DONE.md`.
+Current test counts, trends, and recent bug history belong in [STATUS.md](STATUS.md) and [DONE.md](DONE.md).
 
 ## Scope
 
@@ -87,4 +87,4 @@ Minimum manual checks for UI-sensitive changes:
 ## Ownership
 
 - Rule changes in this document require team agreement.
-- Keep this file stable and policy-focused; move temporal project status to `STATUS.md` and `DONE.md`.
+- Keep this file stable and policy-focused; move temporal project status to [STATUS.md](STATUS.md) and [DONE.md](DONE.md).

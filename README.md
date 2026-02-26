@@ -14,20 +14,20 @@ A high-performance, lightweight JavaFX docking framework that behaves like nativ
 
 ## Documentation Map
 
-| File | Purpose |
-|------|---------|
-| `README.md` | Entry point, feature overview, and quick start |
-| `SETUP.md` | Local development environment setup |
-| `ARCHITECTURE.md` | Technical architecture and design |
-| `docs/adr/*.md` | Architecture Decision Records (context, decisions, and trade-offs) |
-| `STATUS.md` | Current state and open issues |
-| `ROADMAP.md` | Planned work and future priorities |
-| `DONE.md` | Completed milestones and delivered capabilities |
-| `CHANGELOG.md` | Versioned release history grouped by tags |
-| `TESTING_POLICY.md` | Stable testing rules and quality gates |
-| `CONTRIBUTING.md` | Contribution workflow, branch strategy, and PR checklist |
-| `RELEASING.md` | Maintainer release process, versioning, tags, and CI release flow |
-| `AGENTS.md` | Collaboration and workflow rules for AI agents |
+| File                               | Purpose |
+|------------------------------------|---------|
+| [README.md](README.md)             | Entry point, feature overview, and quick start |
+| [SETUP.md](SETUP.md)               | Local development environment setup |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Technical architecture and design |
+| [STATUS.md](STATUS.md)             | Current state and open issues |
+| [ROADMAP.md](ROADMAP.md)           | Planned work and future priorities |
+| [DONE.md](DONE.md)                 | Completed milestones and delivered capabilities |
+| [CHANGELOG.md](CHANGELOG.md)       | Versioned release history grouped by tags |
+| [TESTING_POLICY.md](TESTING_POLICY.md)           | Stable testing rules and quality gates |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution workflow, branch strategy, and PR checklist |
+| [RELEASING.md](RELEASING.md)                | Maintainer release process, versioning, tags, and CI release flow |
+| [AGENTS.md](AGENTS.md)             | Collaboration and workflow rules for AI agents |
+| `docs/adr/*.md`                    | Architecture Decision Records (context, decisions, and trade-offs) |
 
 ## Features
 
@@ -151,7 +151,7 @@ try {
 
 ## Architecture
 
-Technical internals and component structure are documented in `ARCHITECTURE.md`.
+Technical internals and component structure are documented in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Testing
 
@@ -161,9 +161,9 @@ Run the full test suite:
 ./gradlew test
 ```
 
-Testing rules and merge gates are defined in `TESTING_POLICY.md`.
-Current health and validation snapshots are tracked in `STATUS.md`.
-Versioned release history per tag is tracked in `CHANGELOG.md`.
+Testing rules and merge gates are defined in [TESTING_POLICY.md](TESTING_POLICY.md).
+Current health and validation snapshots are tracked in [STATUS.md](STATUS.md).
+Versioned release history per tag is tracked in [CHANGELOG.md](CHANGELOG.md).
 
 ## Demo Application
 
@@ -217,7 +217,7 @@ DockNode tasks = snapFX.dock(tasksList, "Tasks", console, DockPosition.CENTER);
 
 ## Roadmap
 
-Planned work is tracked in `ROADMAP.md`.
+Planned work is tracked in [ROADMAP.md](ROADMAP.md).
 
 ## License
 
@@ -227,13 +227,13 @@ SnapFX is intended for personal and commercial use, including large applications
 
 ## Contributing
 
-For contribution workflow, branch strategy, commit/PR expectations, and quality gates, see `CONTRIBUTING.md`.
+For contribution workflow, branch strategy, commit/PR expectations, and quality gates, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-For maintainer release/versioning/tag flow, see `RELEASING.md`.
+For maintainer release/versioning/tag flow, see [RELEASING.md](RELEASING.md).
 
 ## Documentation
 
-See JavaDoc in the source files and `ARCHITECTURE.md` for detailed framework internals.
+See JavaDoc in the source files and [ARCHITECTURE.md](ARCHITECTURE.md) for detailed framework internals.
 
 ## Technology Stack
 
