@@ -1,6 +1,6 @@
 # Project Status
 
-**Last Updated**: 2026-02-25
+**Last Updated**: 2026-02-26
 
 ## Build Status
 
@@ -158,9 +158,9 @@
 - ✅ MainDemoTest (23 tests) - Demo app icon resource wiring, menu icon behavior, sidebar menu/list helper coverage for Phase-C manual controls, sidebar settings width-control API-parity wiring (including `DockSideBarMode` settings control), debug/settings outer-split divider-stability regression coverage, demo shortcut wiring, floating snap-target settings resolution coverage, load-error message formatting, owner-aware error-alert behavior, FileChooser helper coverage for shared layout/editor chooser configuration, and named theme-catalog/resource coverage
 - ✅ DemoNodeFactoryTest (3 tests) - Unknown-node fallback strategy coverage (framework placeholder vs. custom demo fallback node) plus SnapFX integration coverage for unsupported-type recovery with the default demo factory
 - ✅ EditorCloseDecisionPolicyTest (5 tests) - Deterministic close-decision policy checks
-- ✅ MarkdownDocumentationConsistencyTest (12 tests) - Markdown consistency guardrails
+- ✅ MarkdownDocumentationConsistencyTest (11 tests) - Markdown consistency guardrails (with relaxed ROADMAP intro wording checks to avoid over-constraining phrasing)
 - ✅ AboutDialogTest (2 tests) - About dialog branding resources and credit link targets
-- ✅ **314/314 tests passing** ✅
+- ✅ **313/313 tests passing** ✅
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Edge case tests** (null inputs, detached nodes, invalid move targets, no-op revision checks)

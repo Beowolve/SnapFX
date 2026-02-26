@@ -1,9 +1,9 @@
 # SnapFX Development Roadmap
 
-**Last Updated**: 2026-02-24
+**Last Updated**: 2026-02-26
 
 This document tracks planned and proposed work for SnapFX.
-This roadmap lists planned work only; completed/fixed history is tracked in `CHANGELOG.md`.
+This roadmap keeps a high-level progress view plus planned/proposed work; detailed completed/fixed release history is tracked in `CHANGELOG.md`.
 
 ---
 
@@ -14,13 +14,13 @@ This roadmap lists planned work only; completed/fixed history is tracked in `CHA
 | Phase 1: Core Stability | ✅ Completed | 100% |
 | Phase 2: Floating Windows | ✅ Completed | 100% |
 | Phase 3: User Experience | 🚧 In Progress | 64% |
-| Phase 4: Advanced Features | 🚧 In Progress | 20% |
+| Phase 4: Advanced Features | 🚧 In Progress | 35% |
 | Phase 5: Themes & Customization | 🚧 In Progress | 60% |
 | Phase 6: Performance & Polish | 📋 Planned | 0% |
 | Phase 7: Developer Experience | 📋 Planned | 45% |
 | Phase 8: Production Readiness | 📋 Planned | 25% |
 
-**Total Project Completion**: ~79%
+**Total Project Completion**: ~82%
 
 ## Legend
 

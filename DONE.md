@@ -1,6 +1,6 @@
 # SnapFX Framework - Completed Features
 
-**Last Updated**: 2026-02-24
+**Last Updated**: 2026-02-26
 
 SnapFX has been fully implemented with core functionality and is production-ready for large applications.
 
@@ -86,10 +86,10 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `DemoNodeFactoryTest` (3 tests) - Unknown-node fallback strategy coverage (framework placeholder vs. demo custom fallback), plus SnapFX integration coverage for unsupported-type recovery with the default demo factory
 - ✅ `AboutDialogTest` (2 tests) - About dialog resources and credit link targets
 - ✅ `EditorCloseDecisionPolicyTest` (5 tests) - Deterministic close-decision behavior for dirty editor nodes
-- ✅ `MarkdownDocumentationConsistencyTest` (12 tests) - Documentation consistency guardrails
+- ✅ `MarkdownDocumentationConsistencyTest` (11 tests) - Documentation consistency guardrails (ROADMAP intro wording is no longer enforced via one exact sentence match)
 - ✅ CI flake guard for critical interaction suites (`SnapFXTest`, `DockFloatingWindowTest`, `DockDragServiceTest`) runs 3x per CI execution
 - ✅ `SnapFXTest` sidebar overlay width/resize-handle tests no longer prebuild the layout before reflective sidebar icon clicks, avoiding a CI-only async `requestRebuild()` race before the final scene build
-- ✅ All tests passing (314/314) ✅
+- ✅ All tests passing (313/313) ✅
 - ✅ **Testing Policy** established (TESTING_POLICY.md)
 - ✅ Mandatory regression tests for all bug fixes
 

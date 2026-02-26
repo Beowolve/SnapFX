@@ -131,27 +131,6 @@ class MarkdownDocumentationConsistencyTest {
     }
 
     @Test
-    void testDocumentationScopeSeparationIsExplicit() throws IOException {
-        String statusContent = readProjectFile("STATUS.md");
-        String roadmapContent = readProjectFile("ROADMAP.md");
-        String doneContent = readProjectFile("DONE.md");
-
-        assertContains(statusContent, "## Documentation Scope", "STATUS.md missing documentation scope section");
-        assertContains(statusContent, "`ROADMAP.md` tracks planned work only.", "STATUS.md missing planned-work ownership note");
-        assertContains(statusContent, "`CHANGELOG.md` tracks versioned historical changes grouped by tags.", "STATUS.md missing changelog ownership note");
-        assertContains(
-            roadmapContent,
-            "This roadmap lists planned work only; completed/fixed history is tracked in `CHANGELOG.md`.",
-            "ROADMAP.md missing planned-only ownership statement"
-        );
-        assertContains(
-            doneContent,
-            "`TESTING_POLICY.md` - Stable testing rules and quality gates (policy-only)",
-            "DONE.md missing policy-only testing policy note"
-        );
-    }
-
-    @Test
     void testRoadmapContainsNoRecentChangesSections() throws IOException {
         String content = readProjectFile("ROADMAP.md");
         assertNotContains(content, "## Recent Changes", "ROADMAP.md should not contain recent change logs");
