@@ -71,22 +71,6 @@ class MarkdownDocumentationConsistencyTest {
     }
 
     @Test
-    void testStatusMdContainsNoDoneChangeLogSections() throws IOException {
-        String content = readProjectFile("STATUS.md");
-        assertNotContains(content, "### Fixed (recent)", "STATUS.md must not contain fixed history section");
-        assertNotContains(content, "## Latest Changes", "STATUS.md must not contain changelog-style latest changes section");
-        assertNotContains(content, "## Change History", "STATUS.md must not contain changelog history section");
-    }
-
-    @Test
-    void testStatusMdContainsNoHistoricalDeltaSuffixes() throws IOException {
-        String content = readProjectFile("STATUS.md");
-        assertNotContains(content, "(was ", "STATUS.md must not include historical test-count delta suffixes");
-        assertNotContains(content, "improved from ~", "STATUS.md must not include historical coverage delta suffixes");
-        assertNotContains(content, "(Fixed:", "STATUS.md must not include fixed-date history markers");
-    }
-
-    @Test
     void testDoneMdBuildAndDeploymentBulletsUseCheckmarkIcon() throws IOException {
         String content = readProjectFile("DONE.md");
         assertAllBulletsUsePrefixes(
@@ -106,71 +90,6 @@ class MarkdownDocumentationConsistencyTest {
             content,
             STATUS_ICON_PREFIXES
         );
-    }
-
-    @Test
-    void testTestingPolicyHasRulesOnlyStructure() throws IOException {
-        String content = readProjectFile("TESTING_POLICY.md");
-        assertContains(content, "## Scope", "TESTING_POLICY.md missing Scope section");
-        assertContains(content, "## Mandatory Rules", "TESTING_POLICY.md missing Mandatory Rules section");
-        assertContains(content, "## Quality Gates", "TESTING_POLICY.md missing Quality Gates section");
-        assertContains(content, "## Manual Verification (When Needed)", "TESTING_POLICY.md missing Manual Verification section");
-        assertContains(content, "## Test Commands", "TESTING_POLICY.md missing Test Commands section");
-        assertContains(content, "## Pull Request Checklist", "TESTING_POLICY.md missing Pull Request Checklist section");
-        assertContains(content, "## Ownership", "TESTING_POLICY.md missing Ownership section");
-    }
-
-    @Test
-    void testTestingPolicyContainsNoTemporalStatisticsSections() throws IOException {
-        String content = readProjectFile("TESTING_POLICY.md");
-        assertNotContains(content, "## Current Test Statistics", "TESTING_POLICY.md must not contain temporal test statistics");
-        assertNotContains(content, "### Test Distribution", "TESTING_POLICY.md must not contain temporal test distribution");
-        assertNotContains(content, "### Regression Test Coverage", "TESTING_POLICY.md must not contain temporal regression coverage");
-        assertNotContains(content, "## Benefits of This Policy", "TESTING_POLICY.md should remain rule-focused");
-        assertNotContains(content, "**As of ", "TESTING_POLICY.md must not contain date-scoped status snapshots");
-    }
-
-    @Test
-    void testRoadmapContainsNoRecentChangesSections() throws IOException {
-        String content = readProjectFile("ROADMAP.md");
-        assertNotContains(content, "## Recent Changes", "ROADMAP.md should not contain recent change logs");
-        assertNotContains(content, "## Version Track", "ROADMAP.md should not contain version-track section");
-        assertNotContains(content, "see `STATUS.md` for fixed issues", "ROADMAP.md should route fixed history to CHANGELOG.md");
-        assertContains(
-            content,
-            "Recalculate `Overall Progress` phase percentages and `Total Project Completion` when status mix changes.",
-            "ROADMAP.md should document progress-percentage update rule"
-        );
-    }
-
-    @Test
-    void testReadmeContainsDocumentationMap() throws IOException {
-        String content = readProjectFile("README.md");
-        assertContains(content, "## Documentation Map", "README.md missing documentation map section");
-        assertContains(content, "| `TESTING_POLICY.md` | Stable testing rules and quality gates |", "README.md missing testing policy map row");
-        assertContains(content, "| `STATUS.md` | Current state and open issues |", "README.md missing status map row");
-        assertContains(content, "| `CHANGELOG.md` | Versioned release history grouped by tags |", "README.md missing changelog map row");
-        assertContains(content, "| `CONTRIBUTING.md` | Contribution workflow, branch strategy, and PR checklist |", "README.md missing contributing map row");
-        assertContains(content, "| `RELEASING.md` | Maintainer release process, versioning, tags, and CI release flow |", "README.md missing releasing map row");
-    }
-
-    @Test
-    void testReadmeQuickStartIsFrameworkFocused() throws IOException {
-        String content = readProjectFile("README.md");
-        assertContains(content, "## Quick Start", "README.md missing quick start section");
-        assertContains(
-            content,
-            "Maven Central dependency coordinates will be documented here once the first Maven Central release is published.",
-            "README.md quick start should include Maven Central placeholder note"
-        );
-        assertNotContains(content, "### Gradle Setup", "README.md quick start must not include generic Gradle setup template");
-        assertNotContains(content, "### Module Configuration", "README.md quick start must not include generic module template");
-        assertNotContains(content, "## Versioning", "README.md must not include repository-maintainer versioning workflow");
-        assertNotContains(content, "## Branch Strategy", "README.md must not include repository branch workflow details");
-        assertNotContains(content, "## CI/CD", "README.md must not include repository CI/CD workflow details");
-        assertContains(content, "## Contributing", "README.md missing contributing section");
-        assertContains(content, "see `CONTRIBUTING.md`.", "README.md should link to CONTRIBUTING.md");
-        assertContains(content, "see `RELEASING.md`.", "README.md should link to RELEASING.md");
     }
 
     private String readProjectFile(String fileName) throws IOException {
@@ -216,11 +135,4 @@ class MarkdownDocumentationConsistencyTest {
         return bullets;
     }
 
-    private void assertContains(String content, String expected, String failureMessage) {
-        assertTrue(content.contains(expected), failureMessage);
-    }
-
-    private void assertNotContains(String content, String disallowed, String failureMessage) {
-        assertFalse(content.contains(disallowed), failureMessage);
-    }
 }

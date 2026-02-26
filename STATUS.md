@@ -14,11 +14,11 @@
 
 ## Documentation Scope
 
-- ✅ `STATUS.md` tracks only the current state: build health, current capabilities, and open issues.
-- ✅ `ROADMAP.md` tracks planned work only.
-- ✅ `DONE.md` tracks completed milestones and delivered capabilities.
-- ✅ `CHANGELOG.md` tracks versioned historical changes grouped by tags.
-- ✅ `TESTING_POLICY.md` defines stable testing rules only (no temporal test statistics).
+- ✅ [STATUS.md](STATUS.md) tracks only the current state: build health, current capabilities, and open issues.
+- ✅ [ROADMAP.md](ROADMAP.md) tracks planned work only.
+- ✅ [DONE.md](DONE.md) tracks completed milestones and delivered capabilities.
+- ✅ [CHANGELOG.md](CHANGELOG.md) tracks versioned historical changes grouped by tags.
+- ✅ [TESTING_POLICY.md](TESTING_POLICY.md) defines stable testing rules only (no temporal test statistics).
 
 ## Implementation Progress
 
@@ -158,14 +158,14 @@
 - ✅ MainDemoTest (23 tests) - Demo app icon resource wiring, menu icon behavior, sidebar menu/list helper coverage for Phase-C manual controls, sidebar settings width-control API-parity wiring (including `DockSideBarMode` settings control), debug/settings outer-split divider-stability regression coverage, demo shortcut wiring, floating snap-target settings resolution coverage, load-error message formatting, owner-aware error-alert behavior, FileChooser helper coverage for shared layout/editor chooser configuration, and named theme-catalog/resource coverage
 - ✅ DemoNodeFactoryTest (3 tests) - Unknown-node fallback strategy coverage (framework placeholder vs. custom demo fallback node) plus SnapFX integration coverage for unsupported-type recovery with the default demo factory
 - ✅ EditorCloseDecisionPolicyTest (5 tests) - Deterministic close-decision policy checks
-- ✅ MarkdownDocumentationConsistencyTest (11 tests) - Markdown consistency guardrails (with relaxed ROADMAP intro wording checks to avoid over-constraining phrasing)
+- ✅ MarkdownDocumentationConsistencyTest (4 tests) - Markdown consistency guardrails focused on Mojibake detection and icon-prefix validation (no brittle content-specific assertions)
 - ✅ AboutDialogTest (2 tests) - About dialog branding resources and credit link targets
-- ✅ **313/313 tests passing** ✅
+- ✅ **306/306 tests passing** ✅
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Edge case tests** (null inputs, detached nodes, invalid move targets, no-op revision checks)
 - ✅ **Regression tests** for all critical bug fixes
-- ✅ **Testing Policy** established (TESTING_POLICY.md)
+- ✅ **Testing Policy** established ([TESTING_POLICY.md](TESTING_POLICY.md))
 - ✅ ~87% code coverage
 - ✅ All structural integrity tests (no empty containers, no nesting)
 
@@ -198,28 +198,28 @@
 - ✅ MainDemo debug/settings outer `SplitPane` divider no longer jumps during dock-layout rebuilds; the demo now updates dock content inside a stable host container instead of replacing the split item
 
 ### Documentation (100% ✅)
-- ✅ README.md updated
+- ✅ [README.md](README.md) updated
 - ✅ README now embeds the SnapFX SVG logo from `src/main/resources/images/snapfx.svg`
-- ✅ ARCHITECTURE.md complete and corrected
-- ✅ SETUP.md
-- ✅ DONE.md
-- ✅ CHANGELOG.md (tag-grouped release history and unreleased changes)
-- ✅ CONTRIBUTING.md (collaboration workflow and PR expectations)
-- ✅ RELEASING.md (maintainer release/versioning/tag flow)
-- ✅ ROADMAP.md now starts with overall progress, keeps legend directly below, and no longer includes a version-track block.
+- ✅ [ARCHITECTURE.md](ARCHITECTURE.md) complete and corrected
+- ✅ [SETUP.md](SETUP.md)
+- ✅ [DONE.md](DONE.md)
+- ✅ [CHANGELOG.md](CHANGELOG.md) (tag-grouped release history and unreleased changes)
+- ✅ [CONTRIBUTING.md](CONTRIBUTING.md) (collaboration workflow and PR expectations)
+- ✅ [RELEASING.md](RELEASING.md) (maintainer release/versioning/tag flow)
+- ✅ [ROADMAP.md](ROADMAP.md) now starts with overall progress, keeps legend directly below, and no longer includes a version-track block.
 - ✅ Architecture decision records are now tracked under `docs/adr/` and linked from README documentation map.
-- ✅ Runtime theme-stylesheet behavior is documented in ADR `docs/adr/0002-runtime-theme-stylesheet-management.md`
-- ✅ Sidebar overlay/pin rendering state split is documented in ADR `docs/adr/0003-sidebar-overlay-and-pin-rendering-state-split.md`
-- ✅ Sidebar panel width state/runtime-clamping behavior is documented in ADR `docs/adr/0004-sidebar-panel-width-state-and-runtime-clamping.md`
-- ✅ Sidebar visibility mode and framework sidebar-menu gating behavior are documented in ADR `docs/adr/0005-sidebar-visibility-mode-and-framework-menu-gating.md`
+- ✅ Runtime theme-stylesheet behavior is documented in ADR [docs/adr/0002-runtime-theme-stylesheet-management.md](docs/adr/0002-runtime-theme-stylesheet-management.md)
+- ✅ Sidebar overlay/pin rendering state split is documented in ADR [docs/adr/0003-sidebar-overlay-and-pin-rendering-state-split.md](docs/adr/0003-sidebar-overlay-and-pin-rendering-state-split.md)
+- ✅ Sidebar panel width state/runtime-clamping behavior is documented in ADR [docs/adr/0004-sidebar-panel-width-state-and-runtime-clamping.md](docs/adr/0004-sidebar-panel-width-state-and-runtime-clamping.md)
+- ✅ Sidebar visibility mode and framework sidebar-menu gating behavior are documented in ADR [docs/adr/0005-sidebar-visibility-mode-and-framework-menu-gating.md](docs/adr/0005-sidebar-visibility-mode-and-framework-menu-gating.md)
 
 ## Issues
 
 ### Open
 - ⚠️ Performance: Benchmark trend tracking for large layouts not implemented
 - ⚠️ Memory: Automated heap profiling in CI not implemented
-- ⚠️ UI: Global interaction animations missing (only About dialog easter egg animation exists; tracked in `ROADMAP.md` Phase 3.3)
-- ⚠️ UI: Context-menu extensibility API for custom menu items is not implemented yet (tracked in `ROADMAP.md` Phase 3.2)
+- ⚠️ UI: Global interaction animations missing (only About dialog easter egg animation exists; tracked in [ROADMAP.md](ROADMAP.md) Phase 3.3)
+- ⚠️ UI: Context-menu extensibility API for custom menu items is not implemented yet (tracked in [ROADMAP.md](ROADMAP.md) Phase 3.2)
 
 ## Next Steps
 
@@ -238,10 +238,10 @@ See [ROADMAP.md](ROADMAP.md) for detailed future development plans.
 
 ## Documentation Policy
 
-- ✅ Core documentation files: `README.md`, `SETUP.md`, `ARCHITECTURE.md`, `STATUS.md`, `ROADMAP.md`, `DONE.md`, `CHANGELOG.md`, `TESTING_POLICY.md`, `CONTRIBUTING.md`, `RELEASING.md`, `AGENTS.md`.
-- ✅ Responsibility split: `STATUS.md` = current status and open issues.
-- ✅ Responsibility split: `ROADMAP.md` = planned work.
-- ✅ Responsibility split: `DONE.md` = completed work.
-- ✅ Responsibility split: `CHANGELOG.md` = versioned historical changes.
-- ✅ Responsibility split: `TESTING_POLICY.md` = stable testing rules.
+- ✅ Core documentation files: [README.md](README.md), [SETUP.md](SETUP.md), [ARCHITECTURE.md](ARCHITECTURE.md), [STATUS.md](STATUS.md), [ROADMAP.md](ROADMAP.md), [DONE.md](DONE.md), [CHANGELOG.md](CHANGELOG.md), [TESTING_POLICY.md](TESTING_POLICY.md), [CONTRIBUTING.md](CONTRIBUTING.md), [RELEASING.md](RELEASING.md), [AGENTS.md](AGENTS.md).
+- ✅ Responsibility split: [STATUS.md](STATUS.md) = current status and open issues.
+- ✅ Responsibility split: [ROADMAP.md](ROADMAP.md) = planned work.
+- ✅ Responsibility split: [DONE.md](DONE.md) = completed work.
+- ✅ Responsibility split: [CHANGELOG.md](CHANGELOG.md) = versioned historical changes.
+- ✅ Responsibility split: [TESTING_POLICY.md](TESTING_POLICY.md) = stable testing rules.
 - ⚠️ Avoid additional feature-specific markdown logs when information already belongs in one of the core files.

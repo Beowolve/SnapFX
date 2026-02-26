@@ -3,7 +3,7 @@
 **Last Updated**: 2026-02-26
 
 This document tracks planned and proposed work for SnapFX.
-This roadmap keeps a high-level progress view plus planned/proposed work; detailed completed/fixed release history is tracked in `CHANGELOG.md`.
+This roadmap keeps a high-level progress view plus planned/proposed work; detailed completed/fixed release history is tracked in [CHANGELOG.md](CHANGELOG.md).
 
 ---
 
@@ -38,7 +38,7 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 **Priority**: 🔴 Critical
 
 - ✅ **Tiny-bounds drop-zone stability**: Drop-zone edge sizing now avoids `Math.clamp` min/max-order exceptions during drag hover on very small bounds
-- 📋 No planned items; see `CHANGELOG.md` for completed fixes.
+- 📋 No planned items; see [CHANGELOG.md](CHANGELOG.md) for completed fixes.
 
 ---
 
@@ -79,7 +79,7 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 - ✅ **Container tab title/icon UX**: Tabs containing nested split/tab layouts now derive title/icon from a representative DockNode (`Title +N`) instead of showing container class names
 - ✅ **Layout-load diagnostics UX**: Invalid layout files now return typed `DockLayoutLoadException` failures with JSON path context, and MainDemo surfaces the details in an error dialog
 - ✅ **Unknown-type layout recovery UX**: Corrupted/unsupported serialized node types now recover via factory custom fallback or framework placeholder diagnostics without aborting full layout load
-- 📋 No planned items; see `CHANGELOG.md` for completed fixes.
+- 📋 No planned items; see [CHANGELOG.md](CHANGELOG.md) for completed fixes.
 
 ---
 
@@ -353,18 +353,18 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 - ✅ **ADR baseline**: Significant design decisions are documented under `docs/adr/` and mirrored in API/architecture documentation
 - ✅ **License wording baseline**: README/SETUP now state MIT licensing and explicit personal/commercial use positioning
 - ✅ **README consumer-focus baseline**: Quick Start now focuses on SnapFX usage, without generic Gradle/module templates or repository workflow sections
-- ✅ **Maintainer docs baseline**: Collaboration/release workflow is now documented in `CONTRIBUTING.md` and `RELEASING.md`
-- ✅ **Versioned changelog baseline**: Historical changes are now consolidated in `CHANGELOG.md` and grouped by release tags
-- ✅ **Status scope baseline**: `STATUS.md` now keeps only current state and open issues; completed/fixed history is maintained in `CHANGELOG.md`
+- ✅ **Maintainer docs baseline**: Collaboration/release workflow is now documented in [CONTRIBUTING.md](CONTRIBUTING.md) and [RELEASING.md](RELEASING.md)
+- ✅ **Versioned changelog baseline**: Historical changes are now consolidated in [CHANGELOG.md](CHANGELOG.md) and grouped by release tags
+- ✅ **Status scope baseline**: [STATUS.md](STATUS.md) now keeps only current state and open issues; completed/fixed history is maintained in [CHANGELOG.md](CHANGELOG.md)
 - ✅ **Roadmap signal baseline**: Overall progress is now the first section, legend follows directly below, and version-track metadata was removed
-- 📋 **Roadmap structure cleanup**: Keep each subsection as one block (`Priority` + open/planned items) and move detailed completed history to `CHANGELOG.md` / `DONE.md`
+- 📋 **Roadmap structure cleanup**: Keep each subsection as one block (`Priority` + open/planned items) and move detailed completed history to [CHANGELOG.md](CHANGELOG.md) / [DONE.md](DONE.md)
 - 📋 **API documentation**: Complete JavaDoc
 - 📋 **User guide**: Comprehensive usage guide
 - 📋 **Tutorial series**: Step-by-step tutorials
 - 📋 **Example projects**: Real-world examples
 - 📋 **GitHub Pages site**: Full project documentation portal (guides, architecture, API overview)
 - 📋 **Video tutorials**: Screen recordings
-- 📋 **Doc consistency guardrails**: Keep markdown consistency tests aligned with documentation scope rules
+- 📋 **Doc consistency guardrails**: Keep markdown consistency tests aligned with documentation scope rules while avoiding brittle content-specific assertions (focus on encoding/format guardrails)
 
 **Estimated Time**: 5-7 days
 
@@ -455,7 +455,7 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 ## How to Update This Roadmap
 
 1. **Feature Complete**: Change status from 📋 to ✅
-   - Also capture release-relevant details in `CHANGELOG.md` under the correct tag section.
+   - Also capture release-relevant details in [CHANGELOG.md](CHANGELOG.md) under the correct tag section.
 2. **Started Work**: Change status from 📋 to 🚧
 3. **New Feature**: Add to appropriate phase or Future Ideas
 4. **Priority Change**: Update priority emoji (🔴🟡🟢🔵)
@@ -475,7 +475,7 @@ If you'd like to contribute to SnapFX:
 4. Implement the feature with tests
 5. Submit a pull request
 6. Update this roadmap when merged
-7. Follow repository collaboration standards in `AGENTS.md` (commit message and callback-structure conventions).
+7. Follow repository collaboration standards in [AGENTS.md](AGENTS.md) (commit message and callback-structure conventions).
 
 ---
 

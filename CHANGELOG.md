@@ -9,6 +9,7 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 ### Build and Test
 - ✅ Added `DockDebugOverlayTest` coverage for HUD layout defaults (managed pref-sized panel + background presence) and live target/zone diagnostics refresh when drag data mutates in place.
 - ✅ Hardened `SnapFXTest` sidebar overlay width/resize-handle tests against a CI-only async sidebar rebuild race by removing an unnecessary prebuild step before reflective sidebar icon clicks.
+- ✅ Simplified `MarkdownDocumentationConsistencyTest` to keep non-brittle guardrails only (Mojibake detection and markdown status-bullet icon-prefix checks), removing content-specific wording assertions.
 
 ### Framework and UI
 - ✅ Fixed `DockDebugOverlay` HUD rendering and diagnostics behavior used by MainDemo debugging: the HUD panel now lays out correctly with visible background (no top-left clipping), and target/zone text updates live during active drags instead of staying at `none`.
@@ -58,7 +59,7 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Updated planning/status docs to note the MainDemo debug/settings split divider stability fix while sidebar work continues.
 - ✅ Updated planning/status docs to track the right-overlay sidebar resize-handle reliability fix during Phase 2 sidebar interaction work.
 - ✅ Marked sidebar interaction parity (Phase 2 current scope) as complete after adding `DockSideBarMode`, and deferred broader panel-surface sidebar DnD targeting/preview extensions to optional backlog items.
-- ✅ Documented sidebar visibility mode and framework sidebar-menu gating behavior in `ARCHITECTURE.md` and ADR `docs/adr/0005-sidebar-visibility-mode-and-framework-menu-gating.md`.
+- ✅ Documented sidebar visibility mode and framework sidebar-menu gating behavior in [ARCHITECTURE.md](ARCHITECTURE.md) and ADR [docs/adr/0005-sidebar-visibility-mode-and-framework-menu-gating.md](docs/adr/0005-sidebar-visibility-mode-and-framework-menu-gating.md).
 
 ## v0.3.0 - 2026-02-24
 
@@ -98,16 +99,16 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Introduced `DockThemeStyleClasses`, replacing hardcoded style class constants with members of this class for better maintainability and consistency across the codebase.
 
 ### Documentation
-- ✅ Documented sidebar overlay/pin rendering state split in `ARCHITECTURE.md` and ADR `docs/adr/0003-sidebar-overlay-and-pin-rendering-state-split.md`.
+- ✅ Documented sidebar overlay/pin rendering state split in [ARCHITECTURE.md](ARCHITECTURE.md) and ADR [docs/adr/0003-sidebar-overlay-and-pin-rendering-state-split.md](docs/adr/0003-sidebar-overlay-and-pin-rendering-state-split.md).
 - ✅ Updated sidebar interaction docs to include the configurable pinned active-icon collapse policy (default collapse).
 - ✅ Documented that sidebar restore now reuses the floating-style placement-memory restore strategy in architecture/ADR docs.
-- ✅ Updated `STATUS.md`, `DONE.md`, and `ROADMAP.md` to reflect framework-level sidebar rendering progress and current test totals.
+- ✅ Updated [STATUS.md](STATUS.md), [DONE.md](DONE.md), and [ROADMAP.md](ROADMAP.md) to reflect framework-level sidebar rendering progress and current test totals.
 - ✅ Refreshed `docs/images/main-demo.png` after switching MainDemo back to framework-rendered sidebars.
-- ✅ Updated `STATUS.md`, `DONE.md`, and `ROADMAP.md` to reflect the Phase-C sidebar foundation slice and current test totals.
+- ✅ Updated [STATUS.md](STATUS.md), [DONE.md](DONE.md), and [ROADMAP.md](ROADMAP.md) to reflect the Phase-C sidebar foundation slice and current test totals.
 - ✅ Updated `docs/images/main-demo.png` preview after MainDemo Settings/Layout menu changes for Phase-C sidebar testing controls.
 - ✅ Refreshed `docs/images/main-demo.png` again after adding visible pinned-sidebar strips to the MainDemo layout.
 - ✅ Updated README/ARCHITECTURE docs for automatic stylesheet handling and runtime theme switching.
-- ✅ Added ADR `docs/adr/0002-runtime-theme-stylesheet-management.md` for theme lifecycle ownership and API behavior.
+- ✅ Added ADR [docs/adr/0002-runtime-theme-stylesheet-management.md](docs/adr/0002-runtime-theme-stylesheet-management.md) for theme lifecycle ownership and API behavior.
 
 ## v0.2.6 - 2026-02-17
 
@@ -119,10 +120,10 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ `attachFloatingWindow(...)` now restores detached floating-sub-layout nodes to remembered host context when possible (preferred/neighbor anchors), with deterministic silent fallback to active host-root or main layout when anchors are unavailable, including cases where source-layout neighbors changed after detach.
 
 ### Documentation
-- ✅ Added a persistent collaboration rule in `AGENTS.md`: every SnapFX API function must be represented in the MainDemo Settings tab for manual verification.
-- ✅ Added a persistent collaboration rule in `AGENTS.md`: significant design decisions must be documented in JavaDoc, `ARCHITECTURE.md`, and ADRs under `docs/adr/`.
-- ✅ Added ADR `docs/adr/0001-floating-reattach-placement-strategy.md` and updated architecture/readme/status docs to reflect the new reattach strategy and documentation baseline.
-- ✅ Updated `STATUS.md`, `DONE.md`, and `ROADMAP.md` to reflect the new reattach behavior and current test totals.
+- ✅ Added a persistent collaboration rule in [AGENTS.md](AGENTS.md): every SnapFX API function must be represented in the MainDemo Settings tab for manual verification.
+- ✅ Added a persistent collaboration rule in [AGENTS.md](AGENTS.md): significant design decisions must be documented in JavaDoc, [ARCHITECTURE.md](ARCHITECTURE.md), and ADRs under `docs/adr/`.
+- ✅ Added ADR [docs/adr/0001-floating-reattach-placement-strategy.md](docs/adr/0001-floating-reattach-placement-strategy.md) and updated architecture/readme/status docs to reflect the new reattach strategy and documentation baseline.
+- ✅ Updated [STATUS.md](STATUS.md), [DONE.md](DONE.md), and [ROADMAP.md](ROADMAP.md) to reflect the new reattach behavior and current test totals.
 
 ## v0.2.5 - 2026-02-16
 
@@ -170,11 +171,11 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Tab headers for nested container layouts now use representative DockNode title/icon summaries (`Title +N`) instead of container class names.
 
 ### Documentation
-- ✅ Split repository workflow content out of `README.md` into dedicated `CONTRIBUTING.md` and `RELEASING.md` (`6f93d0a`).
+- ✅ Split repository workflow content out of [README.md](README.md) into dedicated [CONTRIBUTING.md](CONTRIBUTING.md) and [RELEASING.md](RELEASING.md) (`6f93d0a`).
 - ✅ Tightened markdown guardrails and clarified MIT personal/commercial usage wording (`34a5ac8`).
-- ✅ Refocused `STATUS.md` to open-issues-only tracking and moved completed-history logging fully to `CHANGELOG.md`.
-- ✅ Removed roadmap version-track metadata, moved overall progress to the top, and aligned roadmap fixed-item references to `CHANGELOG.md`.
-- ✅ Removed historical delta suffixes from `STATUS.md` current-state bullets and added roadmap update guidance for progress-percentage recalculation.
+- ✅ Refocused [STATUS.md](STATUS.md) to open-issues-only tracking and moved completed-history logging fully to [CHANGELOG.md](CHANGELOG.md).
+- ✅ Removed roadmap version-track metadata, moved overall progress to the top, and aligned roadmap fixed-item references to [CHANGELOG.md](CHANGELOG.md).
+- ✅ Removed historical delta suffixes from [STATUS.md](STATUS.md) current-state bullets and added roadmap update guidance for progress-percentage recalculation.
 - ✅ Updated README/STATUS/DONE/ROADMAP to reflect shortcut API baseline, app-level shortcut separation, and current test totals.
 - ✅ Updated README/STATUS/DONE/ROADMAP to reflect delivered context menus and remaining context-menu extensibility API work.
 
@@ -214,14 +215,14 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Switched to tag-driven versioning with `gradle-jgitver` (`fba9c60`).
 - ✅ Added automated MainDemo preview screenshot script and workflow rule for visual changes (`4640331`, `63f7340`).
 - ✅ Added split ratio API (`setRootSplitRatios(...)`, `setSplitRatios(...)`) and used it in MainDemo default layout (`0db6954`).
-- ✅ Cleaned repository workflow state (moved `AGENTS.md` to project root and removed legacy `.ai` folder) (`6852bf1`).
+- ✅ Cleaned repository workflow state (moved [AGENTS.md](AGENTS.md) to project root and removed legacy `.ai` folder) (`6852bf1`).
 
 ### Documentation
 - ✅ Synced roadmap/status/done docs with phase transitions and current state (`5f434da`, `2b9c5e0`, `8603d3b`).
 - ✅ Fixed markdown encoding/mojibake artifacts in roadmap/docs (`28d0683`).
 - ✅ Enforced markdown status-icon consistency and updated collaboration guardrails (`0d36555`).
 
-### Detailed History Migrated from `STATUS.md`
+### Detailed History Migrated from [STATUS.md](STATUS.md)
 - ✅ MainDemo close callbacks now prompt only for dirty editor nodes (Save / Don't Save / Cancel) before closing.
 - ✅ MainDemo added editor file actions (`Open Text File`, `Save Active Editor`, `Save Active Editor As`) with dirty-title markers.
 - ✅ Floating windows support close-to-hidden behavior and keep hidden-node workflows consistent.
@@ -261,7 +262,7 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Performed a broad readability/maintainability refactor pass across model, layout engine, drag service, and demo components.
 - ✅ Updated README/STATUS/DONE/ROADMAP for phase-1 closure and project orientation.
 
-### Detailed History Migrated from `STATUS.md`
+### Detailed History Migrated from [STATUS.md](STATUS.md)
 - ✅ Fixed critical DnD bug where operations stopped after first drop by rebuilding views on revision changes.
 - ✅ Fixed tab DnD regression where moved tabs lost drag capability due to stale layout-engine caches.
 - ✅ Fixed empty-container/orphaned-container regressions by reordering cleanup (flatten first, then cleanup).

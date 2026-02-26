@@ -86,25 +86,25 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `DemoNodeFactoryTest` (3 tests) - Unknown-node fallback strategy coverage (framework placeholder vs. demo custom fallback), plus SnapFX integration coverage for unsupported-type recovery with the default demo factory
 - ✅ `AboutDialogTest` (2 tests) - About dialog resources and credit link targets
 - ✅ `EditorCloseDecisionPolicyTest` (5 tests) - Deterministic close-decision behavior for dirty editor nodes
-- ✅ `MarkdownDocumentationConsistencyTest` (11 tests) - Documentation consistency guardrails (ROADMAP intro wording is no longer enforced via one exact sentence match)
+- ✅ `MarkdownDocumentationConsistencyTest` (4 tests) - Documentation consistency guardrails focused on Mojibake detection and icon-prefix validation (content-specific wording assertions removed)
 - ✅ CI flake guard for critical interaction suites (`SnapFXTest`, `DockFloatingWindowTest`, `DockDragServiceTest`) runs 3x per CI execution
 - ✅ `SnapFXTest` sidebar overlay width/resize-handle tests no longer prebuild the layout before reflective sidebar icon clicks, avoiding a CI-only async `requestRebuild()` race before the final scene build
-- ✅ All tests passing (313/313) ✅
-- ✅ **Testing Policy** established (TESTING_POLICY.md)
+- ✅ All tests passing (306/306) ✅
+- ✅ **Testing Policy** established ([TESTING_POLICY.md](TESTING_POLICY.md))
 - ✅ Mandatory regression tests for all bug fixes
 
 ### Documentation (11 files)
-- ✅ `README.md` - Project overview and quick start
-- ✅ `SETUP.md` - Development environment setup
-- ✅ `ARCHITECTURE.md` - Complete architecture documentation
-- ✅ `STATUS.md` - Current project status
-- ✅ `ROADMAP.md` - Future development plans
-- ✅ `DONE.md` - Completed features (this file)
-- ✅ `CHANGELOG.md` - Versioned release history grouped by tags
-- ✅ `TESTING_POLICY.md` - Stable testing rules and quality gates (policy-only)
-- ✅ `CONTRIBUTING.md` - Collaboration workflow, branch strategy, and PR quality gates
-- ✅ `RELEASING.md` - Maintainer release/versioning/tag and CI release flow
-- ✅ `AGENTS.md` - Persistent collaboration rules and workflow constraints
+- ✅ [README.md](README.md) - Project overview and quick start
+- ✅ [SETUP.md](SETUP.md) - Development environment setup
+- ✅ [ARCHITECTURE.md](ARCHITECTURE.md) - Complete architecture documentation
+- ✅ [STATUS.md](STATUS.md) - Current project status
+- ✅ [ROADMAP.md](ROADMAP.md) - Future development plans
+- ✅ [DONE.md](DONE.md) - Completed features (this file)
+- ✅ [CHANGELOG.md](CHANGELOG.md) - Versioned release history grouped by tags
+- ✅ [TESTING_POLICY.md](TESTING_POLICY.md) - Stable testing rules and quality gates (policy-only)
+- ✅ [CONTRIBUTING.md](CONTRIBUTING.md) - Collaboration workflow, branch strategy, and PR quality gates
+- ✅ [RELEASING.md](RELEASING.md) - Maintainer release/versioning/tag and CI release flow
+- ✅ [AGENTS.md](AGENTS.md) - Persistent collaboration rules and workflow constraints
 - ✅ README clarifies TitleBarMode.AUTO behavior and tab-only drag handling
 - ✅ README includes a MainDemo screenshot preview near the top
 - ✅ MainDemo preview screenshot (`docs/images/main-demo.png`) is regenerated after visual changes, including Phase-C sidebar testing controls
@@ -115,13 +115,13 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ README and SETUP license sections now state MIT licensing with explicit personal/commercial use support
 - ✅ README quick start is now framework-focused and excludes generic Gradle/module setup templates
 - ✅ README no longer includes repository-maintainer workflow sections (Versioning/Branch Strategy/CI/CD)
-- ✅ Removed README maintainer workflow sections are now documented in dedicated `CONTRIBUTING.md` and `RELEASING.md` guides
-- ✅ Historical project changes are now consolidated into `CHANGELOG.md` with release-tag grouping
-- ✅ `STATUS.md` now keeps open issues only; completed/fixed history is maintained in `CHANGELOG.md`
-- ✅ `ROADMAP.md` version-track section removed; overall progress is now first and legend follows directly for faster status scanning
-- ✅ `STATUS.md` wording now avoids historical delta suffixes in current-state bullets (for example `was ...` / `improved from ...`)
-- ✅ `ROADMAP.md` update instructions now include recalculating phase percentages and total completion
-- ✅ Issue tracking consolidated into STATUS.md; ROADMAP lists planned work only
+- ✅ Removed README maintainer workflow sections are now documented in dedicated [CONTRIBUTING.md](CONTRIBUTING.md) and [RELEASING.md](RELEASING.md) guides
+- ✅ Historical project changes are now consolidated into [CHANGELOG.md](CHANGELOG.md) with release-tag grouping
+- ✅ [STATUS.md](STATUS.md) now keeps open issues only; completed/fixed history is maintained in [CHANGELOG.md](CHANGELOG.md)
+- ✅ [ROADMAP.md](ROADMAP.md) version-track section removed; overall progress is now first and legend follows directly for faster status scanning
+- ✅ [STATUS.md](STATUS.md) wording now avoids historical delta suffixes in current-state bullets (for example `was ...` / `improved from ...`)
+- ✅ [ROADMAP.md](ROADMAP.md) update instructions now include recalculating phase percentages and total completion
+- ✅ Issue tracking consolidated into [STATUS.md](STATUS.md); ROADMAP lists planned work only
 - ✅ Fixed markdown encoding artifacts (Unicode icon Mojibake) in roadmap/docs content
 - ✅ Documentation scope is now explicit: `STATUS` = current, `ROADMAP` = planned, `DONE` = completed, `TESTING_POLICY` = rules-only
 - ✅ AGENTS collaboration rules now require per-fix commit message body lines and method extraction for multi-statement UI callbacks
