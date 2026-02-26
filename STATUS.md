@@ -153,6 +153,7 @@
 - ✅ DockGraphSplitTargetDockingTest (1 test)
 - ✅ DockDragServiceTest (8 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, and ESC drag-cancel handling
 - ✅ Gradle multi-module split baseline is in place: framework code/resources now live in `snapfx-core`, demo code/resources in `snapfx-demo`, and tests are now split across both modules (root test task remains a no-source aggregator entry)
+- ✅ Gradle publish namespace baseline now uses `org.snapfx` (domain-backed) to prepare Maven Central coordinates for `snapfx-core`
 - ✅ DockFloatingWindowTest (31 tests) - Floating title bar controls, context menu behavior (attach/pin icons + attach action), floating-header sidebar move-menu callback forwarding, pin behavior, icon rendering/sync regression coverage, single-node float-menu policy, maximize/restore interaction behavior, scene-level drag continuity (including release/reset and non-primary guard behavior), resize-min constraints, interactive-target cursor reliability, and floating/main edge snapping behavior (including overlap-guard, adjacent-edge cases, and main-window shadow-inset compensation)
 - ✅ DockFloatingSnapEngineTest (6 tests) - Snap candidate scoring, overlap-aware candidate generation, and shadow-inset compensation behavior
 - ✅ DockDebugOverlayTest (2 tests) - HUD layout-state defaults (managed + pref-sized panel background) and live diagnostics refresh coverage for mutated drag-state updates (`Target`/`Zone` no longer stuck at `none`)
@@ -201,6 +202,7 @@
 ### Documentation (100% ✅)
 - ✅ [README.md](README.md) updated
 - ✅ README now embeds the SnapFX SVG logo from `snapfx-demo/src/main/resources/images/snapfx.svg`
+- ✅ README quick start now states planned Maven Central coordinates `org.snapfx:snapfx-core`
 - ✅ [ARCHITECTURE.md](ARCHITECTURE.md) complete and corrected
 - ✅ [SETUP.md](SETUP.md)
 - ✅ [DONE.md](DONE.md)

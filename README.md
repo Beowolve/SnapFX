@@ -62,6 +62,7 @@ A high-performance, lightweight JavaFX docking framework that behaves like nativ
 ## Quick Start
 
 Maven Central dependency coordinates will be documented here once the first Maven Central release is published.
+Planned coordinates for the first release: `org.snapfx:snapfx-core`.
 
 ### Simple Example
 

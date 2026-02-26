@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.javafx)
 }
 
-group = "com.github.beowolve"
+group = "org.snapfx"
 val javafxModules = listOf("javafx.controls")
 val javaVersion = JavaVersion.VERSION_21
 val javafxRuntimeVersion = javaVersion.majorVersion

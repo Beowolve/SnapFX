@@ -11,6 +11,7 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Hardened `SnapFXTest` sidebar overlay width/resize-handle tests against a CI-only async sidebar rebuild race by removing an unnecessary prebuild step before reflective sidebar icon clicks.
 - ✅ Simplified `MarkdownDocumentationConsistencyTest` to keep non-brittle guardrails only (Mojibake detection and markdown status-bullet icon-prefix checks), removing content-specific wording assertions.
 - ✅ Split the Gradle project into `snapfx-core` (framework code/resources/tests) and `snapfx-demo` (demo app/resources/tests) modules, and updated the markdown consistency test to resolve markdown files from the repository root after the test move.
+- ✅ Switched the Gradle `groupId` baseline to `org.snapfx` after registering the project domain (`snapfx.org`), preparing Maven Central publishing coordinates for `snapfx-core`.
 
 ### Framework and UI
 - ✅ Fixed `DockDebugOverlay` HUD rendering and diagnostics behavior used by MainDemo debugging: the HUD panel now lays out correctly with visible background (no top-left clipping), and target/zone text updates live during active drags instead of staying at `none`.
