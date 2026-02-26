@@ -279,6 +279,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Split the Gradle project into `snapfx-core` (framework code/resources) and `snapfx-demo` (demo app/resources), and moved framework/demo tests into the corresponding modules (root remains a no-source aggregator)
 - ✅ Switched the Gradle publish namespace baseline to `org.snapfx` (backed by `snapfx.org`) to prepare Maven Central coordinates for `snapfx-core`
 - ✅ Renamed Java package and JPMS module namespaces from `com.github.beowolve.snapfx...` to `org.snapfx...` across `snapfx-core` and `snapfx-demo`
+- ✅ Ignored `.idea/` entirely and removed tracked IntelliJ project/workspace metadata from Git to keep the public repository clean and editor-agnostic
 - ✅ Completed `runSimpleExample` Gradle task for launching `SimpleExample` with JavaFX module runtime support.
 - ✅ `SimpleExample` now logs a warning through `System.Logger` when `snapfx.css` is missing, without requiring a logging framework dependency.
 - ✅ Added GitHub Actions CI workflow for push/PR validation with `./gradlew test` on JDK 21.

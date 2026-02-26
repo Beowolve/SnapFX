@@ -398,6 +398,7 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 - ✅ **Core/demo module split baseline**: Gradle project now separates framework code/resources/tests (`snapfx-core`) from demo app code/resources/tests (`snapfx-demo`); root now acts as the aggregate Gradle entry point
 - ✅ **Domain-backed Maven namespace baseline**: Gradle publish namespace now uses `org.snapfx` (aligned with `snapfx.org`) and README documents planned first-release coordinates `org.snapfx:snapfx-core`
 - ✅ **Package/module namespace baseline**: Java packages and JPMS module names now use `org.snapfx...` across core/demo code and tests
+- ✅ **Repository metadata hygiene baseline**: `.idea/` is fully ignored and tracked IntelliJ workspace/project metadata has been removed from Git
 - 📋 **Maven Central**: Publish to Maven Central
 - 📋 **jlink support**: Create custom runtime images
 - 📋 **jpackage support**: Native installers
