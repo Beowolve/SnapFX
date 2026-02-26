@@ -1,6 +1,6 @@
 /**
  * SnapFX - A lightweight JavaFX docking framework
- * This module provides a complete docking system with drag & drop support,
+ * This module provides a complete docking system with drag &amp; drop support,
  * layout persistence, and a clean separation between model and view.
  */
 module org.snapfx {

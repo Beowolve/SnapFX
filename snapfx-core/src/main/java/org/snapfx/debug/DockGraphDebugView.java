@@ -34,7 +34,7 @@ import java.util.Objects;
 /**
  * Debug view that visualizes the current DockGraph structure.
  * <p>
- * It also highlights active D&D state (dragged node, current drop target, drop position)
+ * It also highlights active D&amp;D state (dragged node, current drop target, drop position)
  * by observing the {@link DockDragService}.
  */
 public class DockGraphDebugView extends BorderPane {

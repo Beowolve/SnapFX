@@ -17,7 +17,7 @@ import javafx.scene.text.Text;
 import java.util.Objects;
 
 /**
- * Lightweight debug overlay that renders the current D&D state as a small HUD.
+ * Lightweight debug overlay that renders the current D&amp;D state as a small HUD.
  */
 public class DockDebugOverlay extends StackPane {
     private final DockDragService dragService;

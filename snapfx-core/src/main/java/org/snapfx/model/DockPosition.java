@@ -1,7 +1,7 @@
 package org.snapfx.model;
 
 /**
- * Represents the different docking zones used during drag & drop.
+ * Represents the different docking zones used during drag &amp; drop.
  */
 public enum DockPosition {
     TOP,    // Split top

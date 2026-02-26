@@ -1,5 +1,9 @@
+import org.gradle.api.publish.maven.MavenPublication
+
 plugins {
     `java-library`
+    `maven-publish`
+    signing
     alias(libs.plugins.javafx)
 }
 
@@ -11,6 +15,8 @@ java {
     sourceCompatibility = javaVersion
     targetCompatibility = javaVersion
     modularity.inferModulePath.set(true)
+    withSourcesJar()
+    withJavadocJar()
 }
 
 javafx {
@@ -54,5 +60,56 @@ tasks.test {
             "--add-opens", "javafx.graphics/com.sun.javafx.application=ALL-UNNAMED",
             "--add-exports", "javafx.graphics/com.sun.glass.ui=ALL-UNNAMED"
         )
+    }
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components["java"])
+            artifactId = "snapfx-core"
+
+            pom {
+                name.set("SnapFX Core")
+                description.set("A lightweight JavaFX docking framework with drag-and-drop, floating windows, and layout persistence.")
+                url.set("https://snapfx.org")
+
+                licenses {
+                    license {
+                        name.set("MIT License")
+                        url.set("https://opensource.org/licenses/MIT")
+                        distribution.set("repo")
+                    }
+                }
+
+                developers {
+                    developer {
+                        id.set("beowolve")
+                        name.set("Beowolve")
+                    }
+                }
+
+                scm {
+                    url.set("https://github.com/Beowolve/SnapFX")
+                    connection.set("scm:git:https://github.com/Beowolve/SnapFX.git")
+                    developerConnection.set("scm:git:ssh://git@github.com/Beowolve/SnapFX.git")
+                }
+            }
+        }
+    }
+}
+
+signing {
+    // Signing remains optional for local dry runs; CI/real releases can provide keys via env/Gradle properties.
+    val signingKey = providers.gradleProperty("signingInMemoryKey")
+        .orElse(providers.environmentVariable("SIGNING_KEY"))
+        .orNull
+    val signingPassword = providers.gradleProperty("signingInMemoryKeyPassword")
+        .orElse(providers.environmentVariable("SIGNING_PASSWORD"))
+        .orNull
+
+    if (!signingKey.isNullOrBlank()) {
+        useInMemoryPgpKeys(signingKey, signingPassword)
+        sign(publishing.publications["mavenJava"])
     }
 }

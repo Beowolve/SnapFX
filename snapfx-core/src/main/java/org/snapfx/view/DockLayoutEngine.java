@@ -306,7 +306,7 @@ public class DockLayoutEngine {
     /**
      * Creates a Tab for the given DockElement. For DockNode, the tab header contains icon and title.
      * For containers, the tab label/icon is derived from the representative DockNode.
-     * Handles drag & drop and close events.
+     * Handles drag &amp; drop and close events.
      * @param element The DockElement to represent as a Tab
      * @return The created Tab
      */
@@ -733,7 +733,7 @@ public class DockLayoutEngine {
     }
 
     /**
-     * Sets up drag handlers for a tab header to enable D&D for DockNode tabs.
+     * Sets up drag handlers for a tab header to enable D&amp;D for DockNode tabs.
      * @param tab The Tab
      * @param dockNode The DockNode
      */
@@ -1394,7 +1394,7 @@ public class DockLayoutEngine {
     }
 
     /**
-     * Helper class to represent a candidate for D&D target selection.
+     * Helper class to represent a candidate for D&amp;D target selection.
      */
     private static class TargetCandidate {
         final DockElement element;

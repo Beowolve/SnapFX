@@ -399,6 +399,7 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 - ✅ **Domain-backed Maven namespace baseline**: Gradle publish namespace now uses `org.snapfx` (aligned with `snapfx.org`) and README documents planned first-release coordinates `org.snapfx:snapfx-core`
 - ✅ **Package/module namespace baseline**: Java packages and JPMS module names now use `org.snapfx...` across core/demo code and tests
 - ✅ **Repository metadata hygiene baseline**: `.idea/` is fully ignored and tracked IntelliJ workspace/project metadata has been removed from Git
+- ✅ **Maven publish dry-run baseline (`snapfx-core`)**: `maven-publish` + optional signing wiring, `sourcesJar`/`javadocJar`, and POM metadata are in place; local `:snapfx-core:publishToMavenLocal` succeeds
 - 📋 **Maven Central**: Publish to Maven Central
 - 📋 **jlink support**: Create custom runtime images
 - 📋 **jpackage support**: Native installers

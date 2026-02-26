@@ -5,7 +5,7 @@ import org.snapfx.model.DockNode;
 import org.snapfx.model.DockPosition;
 
 /**
- * Data transfer object for drag & drop operations.
+ * Data transfer object for drag &amp; drop operations.
  */
 public class DockDragData {
     private final DockNode draggedNode;

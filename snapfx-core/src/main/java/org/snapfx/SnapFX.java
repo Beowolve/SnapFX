@@ -1557,7 +1557,7 @@ public class SnapFX {
     }
 
     /**
-     * Locks or unlocks the layout (disables drag & drop when locked).
+     * Locks or unlocks the layout (disables drag &amp; drop when locked).
      */
     public void setLocked(boolean locked) {
         dockGraph.setLocked(locked);

@@ -42,7 +42,7 @@ import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 
 /**
- * Central service for drag & drop operations.
+ * Central service for drag &amp; drop operations.
  * Manages the drag state and coordinates visual feedback.
  */
 @SuppressWarnings("unused")
