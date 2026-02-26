@@ -3,7 +3,7 @@
  * This module provides a complete docking system with drag & drop support,
  * layout persistence, and a clean separation between model and view.
  */
-module com.github.beowolve.snapfx {
+module org.snapfx {
     // JavaFX dependencies
     requires javafx.controls;
     requires javafx.graphics;
@@ -14,18 +14,18 @@ module com.github.beowolve.snapfx {
     requires com.google.gson;
 
     // Export public API packages
-    exports com.github.beowolve.snapfx;
-    exports com.github.beowolve.snapfx.close;
-    exports com.github.beowolve.snapfx.model;
-    exports com.github.beowolve.snapfx.view;
-    exports com.github.beowolve.snapfx.floating;
-    exports com.github.beowolve.snapfx.dnd;
-    exports com.github.beowolve.snapfx.persistence;
-    exports com.github.beowolve.snapfx.debug;
-    exports com.github.beowolve.snapfx.sidebar;
+    exports org.snapfx;
+    exports org.snapfx.close;
+    exports org.snapfx.model;
+    exports org.snapfx.view;
+    exports org.snapfx.floating;
+    exports org.snapfx.dnd;
+    exports org.snapfx.persistence;
+    exports org.snapfx.debug;
+    exports org.snapfx.sidebar;
 
     // Open packages for reflection (needed by Gson for serialization)
-    opens com.github.beowolve.snapfx.model to com.google.gson;
-    opens com.github.beowolve.snapfx.persistence to com.google.gson;
+    opens org.snapfx.model to com.google.gson;
+    opens org.snapfx.persistence to com.google.gson;
 }
 

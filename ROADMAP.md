@@ -107,7 +107,7 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 - ✅ **MainDemo FileChooser consolidation**: Layout and editor open/save dialogs now share reusable chooser builders, filter constants, and save-default resolution helpers
 - ✅ **Theme runtime switching API**: `initialize(...)` now auto-applies the default SnapFX stylesheet, `setThemeStylesheet(...)` updates primary/floating scenes at runtime, and built-in themes are exposed as an ordered named catalog (`Light`, `Dark`) via list/map helpers
 - ✅ **MainDemo theme selector**: Settings tab now reads themes from the SnapFX named catalog and switches styles via API
-- ✅ **Theme modularization**: Theme catalog metadata and stylesheet apply/resolve logic are extracted from `SnapFX` into dedicated classes under `com.github.beowolve.snapfx.theme`
+- ✅ **Theme modularization**: Theme catalog metadata and stylesheet apply/resolve logic are extracted from `SnapFX` into dedicated classes under `org.snapfx.theme`
 - ✅ **MainDemo layout menu icon parity**: Hidden/Floating menu entries display dock-node icons when available
 - ✅ **Maximize/restore**: Custom floating title-bar toggle implemented
 - ✅ **Maximized drag restore**: Dragging the title bar from maximized restores and moves the window
@@ -397,6 +397,7 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 - ✅ **Version catalog migration**: Build script now sources plugin/dependency versions from `gradle/libs.versions.toml` to reduce duplicated version literals
 - ✅ **Core/demo module split baseline**: Gradle project now separates framework code/resources/tests (`snapfx-core`) from demo app code/resources/tests (`snapfx-demo`); root now acts as the aggregate Gradle entry point
 - ✅ **Domain-backed Maven namespace baseline**: Gradle publish namespace now uses `org.snapfx` (aligned with `snapfx.org`) and README documents planned first-release coordinates `org.snapfx:snapfx-core`
+- ✅ **Package/module namespace baseline**: Java packages and JPMS module names now use `org.snapfx...` across core/demo code and tests
 - 📋 **Maven Central**: Publish to Maven Central
 - 📋 **jlink support**: Create custom runtime images
 - 📋 **jpackage support**: Native installers

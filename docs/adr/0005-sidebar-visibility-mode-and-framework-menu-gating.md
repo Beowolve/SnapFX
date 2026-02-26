@@ -16,7 +16,7 @@ This policy should be controlled by a single framework API, similar to `DockTitl
 
 ## Decision
 
-Introduce `DockSideBarMode` in `com.github.beowolve.snapfx.sidebar` with three values:
+Introduce `DockSideBarMode` in `org.snapfx.sidebar` with three values:
 
 - `ALWAYS`: always render left/right sidebar strips, even when empty
 - `AUTO` (default): render sidebars only when pinned sidebar nodes exist

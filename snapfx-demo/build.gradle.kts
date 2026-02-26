@@ -31,15 +31,15 @@ dependencies {
 }
 
 application {
-    mainClass.set("com.github.beowolve.snapfx.demo.MainDemo")
-    mainModule.set("com.github.beowolve.snapfx.demo")
+    mainClass.set("org.snapfx.demo.MainDemo")
+    mainModule.set("org.snapfx.demo")
 }
 
 tasks.register<JavaExec>("captureMainDemoScreenshot") {
     group = "documentation"
     description = "Launches MainDemo and updates docs/images/main-demo.png"
 
-    mainClass.set("com.github.beowolve.snapfx.demo.MainDemoScreenshotGenerator")
+    mainClass.set("org.snapfx.demo.MainDemoScreenshotGenerator")
     classpath = sourceSets.main.get().runtimeClasspath
 
     val outputPath = (project.findProperty("snapfxScreenshotOutput") as String?)
@@ -51,8 +51,8 @@ tasks.register<JavaExec>("runSimpleExample") {
     group = "application"
     description = "Runs SimpleExample via module launch (includes JavaFX runtime + snapfx.css)"
 
-    mainModule.set("com.github.beowolve.snapfx.demo")
-    mainClass.set("com.github.beowolve.snapfx.demo.SimpleExample")
+    mainModule.set("org.snapfx.demo")
+    mainClass.set("org.snapfx.demo.SimpleExample")
     classpath = sourceSets.main.get().runtimeClasspath
 }
 

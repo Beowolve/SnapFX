@@ -193,7 +193,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ **Runtime theme API + auto stylesheet wiring**: `initialize(...)` now applies the default SnapFX stylesheet automatically; `setThemeStylesheet(...)` switches theme at runtime for primary and floating scenes
 - ✅ **Dark theme resource**: Added `snapfx-dark.css` and integrated theme switching in MainDemo settings
 - ✅ **Named theme catalog API**: SnapFX now exposes built-in themes as ordered name/path metadata (`Light`/`Dark`) via list/map helpers
-- ✅ **Theme logic modularization**: Stylesheet catalog + apply/resolve logic moved out of `SnapFX` into `com.github.beowolve.snapfx.theme`
+- ✅ **Theme logic modularization**: Stylesheet catalog + apply/resolve logic moved out of `SnapFX` into `org.snapfx.theme`
 - ✅ **View Caching**: Performance optimization through view reuse
 
 ### Drag & Drop (Baseline + Critical Bug Fixes)
@@ -278,6 +278,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 ### Build & Deployment
 - ✅ Split the Gradle project into `snapfx-core` (framework code/resources) and `snapfx-demo` (demo app/resources), and moved framework/demo tests into the corresponding modules (root remains a no-source aggregator)
 - ✅ Switched the Gradle publish namespace baseline to `org.snapfx` (backed by `snapfx.org`) to prepare Maven Central coordinates for `snapfx-core`
+- ✅ Renamed Java package and JPMS module namespaces from `com.github.beowolve.snapfx...` to `org.snapfx...` across `snapfx-core` and `snapfx-demo`
 - ✅ Completed `runSimpleExample` Gradle task for launching `SimpleExample` with JavaFX module runtime support.
 - ✅ `SimpleExample` now logs a warning through `System.Logger` when `snapfx.css` is missing, without requiring a logging framework dependency.
 - ✅ Added GitHub Actions CI workflow for push/PR validation with `./gradlew test` on JDK 21.

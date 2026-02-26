@@ -484,7 +484,7 @@ try {
 }
 ```
 
-Theme stylesheet internals are encapsulated in `com.github.beowolve.snapfx.theme`:
+Theme stylesheet internals are encapsulated in `org.snapfx.theme`:
 
 - `DockThemeCatalog`: built-in named theme map/list (`Light`, `Dark`)
 - `DockThemeStylesheetManager`: path/url resolution and scene stylesheet application

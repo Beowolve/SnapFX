@@ -67,7 +67,7 @@ Planned coordinates for the first release: `org.snapfx:snapfx-core`.
 ### Simple Example
 
 ```java
-import com.github.beowolve.snapfx.SnapFX;
+import org.snapfx.SnapFX;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.TextArea;

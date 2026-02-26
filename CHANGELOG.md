@@ -12,6 +12,7 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Simplified `MarkdownDocumentationConsistencyTest` to keep non-brittle guardrails only (Mojibake detection and markdown status-bullet icon-prefix checks), removing content-specific wording assertions.
 - ✅ Split the Gradle project into `snapfx-core` (framework code/resources/tests) and `snapfx-demo` (demo app/resources/tests) modules, and updated the markdown consistency test to resolve markdown files from the repository root after the test move.
 - ✅ Switched the Gradle `groupId` baseline to `org.snapfx` after registering the project domain (`snapfx.org`), preparing Maven Central publishing coordinates for `snapfx-core`.
+- ✅ Renamed Java package and JPMS module namespaces from `com.github.beowolve.snapfx...` to `org.snapfx...` across core/demo sources and tests (including demo launch configuration and documentation references).
 
 ### Framework and UI
 - ✅ Fixed `DockDebugOverlay` HUD rendering and diagnostics behavior used by MainDemo debugging: the HUD panel now lays out correctly with visible background (no top-left clipping), and target/zone text updates live during active drags instead of staying at `none`.
@@ -95,7 +96,7 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ SnapFX now applies the default stylesheet automatically during `initialize(...)` and exposes runtime theme switching via `setThemeStylesheet(...)`.
 - ✅ Added `snapfx-dark.css` and wired a theme selector into MainDemo Settings so light/dark switching uses the SnapFX API live.
 - ✅ Replaced theme-ID handling with a simpler named theme catalog (`Light`, `Dark`) exposed via `SnapFX.getAvailableThemeStylesheets()` / `getAvailableThemeNames()`, while keeping path-based `setThemeStylesheet(...)`.
-- ✅ Extracted stylesheet resolution/application logic from `SnapFX` into dedicated classes under `com.github.beowolve.snapfx.theme` (`DockThemeCatalog`, `DockThemeStylesheetManager`) to reduce `SnapFX` complexity.
+- ✅ Extracted stylesheet resolution/application logic from `SnapFX` into dedicated classes under `org.snapfx.theme` (`DockThemeCatalog`, `DockThemeStylesheetManager`) to reduce `SnapFX` complexity.
 
 ### Maintainability and Collaboration
 - ✅ Introduced `DockThemeStyleClasses`, replacing hardcoded style class constants with members of this class for better maintainability and consistency across the codebase.
