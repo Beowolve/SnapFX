@@ -152,6 +152,7 @@
 - ✅ **SnapFXTest (94 tests)** - Hide/Restore + Floating Window API tests plus configurable shortcut behavior, floating-window snap API propagation/validation, side-bar facade API behavior (pin/restore, lock-aware pinned-open state, save/load roundtrip preservation), side-bar panel width API/roundtrip coverage, framework sidebar build-layout rendering structure coverage (collapsed strip vs. pinned/overlay panels, resize handle presence, width runtime clamping, right-overlay resize-handle pick/z-order regression coverage, sidebar overlay width/resize-handle CI race hardening in tests, and sidebar visibility mode rendering behavior for `AUTO`/`ALWAYS`/`NEVER`), configurable pinned-sidebar active-icon collapse policy coverage, sidebar-restore placement regression coverage for collapsed tab-parent fallback, sidebar strip/panel context-menu action and lock-state coverage, invalid-load failure handling, persistence edge-case coverage for complex floating snapshots, unknown-type layout recovery, unresolved floating-sub-layout D&D detach behavior, floating reattach placement restore/fallback behavior for both float-button and unresolved-drag detach paths, three-window floating-layout detach/attach roundtrip regression coverage (top-left/top-right/bottom cases), detach-close-remaining-attach host-restore fallback coverage, and theme stylesheet API behavior (initialize auto-apply + runtime switching + named theme catalog exposure)
 - ✅ DockGraphSplitTargetDockingTest (1 test)
 - ✅ DockDragServiceTest (8 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, and ESC drag-cancel handling
+- ✅ Gradle multi-module split baseline is in place: framework code/resources now live in `snapfx-core`, demo code/resources in `snapfx-demo`, and tests are now split across both modules (root test task remains a no-source aggregator entry)
 - ✅ DockFloatingWindowTest (31 tests) - Floating title bar controls, context menu behavior (attach/pin icons + attach action), floating-header sidebar move-menu callback forwarding, pin behavior, icon rendering/sync regression coverage, single-node float-menu policy, maximize/restore interaction behavior, scene-level drag continuity (including release/reset and non-primary guard behavior), resize-min constraints, interactive-target cursor reliability, and floating/main edge snapping behavior (including overlap-guard, adjacent-edge cases, and main-window shadow-inset compensation)
 - ✅ DockFloatingSnapEngineTest (6 tests) - Snap candidate scoring, overlap-aware candidate generation, and shadow-inset compensation behavior
 - ✅ DockDebugOverlayTest (2 tests) - HUD layout-state defaults (managed + pref-sized panel background) and live diagnostics refresh coverage for mutated drag-state updates (`Target`/`Zone` no longer stuck at `none`)
@@ -199,7 +200,7 @@
 
 ### Documentation (100% ✅)
 - ✅ [README.md](README.md) updated
-- ✅ README now embeds the SnapFX SVG logo from `src/main/resources/images/snapfx.svg`
+- ✅ README now embeds the SnapFX SVG logo from `snapfx-demo/src/main/resources/images/snapfx.svg`
 - ✅ [ARCHITECTURE.md](ARCHITECTURE.md) complete and corrected
 - ✅ [SETUP.md](SETUP.md)
 - ✅ [DONE.md](DONE.md)

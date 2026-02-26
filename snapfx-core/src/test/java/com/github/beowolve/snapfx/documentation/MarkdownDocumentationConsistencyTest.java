@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MarkdownDocumentationConsistencyTest {
     private static final List<String> STATUS_DOCS = List.of("STATUS.md", "DONE.md", "ROADMAP.md", "CHANGELOG.md");
+    private static final Path PROJECT_ROOT = locateProjectRoot();
 
     private static final String ICON_CHECKMARK = "\u2705"; // ✅
     private static final String ICON_IN_PROGRESS = "\uD83D\uDEA7"; // 🚧
@@ -93,7 +94,7 @@ class MarkdownDocumentationConsistencyTest {
     }
 
     private String readProjectFile(String fileName) throws IOException {
-        return Files.readString(Path.of(fileName), StandardCharsets.UTF_8);
+        return Files.readString(PROJECT_ROOT.resolve(fileName), StandardCharsets.UTF_8);
     }
 
     private void assertAllBulletsUsePrefixes(
@@ -135,4 +136,16 @@ class MarkdownDocumentationConsistencyTest {
         return bullets;
     }
 
+    private static Path locateProjectRoot() {
+        Path current = Path.of("").toAbsolutePath().normalize();
+        while (current != null) {
+            if (Files.exists(current.resolve("settings.gradle.kts"))
+                && Files.exists(current.resolve("README.md"))
+                && Files.exists(current.resolve("ROADMAP.md"))) {
+                return current;
+            }
+            current = current.getParent();
+        }
+        throw new IllegalStateException("Could not locate repository root for markdown documentation tests.");
+    }
 }

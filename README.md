@@ -1,7 +1,7 @@
 # SnapFX - Lightweight JavaFX Docking Framework
 
 <p align="center">
-  <img src="src/main/resources/images/snapfx.svg" alt="SnapFX Logo" width="180">
+  <img src="snapfx-demo/src/main/resources/images/snapfx.svg" alt="SnapFX Logo" width="180">
 </p>
 
 A high-performance, lightweight JavaFX docking framework that behaves like native professional software (IntelliJ, Visual Studio).

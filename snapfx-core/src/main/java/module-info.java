@@ -22,9 +22,7 @@ module com.github.beowolve.snapfx {
     exports com.github.beowolve.snapfx.dnd;
     exports com.github.beowolve.snapfx.persistence;
     exports com.github.beowolve.snapfx.debug;
-
-    // Demo package is exported for running the demo application
-    exports com.github.beowolve.snapfx.demo;
+    exports com.github.beowolve.snapfx.sidebar;
 
     // Open packages for reflection (needed by Gson for serialization)
     opens com.github.beowolve.snapfx.model to com.google.gson;

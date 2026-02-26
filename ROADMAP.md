@@ -395,6 +395,7 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 - ✅ **Test JVM arg cleanup**: Removed obsolete JavaFX `--add-opens/--add-exports` flags to avoid classpath-run warning noise
 - ✅ **JavaFX module-path test launch**: Gradle test runtime now moves required JavaFX jars to `--module-path` and applies TestFX access flags to avoid unnamed-module startup warnings and reflective-access stack traces
 - ✅ **Version catalog migration**: Build script now sources plugin/dependency versions from `gradle/libs.versions.toml` to reduce duplicated version literals
+- ✅ **Core/demo module split baseline**: Gradle project now separates framework code/resources/tests (`snapfx-core`) from demo app code/resources/tests (`snapfx-demo`); root now acts as the aggregate Gradle entry point
 - 📋 **Maven Central**: Publish to Maven Central
 - 📋 **jlink support**: Create custom runtime images
 - 📋 **jpackage support**: Native installers
