@@ -13,6 +13,7 @@
 ✅ **CI Stability Guard**: Critical interaction test suites run 3x per CI execution to catch flakes early
 
 ✅ **CI Module-Split Alignment**: Critical stability suites now run `:snapfx-core:test` with `org.snapfx...` test filters
+✅ **Release Module-Split Alignment**: Tag release workflow now builds `:snapfx-demo` distributions explicitly and publishes artifacts from split module output paths
 
 ## Documentation Scope
 

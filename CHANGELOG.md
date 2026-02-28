@@ -7,6 +7,7 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 ## Unreleased
 
 ### Build and Test
+- ✅ Aligned release workflow build tasks and artifact upload paths with split modules (`:snapfx-demo:distZip`/`:distTar`, `snapfx-demo/build/distributions/*`, `snapfx-core/build/libs/*`).
 - ✅ Fixed CI stability-check filters after the core/demo split by targeting `:snapfx-core:test` with `org.snapfx...` test classes.
 - ✅ Added `DockDebugOverlayTest` coverage for HUD layout defaults (managed pref-sized panel + background presence) and live target/zone diagnostics refresh when drag data mutates in place.
 - ✅ Hardened `SnapFXTest` sidebar overlay width/resize-handle tests against a CI-only async sidebar rebuild race by removing an unnecessary prebuild step before reflective sidebar icon clicks.

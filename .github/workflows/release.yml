@@ -30,7 +30,7 @@ jobs:
         run: git fetch --force --tags
 
       - name: Build and test
-        run: xvfb-run -a ./gradlew --no-daemon clean test distZip distTar
+        run: xvfb-run -a ./gradlew --no-daemon clean test :snapfx-demo:distZip :snapfx-demo:distTar
 
       - name: Generate release notes (git-cliff)
         id: git-cliff
@@ -50,6 +50,6 @@ jobs:
           fail_on_unmatched_files: true
           prerelease: ${{ contains(github.ref_name, '-') }}
           files: |
-            build/distributions/*.zip
-            build/distributions/*.tar
-            build/libs/*.jar
+            snapfx-demo/build/distributions/*.zip
+            snapfx-demo/build/distributions/*.tar
+            snapfx-core/build/libs/*.jar
