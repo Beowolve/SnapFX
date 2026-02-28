@@ -7,10 +7,17 @@ plugins {
 val javafxModules = listOf("javafx.controls")
 val javaVersion = JavaVersion.VERSION_21
 val javafxRuntimeVersion = javaVersion.majorVersion
-val normalizedJPackageVersion = Regex("""^\d+\.\d+\.\d+""")
+val normalizedJPackageVersion = Regex("""^v?(\d+)\.(\d+)\.(\d+)""")
     .find(project.version.toString())
-    ?.value
-    ?: "0.0.0"
+    ?.destructured
+    ?.let { (major, minor, patch) ->
+        // macOS jpackage requires appVersion major >= 1.
+        // TODO(v1): Remove this major-floor workaround after the first real v1.x release,
+        // so demo appVersion matches the core/project version again.
+        val appMajor = major.toIntOrNull()?.coerceAtLeast(1) ?: 1
+        "$appMajor.$minor.$patch"
+    }
+    ?: "1.0.0"
 val jpackageIconFileName = when {
     System.getProperty("os.name").lowercase().contains("win") -> "snapfx.ico"
     System.getProperty("os.name").lowercase().contains("mac") -> "snapfx.icns"
