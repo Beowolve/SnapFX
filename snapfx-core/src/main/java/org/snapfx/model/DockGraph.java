@@ -38,6 +38,9 @@ public class DockGraph {
     private final EnumMap<Side, DoubleProperty> sideBarPanelWidths;
     private long layoutIdCounter = 0; // Counter for generating unique layout IDs
 
+    /**
+     * Creates an empty dock graph with default sidebar state.
+     */
     public DockGraph() {
         this.locked = new SimpleBooleanProperty(false);
         this.revision = new SimpleLongProperty(0);
@@ -55,6 +58,11 @@ public class DockGraph {
         }
     }
 
+    /**
+     * Returns the observable structural revision counter.
+     *
+     * @return revision property incremented on structural updates
+     */
     public LongProperty revisionProperty() {
         return revision;
     }
@@ -69,6 +77,8 @@ public class DockGraph {
 
     /**
      * Returns the root element of the dock graph, or null if the graph is empty.
+     *
+     * @return root element, or {@code null}
      */
     public DockElement getRoot() {
         return root.get();
@@ -76,6 +86,8 @@ public class DockGraph {
 
     /**
      * Returns the root property of the dock graph.
+     *
+     * @return root property
      */
     public ObjectProperty<DockElement> rootProperty() {
         return root;
@@ -121,6 +133,8 @@ public class DockGraph {
     /**
      * Resets the layout ID counter to a specific value.
      * Used during deserialization to continue from the highest ID in the loaded layout.
+     *
+     * @param counter new layout ID counter value
      */
     public void setLayoutIdCounter(long counter) {
         this.layoutIdCounter = counter;
@@ -128,6 +142,8 @@ public class DockGraph {
 
     /**
      * Returns the current layout ID counter value.
+     *
+     * @return current layout ID counter
      */
     public long getLayoutIdCounter() {
         return layoutIdCounter;
@@ -136,6 +152,8 @@ public class DockGraph {
     /**
      * Returns true if the graph is currently locked. When locked, all mutating operations (dock, undock, move) are no-ops.
      * This can be used to temporarily disable updates while performing batch modifications or during layout loading.
+     *
+     * @return {@code true} when structural mutations are locked
      */
     public boolean isLocked() {
         return locked.get();
@@ -144,6 +162,8 @@ public class DockGraph {
     /**
      * Returns the locked property. When locked, all mutating operations (dock, undock, move) are no-ops.
      * This can be used to temporarily disable updates while performing batch modifications or during layout loading.
+     *
+     * @return locked-state property
      */
     public BooleanProperty lockedProperty() {
         return locked;
@@ -152,6 +172,8 @@ public class DockGraph {
     /**
      * Locks or unlocks the graph. When locked, all mutating operations (dock, undock, move) are no-ops.
      * This can be used to temporarily disable updates while performing batch modifications or during layout loading.
+     *
+     * @param locked {@code true} to lock structural mutations
      */
     public void setLocked(boolean locked) {
         this.locked.set(locked);
@@ -159,6 +181,9 @@ public class DockGraph {
 
     /**
      * Returns the read-only list of pinned nodes for a sidebar side.
+     *
+     * @param side sidebar side
+     * @return read-only pinned-node list for the side
      */
     public ObservableList<DockNode> getSideBarNodes(Side side) {
         if (side == null) {
@@ -169,6 +194,9 @@ public class DockGraph {
 
     /**
      * Returns whether the sidebar for the given side is pinned-open (layout-consuming).
+     *
+     * @param side sidebar side
+     * @return {@code true} when the sidebar is pinned-open
      */
     public boolean isSideBarPinnedOpen(Side side) {
         if (side == null) {
@@ -180,6 +208,9 @@ public class DockGraph {
 
     /**
      * Returns the pinned-open state property for a sidebar side.
+     *
+     * @param side sidebar side
+     * @return pinned-open state property for the side
      */
     public BooleanProperty sideBarPinnedOpenProperty(Side side) {
         if (side == null) {
@@ -190,6 +221,9 @@ public class DockGraph {
 
     /**
      * Sets whether a sidebar is pinned-open (layout-consuming) or collapsed to the icon strip.
+     *
+     * @param side sidebar side
+     * @param pinnedOpen pinned-open state
      */
     public void setSideBarPinnedOpen(Side side, boolean pinnedOpen) {
         if (side == null || isLocked()) {
@@ -205,6 +239,8 @@ public class DockGraph {
 
     /**
      * Convenience method to pin-open a sidebar.
+     *
+     * @param side sidebar side
      */
     public void pinOpenSideBar(Side side) {
         setSideBarPinnedOpen(side, true);
@@ -212,6 +248,8 @@ public class DockGraph {
 
     /**
      * Convenience method to collapse a pinned sidebar back to strip mode.
+     *
+     * @param side sidebar side
      */
     public void collapsePinnedSideBar(Side side) {
         setSideBarPinnedOpen(side, false);
@@ -222,6 +260,9 @@ public class DockGraph {
      *
      * <p>This is a persisted preference value. View hosts (for example {@code SnapFX}) may apply additional runtime
      * clamping depending on scene size and resize policies.</p>
+     *
+     * @param side sidebar side
+     * @return preferred panel width in pixels
      */
     public double getSideBarPanelWidth(Side side) {
         if (side == null) {
@@ -239,6 +280,9 @@ public class DockGraph {
      * Returns the preferred sidebar panel width property for the given side.
      *
      * <p>The property stores the persisted preferred width. Consumers should clamp it at render time as needed.</p>
+     *
+     * @param side sidebar side
+     * @return preferred panel-width property for the side
      */
     public DoubleProperty sideBarPanelWidthProperty(Side side) {
         if (side == null) {
@@ -252,6 +296,9 @@ public class DockGraph {
      *
      * <p>This updates a persisted view preference and is intentionally allowed while the graph is locked because it
      * does not mutate the docking structure.</p>
+     *
+     * @param side sidebar side
+     * @param width preferred panel width in pixels
      */
     public void setSideBarPanelWidth(Side side, double width) {
         if (side == null || !Double.isFinite(width) || width <= 0.0) {
@@ -270,6 +317,9 @@ public class DockGraph {
      *
      * <p>Pinning preserves the sidebar's current pinned-open/collapsed state. Newly pinned nodes therefore stay
      * collapsed by default unless callers explicitly open the sidebar via {@link #pinOpenSideBar(Side)}.</p>
+     *
+     * @param node node to pin
+     * @param side target sidebar side
      */
     public void pinToSideBar(DockNode node, Side side) {
         pinToSideBarInternal(node, side, null);
@@ -280,6 +330,10 @@ public class DockGraph {
      *
      * <p>If the node is already pinned on the same side, this reorders the sidebar entry. The index is clamped
      * into the valid insertion range {@code [0..size]}.</p>
+     *
+     * @param node node to pin
+     * @param side target sidebar side
+     * @param index desired insertion index
      */
     public void pinToSideBar(DockNode node, Side side, int index) {
         pinToSideBarInternal(node, side, index);
@@ -336,6 +390,8 @@ public class DockGraph {
 
     /**
      * Restores a pinned sidebar node back to the main layout using remembered placement or a root fallback.
+     *
+     * @param node pinned sidebar node to restore
      */
     public void restoreFromSideBar(DockNode node) {
         if (node == null || isLocked()) {
@@ -356,6 +412,9 @@ public class DockGraph {
 
     /**
      * Returns whether a node is currently pinned in any sidebar.
+     *
+     * @param node node to check
+     * @return {@code true} when the node is pinned
      */
     public boolean isPinnedToSideBar(DockNode node) {
         return findPinnedSide(node) != null;
@@ -363,6 +422,9 @@ public class DockGraph {
 
     /**
      * Returns the sidebar side the node is pinned to, or {@code null} if it is not pinned.
+     *
+     * @param node node to check
+     * @return pinned side, or {@code null}
      */
     public Side getPinnedSide(DockNode node) {
         return findPinnedSide(node);
@@ -374,6 +436,7 @@ public class DockGraph {
      * <p>This is primarily used by higher-level hosts (for example {@code SnapFX}) that apply a custom
      * restore strategy after removing the node from the sidebar.</p>
      *
+     * @param node node to unpin
      * @return {@code true} if the node was removed from a sidebar; otherwise {@code false}
      */
     public boolean unpinFromSideBar(DockNode node) {
@@ -731,6 +794,8 @@ public class DockGraph {
 
     /**
      * Removes a DockNode from the graph.
+     *
+     * @param node node to remove
      */
     public void undock(DockNode node) {
         if (node == null) {
@@ -781,6 +846,10 @@ public class DockGraph {
 
     /**
      * Moves a DockNode from one position to another.
+     *
+     * @param node node to move
+     * @param target target element
+     * @param position target dock position
      */
     public void move(DockNode node, DockElement target, DockPosition position) {
         move(node, target, position, null);
@@ -788,6 +857,11 @@ public class DockGraph {
 
     /**
      * Moves a DockNode from one position to another with optional tab index.
+     *
+     * @param node node to move
+     * @param target target element
+     * @param position target dock position
+     * @param tabIndex target tab insertion index, or {@code null}
      */
     public void move(DockNode node, DockElement target, DockPosition position, Integer tabIndex) {
         if (node == null) {
@@ -1070,6 +1144,9 @@ public class DockGraph {
 
     /**
      * Finds a dock element by layout ID across the main layout and pinned sidebars.
+     *
+     * @param layoutId layout ID to search
+     * @return matching element, or {@code null}
      */
     public DockElement findElementByLayoutId(String layoutId) {
         if (layoutId == null) {
@@ -1095,6 +1172,12 @@ public class DockGraph {
         return null;
     }
 
+    /**
+     * Counts dock nodes by logical dock-node ID across main layout and sidebars.
+     *
+     * @param dockNodeId logical dock-node ID to count
+     * @return total count across all containers
+     */
     public int getDockNodeCount(String dockNodeId) {
         if (dockNodeId == null) {
             return 0;

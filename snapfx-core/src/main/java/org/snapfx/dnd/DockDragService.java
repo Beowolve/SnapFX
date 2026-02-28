@@ -75,12 +75,19 @@ public class DockDragService {
     private final EventHandler<KeyEvent> dragCancelKeyHandler = this::handleDragCancelKeyPressed;
     private final List<Scene> dragCancelScenes = new ArrayList<>();
 
+    /**
+     * Creates a drag service bound to one dock graph.
+     *
+     * @param dockGraph dock graph updated by drag/drop operations
+     */
     public DockDragService(DockGraph dockGraph) {
         this.dockGraph = dockGraph;
     }
 
     /**
      * Initializes the service with the primary stage.
+     *
+     * @param stage primary stage hosting the main dock scene
      */
     public void initialize(Stage stage) {
         this.mainStage = stage;
@@ -212,6 +219,9 @@ public class DockDragService {
     /**
      * Prepares for a potential drag operation (called on mouse press).
      * Actual dragging starts only after threshold is exceeded.
+     *
+     * @param node node that should be dragged
+     * @param event source mouse-press event
      */
     public void startDrag(DockNode node, MouseEvent event) {
         // Only allow dragging with left mouse button
@@ -281,6 +291,8 @@ public class DockDragService {
     /**
      * Updates the drag position (called on mouse drag).
      * Activates drag only after threshold is exceeded.
+     *
+     * @param event source drag event
      */
     public void updateDrag(MouseEvent event) {
         if (currentDrag == null) return;
@@ -451,6 +463,8 @@ public class DockDragService {
 
     /**
      * Ends the drag operation and performs the dock operation.
+     *
+     * @param event source mouse-release event, may be {@code null} for programmatic endings
      */
     public void endDrag(MouseEvent event) {
         if (currentDrag == null) {
@@ -533,39 +547,84 @@ public class DockDragService {
         }
     }
 
+    /**
+     * Returns whether a drag operation is currently active.
+     *
+     * @return {@code true} when drag data is currently tracked
+     */
     public boolean isDragging() {
         return currentDrag != null;
     }
 
+    /**
+     * Returns the current drag data snapshot.
+     *
+     * @return current drag data, or {@code null} when not dragging
+     */
     @SuppressWarnings("unused")
     public DockDragData getCurrentDrag() {
         return currentDrag;
     }
 
+    /**
+     * Sets the layout engine used for hit-testing and drop-zone collection.
+     *
+     * @param layoutEngine layout engine bound to the active dock scene
+     */
     public void setLayoutEngine(DockLayoutEngine layoutEngine) {
         this.layoutEngine = layoutEngine;
     }
 
+    /**
+     * Sets the callback for unresolved drop requests that should detach to floating windows.
+     *
+     * @param onFloatDetachRequest detach callback, or {@code null}
+     */
     public void setOnFloatDetachRequest(Consumer<FloatDetachRequest> onFloatDetachRequest) {
         this.onFloatDetachRequest = onFloatDetachRequest;
     }
 
+    /**
+     * Sets the callback for resolved drop requests.
+     *
+     * @param onDropRequest drop callback, or {@code null}
+     */
     public void setOnDropRequest(Consumer<DropRequest> onDropRequest) {
         this.onDropRequest = onDropRequest;
     }
 
+    /**
+     * Sets the callback invoked while pointer hover updates during drag.
+     *
+     * @param onDragHover hover callback, or {@code null}
+     */
     public void setOnDragHover(Consumer<DragHoverEvent> onDragHover) {
         this.onDragHover = onDragHover;
     }
 
+    /**
+     * Sets a callback invoked after drag completion or cancellation.
+     *
+     * @param onDragFinished completion callback, or {@code null}
+     */
     public void setOnDragFinished(Runnable onDragFinished) {
         this.onDragFinished = onDragFinished;
     }
 
+    /**
+     * Sets an optional predicate that can suppress main-scene drop handling for given screen coordinates.
+     *
+     * @param suppressMainDropAtScreenPoint suppression predicate, or {@code null}
+     */
     public void setSuppressMainDropAtScreenPoint(BiPredicate<Double, Double> suppressMainDropAtScreenPoint) {
         this.suppressMainDropAtScreenPoint = suppressMainDropAtScreenPoint;
     }
 
+    /**
+     * Returns the observable drag-data property.
+     *
+     * @return property that mirrors current drag lifecycle
+     */
     public ObjectProperty<DockDragData> currentDragProperty() {
         return currentDragProperty;
     }
@@ -596,6 +655,9 @@ public class DockDragService {
     private static class DockGhostOverlay extends StackPane {
         private final ImageView ghostView;
 
+        /**
+         * Creates a lightweight image host for the dragged node snapshot.
+         */
         public DockGhostOverlay() {
             setMouseTransparent(true);
             setPickOnBounds(false);
@@ -609,6 +671,11 @@ public class DockDragService {
             getChildren().add(ghostView);
         }
 
+        /**
+         * Updates the rendered ghost image.
+         *
+         * @param img drag snapshot image, or {@code null} to hide
+         */
         public void setImage(Image img) {
             if (img != null) {
                 ghostView.setImage(img);
@@ -621,6 +688,9 @@ public class DockDragService {
             }
         }
 
+        /**
+         * Recomputes preferred bounds from the active image.
+         */
         public void updatePosition() {
             double w = ghostView.getBoundsInLocal().getWidth();
             double h = ghostView.getBoundsInLocal().getHeight();
@@ -642,6 +712,9 @@ public class DockDragService {
             requestLayout();
         }
 
+        /**
+         * Hides the ghost overlay and clears its image.
+         */
         public void hide() {
             setVisible(false);
             ghostView.setImage(null);
@@ -655,6 +728,9 @@ public class DockDragService {
         private final Rectangle indicator;
         private final Line insertLine;
 
+        /**
+         * Creates an overlay indicator for the currently active drop zone.
+         */
         public DockDropIndicator() {
             setMouseTransparent(true);
             setVisible(false);
@@ -673,6 +749,12 @@ public class DockDragService {
             getChildren().addAll(indicator, insertLine);
         }
 
+        /**
+         * Shows the indicator for one drop-zone bounds and optional tab insert line.
+         *
+         * @param bounds target bounds in scene coordinates
+         * @param insertLineX optional tab insert x-position in scene coordinates
+         */
         public void show(Bounds bounds, Double insertLineX) {
             Point2D topLeft = sceneToLocal(bounds.getMinX(), bounds.getMinY());
             Point2D bottomRight = sceneToLocal(bounds.getMaxX(), bounds.getMaxY());
@@ -702,6 +784,9 @@ public class DockDragService {
             }
         }
 
+        /**
+         * Hides all drop indicator visuals.
+         */
         public void hide() {
             setVisible(false);
             insertLine.setVisible(false);
@@ -714,11 +799,19 @@ public class DockDragService {
     private static class DockDropZonesOverlay extends Pane {
         private final List<Rectangle> rectangles = new java.util.ArrayList<>();
 
+        /**
+         * Creates an overlay layer that paints all candidate drop zones.
+         */
         public DockDropZonesOverlay() {
             setMouseTransparent(true);
             setVisible(false);
         }
 
+        /**
+         * Renders the provided drop-zone set.
+         *
+         * @param zones drop zones to render
+         */
         public void showZones(List<DockDropZone> zones) {
             getChildren().clear();
             rectangles.clear();
@@ -747,6 +840,9 @@ public class DockDragService {
             setVisible(true);
         }
 
+        /**
+         * Clears and hides all rendered drop zones.
+         */
         public void hide() {
             setVisible(false);
             getChildren().clear();
@@ -876,10 +972,20 @@ public class DockDragService {
             && suppressMainDropAtScreenPoint.test(screenX, screenY);
     }
 
+    /**
+     * Returns the current drop-zone visualization mode.
+     *
+     * @return active visualization mode
+     */
     public DockDropVisualizationMode getDropVisualizationMode() {
         return dropVisualizationMode;
     }
 
+    /**
+     * Sets the drop-zone visualization mode.
+     *
+     * @param mode visualization mode, ignored when {@code null}
+     */
     public void setDropVisualizationMode(DockDropVisualizationMode mode) {
         if (mode != null) {
             this.dropVisualizationMode = mode;
@@ -894,12 +1000,34 @@ public class DockDragService {
         return true;
     }
 
+    /**
+     * Immutable callback payload used for float-detach requests.
+     *
+     * @param draggedNode dragged node to detach
+     * @param screenX pointer x-coordinate in screen space
+     * @param screenY pointer y-coordinate in screen space
+     */
     public record FloatDetachRequest(DockNode draggedNode, double screenX, double screenY) {
     }
 
+    /**
+     * Immutable callback payload used for accepted dock-drop requests.
+     *
+     * @param draggedNode dragged node to move
+     * @param target drop target element
+     * @param position drop position on target
+     * @param tabIndex target tab index for tab insert operations, or {@code null}
+     */
     public record DropRequest(DockNode draggedNode, DockElement target, DockPosition position, Integer tabIndex) {
     }
 
+    /**
+     * Immutable callback payload emitted while drag hover coordinates update.
+     *
+     * @param draggedNode currently dragged node
+     * @param screenX pointer x-coordinate in screen space
+     * @param screenY pointer y-coordinate in screen space
+     */
     public record DragHoverEvent(DockNode draggedNode, double screenX, double screenY) {
     }
 

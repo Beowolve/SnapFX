@@ -19,6 +19,7 @@
 ✅ **Release Smoke Validation Baseline**: `RELEASING.md` now defines a practical smoke policy (required on at least one local OS, cross-OS manual checks as nice-to-have) plus per-OS start commands and a minimal checklist; an optional CI startup-smoke scope is documented.
 
 ✅ **Release-Ready Version Strategy**: Roadmap/releasing docs now define an explicit `0.5.x` to `0.9.x` readiness lane with RC drill tags and a controlled `1.0.0` public-launch cut.
+🚧 **JavaDoc Completion Track (`0.5.x`)**: Public API JavaDoc remediation is active; `:snapfx-core:javadoc` runs successfully and remaining warning hotspots are now concentrated in `SnapFX`, `DockNode`, persistence API docs, and selected view APIs.
 
 ## Documentation Scope
 
@@ -234,12 +235,13 @@
 - ⚠️ Memory: Automated heap profiling in CI not implemented
 - ⚠️ UI: Global interaction animations missing (only About dialog easter egg animation exists; tracked in [ROADMAP.md](ROADMAP.md) Phase 3.3)
 - ⚠️ UI: Context-menu extensibility API for custom menu items is not implemented yet (tracked in [ROADMAP.md](ROADMAP.md) Phase 3.2)
+- ⚠️ Documentation: Public API JavaDoc is not warning-free yet; remaining warnings are being closed as part of the `0.5.x` documentation baseline.
 
 ## Next Steps
 
 See [ROADMAP.md](ROADMAP.md) for detailed future development plans.
 
-**Priority**: Sidebar Phase 2 interaction parity and the `DockDebugOverlay` HUD follow-up are complete for the current scope; next focus returns to the broader Phase 3 UX backlog (context-menu extensibility API and global interaction animation polish).
+**Priority**: Release-readiness documentation baseline (`0.5.x`) is active: complete warning-free public API JavaDoc, then continue with GitHub Pages API publishing (`0.6.x`).
 
 ---
 

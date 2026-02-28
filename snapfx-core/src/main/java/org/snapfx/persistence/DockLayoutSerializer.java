@@ -17,12 +17,18 @@ import java.util.Map;
  * Stores the full tree structure including positions and split percentages.
  */
 public class DockLayoutSerializer {
+    /** Serialized type token for {@link DockNode}. */
     public static final String DOCK_NODE = "DockNode";
+    /** Serialized type token for {@link DockSplitPane}. */
     public static final String DOCK_SPLIT_PANE = "DockSplitPane";
+    /** Serialized type token for {@link DockTabPane}. */
     public static final String DOCK_TAB_PANE = "DockTabPane";
 
+    /** JSON suffix used for type validation errors. */
     public static final String TYPE_JSON_SUFFIX = ".type";
+    /** JSON suffix used for element ID validation errors. */
     public static final String ID_JSON_SUFFIX = ".id";
+    /** JSON suffix used for title validation errors. */
     public static final String TITLE_JSON_SUFFIX = ".title";
 
     private final DockGraph dockGraph;
@@ -30,6 +36,11 @@ public class DockLayoutSerializer {
     private final Map<String, DockNode> nodeRegistry;
     private DockNodeFactory nodeFactory;
 
+    /**
+     * Creates a serializer bound to one dock graph.
+     *
+     * @param dockGraph dock graph to serialize/deserialize
+     */
     public DockLayoutSerializer(DockGraph dockGraph) {
         this.dockGraph = dockGraph;
         this.nodeRegistry = new HashMap<>();
@@ -55,6 +66,8 @@ public class DockLayoutSerializer {
      * Registers a DockNode for serialization.
      * Note: With a DockNodeFactory set, registration is not strictly required,
      * as the factory will recreate nodes during deserialization.
+     *
+     * @param node node instance to register
      */
     public void registerNode(DockNode node) {
         nodeRegistry.put(node.getId(), node);
@@ -62,6 +75,8 @@ public class DockLayoutSerializer {
 
     /**
      * Serializes the DockGraph to JSON.
+     *
+     * @return serialized layout JSON document
      */
     public String serialize() {
         DockElement root = dockGraph.getRoot();
@@ -195,6 +210,7 @@ public class DockLayoutSerializer {
     /**
      * Deserializes JSON into a DockGraph.
      *
+     * @param json serialized layout JSON
      * @throws DockLayoutLoadException if the JSON is invalid or cannot be mapped to a valid layout
      */
     public void deserialize(String json) throws DockLayoutLoadException {

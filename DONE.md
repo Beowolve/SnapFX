@@ -132,6 +132,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Markdown documentation consistency tests now keep Unicode icon constants readable via inline icon comments
 
 - ✅ Release-readiness version lane planning is now documented (`0.5.x` to `0.9.x` readiness phases, RC drills, and controlled `1.0.0` public-launch cut policy).
+- ✅ Completed a first JavaDoc remediation pass for `snapfx-core` public API surfaces (model/view/dnd/floating/debug baselines plus API tag cleanup), validated by successful `:snapfx-core:javadoc` and full `./gradlew test`; remaining warnings are now tracked as the next `0.5.x` closure step.
 
 ### Resources
 - ✅ `snapfx.css` - Native Modena theme styling

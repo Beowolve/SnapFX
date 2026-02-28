@@ -40,6 +40,13 @@ public class DockNodeView extends VBox {
     private final ChangeListener<Node> contentListener;
     private ContextMenu headerContextMenu;
 
+    /**
+     * Creates a rendered dock-node view bound to model and drag service.
+     *
+     * @param dockNode model node to render
+     * @param dockGraph owning dock graph (used for default close action and lock state)
+     * @param dragService drag service used for header drag interactions
+     */
     public DockNodeView(DockNode dockNode, DockGraph dockGraph, DockDragService dragService) {
         this.dockNode = dockNode;
         this.dockGraph = dockGraph;
@@ -183,6 +190,11 @@ public class DockNodeView extends VBox {
         return icon;
     }
 
+    /**
+     * Sets the close action handler for the close button.
+     *
+     * @param handler close action callback, or {@code null}
+     */
     public void setOnCloseRequest(Runnable handler) {
         closeButton.setOnAction(e -> {
             if (handler != null) {
@@ -191,6 +203,11 @@ public class DockNodeView extends VBox {
         });
     }
 
+    /**
+     * Sets the float action handler for the float button.
+     *
+     * @param handler float action callback, or {@code null}
+     */
     public void setOnFloatRequest(Runnable handler) {
         floatButton.setOnAction(e -> {
             if (handler != null) {
@@ -199,6 +216,11 @@ public class DockNodeView extends VBox {
         });
     }
 
+    /**
+     * Binds close-button visibility to an external expression.
+     *
+     * @param expression visibility expression
+     */
     public void bindCloseButtonVisible(BooleanExpression expression) {
         if (expression == null) {
             return;
@@ -211,6 +233,11 @@ public class DockNodeView extends VBox {
         closeButton.managedProperty().bind(closeButton.visibleProperty());
     }
 
+    /**
+     * Sets close-button visibility directly.
+     *
+     * @param visible target visibility
+     */
     public void setCloseButtonVisible(boolean visible) {
         closeButton.visibleProperty().unbind();
         closeButton.setVisible(visible);
@@ -220,6 +247,11 @@ public class DockNodeView extends VBox {
         closeButton.setManaged(visible);
     }
 
+    /**
+     * Binds float-button visibility to an external expression.
+     *
+     * @param expression visibility expression
+     */
     public void bindFloatButtonVisible(BooleanExpression expression) {
         if (expression == null) {
             return;
@@ -232,6 +264,11 @@ public class DockNodeView extends VBox {
         floatButton.managedProperty().bind(floatButton.visibleProperty());
     }
 
+    /**
+     * Sets float-button visibility directly.
+     *
+     * @param visible target visibility
+     */
     public void setFloatButtonVisible(boolean visible) {
         floatButton.visibleProperty().unbind();
         floatButton.setVisible(visible);
@@ -241,18 +278,38 @@ public class DockNodeView extends VBox {
         floatButton.setManaged(visible);
     }
 
+    /**
+     * Returns whether the float button is visible.
+     *
+     * @return {@code true} when the float button is visible
+     */
     public boolean isFloatButtonVisible() {
         return floatButton.isVisible();
     }
 
+    /**
+     * Returns whether the close button is visible.
+     *
+     * @return {@code true} when the close button is visible
+     */
     public boolean isCloseButtonVisible() {
         return closeButton.isVisible();
     }
 
+    /**
+     * Returns the rendered dock-node model reference.
+     *
+     * @return bound dock node
+     */
     public DockNode getDockNode() {
         return dockNode;
     }
 
+    /**
+     * Returns the header container node.
+     *
+     * @return dock-node header
+     */
     public HBox getHeader() {
         return header;
     }
@@ -286,6 +343,11 @@ public class DockNodeView extends VBox {
         headerContextMenu.hide();
     }
 
+    /**
+     * Shows or hides the dock-node header.
+     *
+     * @param visible target header visibility
+     */
     public void setHeaderVisible(boolean visible) {
         header.setVisible(visible);
         header.setManaged(visible);

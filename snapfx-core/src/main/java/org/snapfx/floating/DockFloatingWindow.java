@@ -149,26 +149,63 @@ public final class DockFloatingWindow {
     private EnumSet<DockFloatingSnapTarget> snapTargets = EnumSet.noneOf(DockFloatingSnapTarget.class);
     private Supplier<List<DockFloatingWindow>> snapPeerWindowsSupplier;
 
+    /**
+     * Creates a floating window from one dock node using default title prefix and drag service.
+     *
+     * @param dockNode initial dock node shown in the floating window
+     */
     public DockFloatingWindow(DockNode dockNode) {
         this((DockElement) dockNode, TITLE_PREFIX, null);
     }
 
+    /**
+     * Creates a floating window from one dock node using default title prefix.
+     *
+     * @param dockNode initial dock node shown in the floating window
+     * @param dragService drag service used for floating-scene drag and drop interactions
+     */
     public DockFloatingWindow(DockNode dockNode, DockDragService dragService) {
         this((DockElement) dockNode, TITLE_PREFIX, dragService);
     }
 
+    /**
+     * Creates a floating window from one dock node and custom title prefix.
+     *
+     * @param dockNode initial dock node shown in the floating window
+     * @param titlePrefix title prefix used for generated floating-window titles
+     */
     public DockFloatingWindow(DockNode dockNode, String titlePrefix) {
         this((DockElement) dockNode, titlePrefix, null);
     }
 
+    /**
+     * Creates a floating window from one dock node and custom wiring.
+     *
+     * @param dockNode initial dock node shown in the floating window
+     * @param titlePrefix title prefix used for generated floating-window titles
+     * @param dragService drag service used for floating-scene drag and drop interactions
+     */
     public DockFloatingWindow(DockNode dockNode, String titlePrefix, DockDragService dragService) {
         this((DockElement) dockNode, titlePrefix, dragService);
     }
 
+    /**
+     * Creates a floating window from an existing layout subtree.
+     *
+     * @param floatingRoot layout subtree used as floating root
+     * @param dragService drag service used for floating-scene drag and drop interactions
+     */
     public DockFloatingWindow(DockElement floatingRoot, DockDragService dragService) {
         this(floatingRoot, TITLE_PREFIX, dragService);
     }
 
+    /**
+     * Creates a floating window from an existing layout subtree with custom title prefix.
+     *
+     * @param floatingRoot layout subtree used as floating root
+     * @param titlePrefix title prefix used for generated floating-window titles
+     * @param dragService drag service used for floating-scene drag and drop interactions
+     */
     public DockFloatingWindow(DockElement floatingRoot, String titlePrefix, DockDragService dragService) {
         this.id = UUID.randomUUID().toString();
         DockElement rootElement = Objects.requireNonNull(floatingRoot, "floatingRoot");
@@ -223,38 +260,76 @@ public final class DockFloatingWindow {
         return null;
     }
 
+    /**
+     * Returns the stable floating-window ID.
+     *
+     * @return floating-window ID
+     */
     public String getId() {
         return id;
     }
 
+    /**
+     * Returns the representative dock node used for title/icon fallbacks.
+     *
+     * @return representative dock node
+     */
     public DockNode getDockNode() {
         return primaryDockNode;
     }
 
+    /**
+     * Returns the dock graph hosted by this floating window.
+     *
+     * @return floating dock graph
+     */
     public DockGraph getDockGraph() {
         return floatingGraph;
     }
 
+    /**
+     * Returns all dock nodes currently contained in this floating window.
+     *
+     * @return contained dock nodes
+     */
     public List<DockNode> getDockNodes() {
         List<DockNode> nodes = new ArrayList<>();
         collectDockNodes(floatingGraph.getRoot(), nodes);
         return nodes;
     }
 
+    /**
+     * Returns whether the provided node is part of this floating window.
+     *
+     * @param node node to check
+     * @return {@code true} when the node is contained
+     */
     public boolean containsNode(DockNode node) {
         return findNode(floatingGraph.getRoot(), node);
     }
 
+    /**
+     * Returns whether this floating window has no layout root.
+     *
+     * @return {@code true} when the floating graph root is {@code null}
+     */
     public boolean isEmpty() {
         return floatingGraph.getRoot() == null;
     }
 
+    /**
+     * Returns whether the underlying stage is currently visible.
+     *
+     * @return {@code true} when the floating stage is showing
+     */
     public boolean isShowing() {
         return stage != null && stage.isShowing();
     }
 
     /**
      * Returns the current scene of this floating window, or {@code null} when not shown.
+     *
+     * @return floating window scene, or {@code null}
      */
     public Scene getScene() {
         if (stage == null) {
@@ -265,11 +340,21 @@ public final class DockFloatingWindow {
 
     /**
      * Returns whether the given scene belongs to this floating window.
+     *
+     * @param scene scene to check
+     * @return {@code true} when the scene belongs to this floating window
      */
     public boolean ownsScene(Scene scene) {
         return scene != null && stage != null && stage.getScene() == scene;
     }
 
+    /**
+     * Returns whether the given screen-space point hits this floating window content.
+     *
+     * @param screenX screen x-coordinate
+     * @param screenY screen y-coordinate
+     * @return {@code true} when the point is inside this floating scene
+     */
     public boolean containsScreenPoint(double screenX, double screenY) {
         if (stage == null || !stage.isShowing() || stage.getScene() == null) {
             return false;
@@ -282,6 +367,9 @@ public final class DockFloatingWindow {
         return scenePoint != null && sceneRoot.getBoundsInLocal().contains(scenePoint);
     }
 
+    /**
+     * Brings this floating window to the foreground.
+     */
     public void toFront() {
         if (stage != null && stage.isShowing()) {
             stage.toFront();
@@ -289,6 +377,12 @@ public final class DockFloatingWindow {
         }
     }
 
+    /**
+     * Updates the preferred screen position used for initial show/restore.
+     *
+     * @param screenX preferred screen x-coordinate, or {@code null}
+     * @param screenY preferred screen y-coordinate, or {@code null}
+     */
     public void setPreferredPosition(Double screenX, Double screenY) {
         preferredX = screenX;
         preferredY = screenY;
@@ -302,6 +396,12 @@ public final class DockFloatingWindow {
         }
     }
 
+    /**
+     * Updates the preferred floating window size.
+     *
+     * @param width preferred width (applied when {@code > 0})
+     * @param height preferred height (applied when {@code > 0})
+     */
     public void setPreferredSize(double width, double height) {
         if (width > 0) {
             preferredWidth = width;
@@ -315,22 +415,45 @@ public final class DockFloatingWindow {
         }
     }
 
+    /**
+     * Returns the preferred screen x-coordinate.
+     *
+     * @return preferred screen x-coordinate, or {@code null}
+     */
     public Double getPreferredX() {
         return preferredX;
     }
 
+    /**
+     * Returns the preferred screen y-coordinate.
+     *
+     * @return preferred screen y-coordinate, or {@code null}
+     */
     public Double getPreferredY() {
         return preferredY;
     }
 
+    /**
+     * Returns the preferred floating width.
+     *
+     * @return preferred width in pixels
+     */
     public double getPreferredWidth() {
         return preferredWidth;
     }
 
+    /**
+     * Returns the preferred floating height.
+     *
+     * @return preferred height in pixels
+     */
     public double getPreferredHeight() {
         return preferredHeight;
     }
 
+    /**
+     * Captures current stage bounds into preferred restore values.
+     */
     public void captureCurrentBounds() {
         if (stage == null || !stage.isShowing()) {
             return;
@@ -348,6 +471,11 @@ public final class DockFloatingWindow {
         preferredHeight = stage.getHeight();
     }
 
+    /**
+     * Shows this floating window and rebuilds its layout.
+     *
+     * @param ownerStage optional owner stage
+     */
     public void show(Stage ownerStage) {
         if (stage == null) {
             stage = createStage(ownerStage);
@@ -360,6 +488,9 @@ public final class DockFloatingWindow {
         rebuildLayout();
     }
 
+    /**
+     * Requests closing this floating window, respecting lock and close callbacks.
+     */
     public void close() {
         if (floatingGraph.isLocked()) {
             return;
@@ -370,36 +501,71 @@ public final class DockFloatingWindow {
         closeInternal(true);
     }
 
+    /**
+     * Closes this floating window without emitting close notifications.
+     */
     public void closeWithoutNotification() {
         closeInternal(false);
     }
 
+    /**
+     * Sets the callback invoked when the user requests "attach to layout".
+     *
+     * @param onAttachRequested attach callback, or {@code null}
+     */
     public void setOnAttachRequested(Runnable onAttachRequested) {
         this.onAttachRequested = onAttachRequested;
     }
 
+    /**
+     * Sets the callback invoked when this floating window is closed.
+     *
+     * @param onWindowClosed close callback, or {@code null}
+     */
     public void setOnWindowClosed(Consumer<DockFloatingWindow> onWindowClosed) {
         this.onWindowClosed = onWindowClosed;
     }
 
+    /**
+     * Sets the callback invoked when this floating window becomes active.
+     *
+     * @param onWindowActivated activation callback, or {@code null}
+     */
     public void setOnWindowActivated(Runnable onWindowActivated) {
         this.onWindowActivated = onWindowActivated;
     }
 
+    /**
+     * Sets the callback used to veto or allow floating-window close requests.
+     *
+     * @param onCloseRequested callback returning close permission, or {@code null}
+     */
     public void setOnCloseRequested(BooleanSupplier onCloseRequested) {
         this.onCloseRequested = onCloseRequested;
     }
 
+    /**
+     * Sets the callback for close requests initiated by inner dock nodes.
+     *
+     * @param onNodeCloseRequest callback receiving node + close source, or {@code null}
+     */
     public void setOnNodeCloseRequest(BiConsumer<DockNode, DockCloseSource> onNodeCloseRequest) {
         this.onNodeCloseRequest = onNodeCloseRequest;
     }
 
+    /**
+     * Sets the callback for float requests initiated by inner dock nodes.
+     *
+     * @param onNodeFloatRequest callback receiving the requested node, or {@code null}
+     */
     public void setOnNodeFloatRequest(Consumer<DockNode> onNodeFloatRequest) {
         this.onNodeFloatRequest = onNodeFloatRequest;
     }
 
     /**
      * Sets a callback used by inner dock-node context menus to move nodes into a SnapFX sidebar.
+     *
+     * @param onNodePinToSideBarRequest callback receiving node and target side, or {@code null}
      */
     public void setOnNodePinToSideBarRequest(BiConsumer<DockNode, Side> onNodePinToSideBarRequest) {
         this.onNodePinToSideBarRequest = onNodePinToSideBarRequest;
@@ -410,6 +576,8 @@ public final class DockFloatingWindow {
 
     /**
      * Enables or disables snapping while dragging the floating window title bar.
+     *
+     * @param enabled {@code true} to enable snapping
      */
     public void setSnappingEnabled(boolean enabled) {
         snappingEnabled = enabled;
@@ -417,6 +585,8 @@ public final class DockFloatingWindow {
 
     /**
      * Returns whether drag snapping is enabled.
+     *
+     * @return {@code true} when snapping is enabled
      */
     public boolean isSnappingEnabled() {
         return snappingEnabled;
@@ -424,6 +594,8 @@ public final class DockFloatingWindow {
 
     /**
      * Sets the snap distance in pixels.
+     *
+     * @param pixels snap tolerance in pixels (must be finite and >= 0)
      */
     public void setSnapDistance(double pixels) {
         if (Double.isFinite(pixels) && pixels >= 0.0) {
@@ -433,6 +605,8 @@ public final class DockFloatingWindow {
 
     /**
      * Returns the snap distance in pixels.
+     *
+     * @return snap tolerance in pixels
      */
     public double getSnapDistance() {
         return snapDistance;
@@ -440,6 +614,8 @@ public final class DockFloatingWindow {
 
     /**
      * Configures which snap targets are considered during drag.
+     *
+     * @param targets configured snap targets, {@code null} clears all targets
      */
     public void setSnapTargets(Set<DockFloatingSnapTarget> targets) {
         EnumSet<DockFloatingSnapTarget> resolvedTargets = EnumSet.noneOf(DockFloatingSnapTarget.class);
@@ -455,6 +631,8 @@ public final class DockFloatingWindow {
 
     /**
      * Returns the configured snap targets.
+     *
+     * @return immutable snapshot of configured snap targets
      */
     public Set<DockFloatingSnapTarget> getSnapTargets() {
         if (snapTargets.isEmpty()) {
@@ -465,6 +643,8 @@ public final class DockFloatingWindow {
 
     /**
      * Sets the supplier used to resolve other floating windows for snapping.
+     *
+     * @param supplier supplier returning candidate peer floating windows, or {@code null}
      */
     public void setSnapPeerWindowsSupplier(Supplier<List<DockFloatingWindow>> supplier) {
         snapPeerWindowsSupplier = supplier;
@@ -472,6 +652,8 @@ public final class DockFloatingWindow {
 
     /**
      * Returns whether the window is currently configured as always-on-top.
+     *
+     * @return {@code true} when always-on-top is enabled
      */
     public boolean isAlwaysOnTop() {
         if (stage != null) {
@@ -482,6 +664,8 @@ public final class DockFloatingWindow {
 
     /**
      * Sets always-on-top and marks the change as API-driven.
+     *
+     * @param value target always-on-top state
      */
     public void setAlwaysOnTop(boolean value) {
         setAlwaysOnTop(value, DockFloatingPinSource.API);
@@ -489,6 +673,9 @@ public final class DockFloatingWindow {
 
     /**
      * Sets always-on-top with an explicit change source.
+     *
+     * @param value target always-on-top state
+     * @param source source of the state change, defaults to {@link DockFloatingPinSource#API} when {@code null}
      */
     public void setAlwaysOnTop(boolean value, DockFloatingPinSource source) {
         DockFloatingPinSource effectiveSource = source == null ? DockFloatingPinSource.API : source;
@@ -497,6 +684,8 @@ public final class DockFloatingWindow {
 
     /**
      * Returns the pin-button visibility mode.
+     *
+     * @return configured pin-button mode
      */
     public DockFloatingPinButtonMode getPinButtonMode() {
         return pinButtonMode;
@@ -504,6 +693,8 @@ public final class DockFloatingWindow {
 
     /**
      * Sets the pin-button visibility mode.
+     *
+     * @param mode pin-button mode, defaults to {@link DockFloatingPinButtonMode#AUTO} when {@code null}
      */
     public void setPinButtonMode(DockFloatingPinButtonMode mode) {
         pinButtonMode = mode == null ? DockFloatingPinButtonMode.AUTO : mode;
@@ -512,6 +703,8 @@ public final class DockFloatingWindow {
 
     /**
      * Returns whether users may toggle always-on-top from the title bar.
+     *
+     * @return {@code true} when user pin toggling is enabled
      */
     public boolean isPinToggleEnabled() {
         return pinToggleEnabled;
@@ -519,6 +712,8 @@ public final class DockFloatingWindow {
 
     /**
      * Enables or disables title-bar pin toggling.
+     *
+     * @param enabled {@code true} to allow user pin toggling
      */
     public void setPinToggleEnabled(boolean enabled) {
         pinToggleEnabled = enabled;
@@ -527,6 +722,8 @@ public final class DockFloatingWindow {
 
     /**
      * Returns the lock-mode behavior used for the pin button.
+     *
+     * @return configured locked-mode pin behavior
      */
     public DockFloatingPinLockedBehavior getPinLockedBehavior() {
         return pinLockedBehavior;
@@ -534,6 +731,8 @@ public final class DockFloatingWindow {
 
     /**
      * Sets how the pin button behaves while the layout is locked.
+     *
+     * @param behavior locked-mode behavior, defaults to {@link DockFloatingPinLockedBehavior#ALLOW} when {@code null}
      */
     public void setPinLockedBehavior(DockFloatingPinLockedBehavior behavior) {
         pinLockedBehavior = behavior == null ? DockFloatingPinLockedBehavior.ALLOW : behavior;
@@ -542,31 +741,73 @@ public final class DockFloatingWindow {
 
     /**
      * Sets a callback that is invoked when always-on-top changes.
+     *
+     * @param onAlwaysOnTopChanged callback receiving state + change source, or {@code null}
      */
     public void setOnAlwaysOnTopChanged(BiConsumer<Boolean, DockFloatingPinSource> onAlwaysOnTopChanged) {
         this.onAlwaysOnTopChanged = onAlwaysOnTopChanged;
     }
 
+    /**
+     * Removes a node from this floating graph.
+     *
+     * @param node node to remove
+     */
     public void undockNode(DockNode node) {
         floatingGraph.undock(node);
     }
 
+    /**
+     * Docks a node into this floating graph.
+     *
+     * @param node node to dock
+     * @param target target element
+     * @param position target dock position
+     * @param tabIndex tab insert index for tab drops, or {@code null}
+     */
     public void dockNode(DockNode node, DockElement target, DockPosition position, Integer tabIndex) {
         floatingGraph.dock(node, target, position, tabIndex);
     }
 
+    /**
+     * Moves a node within this floating graph.
+     *
+     * @param node node to move
+     * @param target target element
+     * @param position target dock position
+     * @param tabIndex tab insert index for tab drops, or {@code null}
+     */
     public void moveNode(DockNode node, DockElement target, DockPosition position, Integer tabIndex) {
         floatingGraph.move(node, target, position, tabIndex);
     }
 
+    /**
+     * Routes an inner-node float request through the floating-window callback flow.
+     *
+     * @param node node that requested floating
+     */
     public void requestFloatForNode(DockNode node) {
         handleInnerNodeFloatRequest(node);
     }
 
+    /**
+     * Returns the rendered view for a dock node in this floating layout.
+     *
+     * @param node node whose view should be resolved
+     * @return rendered node view, or {@code null}
+     */
     public DockNodeView getDockNodeView(DockNode node) {
         return floatingLayoutEngine.getDockNodeView(node);
     }
 
+    /**
+     * Resolves the best drop target in this floating window for the given pointer position.
+     *
+     * @param screenX pointer x-coordinate in screen space
+     * @param screenY pointer y-coordinate in screen space
+     * @param draggedNode node currently being dragged
+     * @return resolved drop target, or {@code null} when none matches
+     */
     public DropTarget resolveDropTarget(double screenX, double screenY, DockNode draggedNode) {
         DropZoneResolution resolution = resolveDropZone(screenX, screenY, draggedNode, true);
         DockDropZone bestZone = resolution.activeZone();
@@ -582,6 +823,14 @@ public final class DockFloatingWindow {
         );
     }
 
+    /**
+     * Updates floating-window drop preview visuals for the given pointer position.
+     *
+     * @param draggedNode node currently being dragged
+     * @param screenX pointer x-coordinate in screen space
+     * @param screenY pointer y-coordinate in screen space
+     * @param visualizationMode drop visualization mode to apply
+     */
     public void updateDropPreview(
         DockNode draggedNode,
         double screenX,
@@ -611,6 +860,9 @@ public final class DockFloatingWindow {
         dropIndicator.show(activeZone.getBounds(), activeZone.getInsertLineX());
     }
 
+    /**
+     * Hides floating-window drop preview visuals.
+     */
     public void clearDropPreview() {
         dropIndicator.hide();
         dropZonesOverlay.hide();
@@ -2016,6 +2268,15 @@ public final class DockFloatingWindow {
         suppressCloseNotification = false;
     }
 
+    /**
+     * Immutable floating drop-target resolution result.
+     *
+     * @param target resolved dock target element
+     * @param position resolved dock position
+     * @param tabIndex resolved tab insertion index, or {@code null}
+     * @param depth resolved target depth
+     * @param area resolved drop-zone area in square pixels
+     */
     public record DropTarget(DockElement target, DockPosition position, Integer tabIndex, int depth, double area) {
     }
 

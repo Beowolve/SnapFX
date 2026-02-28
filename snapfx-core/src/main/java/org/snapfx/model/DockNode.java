@@ -17,8 +17,13 @@ import java.util.UUID;
  * </ul>
  */
 public class DockNode implements DockElement {
+    /**
+     * Defines where a hidden node should be restored.
+     */
     public enum HiddenRestoreTarget {
+        /** Restore into docked layout. */
         DOCKED,
+        /** Restore into floating layout. */
         FLOATING
     }
 
@@ -45,6 +50,9 @@ public class DockNode implements DockElement {
      * Creates a DockNode with an auto-generated UUID as both dockNodeId and layoutId.
      * Note: UUIDs change between sessions, making persistence unreliable.
      * For proper save/load support, use the constructor with a custom dockNodeId.
+     *
+     * @param content JavaFX content node
+     * @param title node title
      */
     public DockNode(Node content, String title) {
         this(UUID.randomUUID().toString(), content, title);
@@ -82,6 +90,8 @@ public class DockNode implements DockElement {
     /**
      * Returns the type-based dockNodeId used by the factory.
      * This ID identifies the type of node (e.g., "editor", "console").
+     *
+     * @return type-based dock-node ID
      */
     public String getDockNodeId() {
         return dockNodeId;
@@ -90,6 +100,8 @@ public class DockNode implements DockElement {
     /**
      * Sets the unique layout ID for this node instance.
      * This is called by the framework when the node is added to a layout.
+     *
+     * @param layoutId unique layout instance ID
      */
     public void setLayoutId(String layoutId) {
         this.layoutId = layoutId;
@@ -99,6 +111,11 @@ public class DockNode implements DockElement {
         return title.get();
     }
 
+    /**
+     * Returns the observable title property.
+     *
+     * @return title property
+     */
     public StringProperty titleProperty() {
         return title;
     }
@@ -111,6 +128,11 @@ public class DockNode implements DockElement {
         return content.get();
     }
 
+    /**
+     * Returns the observable content property.
+     *
+     * @return content property
+     */
     public ObjectProperty<Node> contentProperty() {
         return content;
     }
@@ -123,6 +145,11 @@ public class DockNode implements DockElement {
         return icon.get();
     }
 
+    /**
+     * Returns the observable icon property.
+     *
+     * @return icon property
+     */
     public ObjectProperty<Image> iconProperty() {
         return icon;
     }
@@ -135,6 +162,11 @@ public class DockNode implements DockElement {
         return closeable.get();
     }
 
+    /**
+     * Returns the observable closeable property.
+     *
+     * @return closeable property
+     */
     public BooleanProperty closeableProperty() {
         return closeable;
     }
@@ -153,64 +185,136 @@ public class DockNode implements DockElement {
         this.parent = parent;
     }
 
+    /**
+     * Returns the remembered restore target element used for hidden/sidebar/floating restore flows.
+     *
+     * @return last known target element, or {@code null}
+     */
     public DockElement getLastKnownTarget() {
         return lastKnownTarget;
     }
 
+    /**
+     * Sets the remembered restore target element.
+     *
+     * @param lastKnownTarget remembered target element, or {@code null}
+     */
     public void setLastKnownTarget(DockElement lastKnownTarget) {
         this.lastKnownTarget = lastKnownTarget;
     }
 
+    /**
+     * Returns the remembered restore dock position.
+     *
+     * @return last known dock position, or {@code null}
+     */
     public DockPosition getLastKnownPosition() {
         return lastKnownPosition;
     }
 
+    /**
+     * Sets the remembered restore dock position.
+     *
+     * @param lastKnownPosition remembered dock position, or {@code null}
+     */
     public void setLastKnownPosition(DockPosition lastKnownPosition) {
         this.lastKnownPosition = lastKnownPosition;
     }
 
+    /**
+     * Returns the remembered tab index for center/tab restores.
+     *
+     * @return last known tab index, or {@code null}
+     */
     public Integer getLastKnownTabIndex() {
         return lastKnownTabIndex;
     }
 
+    /**
+     * Sets the remembered tab index for center/tab restores.
+     *
+     * @param lastKnownTabIndex remembered tab index, or {@code null}
+     */
     public void setLastKnownTabIndex(Integer lastKnownTabIndex) {
         this.lastKnownTabIndex = lastKnownTabIndex;
     }
 
+    /**
+     * Returns the remembered floating x-position.
+     *
+     * @return last known floating x-position, or {@code null}
+     */
     public Double getLastFloatingX() {
         return lastFloatingX;
     }
 
+    /**
+     * Sets the remembered floating x-position.
+     *
+     * @param lastFloatingX floating x-position, or {@code null}
+     */
     public void setLastFloatingX(Double lastFloatingX) {
         this.lastFloatingX = lastFloatingX;
     }
 
+    /**
+     * Returns the remembered floating y-position.
+     *
+     * @return last known floating y-position, or {@code null}
+     */
     public Double getLastFloatingY() {
         return lastFloatingY;
     }
 
+    /**
+     * Sets the remembered floating y-position.
+     *
+     * @param lastFloatingY floating y-position, or {@code null}
+     */
     public void setLastFloatingY(Double lastFloatingY) {
         this.lastFloatingY = lastFloatingY;
     }
 
+    /**
+     * Returns the remembered floating width.
+     *
+     * @return last known floating width, or {@code null}
+     */
     public Double getLastFloatingWidth() {
         return lastFloatingWidth;
     }
 
+    /**
+     * Sets the remembered floating width.
+     *
+     * @param lastFloatingWidth floating width, or {@code null}
+     */
     public void setLastFloatingWidth(Double lastFloatingWidth) {
         this.lastFloatingWidth = lastFloatingWidth;
     }
 
+    /**
+     * Returns the remembered floating height.
+     *
+     * @return last known floating height, or {@code null}
+     */
     public Double getLastFloatingHeight() {
         return lastFloatingHeight;
     }
 
+    /**
+     * Sets the remembered floating height.
+     *
+     * @param lastFloatingHeight floating height, or {@code null}
+     */
     public void setLastFloatingHeight(Double lastFloatingHeight) {
         this.lastFloatingHeight = lastFloatingHeight;
     }
 
     /**
      * Returns the last known floating always-on-top state for this node.
+     *
+     * @return last known always-on-top state, or {@code null}
      */
     public Boolean getLastFloatingAlwaysOnTop() {
         return lastFloatingAlwaysOnTop;
@@ -218,15 +322,27 @@ public class DockNode implements DockElement {
 
     /**
      * Sets the last known floating always-on-top state for this node.
+     *
+     * @param lastFloatingAlwaysOnTop remembered always-on-top state, or {@code null}
      */
     public void setLastFloatingAlwaysOnTop(Boolean lastFloatingAlwaysOnTop) {
         this.lastFloatingAlwaysOnTop = lastFloatingAlwaysOnTop;
     }
 
+    /**
+     * Returns where this hidden node should be restored.
+     *
+     * @return hidden restore target
+     */
     public HiddenRestoreTarget getHiddenRestoreTarget() {
         return hiddenRestoreTarget;
     }
 
+    /**
+     * Sets where this hidden node should be restored.
+     *
+     * @param hiddenRestoreTarget hidden restore target, defaults to {@link HiddenRestoreTarget#DOCKED} when {@code null}
+     */
     public void setHiddenRestoreTarget(HiddenRestoreTarget hiddenRestoreTarget) {
         this.hiddenRestoreTarget = hiddenRestoreTarget == null ? HiddenRestoreTarget.DOCKED : hiddenRestoreTarget;
     }

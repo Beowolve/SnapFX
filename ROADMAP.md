@@ -359,7 +359,7 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 - ✅ **Status scope baseline**: [STATUS.md](STATUS.md) now keeps only current state and open issues; completed/fixed history is maintained in [CHANGELOG.md](CHANGELOG.md)
 - ✅ **Roadmap signal baseline**: Overall progress is now the first section, legend follows directly below, and version-track metadata was removed
 - 📋 **Roadmap structure cleanup**: Keep each subsection as one block (`Priority` + open/planned items) and move detailed completed history to [CHANGELOG.md](CHANGELOG.md) / [DONE.md](DONE.md)
-- 📋 **API documentation**: Complete JavaDoc
+- 🚧 **API documentation**: JavaDoc completion is in progress with core API gap-closure underway; remaining warning backlog is being reduced toward a warning-free public API baseline
 - 📋 **User guide**: Comprehensive usage guide
 - 📋 **Tutorial series**: Step-by-step tutorials
 - 📋 **Example projects**: Real-world examples
@@ -417,7 +417,7 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 **Priority**: 🟡 High
 
 - 📋 **Policy baseline (not release-now)**: Keep SnapFX continuously release-ready while feature development continues; cut `1.0.0` only after an explicit go-public decision.
-- 📋 **`0.5.x` Documentation baseline**: Complete public API JavaDoc and keep API docs generation quality gates green.
+- 🚧 **`0.5.x` Documentation baseline**: Public API JavaDoc completion is in progress (core classes have received a first remediation pass); continue reducing remaining `:snapfx-core:javadoc` warnings and then enforce a quality gate.
 - 📋 **`0.6.x` Public docs + domain**: Publish API docs via GitHub Pages and align `snapfx.org` routing/documentation structure.
 - 📋 **`0.7.x` Packaging hardening**: Finalize cross-platform demo packaging validation, smoke-check checklists, and release-asset checksum flow.
 - 📋 **`0.8.x` Publishing readiness**: Finalize Maven Central CI signing/staging/release flow and maintainer release checklist.

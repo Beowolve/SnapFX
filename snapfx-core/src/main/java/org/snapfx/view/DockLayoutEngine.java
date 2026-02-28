@@ -46,6 +46,7 @@ public class DockLayoutEngine {
     private final StackPane emptyLayoutView;
     private static final String CLEANUP_TASKS_KEY = "snapfx.cleanupTasks";
     private static final String TAB_CLEANUP_KEY = "snapfx.tabCleanup";
+    /** User-data key used on JavaFX tabs to map back to their {@link DockNode}. */
     public static final String TAB_DOCK_NODE_KEY = "snapfx.tabDockNode";
     private static final double DROP_ZONE_RATIO = 0.30;
     private static final double DROP_ZONE_MIN_PX = 40.0;
@@ -62,6 +63,12 @@ public class DockLayoutEngine {
     private BiConsumer<DockNode, Side> onNodePinToSideBarRequest;
     private Predicate<DockNode> canFloatNodePredicate = dockNode -> true;
 
+    /**
+     * Creates a layout engine for one dock graph.
+     *
+     * @param dockGraph source dock graph
+     * @param dragService drag service used for node interactions
+     */
     public DockLayoutEngine(DockGraph dockGraph, DockDragService dragService) {
         this.dockGraph = dockGraph;
         this.dragService = dragService;
@@ -72,6 +79,8 @@ public class DockLayoutEngine {
 
     /**
      * Builds the visual representation of the DockGraph.
+     *
+     * @return root JavaFX node representing the current dock layout
      */
     public Node buildSceneGraph() {
         // Always clear caches to ensure fresh views
@@ -872,6 +881,8 @@ public class DockLayoutEngine {
 
     /**
      * Collects drop zones for all elements in the current graph.
+     *
+     * @return resolved drop zones in scene space
      */
     public List<DockDropZone> collectDropZones() {
         List<DockDropZone> zones = new ArrayList<>();
@@ -885,6 +896,11 @@ public class DockLayoutEngine {
 
     /**
      * Selects the best drop zone for the given scene coordinates.
+     *
+     * @param zones candidate drop zones
+     * @param sceneX pointer x-coordinate in scene space
+     * @param sceneY pointer y-coordinate in scene space
+     * @return best matching drop zone, or {@code null}
      */
     public DockDropZone findBestDropZone(List<DockDropZone> zones, double sceneX, double sceneY) {
         DockDropZone best = null;
@@ -1347,6 +1363,8 @@ public class DockLayoutEngine {
     /**
      * Sets a predicate controlling whether float actions are available for a node.
      * This affects tab/header context menus and float-action callbacks.
+     *
+     * @param canFloatNodePredicate predicate deciding float availability per node
      */
     public void setCanFloatNodePredicate(Predicate<DockNode> canFloatNodePredicate) {
         if (canFloatNodePredicate == null) {
@@ -1356,20 +1374,40 @@ public class DockLayoutEngine {
         this.canFloatNodePredicate = canFloatNodePredicate;
     }
 
+    /**
+     * Returns the active close-button rendering mode.
+     *
+     * @return close-button mode
+     */
     public DockCloseButtonMode getCloseButtonMode() {
         return closeButtonMode;
     }
 
+    /**
+     * Sets the close-button rendering mode for node/tab controls.
+     *
+     * @param closeButtonMode close-button mode, ignored when {@code null}
+     */
     public void setCloseButtonMode(DockCloseButtonMode closeButtonMode) {
         if (closeButtonMode != null) {
             this.closeButtonMode = closeButtonMode;
         }
     }
 
+    /**
+     * Returns the active dock-node title-bar rendering mode.
+     *
+     * @return title-bar mode
+     */
     public DockTitleBarMode getTitleBarMode() {
         return titleBarMode;
     }
 
+    /**
+     * Sets the title-bar rendering mode for dock nodes.
+     *
+     * @param titleBarMode title-bar mode, ignored when {@code null}
+     */
     public void setTitleBarMode(DockTitleBarMode titleBarMode) {
         if (titleBarMode != null) {
             this.titleBarMode = titleBarMode;
@@ -1378,6 +1416,9 @@ public class DockLayoutEngine {
 
     /**
      * Returns the Node view for a given DockElement, or null if not found.
+     *
+     * @param element dock element to resolve
+     * @return cached JavaFX node, or {@code null}
      */
     public Node getViewForElement(DockElement element) {
         if (element == null) return null;
@@ -1386,6 +1427,9 @@ public class DockLayoutEngine {
 
     /**
      * Returns the DockNodeView for a given DockNode, or null if not found.
+     *
+     * @param node dock node to resolve
+     * @return cached {@link DockNodeView}, or {@code null}
      */
     public DockNodeView getDockNodeView(DockNode node) {
         Node n = getViewForElement(node);

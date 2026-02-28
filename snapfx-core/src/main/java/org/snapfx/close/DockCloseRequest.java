@@ -19,6 +19,9 @@ public record DockCloseRequest(
     DockFloatingWindow floatingWindow,
     DockCloseBehavior defaultBehavior
 ) {
+    /**
+     * Creates a normalized close-request snapshot.
+     */
     public DockCloseRequest {
         nodes = nodes == null ? List.of() : List.copyOf(nodes);
         source = source == null ? DockCloseSource.TITLE_BAR : source;

@@ -16,6 +16,11 @@ public final class BuildInfo {
     private BuildInfo() {
     }
 
+    /**
+     * Returns the resolved SnapFX version string.
+     *
+     * @return semantic version or {@code dev} when version metadata is unavailable
+     */
     public static String getVersion() {
         return VERSION;
     }

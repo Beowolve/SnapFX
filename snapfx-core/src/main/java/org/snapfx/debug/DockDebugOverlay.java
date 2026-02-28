@@ -27,6 +27,12 @@ public class DockDebugOverlay extends StackPane {
     private String lastRenderedText;
     private boolean lastVisible;
 
+    /**
+     * Creates the debug HUD overlay for drag diagnostics.
+     *
+     * @param dockGraph active dock graph (used for lifecycle alignment)
+     * @param dragService drag service that provides current drag state
+     */
     public DockDebugOverlay(DockGraph dockGraph, DockDragService dragService) {
         Objects.requireNonNull(dockGraph, "dockGraph");
         this.dragService = Objects.requireNonNull(dragService, "dragService");

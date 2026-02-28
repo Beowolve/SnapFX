@@ -32,6 +32,8 @@ public class DockLayoutLoadException extends Exception {
 
     /**
      * Returns the JSON location where the error was detected.
+     *
+     * @return JSON location/path, or {@code null}
      */
     public String getLocation() {
         return location;
@@ -39,6 +41,8 @@ public class DockLayoutLoadException extends Exception {
 
     /**
      * Returns a user-facing message including JSON location details when available.
+     *
+     * @return formatted display message
      */
     public String toDisplayMessage() {
         if (location == null || location.isBlank()) {

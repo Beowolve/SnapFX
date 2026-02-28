@@ -7,16 +7,22 @@ package org.snapfx.model;
 public interface DockElement {
     /**
      * Returns the element's ID.
+     *
+     * @return unique layout element ID
      */
     String getId();
 
     /**
      * Returns the parent container, or {@code null} if this is the root.
+     *
+     * @return parent container or {@code null}
      */
     DockContainer getParent();
 
     /**
      * Sets the parent container.
+     *
+     * @param parent parent container, or {@code null} for detached/root state
      */
     void setParent(DockContainer parent);
 

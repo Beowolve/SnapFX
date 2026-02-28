@@ -9,21 +9,29 @@ import javafx.collections.ObservableList;
 public interface DockContainer extends DockElement {
     /**
      * Returns the list of child elements.
+     *
+     * @return mutable observable child list
      */
     ObservableList<DockElement> getChildren();
 
     /**
      * Adds a child element.
+     *
+     * @param element child element to add
      */
     void addChild(DockElement element);
 
     /**
      * Removes a child element.
+     *
+     * @param element child element to remove
      */
     void removeChild(DockElement element);
 
     /**
      * Returns whether the container is empty.
+     *
+     * @return {@code true} when {@link #getChildren()} is empty
      */
     default boolean isEmpty() {
         return getChildren().isEmpty();

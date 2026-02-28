@@ -40,6 +40,7 @@ import java.util.Objects;
 public class DockGraphDebugView extends BorderPane {
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
     private static final int MAX_LOG_ENTRIES = 500;
+    /** Placeholder label for absent drag target/state values. */
     public static final String NONE = "<none>";
 
     private final DockGraph dockGraph;
@@ -57,6 +58,12 @@ public class DockGraphDebugView extends BorderPane {
 
     private int dragSequenceNumber = 0;
 
+    /**
+     * Creates the debug tree/log view for a dock graph.
+     *
+     * @param dockGraph dock graph to visualize
+     * @param dragService drag service used for live drag-state diagnostics
+     */
     public DockGraphDebugView(DockGraph dockGraph, DockDragService dragService) {
         this.dockGraph = Objects.requireNonNull(dockGraph, "dockGraph");
         this.dragService = Objects.requireNonNull(dragService, "dragService");
@@ -266,6 +273,9 @@ public class DockGraphDebugView extends BorderPane {
         return header;
     }
 
+    /**
+     * Rebuilds the tree-table content from the current dock graph state.
+     */
     public void rebuildTree() {
         TreeItem<DockElement> rootItem = createTreeItem(dockGraph.getRoot());
         treeTable.setRoot(rootItem);
@@ -523,10 +533,18 @@ public class DockGraphDebugView extends BorderPane {
         }
     }
 
+    /**
+     * Enables or disables automatic snapshot export after drop completion.
+     *
+     * @param enabled {@code true} to auto-export on drop
+     */
     public void setAutoExportOnDrop(boolean enabled) {
         this.autoExportOnDrop.set(enabled);
     }
 
+    /**
+     * Expands all currently visible tree items.
+     */
     public void expandAll() {
         expandTreeItem(treeTable.getRoot());
     }
