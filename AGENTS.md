@@ -32,6 +32,7 @@ These instructions are shared for all AI agents working on this workspace.
 - Status documentation consistency rule: in [STATUS.md](STATUS.md), [DONE.md](DONE.md), and [ROADMAP.md](ROADMAP.md), status bullets must always include a status icon prefix (`✅`, `🚧`, `📋`, `💡`, `❌`, `⚠️`), never plain `- Added/Updated/Completed/...`.
 - Change-history rule: [STATUS.md](STATUS.md) should stay current-state focused; versioned historical details belong in [CHANGELOG.md](CHANGELOG.md).
 - Markdown encoding rule: preserve UTF-8 and avoid shell text-rewrite commands that can alter Unicode; prefer `apply_patch` for markdown edits.
+- Temporary-file rule: markdown files matching `*_temp.md` are local working notes only, must not be committed, and must not be referenced from repository status/history docs.
 - Diff minimization rule: for all file changes, prefer minimal targeted edits and avoid full-file rewrites when smaller diffs are sufficient; only rewrite entire files when explicitly requested or technically required.
 - Logic deduplication rule: when new behavior overlaps existing behavior (for example restore/fallback flows), reuse or extract the existing implementation path instead of re-implementing parallel logic.
 - Unicode escape readability rule: when icon constants use `\u...` notation in code, add an inline comment showing the rendered icon.
