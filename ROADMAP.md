@@ -405,6 +405,7 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 - 📋 **Maven Central**: Publish to Maven Central
 - ✅ **jlink support baseline**: `snapfx-demo` now uses `org.beryx.jlink` and provides `:snapfx-demo:jlink` runtime-image packaging
 - 🚧 **jpackage support baseline**: `snapfx-demo` now provides `:snapfx-demo:jpackageImage` and `:snapfx-demo:packageJPackageImageZip` with OS-specific app icon selection (`.ico`/`.icns`/`.png`) plus macOS-compatible app-version normalization (major version floor `1`), and release automation now publishes per-OS demo ZIP assets (Windows/macOS/Linux); installer generation/signing remains pending
+- ✅ **Smoke validation policy baseline**: `RELEASING.md` now defines required local-OS smoke validation per RC, cross-OS checks as nice-to-have, per-OS start commands/checklist, and optional CI startup-smoke scope (validated against successful `v0.4.1-rc.2` release workflow run).
 - 📋 **Remove temporary macOS appVersion workaround at v1.x**: After the first real `v1.x` project release, drop the major-floor mapping so demo appVersion equals the core/project version again.
 - 📋 **Version management**: Semantic versioning
 

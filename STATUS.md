@@ -16,6 +16,7 @@
 ✅ **Release Module-Split Alignment**: Tag release workflow now builds `:snapfx-demo` distributions explicitly and publishes artifacts from split module output paths
 ✅ **Demo Runtime Packaging Baseline**: `org.beryx.jlink` now configures `:snapfx-demo:jlink`, `:snapfx-demo:jpackageImage`, and `:snapfx-demo:packageJPackageImageZip`, including OS-specific app icons (`.ico`/`.icns`/`.png`) and a temporary macOS-compatible jpackage app-version normalization (major version floor `1`, planned removal at first `v1.x` release)
 ✅ **Cross-Platform Demo Release Assets**: Tag releases now build `jpackage` demo ZIPs on Windows/macOS/Linux and publish them with deterministic OS-specific filenames (`snapfx-demo-jpackage-image-<os>-<tag>.zip`)
+✅ **Release Smoke Validation Baseline**: `RELEASING.md` now defines a practical smoke policy (required on at least one local OS, cross-OS manual checks as nice-to-have) plus per-OS start commands and a minimal checklist; an optional CI startup-smoke scope is documented.
 
 ✅ **Release-Ready Version Strategy**: Roadmap/releasing docs now define an explicit `0.5.x` to `0.9.x` readiness lane with RC drill tags and a controlled `1.0.0` public-launch cut.
 

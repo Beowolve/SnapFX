@@ -291,6 +291,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Added GitHub Actions release workflow for `v*` tags that runs build/tests and publishes GitHub Releases with distribution artifacts.
 - ✅ Aligned release workflow build tasks and artifact upload paths with split modules (`:snapfx-demo:distZip`/`:distTar`, `snapfx-demo/build/distributions/*`, `snapfx-core/build/libs/*`)
 - ✅ Extended the release workflow with a cross-platform matrix that builds demo `jpackage` ZIP assets on Windows/macOS/Linux and publishes them with OS-specific filenames.
+- ✅ Added a pragmatic demo smoke-validation policy in `RELEASING.md`: at least one local OS smoke run is required per RC, cross-OS manual checks are nice-to-have, per-OS start commands/checklist are documented, and optional CI startup-smoke scope is defined.
 - ✅ Added `org.beryx.jlink` demo packaging baseline in `snapfx-demo` (`jlink`, `jpackageImage`, and `packageJPackageImageZip`) with jpackage-safe version normalization for git-derived dev versions (including a temporary macOS-compatible app-version major floor `1`, planned to be removed at first `v1.x`) and OS-specific app icon wiring (`snapfx.ico`/`snapfx.icns`/`snapfx.png`)
 - ✅ Added `git-cliff` release-note generation (`cliff.toml`) and wired release workflow to publish generated notes.
 - ✅ Tracked `gradlew` as executable (`100755`) so Linux CI/release runners can execute the Gradle wrapper reliably.

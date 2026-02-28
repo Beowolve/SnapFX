@@ -72,6 +72,38 @@ Optional push using helper:
   - `snapfx-demo-jpackage-image-macos-<tag>.zip`
   - `snapfx-demo-jpackage-image-linux-<tag>.zip`
 
+## Demo Smoke Validation (Per OS)
+
+Use these commands after unpacking `snapfx-demo-jpackage-image-<os>-<tag>.zip`:
+
+- Windows:
+  - `.\SnapFX-Demo\bin\SnapFX-Demo.exe`
+- macOS:
+  - `open ./SnapFX-Demo.app`
+- Linux:
+  - `chmod +x ./SnapFX-Demo/bin/SnapFX-Demo`
+  - `./SnapFX-Demo/bin/SnapFX-Demo`
+
+Smoke policy:
+- Required: validate the package on at least one local/developer OS environment per release candidate.
+- Nice to have: validate additional OS packages manually when hardware/VMs are available.
+- Covered by CI: release pipeline already builds/packages all OS artifacts; manual smoke exists to detect runtime UX regressions not covered by build success alone.
+
+Minimum smoke checklist for the tested OS package(s):
+- App starts without local JDK installation.
+- Main window opens with expected default layout.
+- One basic interaction works (for example moving a panel tab and closing/reopening a node).
+- App exits cleanly without crash dialog.
+
+### Optional CI Startup Smoke (Recommended)
+
+Feasible CI automation scope:
+- Start the packaged demo executable/app image per OS in a short timeout window.
+- Verify process startup and non-crash exit path (or controlled termination after successful start probe).
+
+Out of scope for pure CI startup smoke:
+- Rich GUI interaction checks like drag-and-drop UX parity across OS (these remain manual or require dedicated UI automation infrastructure).
+
 ## Release Notes
 
 - Release notes are generated with `git-cliff` (`cliff.toml`).
