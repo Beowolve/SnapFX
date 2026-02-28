@@ -72,6 +72,19 @@ Optional push using helper:
   - `snapfx-demo-jpackage-image-macos-<tag>.zip`
   - `snapfx-demo-jpackage-image-linux-<tag>.zip`
 
+## API Docs Publishing (GitHub Pages + `snapfx.org`)
+
+- API docs workflow (`.github/workflows/docs-pages.yml`) runs on every push to `main` and via manual `workflow_dispatch`.
+- Workflow build/publish steps:
+  - generate JavaDoc with `./gradlew --no-daemon :snapfx-core:javadoc`
+  - publish `snapfx-core/build/docs/javadoc` to GitHub Pages
+  - write `CNAME` with `snapfx.org` so custom-domain routing stays attached
+- Repository requirements:
+  - GitHub Pages source must be set to `GitHub Actions`
+  - DNS for `snapfx.org` must point to the repository Pages endpoint
+- Published API docs URL:
+  - `https://snapfx.org/`
+
 ## Demo Smoke Validation (Per OS)
 
 Use these commands after unpacking `snapfx-demo-jpackage-image-<os>-<tag>.zip`:

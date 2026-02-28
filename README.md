@@ -29,6 +29,11 @@ A high-performance, lightweight JavaFX docking framework that behaves like nativ
 | [AGENTS.md](AGENTS.md)             | Collaboration and workflow rules for AI agents |
 | `docs/adr/*.md`                    | Architecture Decision Records (context, decisions, and trade-offs) |
 
+## Hosted API Docs
+
+Public API JavaDoc is published via GitHub Pages at:
+https://snapfx.org/
+
 ## Features
 
 ### Core Architecture

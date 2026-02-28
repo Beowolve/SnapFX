@@ -291,6 +291,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `SimpleExample` now logs a warning through `System.Logger` when `snapfx.css` is missing, without requiring a logging framework dependency.
 - ✅ Added GitHub Actions CI workflow for push/PR validation with `./gradlew test` on JDK 21.
 - ✅ Added GitHub Actions release workflow for `v*` tags that runs build/tests and publishes GitHub Releases with distribution artifacts.
+- ✅ Added GitHub Actions Pages workflow (`.github/workflows/docs-pages.yml`) that publishes `:snapfx-core:javadoc` to `https://snapfx.org/` and maintains `CNAME` domain routing.
 - ✅ Aligned release workflow build tasks and artifact upload paths with split modules (`:snapfx-demo:distZip`/`:distTar`, `snapfx-demo/build/distributions/*`, `snapfx-core/build/libs/*`)
 - ✅ Extended the release workflow with a cross-platform matrix that builds demo `jpackage` ZIP assets on Windows/macOS/Linux and publishes them with OS-specific filenames.
 - ✅ Added a pragmatic demo smoke-validation policy in `RELEASING.md`: at least one local OS smoke run is required per RC, cross-OS manual checks are nice-to-have, per-OS start commands/checklist are documented, and optional CI startup-smoke scope is defined.
@@ -335,7 +336,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 
 See [ROADMAP.md](ROADMAP.md) for planned features and improvements.
 
-**Current Priority**: `0.5.x` JavaDoc baseline is complete; next release-readiness step is `0.6.x` public API documentation publishing via GitHub Pages and `snapfx.org`.
+**Current Priority**: `0.6.x` public API docs/domain baseline is complete; next release-readiness step is `0.7.x` packaging hardening (cross-platform verification/checksums/smoke workflow polish).
 
 ---
 

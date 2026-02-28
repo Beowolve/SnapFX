@@ -19,6 +19,7 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Switched the Gradle `groupId` baseline to `org.snapfx` after registering the project domain (`snapfx.org`), preparing Maven Central publishing coordinates for `snapfx-core`.
 - ✅ Renamed Java package and JPMS module namespaces from `com.github.beowolve.snapfx...` to `org.snapfx...` across core/demo sources and tests (including demo launch configuration and documentation references).
 - ✅ Added a `snapfx-core` Maven publish dry-run baseline (`maven-publish`, `sourcesJar`, `javadocJar`, POM metadata for `snapfx.org`/MIT/SCM/developer) and verified local publication with `:snapfx-core:publishToMavenLocal`.
+- ✅ Added a dedicated GitHub Pages workflow (`.github/workflows/docs-pages.yml`) that builds `:snapfx-core:javadoc`, deploys it on pushes to `main`/manual dispatch, and publishes with `CNAME` routing for `snapfx.org`.
 
 ### Framework and UI
 - ✅ Fixed `DockDebugOverlay` HUD rendering and diagnostics behavior used by MainDemo debugging: the HUD panel now lays out correctly with visible background (no top-left clipping), and target/zone text updates live during active drags instead of staying at `none`.
@@ -31,6 +32,7 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Updated roadmap/status/done docs to mark the `DockDebugOverlay` HUD fixes follow-up as completed (while noting the MainDemo HUD remains opt-in) and return current priority focus to the Phase 3 UX backlog.
 - ✅ Started the `0.5.x` JavaDoc completion track with a broad first-pass remediation across `snapfx-core` public API classes (including model/view/dnd/floating/debug surfaces), plus follow-up roadmap/status tracking for the remaining warning backlog.
 - ✅ Closed the `0.5.x` JavaDoc baseline by making `:snapfx-core:javadoc --rerun-tasks` warning-free and tightening AGENTS workflow rules to require complete JavaDoc updates for every new/changed public/protected API element in the same change.
+- ✅ Added API docs publishing documentation for GitHub Pages + `snapfx.org` in [RELEASING.md](RELEASING.md), surfaced the hosted API docs URL in [README.md](README.md), and updated roadmap/status/done priorities to mark the `0.6.x` docs-domain baseline complete.
 
 ## v0.4.0 - 2026-02-25
 

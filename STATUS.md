@@ -20,6 +20,7 @@
 
 ✅ **Release-Ready Version Strategy**: Roadmap/releasing docs now define an explicit `0.5.x` to `0.9.x` readiness lane with RC drill tags and a controlled `1.0.0` public-launch cut.
 ✅ **JavaDoc Completion Track (`0.5.x`)**: `snapfx-core` JavaDoc is now warning-free (`./gradlew :snapfx-core:javadoc --rerun-tasks`), with AGENTS workflow rules tightened to require immediate complete JavaDoc updates for new/changed API elements.
+✅ **API Docs Publishing Baseline (`0.6.x`)**: GitHub Pages workflow now publishes `:snapfx-core:javadoc` for `main` pushes/manual runs and writes a `CNAME` for `snapfx.org` (`.github/workflows/docs-pages.yml`).
 
 ## Documentation Scope
 
@@ -223,6 +224,7 @@
 - ✅ [RELEASING.md](RELEASING.md) (maintainer release/versioning/tag flow)
 - ✅ [ROADMAP.md](ROADMAP.md) now starts with overall progress, keeps legend directly below, and no longer includes a version-track block.
 - ✅ Architecture decision records are now tracked under `docs/adr/` and linked from README documentation map.
+- ✅ Public API JavaDoc is now hosted via GitHub Pages at `https://snapfx.org/`.
 - ✅ Runtime theme-stylesheet behavior is documented in ADR [docs/adr/0002-runtime-theme-stylesheet-management.md](docs/adr/0002-runtime-theme-stylesheet-management.md)
 - ✅ Sidebar overlay/pin rendering state split is documented in ADR [docs/adr/0003-sidebar-overlay-and-pin-rendering-state-split.md](docs/adr/0003-sidebar-overlay-and-pin-rendering-state-split.md)
 - ✅ Sidebar panel width state/runtime-clamping behavior is documented in ADR [docs/adr/0004-sidebar-panel-width-state-and-runtime-clamping.md](docs/adr/0004-sidebar-panel-width-state-and-runtime-clamping.md)
@@ -240,7 +242,7 @@
 
 See [ROADMAP.md](ROADMAP.md) for detailed future development plans.
 
-**Priority**: Public JavaDoc baseline (`0.5.x`) is complete; next release-readiness focus is `0.6.x` (GitHub Pages API docs + `snapfx.org` routing/integration).
+**Priority**: `0.6.x` public API docs publishing baseline is complete; next release-readiness focus is `0.7.x` (cross-platform packaging hardening, release checksums, and smoke-check workflow polish).
 
 ---
 

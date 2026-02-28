@@ -18,9 +18,9 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 | Phase 5: Themes & Customization | 🚧 In Progress | 60% |
 | Phase 6: Performance & Polish | 📋 Planned | 0% |
 | Phase 7: Developer Experience | 📋 Planned | 50% |
-| Phase 8: Production Readiness | 📋 Planned | 30% |
+| Phase 8: Production Readiness | 📋 Planned | 35% |
 
-**Total Project Completion**: ~84%
+**Total Project Completion**: ~85%
 
 ## Legend
 
@@ -359,7 +359,7 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 - ✅ **Status scope baseline**: [STATUS.md](STATUS.md) now keeps only current state and open issues; completed/fixed history is maintained in [CHANGELOG.md](CHANGELOG.md)
 - ✅ **Roadmap signal baseline**: Overall progress is now the first section, legend follows directly below, and version-track metadata was removed
 - 📋 **Roadmap structure cleanup**: Keep each subsection as one block (`Priority` + open/planned items) and move detailed completed history to [CHANGELOG.md](CHANGELOG.md) / [DONE.md](DONE.md)
-- ✅ **API documentation**: `snapfx-core` JavaDoc completion baseline is now warning-free via `./gradlew :snapfx-core:javadoc --rerun-tasks`, and collaboration rules now require immediate full JavaDoc updates for new/changed public API
+- ✅ **API documentation**: `snapfx-core` JavaDoc completion baseline is now warning-free via `./gradlew :snapfx-core:javadoc --rerun-tasks`, collaboration rules require immediate full JavaDoc updates for new/changed public API, and API docs are now published via GitHub Pages at `https://snapfx.org/`
 - 📋 **User guide**: Comprehensive usage guide
 - 📋 **Tutorial series**: Step-by-step tutorials
 - 📋 **Example projects**: Real-world examples
@@ -418,7 +418,7 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 
 - 📋 **Policy baseline (not release-now)**: Keep SnapFX continuously release-ready while feature development continues; cut `1.0.0` only after an explicit go-public decision.
 - ✅ **`0.5.x` Documentation baseline**: Public API JavaDoc is now warning-free for `snapfx-core` (`./gradlew :snapfx-core:javadoc --rerun-tasks`), and AGENTS workflow rules now enforce immediate complete JavaDoc updates for API changes.
-- 📋 **`0.6.x` Public docs + domain**: Publish API docs via GitHub Pages and align `snapfx.org` routing/documentation structure.
+- ✅ **`0.6.x` Public docs + domain baseline**: GitHub Pages now publishes `:snapfx-core:javadoc`, `snapfx.org` routing is wired through generated `CNAME`, and release docs now capture the setup/validation flow.
 - 📋 **`0.7.x` Packaging hardening**: Finalize cross-platform demo packaging validation, smoke-check checklists, and release-asset checksum flow.
 - 📋 **`0.8.x` Publishing readiness**: Finalize Maven Central CI signing/staging/release flow and maintainer release checklist.
 - 📋 **`0.9.x` Release rehearsal + freeze**: Run end-to-end RC drills (`v0.9.x-rc.y`), close final blockers, and freeze public API for `1.0.0`.
