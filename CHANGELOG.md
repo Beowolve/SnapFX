@@ -6,7 +6,8 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 
 ## Unreleased
 
-No changes yet.
+### Documentation
+- ✅ Redundant documentation link to snapfx.org in README.md removed.
 
 ## v0.6.1 - 2026-02-28
 
