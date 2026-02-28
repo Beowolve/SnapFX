@@ -11,6 +11,7 @@ import javafx.geometry.Bounds;
 import javafx.geometry.Orientation;
 import javafx.geometry.Side;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
@@ -78,6 +79,24 @@ class DockLayoutEngineTest extends ApplicationTest {
 
         assertInstanceOf(StackPane.class, first);
         assertSame(first, second);
+    }
+
+    @Test
+    void testCollectDropZonesIncludesVisibleCenterZoneForEmptyLayout() {
+        Scene scene = new Scene(new StackPane(layoutEngine.buildSceneGraph()), 640, 480);
+        scene.getRoot().applyCss();
+        scene.getRoot().layout();
+
+        List<DockDropZone> zones = layoutEngine.collectDropZones();
+
+        assertEquals(1, zones.size());
+        DockDropZone zone = zones.getFirst();
+        assertNull(zone.getTarget());
+        assertEquals(DockPosition.CENTER, zone.getPosition());
+        assertEquals(DockDropZoneType.CENTER, zone.getType());
+        assertNotNull(zone.getBounds());
+        assertTrue(zone.getBounds().getWidth() > 0);
+        assertTrue(zone.getBounds().getHeight() > 0);
     }
 
     @Test

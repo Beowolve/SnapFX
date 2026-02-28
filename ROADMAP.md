@@ -94,6 +94,7 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 - ✅ **Attach to main window**: Drag-attach and title-bar attach are both supported
 - ✅ **Multi-monitor support**: Position by explicit screen coordinates (`floatNode(node, x, y)`)
 - ✅ **Cross-window D&D**: Dock between main and floating windows, including floating-to-floating
+- ✅ **Empty-main-layout re-dock parity**: When all nodes are floating and the main layout is empty, center-drop into the empty main area now restores dragged nodes back to the main layout
 - ✅ **Window state persistence**: Save/load floating window positions
 
 **Estimated Time**: Completed

@@ -888,10 +888,22 @@ public class DockLayoutEngine {
         List<DockDropZone> zones = new ArrayList<>();
         DockElement root = dockGraph.getRoot();
         if (root == null) {
+            addEmptyLayoutDropZone(zones);
             return zones;
         }
         collectDropZonesRecursive(root, 0, zones);
         return zones;
+    }
+
+    private void addEmptyLayoutDropZone(List<DockDropZone> zones) {
+        if (emptyLayoutView.getScene() == null) {
+            return;
+        }
+        Bounds bounds = emptyLayoutView.localToScene(emptyLayoutView.getBoundsInLocal());
+        if (bounds == null || bounds.getWidth() <= 0 || bounds.getHeight() <= 0) {
+            return;
+        }
+        zones.add(new DockDropZone(null, DockPosition.CENTER, DockDropZoneType.CENTER, bounds, 0, null, null));
     }
 
     /**

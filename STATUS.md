@@ -5,7 +5,7 @@
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 306 tests passing (latest full suite)
+✅ **Tests**: All 310 tests passing (latest full suite)
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully  
 ✅ **CI Automation**: GitHub Actions workflows added for push/PR tests and tag-triggered releases  
@@ -80,6 +80,7 @@
 - ✅ Unresolved drops always trigger floating fallback (not only outside main scene)
 - ✅ Unresolved drops from multi-node floating layouts now detach the dragged node into a separate floating window (matching float-button/context-menu behavior)
 - ✅ Main layout drops accept drags originating from floating windows
+- ✅ Empty-main-layout center drops are now accepted: when all nodes are floating and the main layout is empty, dragging back into the empty main area re-docks correctly
 - ✅ Escape cancels active drag reliably, including while the mouse button remains pressed
 - ✅ Drop-zone sizing now guards tiny bounds so drag hover never throws `Math.clamp` min/max-order exceptions
 
@@ -164,10 +165,10 @@
 ### Testing (100% ✅)
 - ✅ DockGraphTest (69 tests, +11 regression tests plus sidebar model coverage) - Includes sidebar width preference defaults/validation/lock-policy coverage
 - ✅ DockLayoutSerializerTest (21 tests) - Includes strict load-failure diagnostics for blank content, malformed JSON, missing required fields, invalid tab selection metadata, unknown-node placeholder diagnostics, unsupported-type recovery with optional factory custom fallback, and sidebar persistence/restore-anchor/width roundtrip coverage (including legacy width fallback)
-- ✅ DockLayoutEngineTest (36 tests) - Includes tab/header/splitter context-menu coverage, representative container-tab title/icon behavior, float-availability policy checks, sidebar move-to-sidebar context-menu callback/lock-state coverage, hidden sidebar move-menu state when framework sidebar callbacks are unavailable, header-context-menu dismiss-on-press regression coverage, and tiny-bounds drop-zone clamp regression coverage
-- ✅ **SnapFXTest (94 tests)** - Hide/Restore + Floating Window API tests plus configurable shortcut behavior, floating-window snap API propagation/validation, side-bar facade API behavior (pin/restore, lock-aware pinned-open state, save/load roundtrip preservation), side-bar panel width API/roundtrip coverage, framework sidebar build-layout rendering structure coverage (collapsed strip vs. pinned/overlay panels, resize handle presence, width runtime clamping, right-overlay resize-handle pick/z-order regression coverage, sidebar overlay width/resize-handle CI race hardening in tests, and sidebar visibility mode rendering behavior for `AUTO`/`ALWAYS`/`NEVER`), configurable pinned-sidebar active-icon collapse policy coverage, sidebar-restore placement regression coverage for collapsed tab-parent fallback, sidebar strip/panel context-menu action and lock-state coverage, invalid-load failure handling, persistence edge-case coverage for complex floating snapshots, unknown-type layout recovery, unresolved floating-sub-layout D&D detach behavior, floating reattach placement restore/fallback behavior for both float-button and unresolved-drag detach paths, three-window floating-layout detach/attach roundtrip regression coverage (top-left/top-right/bottom cases), detach-close-remaining-attach host-restore fallback coverage, and theme stylesheet API behavior (initialize auto-apply + runtime switching + named theme catalog exposure)
+- ✅ DockLayoutEngineTest (37 tests) - Includes tab/header/splitter context-menu coverage, representative container-tab title/icon behavior, float-availability policy checks, sidebar move-to-sidebar context-menu callback/lock-state coverage, hidden sidebar move-menu state when framework sidebar callbacks are unavailable, header-context-menu dismiss-on-press regression coverage, tiny-bounds drop-zone clamp regression coverage, and empty-layout center-drop-zone collection coverage
+- ✅ **SnapFXTest (95 tests)** - Hide/Restore + Floating Window API tests plus configurable shortcut behavior, floating-window snap API propagation/validation, side-bar facade API behavior (pin/restore, lock-aware pinned-open state, save/load roundtrip preservation), side-bar panel width API/roundtrip coverage, framework sidebar build-layout rendering structure coverage (collapsed strip vs. pinned/overlay panels, resize handle presence, width runtime clamping, right-overlay resize-handle pick/z-order regression coverage, sidebar overlay width/resize-handle CI race hardening in tests, and sidebar visibility mode rendering behavior for `AUTO`/`ALWAYS`/`NEVER`), configurable pinned-sidebar active-icon collapse policy coverage, sidebar-restore placement regression coverage for collapsed tab-parent fallback, sidebar strip/panel context-menu action and lock-state coverage, invalid-load failure handling, persistence edge-case coverage for complex floating snapshots, unknown-type layout recovery, unresolved floating-sub-layout D&D detach behavior, floating reattach placement restore/fallback behavior for both float-button and unresolved-drag detach paths, three-window floating-layout detach/attach roundtrip regression coverage (top-left/top-right/bottom cases), detach-close-remaining-attach host-restore fallback coverage, theme stylesheet API behavior (initialize auto-apply + runtime switching + named theme catalog exposure), and empty-main-layout resolved-drop behavior for floating-node re-dock
 - ✅ DockGraphSplitTargetDockingTest (1 test)
-- ✅ DockDragServiceTest (8 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, and ESC drag-cancel handling
+- ✅ DockDragServiceTest (10 tests) - D&D visibility, tab-hover activation, float-detach callback behavior, ESC drag-cancel handling, and empty-root center-drop-zone validation behavior
 - ✅ Gradle multi-module split baseline is in place: framework code/resources now live in `snapfx-core`, demo code/resources in `snapfx-demo`, and tests are now split across both modules (root test task remains a no-source aggregator entry)
 - ✅ Gradle publish namespace baseline now uses `org.snapfx` (domain-backed) to prepare Maven Central coordinates for `snapfx-core`
 - ✅ Java package and JPMS module namespaces now use `org.snapfx...` across core/demo code and tests (pre-release rename completed before Maven Central publishing)
@@ -181,7 +182,7 @@
 - ✅ EditorCloseDecisionPolicyTest (5 tests) - Deterministic close-decision policy checks
 - ✅ MarkdownDocumentationConsistencyTest (4 tests) - Markdown consistency guardrails focused on Mojibake detection and icon-prefix validation (no brittle content-specific assertions)
 - ✅ AboutDialogTest (2 tests) - About dialog branding resources and credit link targets
-- ✅ **306/306 tests passing** ✅
+- ✅ **310/310 tests passing** ✅
 - ✅ **Performance tests for large layouts** (50+ nodes with stress move/cleanup operations)
 - ✅ **Memory leak cleanup tests** (cache boundedness, undock cleanup, large-layout detach/attach cycles)
 - ✅ **Edge case tests** (null inputs, detached nodes, invalid move targets, no-op revision checks)

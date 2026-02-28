@@ -1660,6 +1660,25 @@ class SnapFXTest {
     }
 
     @Test
+    void testResolvedDropRequestDocksFloatingNodeIntoEmptyMainLayout() {
+        DockNode main = new DockNode("main", new Label("Main"), "Main");
+        snapFX.dock(main, null, DockPosition.CENTER);
+
+        DockFloatingWindow floatingWindow = snapFX.floatNode(main);
+        assertNull(snapFX.getDockGraph().getRoot());
+        assertEquals(1, snapFX.getFloatingWindows().size());
+        assertTrue(floatingWindow.containsNode(main));
+
+        invokeResolvedDropRequest(
+            snapFX,
+            new DockDragService.DropRequest(main, null, DockPosition.CENTER, null)
+        );
+
+        assertSame(main, snapFX.getDockGraph().getRoot());
+        assertTrue(snapFX.getFloatingWindows().isEmpty());
+    }
+
+    @Test
     void testUnresolvedDropRequestCanFloatPinnedSidebarNode() {
         DockNode main = new DockNode("main", new Label("Main"), "Main");
         DockNode tool = new DockNode("tool", new Label("Tool"), "Tool");

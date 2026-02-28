@@ -2136,12 +2136,17 @@ public class SnapFX {
     private void handleResolvedDropRequest(DockDragService.DropRequest request) {
         if (request == null
             || request.draggedNode() == null
-            || request.target() == null
             || request.position() == null) {
             return;
         }
 
         DockNode draggedNode = request.draggedNode();
+        DockElement target = request.target();
+        DockPosition position = request.position();
+        Integer tabIndex = request.tabIndex();
+        if (target == null && (position != DockPosition.CENTER || dockGraph.getRoot() != null)) {
+            return;
+        }
         DockFloatingWindow sourceWindow = findFloatingWindow(draggedNode);
 
         if (dockGraph.isPinnedToSideBar(draggedNode)) {
@@ -2149,12 +2154,16 @@ public class SnapFX {
             if (!dockGraph.unpinFromSideBar(draggedNode)) {
                 return;
             }
-            dockGraph.dock(draggedNode, request.target(), request.position(), request.tabIndex());
+            dockGraph.dock(draggedNode, target, position, tabIndex);
             return;
         }
 
         if (sourceWindow == null) {
-            dockGraph.move(draggedNode, request.target(), request.position(), request.tabIndex());
+            if (target == null) {
+                dockGraph.dock(draggedNode, null, position, tabIndex);
+            } else {
+                dockGraph.move(draggedNode, target, position, tabIndex);
+            }
             return;
         }
 
@@ -2165,7 +2174,7 @@ public class SnapFX {
             removeFloatingWindowSilently(sourceWindow);
         }
 
-        dockGraph.dock(draggedNode, request.target(), request.position(), request.tabIndex());
+        dockGraph.dock(draggedNode, target, position, tabIndex);
     }
 
     private void handleUnresolvedDropRequest(DockDragService.FloatDetachRequest request) {

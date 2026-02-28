@@ -10,6 +10,8 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Added Sonatype Central publish repository wiring for `snapfx-core` with environment/property-based credential support (`MAVEN_CENTRAL_USERNAME` / `MAVEN_CENTRAL_PASSWORD`) and signing-secret preflight checks for remote publish tasks.
 - ✅ Extended the release workflow with a stable-tag `publish-maven-central` job that is policy-gated to versions `>= v1.0.0`, and gated final GitHub release publishing on successful/explicitly skipped Central publish execution.
 - ✅ Added release-asset SHA256 generation in the release workflow and publish of matching `*.sha256` files for base and jpackage artifacts.
+- ✅ Fixed empty-main-layout D&D re-docking: when the main layout has no root (all nodes floating), center-drop over the empty layout now resolves as a valid dock target and re-attaches the dragged node to the main layout.
+- ✅ Added regression coverage for empty-layout drop-zone collection and validation (`DockLayoutEngineTest`, `DockDragServiceTest`) plus resolved-drop handling into an empty main layout (`SnapFXTest`).
 
 ### Documentation
 - ✅ Redundant documentation link to snapfx.org in README.md removed.

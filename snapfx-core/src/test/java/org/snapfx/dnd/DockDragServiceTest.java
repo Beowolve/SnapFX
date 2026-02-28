@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DockDragServiceTest {
@@ -128,6 +129,41 @@ class DockDragServiceTest {
 
         assertTrue(dragService.activateTabHoverIfNeeded(tabHeaderZone));
         assertEquals(1, rootTabs.getSelectedIndex());
+    }
+
+    @Test
+    void testEmptyRootCenterZoneIsAcceptedForDrag() {
+        DockNode draggedNode = new DockNode(new Label("Dragged"), "Dragged");
+        DockDropZone emptyRootZone = new DockDropZone(
+            null,
+            DockPosition.CENTER,
+            DockDropZoneType.CENTER,
+            new BoundingBox(0, 0, 200, 120),
+            0,
+            null,
+            null
+        );
+
+        assertNull(dockGraph.getRoot());
+        assertTrue(dragService.isZoneValidForDrag(emptyRootZone, draggedNode));
+    }
+
+    @Test
+    void testNullTargetZoneIsRejectedWhenMainLayoutIsNotEmpty() {
+        DockNode rootNode = new DockNode(new Label("Root"), "Root");
+        dockGraph.setRoot(rootNode);
+        DockNode draggedNode = new DockNode(new Label("Dragged"), "Dragged");
+        DockDropZone nullTargetZone = new DockDropZone(
+            null,
+            DockPosition.CENTER,
+            DockDropZoneType.CENTER,
+            new BoundingBox(0, 0, 200, 120),
+            0,
+            null,
+            null
+        );
+
+        assertFalse(dragService.isZoneValidForDrag(nullTargetZone, draggedNode));
     }
 
     @Test

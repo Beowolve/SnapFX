@@ -499,11 +499,13 @@ public class DockDragService {
         DockPosition pos = currentDrag.getDropPosition();
         Integer tabIndex = currentDrag.getDropTabIndex();
 
-        // Perform dock operation only when we have a valid target.
+        // Perform dock operation only when we have a valid resolved drop target.
         // This avoids destroying the layout when the hover target becomes null during release.
-        if (dragged != null && target != null && pos != null) {
+        if (isResolvedDropTarget(dragged, target, pos)) {
             if (onDropRequest != null) {
                 onDropRequest.accept(new DropRequest(dragged, target, pos, tabIndex));
+            } else if (target == null) {
+                dockGraph.dock(dragged, null, pos, tabIndex);
             } else {
                 dockGraph.move(dragged, target, pos, tabIndex);
             }
@@ -908,7 +910,7 @@ public class DockDragService {
         }
         DockElement target = zone.getTarget();
         if (target == null) {
-            return false;
+            return isEmptyRootDropZone(zone);
         }
         if (!isElementVisibleForInteraction(target)) {
             return false;
@@ -967,6 +969,30 @@ public class DockDragService {
         return false;
     }
 
+    private boolean isResolvedDropTarget(DockNode dragged, DockElement target, DockPosition position) {
+        if (dragged == null || position == null) {
+            return false;
+        }
+        if (target != null) {
+            return true;
+        }
+        return isEmptyRootDropPosition(position);
+    }
+
+    private boolean isEmptyRootDropZone(DockDropZone zone) {
+        if (zone == null || zone.getBounds() == null) {
+            return false;
+        }
+        if (zone.getBounds().getWidth() <= 0 || zone.getBounds().getHeight() <= 0) {
+            return false;
+        }
+        return isEmptyRootDropPosition(zone.getPosition()) && zone.getType() == DockDropZoneType.CENTER;
+    }
+
+    private boolean isEmptyRootDropPosition(DockPosition position) {
+        return dockGraph.getRoot() == null && position == DockPosition.CENTER;
+    }
+
     boolean shouldSuppressMainDropAt(double screenX, double screenY) {
         return suppressMainDropAtScreenPoint != null
             && suppressMainDropAtScreenPoint.test(screenX, screenY);
@@ -1014,7 +1040,7 @@ public class DockDragService {
      * Immutable callback payload used for accepted dock-drop requests.
      *
      * @param draggedNode dragged node to move
-     * @param target drop target element
+     * @param target drop target element, or {@code null} for empty-main-layout center drop
      * @param position drop position on target
      * @param tabIndex target tab index for tab insert operations, or {@code null}
      */
