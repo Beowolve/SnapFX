@@ -1,4 +1,4 @@
-# ![SnapFX Logo](snapfx-demo/src/main/resources/images/24/snapfx.png) SnapFX - Lightweight JavaFX Docking Framework
+# ![SnapFX Logo](snapfx-demo/src/main/resources/images/32/snapfx.png) SnapFX - Lightweight JavaFX Docking Framework
 
 A high-performance, lightweight JavaFX docking framework that behaves like native professional software (IntelliJ, Visual Studio).
 
@@ -254,6 +254,7 @@ See JavaDoc in the source files and [ARCHITECTURE.md](ARCHITECTURE.md) for detai
 ## Support
 
 If you have questions or issues, open an issue in the repository.
+There is also a Discord server for community support: https://discord.gg/WwDGWkVsnB
 
 ---
 
