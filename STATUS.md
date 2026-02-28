@@ -14,6 +14,7 @@
 
 ✅ **CI Module-Split Alignment**: Critical stability suites now run `:snapfx-core:test` with `org.snapfx...` test filters
 ✅ **Release Module-Split Alignment**: Tag release workflow now builds `:snapfx-demo` distributions explicitly and publishes artifacts from split module output paths
+✅ **Demo Runtime Packaging Baseline**: `org.beryx.jlink` now configures `:snapfx-demo:jlink`, `:snapfx-demo:jpackageImage`, and `:snapfx-demo:packageJPackageImageZip`, including OS-specific app icons (`.ico`/`.icns`/`.png`)
 
 ## Documentation Scope
 

@@ -403,8 +403,8 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 - ✅ **Repository metadata hygiene baseline**: `.idea/` is fully ignored and tracked IntelliJ workspace/project metadata has been removed from Git
 - ✅ **Maven publish dry-run baseline (`snapfx-core`)**: `maven-publish` + optional signing wiring, `sourcesJar`/`javadocJar`, and POM metadata are in place; local `:snapfx-core:publishToMavenLocal` succeeds
 - 📋 **Maven Central**: Publish to Maven Central
-- 📋 **jlink support**: Create custom runtime images
-- 📋 **jpackage support**: Native installers
+- ✅ **jlink support baseline**: `snapfx-demo` now uses `org.beryx.jlink` and provides `:snapfx-demo:jlink` runtime-image packaging
+- 🚧 **jpackage support baseline**: `snapfx-demo` now provides `:snapfx-demo:jpackageImage` and `:snapfx-demo:packageJPackageImageZip` with OS-specific app icon selection (`.ico`/`.icns`/`.png`); installer and cross-platform release automation are still pending
 - 📋 **Version management**: Semantic versioning
 
 **Estimated Time**: 2-3 days

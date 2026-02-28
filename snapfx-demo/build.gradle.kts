@@ -1,11 +1,22 @@
 plugins {
     application
     alias(libs.plugins.javafx)
+    alias(libs.plugins.beryx.jlink)
 }
 
 val javafxModules = listOf("javafx.controls")
 val javaVersion = JavaVersion.VERSION_21
 val javafxRuntimeVersion = javaVersion.majorVersion
+val normalizedJPackageVersion = Regex("""^\d+\.\d+\.\d+""")
+    .find(project.version.toString())
+    ?.value
+    ?: "0.0.0"
+val jpackageIconFileName = when {
+    System.getProperty("os.name").lowercase().contains("win") -> "snapfx.ico"
+    System.getProperty("os.name").lowercase().contains("mac") -> "snapfx.icns"
+    else -> "snapfx.png"
+}
+val jpackageIconFile = layout.projectDirectory.file("src/main/resources/images/$jpackageIconFileName").asFile
 
 java {
     sourceCompatibility = javaVersion
@@ -54,6 +65,34 @@ tasks.register<JavaExec>("runSimpleExample") {
     mainModule.set("org.snapfx.demo")
     mainClass.set("org.snapfx.demo.SimpleExample")
     classpath = sourceSets.main.get().runtimeClasspath
+}
+
+tasks.register<Zip>("packageJPackageImageZip") {
+    group = "distribution"
+    description = "Creates a ZIP archive from the jpackage app image for demo distribution testing."
+    dependsOn("jpackageImage")
+
+    val appImageDir = layout.buildDirectory.dir("jpackage")
+    from(appImageDir)
+    archiveBaseName.set("snapfx-demo-jpackage-image")
+    archiveVersion.set(project.version.toString())
+    destinationDirectory.set(layout.buildDirectory.dir("distributions"))
+}
+
+jlink {
+    options = listOf("--strip-debug", "--compress=zip-6", "--no-header-files", "--no-man-pages")
+    launcher {
+        name = "snapfx-demo"
+    }
+    jpackage {
+        appVersion = normalizedJPackageVersion
+        imageName = "SnapFX-Demo"
+        installerName = "SnapFX-Demo"
+        skipInstaller = true
+        if (jpackageIconFile.exists()) {
+            icon = jpackageIconFile.absolutePath
+        }
+    }
 }
 
 tasks.test {

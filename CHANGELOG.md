@@ -7,6 +7,7 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 ## Unreleased
 
 ### Build and Test
+- ✅ Added `org.beryx.jlink` demo packaging baseline in `snapfx-demo` with `jlink`, `jpackageImage`, and `packageJPackageImageZip`, including jpackage-safe version normalization for git-derived dev versions and OS-specific app icon selection (`snapfx.ico`/`snapfx.icns`/`snapfx.png`).
 - ✅ Aligned release workflow build tasks and artifact upload paths with split modules (`:snapfx-demo:distZip`/`:distTar`, `snapfx-demo/build/distributions/*`, `snapfx-core/build/libs/*`).
 - ✅ Fixed CI stability-check filters after the core/demo split by targeting `:snapfx-core:test` with `org.snapfx...` test classes.
 - ✅ Added `DockDebugOverlayTest` coverage for HUD layout defaults (managed pref-sized panel + background presence) and live target/zone diagnostics refresh when drag data mutates in place.
