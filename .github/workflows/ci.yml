@@ -44,8 +44,8 @@ jobs:
         run: |
           for run in 1 2 3; do
             echo "Critical stability run ${run}/3"
-            xvfb-run -a ./gradlew --no-daemon test --rerun-tasks \
-              --tests com.github.beowolve.snapfx.SnapFXTest \
-              --tests com.github.beowolve.snapfx.DockFloatingWindowTest \
-              --tests com.github.beowolve.snapfx.dnd.DockDragServiceTest
+            xvfb-run -a ./gradlew --no-daemon :snapfx-core:test --rerun-tasks \
+              --tests org.snapfx.SnapFXTest \
+              --tests org.snapfx.floating.DockFloatingWindowTest \
+              --tests org.snapfx.dnd.DockDragServiceTest
           done

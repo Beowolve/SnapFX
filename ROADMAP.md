@@ -1,6 +1,6 @@
 # SnapFX Development Roadmap
 
-**Last Updated**: 2026-02-26
+**Last Updated**: 2026-02-28
 
 This document tracks planned and proposed work for SnapFX.
 This roadmap keeps a high-level progress view plus planned/proposed work; detailed completed/fixed release history is tracked in [CHANGELOG.md](CHANGELOG.md).
@@ -51,6 +51,7 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 ### 1.3 Testing & Quality Assurance  
 **Priority**: 🟡 High
 
+- ✅ **CI module-split follow-up**: Stability-check test filters were updated to `org.snapfx...` and now run on `:snapfx-core:test`
 - ✅ **Add performance tests**: Large layouts with 50+ nodes
 - ✅ **Add memory leak tests**: Ensure proper cleanup
 - ✅ **Add edge case tests**: More boundary conditions

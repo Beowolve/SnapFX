@@ -7,6 +7,7 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 ## Unreleased
 
 ### Build and Test
+- ✅ Fixed CI stability-check filters after the core/demo split by targeting `:snapfx-core:test` with `org.snapfx...` test classes.
 - ✅ Added `DockDebugOverlayTest` coverage for HUD layout defaults (managed pref-sized panel + background presence) and live target/zone diagnostics refresh when drag data mutates in place.
 - ✅ Hardened `SnapFXTest` sidebar overlay width/resize-handle tests against a CI-only async sidebar rebuild race by removing an unnecessary prebuild step before reflective sidebar icon clicks.
 - ✅ Simplified `MarkdownDocumentationConsistencyTest` to keep non-brittle guardrails only (Mojibake detection and markdown status-bullet icon-prefix checks), removing content-specific wording assertions.

@@ -1,6 +1,6 @@
 # SnapFX Framework - Completed Features
 
-**Last Updated**: 2026-02-26
+**Last Updated**: 2026-02-28
 
 SnapFX has been fully implemented with core functionality and is production-ready for large applications.
 
@@ -92,6 +92,8 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ All tests passing (306/306) ✅
 - ✅ **Testing Policy** established ([TESTING_POLICY.md](TESTING_POLICY.md))
 - ✅ Mandatory regression tests for all bug fixes
+
+- ✅ CI stability guard filters were aligned to the module split and package rename (`:snapfx-core:test` with `org.snapfx...` classes)
 
 ### Documentation (11 files)
 - ✅ [README.md](README.md) - Project overview and quick start

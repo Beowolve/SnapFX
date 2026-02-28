@@ -1,16 +1,18 @@
 # Project Status
 
-**Last Updated**: 2026-02-26
+**Last Updated**: 2026-02-28
 
 ## Build Status
 
 ✅ **Build**: `BUILD SUCCESSFUL`  
-✅ **Tests**: All 313 tests passing (latest full suite)
+✅ **Tests**: All 306 tests passing (latest full suite)
 ✅ **Module System**: Fully implemented (JPMS)  
 ✅ **Demo App**: Running successfully  
 ✅ **CI Automation**: GitHub Actions workflows added for push/PR tests and tag-triggered releases  
 ✅ **Release Notes Automation**: `git-cliff` generates tag-based GitHub Release notes
 ✅ **CI Stability Guard**: Critical interaction test suites run 3x per CI execution to catch flakes early
+
+✅ **CI Module-Split Alignment**: Critical stability suites now run `:snapfx-core:test` with `org.snapfx...` test filters
 
 ## Documentation Scope
 
