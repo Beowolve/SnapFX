@@ -13,8 +13,20 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Serializes and deserializes DockGraph structures to/from JSON.
- * Stores the full tree structure including positions and split percentages.
+ * Serializes and deserializes {@link DockGraph} structures to/from JSON.
+ *
+ * <p>The serializer persists the full dock tree (split orientation, tab state, divider
+ * positions, lock flag, sidebar state, and layout IDs). During load, applications can
+ * provide a {@link DockNodeFactory} to recreate JavaFX content from saved node IDs.</p>
+ *
+ * <p>Typical usage:</p>
+ * <pre>{@code
+ * DockLayoutSerializer serializer = new DockLayoutSerializer(graph);
+ * serializer.setNodeFactory(nodeId -> createDockNodeFor(nodeId));
+ *
+ * String json = serializer.serialize();
+ * serializer.deserialize(json);
+ * }</pre>
  */
 public class DockLayoutSerializer {
     /** Serialized type token for {@link DockNode}. */

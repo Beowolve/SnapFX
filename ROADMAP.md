@@ -358,8 +358,10 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 - ✅ **Versioned changelog baseline**: Historical changes are now consolidated in [CHANGELOG.md](CHANGELOG.md) and grouped by release tags
 - ✅ **Status scope baseline**: [STATUS.md](STATUS.md) now keeps only current state and open issues; completed/fixed history is maintained in [CHANGELOG.md](CHANGELOG.md)
 - ✅ **Roadmap signal baseline**: Overall progress is now the first section, legend follows directly below, and version-track metadata was removed
+- ✅ **README public-preview messaging baseline**: Top-level messaging now clearly states `0.x` release-readiness/public-preview status, pre-Maven-Central publication state, and links users to live status/roadmap tracking.
 - 📋 **Roadmap structure cleanup**: Keep each subsection as one block (`Priority` + open/planned items) and move detailed completed history to [CHANGELOG.md](CHANGELOG.md) / [DONE.md](DONE.md)
 - ✅ **API documentation**: `snapfx-core` JavaDoc completion baseline is now warning-free via `./gradlew :snapfx-core:javadoc --rerun-tasks`, collaboration rules require immediate full JavaDoc updates for new/changed public API, and API docs are now published via GitHub Pages at `https://snapfx.org/`
+- ✅ **JavaDoc discoverability baseline**: Exported API packages now include `package-info.java` overviews, and key API classes now include usage snippets to improve first-time navigation on hosted docs.
 - 📋 **User guide**: Comprehensive usage guide
 - 📋 **Tutorial series**: Step-by-step tutorials
 - 📋 **Example projects**: Real-world examples

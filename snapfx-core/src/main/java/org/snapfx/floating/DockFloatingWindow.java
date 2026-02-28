@@ -63,7 +63,17 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
- * Represents an external floating window that can host a full dock layout subtree.
+ * Represents an external floating window that can host a full dock-layout subtree.
+ *
+ * <p>Floating windows support dock-node interactions similar to the main host:
+ * split/tab drops, context actions, optional snapping, and attach-back workflows.</p>
+ *
+ * <p>Programmatic example:</p>
+ * <pre>{@code
+ * DockFloatingWindow floating = new DockFloatingWindow(node, dragService);
+ * floating.setOnAttachRequested(() -> snapFX.attachFloatingWindow(floating));
+ * floating.show(primaryStage);
+ * }</pre>
  */
 public final class DockFloatingWindow {
     private static final String TITLE_PREFIX = "SnapFX";

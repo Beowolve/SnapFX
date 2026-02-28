@@ -21,6 +21,7 @@
 ✅ **Release-Ready Version Strategy**: Roadmap/releasing docs now define an explicit `0.5.x` to `0.9.x` readiness lane with RC drill tags and a controlled `1.0.0` public-launch cut.
 ✅ **JavaDoc Completion Track (`0.5.x`)**: `snapfx-core` JavaDoc is now warning-free (`./gradlew :snapfx-core:javadoc --rerun-tasks`), with AGENTS workflow rules tightened to require immediate complete JavaDoc updates for new/changed API elements.
 ✅ **API Docs Publishing Baseline (`0.6.x`)**: GitHub Pages workflow now publishes `:snapfx-core:javadoc` for `main` pushes/manual runs and writes a `CNAME` for `snapfx.org` (`.github/workflows/docs-pages.yml`).
+✅ **JavaDoc Usability Pass**: Exported API packages now include `package-info.java` overviews, and key entry classes (`SnapFX`, `DockGraph`, `DockLayoutSerializer`, `DockFloatingWindow`) now include concise usage snippets in JavaDoc.
 
 ## Documentation Scope
 
@@ -225,6 +226,8 @@
 - ✅ [ROADMAP.md](ROADMAP.md) now starts with overall progress, keeps legend directly below, and no longer includes a version-track block.
 - ✅ Architecture decision records are now tracked under `docs/adr/` and linked from README documentation map.
 - ✅ Public API JavaDoc is now hosted via GitHub Pages at `https://snapfx.org/`.
+- ✅ README now exposes a clear public-preview status (`0.x` release-readiness), explicitly notes pre-Maven-Central state, and points users to status/roadmap docs for ongoing work.
+- ✅ Public API JavaDoc now includes package-level overview pages (`package-info.java`) across exported modules and practical entry-point snippets for core API classes.
 - ✅ Runtime theme-stylesheet behavior is documented in ADR [docs/adr/0002-runtime-theme-stylesheet-management.md](docs/adr/0002-runtime-theme-stylesheet-management.md)
 - ✅ Sidebar overlay/pin rendering state split is documented in ADR [docs/adr/0003-sidebar-overlay-and-pin-rendering-state-split.md](docs/adr/0003-sidebar-overlay-and-pin-rendering-state-split.md)
 - ✅ Sidebar panel width state/runtime-clamping behavior is documented in ADR [docs/adr/0004-sidebar-panel-width-state-and-runtime-clamping.md](docs/adr/0004-sidebar-panel-width-state-and-runtime-clamping.md)

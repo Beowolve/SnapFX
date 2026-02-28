@@ -116,6 +116,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ README now includes a documentation map that defines ownership and purpose of each core markdown file
 - ✅ README and SETUP license sections now state MIT licensing with explicit personal/commercial use support
 - ✅ README quick start is now framework-focused and excludes generic Gradle/module setup templates
+- ✅ README now includes a dedicated public-preview status section (`0.x` release-readiness), removes the top-level JPMS warning note, and clarifies that Maven Central publishing is not live yet.
 - ✅ README no longer includes repository-maintainer workflow sections (Versioning/Branch Strategy/CI/CD)
 - ✅ Removed README maintainer workflow sections are now documented in dedicated [CONTRIBUTING.md](CONTRIBUTING.md) and [RELEASING.md](RELEASING.md) guides
 - ✅ Historical project changes are now consolidated into [CHANGELOG.md](CHANGELOG.md) with release-tag grouping
@@ -134,6 +135,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Release-readiness version lane planning is now documented (`0.5.x` to `0.9.x` readiness phases, RC drills, and controlled `1.0.0` public-launch cut policy).
 - ✅ Completed `0.5.x` JavaDoc baseline closure: `snapfx-core` JavaDoc is now warning-free (`./gradlew :snapfx-core:javadoc --rerun-tasks`) after full public API tag completion across `SnapFX`, model/view/theme/persistence surfaces, with full `./gradlew test` still green.
 - ✅ Added a stricter AGENTS collaboration rule for JavaDoc completeness: all new/changed public/protected API elements must include full JavaDoc in the same change (including tags), and JavaDoc validation must not be deferred.
+- ✅ Added JavaDoc usability enhancements for public API discovery: package-level overview pages via `package-info.java` across exported packages plus concise usage snippets in key classes (`SnapFX`, `DockGraph`, `DockLayoutSerializer`, `DockFloatingWindow`).
 
 ### Resources
 - ✅ `snapfx.css` - Native Modena theme styling

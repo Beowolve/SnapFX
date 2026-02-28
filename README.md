@@ -6,8 +6,6 @@
 
 A high-performance, lightweight JavaFX docking framework that behaves like native professional software (IntelliJ, Visual Studio).
 
-**Note**: SnapFX is a Java Module (JPMS). Make sure your project is configured accordingly.
-
 ## MainDemo Preview
 
 ![MainDemo App Screenshot](docs/images/main-demo.png)
@@ -33,6 +31,13 @@ A high-performance, lightweight JavaFX docking framework that behaves like nativ
 
 Public API JavaDoc is published via GitHub Pages at:
 https://snapfx.org/
+
+## Public Preview Status
+
+- SnapFX is currently in a release-readiness/public-preview phase (`0.x`) on the path to `1.0.0`.
+- Maven Central publishing is not live yet; current work focuses on packaging hardening and publishing readiness.
+- Planned first Maven coordinates remain: `org.snapfx:snapfx-core`.
+- Current project state and open items are tracked in [STATUS.md](STATUS.md) and [ROADMAP.md](ROADMAP.md).
 
 ## Features
 
@@ -66,8 +71,9 @@ https://snapfx.org/
 
 ## Quick Start
 
-Maven Central dependency coordinates will be documented here once the first Maven Central release is published.
-Planned coordinates for the first release: `org.snapfx:snapfx-core`.
+Maven Central publishing is currently in progress and not yet publicly available.
+Until then, use the project source directly and/or the demo assets from GitHub Releases.
+Planned first Maven coordinates: `org.snapfx:snapfx-core`.
 
 ### Simple Example
 

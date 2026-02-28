@@ -33,6 +33,8 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Started the `0.5.x` JavaDoc completion track with a broad first-pass remediation across `snapfx-core` public API classes (including model/view/dnd/floating/debug surfaces), plus follow-up roadmap/status tracking for the remaining warning backlog.
 - ✅ Closed the `0.5.x` JavaDoc baseline by making `:snapfx-core:javadoc --rerun-tasks` warning-free and tightening AGENTS workflow rules to require complete JavaDoc updates for every new/changed public/protected API element in the same change.
 - ✅ Added API docs publishing documentation for GitHub Pages + `snapfx.org` in [RELEASING.md](RELEASING.md), surfaced the hosted API docs URL in [README.md](README.md), and updated roadmap/status/done priorities to mark the `0.6.x` docs-domain baseline complete.
+- ✅ Updated README public-facing messaging for repository visibility: removed the top-level JPMS note, added explicit `0.x` public-preview/pre-Maven-Central status, and linked users to current progress tracking via [STATUS.md](STATUS.md) and [ROADMAP.md](ROADMAP.md).
+- ✅ Added JavaDoc discoverability improvements for hosted API docs: package-level overviews via `package-info.java` on exported packages and practical usage snippets in key entry classes (`SnapFX`, `DockGraph`, `DockLayoutSerializer`, `DockFloatingWindow`).
 
 ## v0.4.0 - 2026-02-25
 

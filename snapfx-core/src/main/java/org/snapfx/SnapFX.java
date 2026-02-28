@@ -88,7 +88,21 @@ import java.util.function.Function;
 
 /**
  * Main API class for the SnapFX docking framework.
- * Provides a simple, fluent API for docking JavaFX nodes.
+ *
+ * <p>{@code SnapFX} coordinates the logical model ({@link DockGraph}), rendering layer,
+ * drag-and-drop integration, floating windows, sidebars, and layout persistence.</p>
+ *
+ * <p>Typical usage:</p>
+ * <pre>{@code
+ * SnapFX snapFX = new SnapFX();
+ * snapFX.dock(new TextArea("Editor"), "Editor");
+ * snapFX.dock(new TextArea("Console"), "Console");
+ *
+ * Scene scene = new Scene(snapFX.buildLayout(), 1200, 800);
+ * stage.setScene(scene);
+ * snapFX.initialize(stage);
+ * stage.show();
+ * }</pre>
  */
 public class SnapFX {
     private static final Gson SNAPSHOT_GSON = new GsonBuilder().setPrettyPrinting().create();

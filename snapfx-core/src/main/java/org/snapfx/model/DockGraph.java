@@ -19,9 +19,20 @@ import java.util.List;
 
 /**
  * Central data structure of the docking system.
- * Holds the root of the logical dock tree.
- * Manages automatic generation of unique layout IDs for all nodes.
- * Provides methods for docking, undocking, and moving nodes within the tree.
+ *
+ * <p>{@code DockGraph} owns the logical dock tree, independent from JavaFX rendering.
+ * It manages root assignment, docking/undocking/move operations, split/tab structures,
+ * and sidebar pin/restore state.</p>
+ *
+ * <p>Example (model-level composition):</p>
+ * <pre>{@code
+ * DockGraph graph = new DockGraph();
+ * DockNode editor = new DockNode("editor", new TextArea(), "Editor");
+ * DockNode console = new DockNode("console", new TextArea(), "Console");
+ *
+ * graph.setRoot(editor);
+ * graph.dock(console, editor, DockPosition.BOTTOM);
+ * }</pre>
  */
 public class DockGraph {
     /**
