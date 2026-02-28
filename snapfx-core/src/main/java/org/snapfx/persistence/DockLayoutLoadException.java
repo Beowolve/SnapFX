@@ -5,6 +5,7 @@ package org.snapfx.persistence;
  * Includes the JSON location where the failure was detected.
  */
 public class DockLayoutLoadException extends Exception {
+    /** JSON location/path where the load error was detected. */
     private final String location;
 
     /**

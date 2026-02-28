@@ -30,6 +30,7 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Refined demo smoke validation guidance in `RELEASING.md` to a pragmatic policy: required local-OS smoke per RC, cross-OS checks as nice-to-have, per-OS start commands/checklist, and optional CI startup-smoke scope.
 - ✅ Updated roadmap/status/done docs to mark the `DockDebugOverlay` HUD fixes follow-up as completed (while noting the MainDemo HUD remains opt-in) and return current priority focus to the Phase 3 UX backlog.
 - ✅ Started the `0.5.x` JavaDoc completion track with a broad first-pass remediation across `snapfx-core` public API classes (including model/view/dnd/floating/debug surfaces), plus follow-up roadmap/status tracking for the remaining warning backlog.
+- ✅ Closed the `0.5.x` JavaDoc baseline by making `:snapfx-core:javadoc --rerun-tasks` warning-free and tightening AGENTS workflow rules to require complete JavaDoc updates for every new/changed public/protected API element in the same change.
 
 ## v0.4.0 - 2026-02-25
 

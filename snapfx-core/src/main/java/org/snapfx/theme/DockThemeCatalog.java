@@ -20,6 +20,8 @@ public final class DockThemeCatalog {
 
     /**
      * Returns the default built-in theme name.
+     *
+     * @return default theme name
      */
     public static String getDefaultThemeName() {
         return DEFAULT_THEME_NAME;
@@ -27,6 +29,8 @@ public final class DockThemeCatalog {
 
     /**
      * Returns the default stylesheet resource path.
+     *
+     * @return default stylesheet resource path
      */
     public static String getDefaultThemeStylesheetResourcePath() {
         return DEFAULT_THEME_STYLESHEET_RESOURCE_PATH;
@@ -34,6 +38,8 @@ public final class DockThemeCatalog {
 
     /**
      * Returns all built-in themes as an ordered map of {@code themeName -> stylesheetResourcePath}.
+     *
+     * @return ordered map of theme names to stylesheet resource paths
      */
     public static Map<String, String> getAvailableThemeStylesheets() {
         return AVAILABLE_THEME_STYLESHEETS;
@@ -41,6 +47,8 @@ public final class DockThemeCatalog {
 
     /**
      * Returns all built-in theme names in deterministic order.
+     *
+     * @return ordered built-in theme names
      */
     public static List<String> getAvailableThemeNames() {
         return List.copyOf(AVAILABLE_THEME_STYLESHEETS.keySet());

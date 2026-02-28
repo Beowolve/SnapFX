@@ -24,6 +24,11 @@ public class DockSplitPane implements DockContainer {
     private DockContainer parent;
     private DockElement flattenedChild; // Temporary: child after flattening
 
+    /**
+     * Creates a split container with the given orientation.
+     *
+     * @param orientation split orientation
+     */
     public DockSplitPane(Orientation orientation) {
         this.id = UUID.randomUUID().toString();
         this.orientation = orientation;
@@ -131,6 +136,8 @@ public class DockSplitPane implements DockContainer {
 
     /**
      * Returns the orientation of this split pane.
+     *
+     * @return split orientation
      */
     public Orientation getOrientation() {
         return orientation;
@@ -138,6 +145,8 @@ public class DockSplitPane implements DockContainer {
 
     /**
      * Returns the flattened child (only after flattening a root container).
+     *
+     * @return flattened child, or {@code null} if not available
      */
     public DockElement getFlattenedChild() {
         DockElement child = flattenedChild;
@@ -148,6 +157,8 @@ public class DockSplitPane implements DockContainer {
     /**
      * Returns the list of divider positions.
      * Each position is a value between 0.0 and 1.0 representing the relative position of the divider.
+     *
+     * @return mutable divider-position properties
      */
     public List<DoubleProperty> getDividerPositions() {
         return dividerPositions;

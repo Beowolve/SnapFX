@@ -20,6 +20,9 @@ public class DockTabPane implements DockContainer {
     private DockContainer parent;
     private DockElement flattenedChild; // Temporary: child after flattening
 
+    /**
+     * Creates an empty tab container.
+     */
     public DockTabPane() {
         this.id = UUID.randomUUID().toString();
         this.children = FXCollections.observableArrayList();
@@ -51,6 +54,12 @@ public class DockTabPane implements DockContainer {
         addChild(element, children.size());
     }
 
+    /**
+     * Adds a child at a specific tab index.
+     *
+     * @param element child element to insert
+     * @param index target insertion index (clamped)
+     */
     public void addChild(DockElement element, int index) {
         int insertIndex = Math.clamp(index, 0, children.size());
 
@@ -128,6 +137,8 @@ public class DockTabPane implements DockContainer {
 
     /**
      * Returns the flattened child (only after flattening a root container).
+     *
+     * @return flattened child, or {@code null} if not available
      */
     public DockElement getFlattenedChild() {
         DockElement child = flattenedChild;
@@ -139,6 +150,11 @@ public class DockTabPane implements DockContainer {
         return selectedIndex.get();
     }
 
+    /**
+     * Returns the selected-index property.
+     *
+     * @return selected-index property
+     */
     public IntegerProperty selectedIndexProperty() {
         return selectedIndex;
     }

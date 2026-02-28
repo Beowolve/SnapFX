@@ -12,6 +12,9 @@ public final class DockThemeStylesheetManager {
     private String stylesheetResourcePath;
     private String stylesheetUrl;
 
+    /**
+     * Creates a stylesheet manager initialized with the default built-in stylesheet.
+     */
     public DockThemeStylesheetManager() {
         this.stylesheetResourcePath = DockThemeCatalog.getDefaultThemeStylesheetResourcePath();
         this.stylesheetUrl = resolveStylesheetUrl(stylesheetResourcePath);
@@ -22,6 +25,8 @@ public final class DockThemeStylesheetManager {
 
     /**
      * Returns the current stylesheet resource path (or absolute stylesheet URL).
+     *
+     * @return configured stylesheet resource path or absolute URL
      */
     public String getStylesheetResourcePath() {
         return stylesheetResourcePath;
@@ -48,6 +53,9 @@ public final class DockThemeStylesheetManager {
 
     /**
      * Applies the active stylesheet to the given scene and removes the previous managed stylesheet URL when needed.
+     *
+     * @param scene scene to update
+     * @param previousStylesheetUrl previously managed stylesheet URL, or {@code null}
      */
     public void applyToScene(Scene scene, String previousStylesheetUrl) {
         if (scene == null || stylesheetUrl == null) {

@@ -23,6 +23,7 @@ These instructions are shared for all AI agents working on this workspace.
 - Treat [AGENTS.md](AGENTS.md) as the source of truth for all persistent collaboration rules in this workspace.
 - API-to-settings parity rule: every SnapFX API function must be represented in the MainDemo Settings tab to keep manual verification accessible.
 - Design-decision documentation rule: every significant design/architecture decision must be documented in JavaDoc (API/algorithm intent), in [ARCHITECTURE.md](ARCHITECTURE.md) (system behavior), and as an ADR file under `docs/adr/`.
+- JavaDoc completeness rule: for every new or changed public/protected API element (class, method, enum constant, public field), add/update full JavaDoc immediately in the same change (`@param`, `@return`, `@throws` where applicable), run `./gradlew :snapfx-core:javadoc --rerun-tasks`, and do not defer missing JavaDoc cleanup to later follow-up work.
 - As soon as a focused, sensible commit is ready, proactively show the proposed commit message without waiting for the user to ask.
 - If `MainDemo` visuals change (layout, window composition, look and feel, styling, icons, controls), always run `./scripts/update-main-demo-preview.ps1` and include the updated `docs/images/main-demo.png`.
 - Versioning is controlled by `gradle-jgitver` in `build.gradle.kts`; do not reintroduce custom version calculators in the build script.

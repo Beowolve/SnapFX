@@ -179,6 +179,9 @@ public class SnapFX {
 
     private Pane rootContainer; // Container that holds the buildLayout() result
 
+    /**
+     * Creates a new SnapFX instance with default services, callbacks, and shortcut/theme configuration.
+     */
     public SnapFX() {
         this.dockGraph = new DockGraph();
         this.dragService = new DockDragService(dockGraph);
@@ -229,6 +232,8 @@ public class SnapFX {
     /**
      * Initializes SnapFX with the primary stage.
      * Also applies the currently configured framework stylesheet to the primary and floating scenes.
+     *
+     * @param stage primary application stage
      */
     public void initialize(Stage stage) {
         if (primaryStage != null) {
@@ -250,6 +255,8 @@ public class SnapFX {
 
     /**
      * Returns the built-in default theme name.
+     *
+     * @return default theme name
      */
     public static String getDefaultThemeName() {
         return DockThemeCatalog.getDefaultThemeName();
@@ -257,6 +264,8 @@ public class SnapFX {
 
     /**
      * Returns the default classpath stylesheet used by SnapFX.
+     *
+     * @return default stylesheet resource path
      */
     public static String getDefaultThemeStylesheetResourcePath() {
         return DockThemeCatalog.getDefaultThemeStylesheetResourcePath();
@@ -264,6 +273,8 @@ public class SnapFX {
 
     /**
      * Returns all built-in themes as an ordered map of {@code themeName -> stylesheetResourcePath}.
+     *
+     * @return ordered theme name to stylesheet path map
      */
     public static Map<String, String> getAvailableThemeStylesheets() {
         return DockThemeCatalog.getAvailableThemeStylesheets();
@@ -271,6 +282,8 @@ public class SnapFX {
 
     /**
      * Returns all built-in theme names in deterministic order.
+     *
+     * @return ordered theme names
      */
     public static List<String> getAvailableThemeNames() {
         return DockThemeCatalog.getAvailableThemeNames();
@@ -280,6 +293,8 @@ public class SnapFX {
      * Returns the currently configured stylesheet resource path or absolute URL.
      *
      * <p>Classpath resources use paths like {@code /snapfx.css}; external stylesheets keep their original URL.</p>
+     *
+     * @return configured stylesheet resource path or absolute URL
      */
     public String getThemeStylesheetResourcePath() {
         return themeStylesheetManager.getStylesheetResourcePath();
@@ -302,6 +317,10 @@ public class SnapFX {
     /**
      * Simple API to dock a node with a title.
      * Creates a DockNode and adds it to the root.
+     *
+     * @param content JavaFX node content
+     * @param title dock-node title
+     * @return created and docked node
      */
     public DockNode dock(Node content, String title) {
         DockNode dockNode = new DockNode(content, title);
@@ -318,6 +337,12 @@ public class SnapFX {
 
     /**
      * Docks a node at a specific position relative to a target.
+     *
+     * @param content JavaFX node content
+     * @param title dock-node title
+     * @param target docking target element
+     * @param position docking position relative to target
+     * @return created and docked node
      */
     public DockNode dock(Node content, String title, DockElement target, DockPosition position) {
         DockNode dockNode = new DockNode(content, title);
@@ -327,6 +352,10 @@ public class SnapFX {
 
     /**
      * Docks an existing DockNode at a specific position.
+     *
+     * @param node node to dock
+     * @param target docking target element
+     * @param position docking position relative to target
      */
     public void dock(DockNode node, DockElement target, DockPosition position) {
         dockGraph.dock(node, target, position);
@@ -334,6 +363,8 @@ public class SnapFX {
 
     /**
      * Removes a DockNode from the graph.
+     *
+     * @param node node to remove
      */
     @SuppressWarnings("unused")
     public void undock(DockNode node) {
@@ -343,6 +374,8 @@ public class SnapFX {
     /**
      * Builds the visual representation of the current dock layout.
      * The returned Parent will automatically update when the model changes.
+     *
+     * @return root layout container node
      */
     public Parent buildLayout() {
         // Wrap in a container that we can update
@@ -1196,6 +1229,8 @@ public class SnapFX {
 
     /**
      * Removes the key binding for a shortcut action.
+     *
+     * @param action shortcut action to clear
      */
     public void clearShortcut(DockShortcutAction action) {
         setShortcut(action, null);
@@ -1203,6 +1238,9 @@ public class SnapFX {
 
     /**
      * Returns the configured key binding for a shortcut action.
+     *
+     * @param action shortcut action to query
+     * @return configured key combination, or {@code null}
      */
     public KeyCombination getShortcut(DockShortcutAction action) {
         if (action == null) {
@@ -1213,6 +1251,8 @@ public class SnapFX {
 
     /**
      * Returns a snapshot of all currently configured shortcut bindings.
+     *
+     * @return immutable snapshot of shortcut bindings
      */
     public Map<DockShortcutAction, KeyCombination> getShortcuts() {
         return Collections.unmodifiableMap(new EnumMap<>(shortcuts));
@@ -1558,6 +1598,8 @@ public class SnapFX {
 
     /**
      * Locks or unlocks the layout (disables drag &amp; drop when locked).
+     *
+     * @param locked {@code true} to lock layout interactions
      */
     public void setLocked(boolean locked) {
         dockGraph.setLocked(locked);
@@ -1566,6 +1608,11 @@ public class SnapFX {
         }
     }
 
+    /**
+     * Returns whether layout mutations are currently locked.
+     *
+     * @return {@code true} when layout is locked
+     */
     @SuppressWarnings("unused")
     public boolean isLocked() {
         return dockGraph.isLocked();
@@ -1593,6 +1640,8 @@ public class SnapFX {
 
     /**
      * Saves the current layout as JSON.
+     *
+     * @return serialized layout snapshot JSON
      */
     public String saveLayout() {
         String mainLayoutJson = serializer.serialize();
@@ -1609,6 +1658,7 @@ public class SnapFX {
     /**
      * Loads a layout from JSON.
      *
+     * @param json serialized layout snapshot JSON
      * @throws DockLayoutLoadException if layout JSON is invalid or cannot be deserialized
      */
     public void loadLayout(String json) throws DockLayoutLoadException {
@@ -1634,6 +1684,8 @@ public class SnapFX {
 
     /**
      * Hides a DockNode (removes from layout but keeps in memory for restore).
+     *
+     * @param node node to hide
      */
     public void hide(DockNode node) {
         if (node == null || hiddenNodes.contains(node)) {
@@ -1661,6 +1713,8 @@ public class SnapFX {
 
     /**
      * Removes a DockNode from layout/floating windows without adding it to the hidden list.
+     *
+     * @param node node to remove
      */
     public void remove(DockNode node) {
         if (node == null) {
@@ -1687,6 +1741,8 @@ public class SnapFX {
     /**
      * Programmatically requests a close action for a DockNode.
      * The request is processed using the configured close behavior and callbacks.
+     *
+     * @param node node to close
      */
     public void close(DockNode node) {
         handleDockNodeCloseRequest(node, DockCloseSource.TITLE_BAR);
@@ -1694,6 +1750,8 @@ public class SnapFX {
 
     /**
      * Restores a hidden DockNode back to the layout.
+     *
+     * @param node node to restore
      */
     public void restore(DockNode node) {
         if (node == null || !hiddenNodes.contains(node)) {
@@ -1716,6 +1774,9 @@ public class SnapFX {
      *
      * <p>Pinning keeps the target sidebar in its current pinned-open/collapsed state. New pinned entries are
      * therefore collapsed by default unless the sidebar is explicitly opened with {@link #pinOpenSideBar(Side)}.</p>
+     *
+     * @param node node to pin
+     * @param side target sidebar side
      */
     public void pinToSideBar(DockNode node, Side side) {
         if (node == null || side == null || dockGraph.isLocked()) {
@@ -1749,6 +1810,8 @@ public class SnapFX {
      *
      * <p>Restore reuses the same remembered placement strategy used for floating-window attach operations:
      * preferred anchor, neighbor anchors, then fallback docking.</p>
+     *
+     * @param node node to restore from sidebar
      */
     public void restoreFromSideBar(DockNode node) {
         if (node == null || dockGraph.isLocked()) {
@@ -1763,6 +1826,8 @@ public class SnapFX {
 
     /**
      * Opens the sidebar panel for the given side in pinned (layout-consuming) mode.
+     *
+     * @param side sidebar side
      */
     public void pinOpenSideBar(Side side) {
         dockGraph.pinOpenSideBar(side);
@@ -1774,6 +1839,8 @@ public class SnapFX {
 
     /**
      * Collapses the sidebar panel for the given side back to icon-strip mode.
+     *
+     * @param side sidebar side
      */
     public void collapsePinnedSideBar(Side side) {
         dockGraph.collapsePinnedSideBar(side);
@@ -1788,6 +1855,9 @@ public class SnapFX {
      * <p>When {@link #isCollapsePinnedSideBarOnActiveIconClick()} is enabled, a pinned side panel can be
      * temporarily collapsed via active-icon click while this method still returns {@code true} (pin mode preserved).
      * The temporary collapsed/expanded state is managed as transient view state in SnapFX.</p>
+     *
+     * @param side sidebar side
+     * @return {@code true} when sidebar is pinned-open
      */
     public boolean isSideBarPinnedOpen(Side side) {
         return dockGraph.isSideBarPinnedOpen(side);
@@ -1798,6 +1868,8 @@ public class SnapFX {
      *
      * <p>When enabled (default), clicking the icon of the currently open pinned panel collapses the panel back to
      * icon-strip mode. When disabled, the click keeps the pinned panel open.</p>
+     *
+     * @return {@code true} when active-icon click collapses pinned sidebars
      */
     public boolean isCollapsePinnedSideBarOnActiveIconClick() {
         return collapsePinnedSideBarOnActiveIconClick;
@@ -1807,6 +1879,8 @@ public class SnapFX {
      * Controls whether clicking the active side-bar icon collapses a pinned-open side panel.
      *
      * <p>Default is {@code true}.</p>
+     *
+     * @param collapsePinnedSideBarOnActiveIconClick collapse policy flag
      */
     public void setCollapsePinnedSideBarOnActiveIconClick(boolean collapsePinnedSideBarOnActiveIconClick) {
         this.collapsePinnedSideBarOnActiveIconClick = collapsePinnedSideBarOnActiveIconClick;
@@ -1818,6 +1892,8 @@ public class SnapFX {
      * <p>{@link DockSideBarMode#AUTO} is the default and renders sidebars only when they contain pinned nodes.
      * {@link DockSideBarMode#ALWAYS} keeps empty left/right strips visible, while
      * {@link DockSideBarMode#NEVER} disables framework sidebar UI and built-in sidebar move context-menu actions.</p>
+     *
+     * @param mode sidebar mode, defaults to {@link DockSideBarMode#AUTO} when {@code null}
      */
     public void setSideBarMode(DockSideBarMode mode) {
         DockSideBarMode nextMode = mode == null ? DockSideBarMode.AUTO : mode;
@@ -1834,6 +1910,8 @@ public class SnapFX {
 
     /**
      * Returns the current framework sidebar rendering mode.
+     *
+     * @return current sidebar rendering mode
      */
     public DockSideBarMode getSideBarMode() {
         return sideBarMode;
@@ -1844,6 +1922,9 @@ public class SnapFX {
      *
      * <p>The returned value is the persisted preference. Rendering may clamp the effective width depending on the
      * current layout size.</p>
+     *
+     * @param side sidebar side
+     * @return preferred panel width
      */
     public double getSideBarPanelWidth(Side side) {
         return dockGraph.getSideBarPanelWidth(side);
@@ -1854,6 +1935,9 @@ public class SnapFX {
      *
      * <p>The value is validated and clamped to the current SnapFX sidebar width policy. The effective rendered width
      * may still be smaller on narrow scenes due to runtime clamping.</p>
+     *
+     * @param side sidebar side
+     * @param width preferred panel width
      */
     public void setSideBarPanelWidth(Side side, double width) {
         if (side == null || !Double.isFinite(width) || width <= 0.0) {
@@ -1864,6 +1948,9 @@ public class SnapFX {
 
     /**
      * Returns the read-only list of pinned sidebar nodes for the given side.
+     *
+     * @param side sidebar side
+     * @return read-only pinned nodes for the side
      */
     public ObservableList<DockNode> getSideBarNodes(Side side) {
         return dockGraph.getSideBarNodes(side);
@@ -1871,6 +1958,9 @@ public class SnapFX {
 
     /**
      * Returns whether the node is currently pinned to any sidebar.
+     *
+     * @param node node to check
+     * @return {@code true} when node is pinned in any sidebar
      */
     public boolean isPinnedToSideBar(DockNode node) {
         return dockGraph.isPinnedToSideBar(node);
@@ -1878,6 +1968,9 @@ public class SnapFX {
 
     /**
      * Returns the sidebar side of the node, or {@code null} if the node is not pinned.
+     *
+     * @param node node to check
+     * @return pinned side, or {@code null}
      */
     public Side getPinnedSide(DockNode node) {
         return dockGraph.getPinnedSide(node);
@@ -1885,6 +1978,9 @@ public class SnapFX {
 
     /**
      * Moves an existing DockNode into an external floating window.
+     *
+     * @param node node to float
+     * @return created or reused floating window, or {@code null} when node is {@code null}
      */
     public DockFloatingWindow floatNode(DockNode node) {
         return floatNode(node, null, null);
@@ -1897,6 +1993,11 @@ public class SnapFX {
      * <p>Before detaching a node from its current host (main layout or another floating window),
      * SnapFX captures placement anchors so {@link #attachFloatingWindow(DockFloatingWindow)} can
      * restore the node as close as possible to its previous location later.</p>
+     *
+     * @param node node to float
+     * @param screenX optional preferred floating x-position
+     * @param screenY optional preferred floating y-position
+     * @return created or reused floating window, or {@code null} when node is {@code null}
      */
     public DockFloatingWindow floatNode(DockNode node, Double screenX, Double screenY) {
         if (node == null) {
@@ -1968,6 +2069,8 @@ public class SnapFX {
      * </ul>
      *
      * <p>No dialogs are shown for restore failures; attach is always resolved via fallback.</p>
+     *
+     * @param floatingWindow floating window to attach back
      */
     public void attachFloatingWindow(DockFloatingWindow floatingWindow) {
         if (floatingWindow == null || !floatingWindows.remove(floatingWindow)) {
@@ -2693,75 +2796,151 @@ public class SnapFX {
         return false;
     }
 
+    /**
+     * Returns the observable list of currently hidden nodes.
+     *
+     * @return hidden-node list
+     */
     public ObservableList<DockNode> getHiddenNodes() {
         return hiddenNodes;
     }
 
-    // Getters
+    /**
+     * Returns the underlying dock graph model.
+     *
+     * @return dock graph
+     */
     public DockGraph getDockGraph() {
         return dockGraph;
     }
 
+    /**
+     * Returns the layout engine used by this SnapFX instance.
+     *
+     * @return layout engine
+     */
     @SuppressWarnings("unused")
     public DockLayoutEngine getLayoutEngine() {
         return layoutEngine;
     }
 
+    /**
+     * Returns the drag service used by this SnapFX instance.
+     *
+     * @return drag service
+     */
     public DockDragService getDragService() {
         return dragService;
     }
 
+    /**
+     * Sets the drop-zone visualization mode during drag operations.
+     *
+     * @param mode visualization mode
+     */
     public void setDropVisualizationMode(DockDropVisualizationMode mode) {
         dragService.setDropVisualizationMode(mode);
     }
 
+    /**
+     * Returns the current drop-zone visualization mode.
+     *
+     * @return current drop visualization mode
+     */
     public DockDropVisualizationMode getDropVisualizationMode() {
         return dragService.getDropVisualizationMode();
     }
 
+    /**
+     * Sets the close-button mode used by layout views.
+     *
+     * @param mode close-button mode
+     */
     public void setCloseButtonMode(DockCloseButtonMode mode) {
         layoutEngine.setCloseButtonMode(mode);
         requestRebuild();
     }
 
+    /**
+     * Returns the close-button mode used by layout views.
+     *
+     * @return close-button mode
+     */
     public DockCloseButtonMode getCloseButtonMode() {
         return layoutEngine.getCloseButtonMode();
     }
 
+    /**
+     * Sets the title-bar mode used by layout views.
+     *
+     * @param mode title-bar mode
+     */
     public void setTitleBarMode(DockTitleBarMode mode) {
         layoutEngine.setTitleBarMode(mode);
         requestRebuild();
     }
 
+    /**
+     * Returns the title-bar mode used by layout views.
+     *
+     * @return title-bar mode
+     */
     public DockTitleBarMode getTitleBarMode() {
         return layoutEngine.getTitleBarMode();
     }
 
+    /**
+     * Returns the primary stage last passed to {@link #initialize(Stage)}.
+     *
+     * @return primary stage, or {@code null}
+     */
     @SuppressWarnings("unused")
     public Stage getPrimaryStage() {
         return primaryStage;
     }
 
+    /**
+     * Sets the default close behavior for close requests.
+     *
+     * @param defaultCloseBehavior default close behavior
+     */
     public void setDefaultCloseBehavior(DockCloseBehavior defaultCloseBehavior) {
         if (defaultCloseBehavior != null) {
             this.defaultCloseBehavior = defaultCloseBehavior;
         }
     }
 
+    /**
+     * Returns the configured default close behavior.
+     *
+     * @return default close behavior
+     */
     public DockCloseBehavior getDefaultCloseBehavior() {
         return defaultCloseBehavior;
     }
 
+    /**
+     * Sets the close-request decision callback.
+     *
+     * @param handler callback that decides close handling, or {@code null}
+     */
     public void setOnCloseRequest(Function<DockCloseRequest, DockCloseDecision> handler) {
         this.onCloseRequest = handler;
     }
 
+    /**
+     * Sets the callback invoked after close handling is resolved.
+     *
+     * @param handler close-handled callback, or {@code null}
+     */
     public void setOnCloseHandled(Consumer<DockCloseResult> handler) {
         this.onCloseHandled = handler;
     }
 
     /**
      * Controls pin-button visibility behavior for all floating windows.
+     *
+     * @param mode global pin-button mode, defaults to {@link DockFloatingPinButtonMode#AUTO} when {@code null}
      */
     public void setFloatingPinButtonMode(DockFloatingPinButtonMode mode) {
         floatingPinButtonMode = mode == null ? DockFloatingPinButtonMode.AUTO : mode;
@@ -2772,6 +2951,8 @@ public class SnapFX {
 
     /**
      * Returns the current global pin-button mode.
+     *
+     * @return current global pin-button mode
      */
     public DockFloatingPinButtonMode getFloatingPinButtonMode() {
         return floatingPinButtonMode;
@@ -2779,6 +2960,8 @@ public class SnapFX {
 
     /**
      * Sets the default always-on-top state for newly created floating windows.
+     *
+     * @param defaultAlwaysOnTop default always-on-top state for newly created floating windows
      */
     public void setDefaultFloatingAlwaysOnTop(boolean defaultAlwaysOnTop) {
         this.defaultFloatingAlwaysOnTop = defaultAlwaysOnTop;
@@ -2786,6 +2969,8 @@ public class SnapFX {
 
     /**
      * Returns the default always-on-top state for newly created floating windows.
+     *
+     * @return default always-on-top state for new floating windows
      */
     public boolean isDefaultFloatingAlwaysOnTop() {
         return defaultFloatingAlwaysOnTop;
@@ -2793,6 +2978,8 @@ public class SnapFX {
 
     /**
      * Enables or disables user pin toggling in floating title bars.
+     *
+     * @param allowPinToggle {@code true} to allow user pin toggling
      */
     public void setAllowFloatingPinToggle(boolean allowPinToggle) {
         allowFloatingPinToggle = allowPinToggle;
@@ -2803,6 +2990,8 @@ public class SnapFX {
 
     /**
      * Returns whether user pin toggling is enabled in floating title bars.
+     *
+     * @return {@code true} when user pin toggling is enabled
      */
     public boolean isAllowFloatingPinToggle() {
         return allowFloatingPinToggle;
@@ -2810,6 +2999,8 @@ public class SnapFX {
 
     /**
      * Sets lock-mode behavior for pin controls in floating windows.
+     *
+     * @param behavior pin behavior while layout is locked
      */
     public void setFloatingPinLockedBehavior(DockFloatingPinLockedBehavior behavior) {
         floatingPinLockedBehavior = behavior == null ? DockFloatingPinLockedBehavior.ALLOW : behavior;
@@ -2820,6 +3011,8 @@ public class SnapFX {
 
     /**
      * Returns lock-mode behavior for floating pin controls.
+     *
+     * @return lock-mode behavior for floating pin controls
      */
     public DockFloatingPinLockedBehavior getFloatingPinLockedBehavior() {
         return floatingPinLockedBehavior;
@@ -2827,6 +3020,8 @@ public class SnapFX {
 
     /**
      * Enables or disables floating-window snapping while title bars are dragged.
+     *
+     * @param enabled {@code true} to enable snapping
      */
     public void setFloatingWindowSnappingEnabled(boolean enabled) {
         floatingWindowSnappingEnabled = enabled;
@@ -2837,6 +3032,8 @@ public class SnapFX {
 
     /**
      * Returns whether floating-window snapping is enabled.
+     *
+     * @return {@code true} when floating-window snapping is enabled
      */
     public boolean isFloatingWindowSnappingEnabled() {
         return floatingWindowSnappingEnabled;
@@ -2844,6 +3041,8 @@ public class SnapFX {
 
     /**
      * Sets the snap distance in pixels used for floating-window drag snapping.
+     *
+     * @param pixels snap tolerance in pixels
      */
     public void setFloatingWindowSnapDistance(double pixels) {
         if (!isFiniteNumber(pixels) || pixels < 0.0) {
@@ -2857,6 +3056,8 @@ public class SnapFX {
 
     /**
      * Returns the configured floating-window snap distance in pixels.
+     *
+     * @return floating-window snap distance in pixels
      */
     public double getFloatingWindowSnapDistance() {
         return floatingWindowSnapDistance;
@@ -2864,6 +3065,8 @@ public class SnapFX {
 
     /**
      * Configures which targets are used for floating-window snapping.
+     *
+     * @param targets snapping targets, {@code null} clears all targets
      */
     public void setFloatingWindowSnapTargets(Set<DockFloatingSnapTarget> targets) {
         EnumSet<DockFloatingSnapTarget> resolvedTargets = EnumSet.noneOf(DockFloatingSnapTarget.class);
@@ -2882,6 +3085,8 @@ public class SnapFX {
 
     /**
      * Returns the configured floating-window snap targets.
+     *
+     * @return immutable snapshot of configured snapping targets
      */
     public Set<DockFloatingSnapTarget> getFloatingWindowSnapTargets() {
         if (floatingWindowSnapTargets.isEmpty()) {
@@ -2892,6 +3097,8 @@ public class SnapFX {
 
     /**
      * Sets callback for floating pin-state changes.
+     *
+     * @param handler callback for floating pin-state changes, or {@code null}
      */
     public void setOnFloatingPinChanged(Consumer<DockFloatingPinChangeEvent> handler) {
         onFloatingPinChanged = handler;
@@ -2899,6 +3106,9 @@ public class SnapFX {
 
     /**
      * Sets always-on-top for an open floating window.
+     *
+     * @param floatingWindow floating window to update
+     * @param alwaysOnTop target always-on-top state
      */
     public void setFloatingWindowAlwaysOnTop(DockFloatingWindow floatingWindow, boolean alwaysOnTop) {
         if (floatingWindow == null || !floatingWindows.contains(floatingWindow)) {
@@ -2907,6 +3117,12 @@ public class SnapFX {
         floatingWindow.setAlwaysOnTop(alwaysOnTop, DockFloatingPinSource.API);
     }
 
+    /**
+     * Returns the number of dock nodes with the given logical dock-node ID.
+     *
+     * @param id logical dock-node ID
+     * @return number of matching nodes across layout and sidebars
+     */
     public int getDockNodeCount(String id) {
         return dockGraph.getDockNodeCount(id);
     }

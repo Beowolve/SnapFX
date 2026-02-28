@@ -132,7 +132,8 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Markdown documentation consistency tests now keep Unicode icon constants readable via inline icon comments
 
 - ✅ Release-readiness version lane planning is now documented (`0.5.x` to `0.9.x` readiness phases, RC drills, and controlled `1.0.0` public-launch cut policy).
-- ✅ Completed a first JavaDoc remediation pass for `snapfx-core` public API surfaces (model/view/dnd/floating/debug baselines plus API tag cleanup), validated by successful `:snapfx-core:javadoc` and full `./gradlew test`; remaining warnings are now tracked as the next `0.5.x` closure step.
+- ✅ Completed `0.5.x` JavaDoc baseline closure: `snapfx-core` JavaDoc is now warning-free (`./gradlew :snapfx-core:javadoc --rerun-tasks`) after full public API tag completion across `SnapFX`, model/view/theme/persistence surfaces, with full `./gradlew test` still green.
+- ✅ Added a stricter AGENTS collaboration rule for JavaDoc completeness: all new/changed public/protected API elements must include full JavaDoc in the same change (including tags), and JavaDoc validation must not be deferred.
 
 ### Resources
 - ✅ `snapfx.css` - Native Modena theme styling
@@ -334,7 +335,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 
 See [ROADMAP.md](ROADMAP.md) for planned features and improvements.
 
-**Current Priority**: Sidebar interaction parity (Phase 2, current scope) and the `DockDebugOverlay` HUD follow-up are complete; next focus returns to the Phase 3 user-experience backlog.
+**Current Priority**: `0.5.x` JavaDoc baseline is complete; next release-readiness step is `0.6.x` public API documentation publishing via GitHub Pages and `snapfx.org`.
 
 ---
 
