@@ -20,7 +20,7 @@
 
 ✅ **Release-Ready Version Strategy**: Roadmap/releasing docs now define an explicit `0.5.x` to `0.9.x` readiness lane with RC drill tags and a controlled `1.0.0` public-launch cut.
 ✅ **JavaDoc Completion Track (`0.5.x`)**: `snapfx-core` JavaDoc is now warning-free (`./gradlew :snapfx-core:javadoc --rerun-tasks`), with AGENTS workflow rules tightened to require immediate complete JavaDoc updates for new/changed API elements.
-✅ **API Docs Publishing Baseline (`0.6.x`)**: GitHub Pages workflow now publishes `:snapfx-core:javadoc` for `main` pushes/manual runs and writes a `CNAME` for `snapfx.org` (`.github/workflows/docs-pages.yml`).
+✅ **Docs Portal Baseline (`0.6.x`)**: GitHub Pages workflow now builds and publishes the Docusaurus documentation portal at `https://snapfx.org/`, bundles generated `:snapfx-core:javadoc` under `/api`, and writes a `CNAME` for `snapfx.org` (`.github/workflows/docs-pages.yml`).
 ✅ **JavaDoc Usability Pass**: Exported API packages now include `package-info.java` overviews, and key entry classes (`SnapFX`, `DockGraph`, `DockLayoutSerializer`, `DockFloatingWindow`) now include concise usage snippets in JavaDoc.
 
 ## Documentation Scope
@@ -225,7 +225,7 @@
 - ✅ [RELEASING.md](RELEASING.md) (maintainer release/versioning/tag flow)
 - ✅ [ROADMAP.md](ROADMAP.md) now starts with overall progress, keeps legend directly below, and no longer includes a version-track block.
 - ✅ Architecture decision records are now tracked under `docs/adr/` and linked from README documentation map.
-- ✅ Public API JavaDoc is now hosted via GitHub Pages at `https://snapfx.org/`.
+- ✅ Public documentation portal is now hosted at `https://snapfx.org/`, with generated API JavaDoc published at `https://snapfx.org/api/`.
 - ✅ README now exposes a clear public-preview status (`0.x` release-readiness), explicitly notes pre-Maven-Central state, and points users to status/roadmap docs for ongoing work.
 - ✅ Public API JavaDoc now includes package-level overview pages (`package-info.java`) across exported modules and practical entry-point snippets for core API classes.
 - ✅ Runtime theme-stylesheet behavior is documented in ADR [docs/adr/0002-runtime-theme-stylesheet-management.md](docs/adr/0002-runtime-theme-stylesheet-management.md)
@@ -240,12 +240,13 @@
 - ⚠️ Memory: Automated heap profiling in CI not implemented
 - ⚠️ UI: Global interaction animations missing (only About dialog easter egg animation exists; tracked in [ROADMAP.md](ROADMAP.md) Phase 3.3)
 - ⚠️ UI: Context-menu extensibility API for custom menu items is not implemented yet (tracked in [ROADMAP.md](ROADMAP.md) Phase 3.2)
+- ⚠️ Docs: Docusaurus/JavaDoc multi-version publication is intentionally deferred until after `1.0.0` (current pre-`1.0.0` policy is latest-only docs/API on `snapfx.org`).
 
 ## Next Steps
 
 See [ROADMAP.md](ROADMAP.md) for detailed future development plans.
 
-**Priority**: `0.6.x` public API docs publishing baseline is complete; next release-readiness focus is `0.7.x` (cross-platform packaging hardening, release checksums, and smoke-check workflow polish).
+**Priority**: `0.6.x` public documentation/domain baseline is complete; next release-readiness focus is `0.7.x` (cross-platform packaging hardening, release checksums, and smoke-check workflow polish).
 
 ---
 

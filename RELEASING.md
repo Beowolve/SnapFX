@@ -72,18 +72,24 @@ Optional push using helper:
   - `snapfx-demo-jpackage-image-macos-<tag>.zip`
   - `snapfx-demo-jpackage-image-linux-<tag>.zip`
 
-## API Docs Publishing (GitHub Pages + `snapfx.org`)
+## Documentation Site Publishing (GitHub Pages + `snapfx.org`)
 
-- API docs workflow (`.github/workflows/docs-pages.yml`) runs on every push to `main` and via manual `workflow_dispatch`.
+- Docs workflow (`.github/workflows/docs-pages.yml`) runs on every push to `main` and via manual `workflow_dispatch`.
 - Workflow build/publish steps:
   - generate JavaDoc with `./gradlew --no-daemon :snapfx-core:javadoc`
-  - publish `snapfx-core/build/docs/javadoc` to GitHub Pages
+  - copy JavaDoc into Docusaurus static path (`website/static/api`)
+  - build the Docusaurus site (`website`)
+  - publish the built site (`website/build`) to GitHub Pages
   - write `CNAME` with `snapfx.org` so custom-domain routing stays attached
 - Repository requirements:
   - GitHub Pages source must be set to `GitHub Actions`
   - DNS for `snapfx.org` must point to the repository Pages endpoint
-- Published API docs URL:
-  - `https://snapfx.org/`
+- Published URLs:
+  - docs portal: `https://snapfx.org/`
+  - API JavaDoc: `https://snapfx.org/api/`
+- Versioning policy:
+  - keep docs/API publication as `latest` only during pre-`1.0.0` release-readiness
+  - start multi-version docs/API publication after the first stable `1.0.0` release
 
 ## Demo Smoke Validation (Per OS)
 

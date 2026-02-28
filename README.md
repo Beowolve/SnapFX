@@ -26,11 +26,12 @@ A high-performance, lightweight JavaFX docking framework that behaves like nativ
 | [RELEASING.md](RELEASING.md)                | Maintainer release process, versioning, tags, and CI release flow |
 | [AGENTS.md](AGENTS.md)             | Collaboration and workflow rules for AI agents |
 | `docs/adr/*.md`                    | Architecture Decision Records (context, decisions, and trade-offs) |
+| `website/`                         | Docusaurus documentation portal source (published to `https://snapfx.org/`) |
 
-## Hosted API Docs
+## Hosted Documentation
 
-Public API JavaDoc is published via GitHub Pages at:
-https://snapfx.org/
+- Documentation portal: `https://snapfx.org/`
+- Public API JavaDoc: `https://snapfx.org/api/`
 
 ## Public Preview Status
 

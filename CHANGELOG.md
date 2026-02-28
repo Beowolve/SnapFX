@@ -35,6 +35,8 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Added API docs publishing documentation for GitHub Pages + `snapfx.org` in [RELEASING.md](RELEASING.md), surfaced the hosted API docs URL in [README.md](README.md), and updated roadmap/status/done priorities to mark the `0.6.x` docs-domain baseline complete.
 - ✅ Updated README public-facing messaging for repository visibility: removed the top-level JPMS note, added explicit `0.x` public-preview/pre-Maven-Central status, and linked users to current progress tracking via [STATUS.md](STATUS.md) and [ROADMAP.md](ROADMAP.md).
 - ✅ Added JavaDoc discoverability improvements for hosted API docs: package-level overviews via `package-info.java` on exported packages and practical usage snippets in key entry classes (`SnapFX`, `DockGraph`, `DockLayoutSerializer`, `DockFloatingWindow`).
+- ✅ Added a Docusaurus documentation portal baseline (`website/`) and switched GitHub Pages deployment to publish the portal at `https://snapfx.org/` while bundling generated API JavaDoc under `https://snapfx.org/api/`.
+- ✅ Documented a post-`1.0.0` docs versioning policy: keep docs/API publication latest-only during pre-`1.0.0`, and introduce multi-version docs/API publication after the first stable release.
 
 ## v0.4.0 - 2026-02-25
 

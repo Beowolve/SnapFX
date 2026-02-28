@@ -39,5 +39,10 @@ bin/
 ### Mac OS ###
 .DS_Store
 
+### Docusaurus ###
+website/node_modules/
+website/build/
+website/.docusaurus/
+
 ### Local temp notes ###
 *_temp.md

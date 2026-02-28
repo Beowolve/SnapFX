@@ -360,12 +360,13 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 - ✅ **Roadmap signal baseline**: Overall progress is now the first section, legend follows directly below, and version-track metadata was removed
 - ✅ **README public-preview messaging baseline**: Top-level messaging now clearly states `0.x` release-readiness/public-preview status, pre-Maven-Central publication state, and links users to live status/roadmap tracking.
 - 📋 **Roadmap structure cleanup**: Keep each subsection as one block (`Priority` + open/planned items) and move detailed completed history to [CHANGELOG.md](CHANGELOG.md) / [DONE.md](DONE.md)
-- ✅ **API documentation**: `snapfx-core` JavaDoc completion baseline is now warning-free via `./gradlew :snapfx-core:javadoc --rerun-tasks`, collaboration rules require immediate full JavaDoc updates for new/changed public API, and API docs are now published via GitHub Pages at `https://snapfx.org/`
+- ✅ **API documentation**: `snapfx-core` JavaDoc completion baseline is now warning-free via `./gradlew :snapfx-core:javadoc --rerun-tasks`, collaboration rules require immediate full JavaDoc updates for new/changed public API, and API docs are now published at `https://snapfx.org/api/`.
 - ✅ **JavaDoc discoverability baseline**: Exported API packages now include `package-info.java` overviews, and key API classes now include usage snippets to improve first-time navigation on hosted docs.
 - 📋 **User guide**: Comprehensive usage guide
 - 📋 **Tutorial series**: Step-by-step tutorials
 - 📋 **Example projects**: Real-world examples
-- 📋 **GitHub Pages site**: Full project documentation portal (guides, architecture, API overview)
+- ✅ **GitHub Pages site**: Docusaurus-based documentation portal is now live at `https://snapfx.org/` (guides, architecture, release status) with JavaDoc integrated under `/api`.
+- 📋 **Docs versioning (post-`1.0.0`)**: Start Docusaurus multi-version docs and versioned API JavaDoc paths only after the first stable release to keep pre-`1.0.0` maintenance overhead low.
 - 📋 **Video tutorials**: Screen recordings
 - 📋 **Doc consistency guardrails**: Keep markdown consistency tests aligned with documentation scope rules while avoiding brittle content-specific assertions (focus on encoding/format guardrails)
 
@@ -420,7 +421,7 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 
 - 📋 **Policy baseline (not release-now)**: Keep SnapFX continuously release-ready while feature development continues; cut `1.0.0` only after an explicit go-public decision.
 - ✅ **`0.5.x` Documentation baseline**: Public API JavaDoc is now warning-free for `snapfx-core` (`./gradlew :snapfx-core:javadoc --rerun-tasks`), and AGENTS workflow rules now enforce immediate complete JavaDoc updates for API changes.
-- ✅ **`0.6.x` Public docs + domain baseline**: GitHub Pages now publishes `:snapfx-core:javadoc`, `snapfx.org` routing is wired through generated `CNAME`, and release docs now capture the setup/validation flow.
+- ✅ **`0.6.x` Public docs + domain baseline**: GitHub Pages now publishes a Docusaurus documentation portal at `https://snapfx.org/` and generated JavaDoc at `https://snapfx.org/api/`, with `CNAME`-based domain routing and release docs covering setup/validation flow.
 - 📋 **`0.7.x` Packaging hardening**: Finalize cross-platform demo packaging validation, smoke-check checklists, and release-asset checksum flow.
 - 📋 **`0.8.x` Publishing readiness**: Finalize Maven Central CI signing/staging/release flow and maintainer release checklist.
 - 📋 **`0.9.x` Release rehearsal + freeze**: Run end-to-end RC drills (`v0.9.x-rc.y`), close final blockers, and freeze public API for `1.0.0`.

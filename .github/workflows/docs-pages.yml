@@ -1,4 +1,4 @@
-name: API Docs Pages
+name: Docs Pages
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy-api-docs:
+  deploy-docs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -19,6 +19,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -32,13 +37,25 @@ jobs:
       - name: Generate API JavaDoc
         run: ./gradlew --no-daemon :snapfx-core:javadoc
 
-      - name: Prepare Pages artifact
+      - name: Install documentation site dependencies
+        working-directory: website
+        run: npm ci --no-fund --no-audit
+
+      - name: Copy API JavaDoc into documentation site
         shell: bash
         run: |
-          rm -rf pages-site
-          mkdir -p pages-site
-          cp -R snapfx-core/build/docs/javadoc/. pages-site/
-          printf "snapfx.org\n" > pages-site/CNAME
+          rm -rf website/static/api
+          mkdir -p website/static/api
+          cp -R snapfx-core/build/docs/javadoc/. website/static/api/
+
+      - name: Build documentation site
+        working-directory: website
+        run: npm run build
+
+      - name: Add custom domain mapping
+        shell: bash
+        run: |
+          printf "snapfx.org\n" > website/build/CNAME
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
@@ -46,7 +63,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: pages-site
+          path: website/build
 
       - name: Deploy to GitHub Pages
         id: deployment

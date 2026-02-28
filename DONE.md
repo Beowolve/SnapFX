@@ -136,6 +136,8 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Completed `0.5.x` JavaDoc baseline closure: `snapfx-core` JavaDoc is now warning-free (`./gradlew :snapfx-core:javadoc --rerun-tasks`) after full public API tag completion across `SnapFX`, model/view/theme/persistence surfaces, with full `./gradlew test` still green.
 - ✅ Added a stricter AGENTS collaboration rule for JavaDoc completeness: all new/changed public/protected API elements must include full JavaDoc in the same change (including tags), and JavaDoc validation must not be deferred.
 - ✅ Added JavaDoc usability enhancements for public API discovery: package-level overview pages via `package-info.java` across exported packages plus concise usage snippets in key classes (`SnapFX`, `DockGraph`, `DockLayoutSerializer`, `DockFloatingWindow`).
+- ✅ Added a Docusaurus documentation portal baseline and integrated generated JavaDoc under `/api` so `https://snapfx.org/` now serves guides/overview while keeping API reference at `https://snapfx.org/api/`.
+- ✅ Documented the release policy decision to defer multi-version docs/API publication until after `1.0.0`, keeping pre-`1.0.0` documentation delivery latest-only for lower maintenance overhead.
 
 ### Resources
 - ✅ `snapfx.css` - Native Modena theme styling
@@ -293,7 +295,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ `SimpleExample` now logs a warning through `System.Logger` when `snapfx.css` is missing, without requiring a logging framework dependency.
 - ✅ Added GitHub Actions CI workflow for push/PR validation with `./gradlew test` on JDK 21.
 - ✅ Added GitHub Actions release workflow for `v*` tags that runs build/tests and publishes GitHub Releases with distribution artifacts.
-- ✅ Added GitHub Actions Pages workflow (`.github/workflows/docs-pages.yml`) that publishes `:snapfx-core:javadoc` to `https://snapfx.org/` and maintains `CNAME` domain routing.
+- ✅ Added GitHub Actions Pages workflow (`.github/workflows/docs-pages.yml`) that publishes a Docusaurus docs portal to `https://snapfx.org/`, includes generated API JavaDoc under `/api`, and maintains `CNAME` domain routing.
 - ✅ Aligned release workflow build tasks and artifact upload paths with split modules (`:snapfx-demo:distZip`/`:distTar`, `snapfx-demo/build/distributions/*`, `snapfx-core/build/libs/*`)
 - ✅ Extended the release workflow with a cross-platform matrix that builds demo `jpackage` ZIP assets on Windows/macOS/Linux and publishes them with OS-specific filenames.
 - ✅ Added a pragmatic demo smoke-validation policy in `RELEASING.md`: at least one local OS smoke run is required per RC, cross-OS manual checks are nice-to-have, per-OS start commands/checklist are documented, and optional CI startup-smoke scope is defined.
@@ -338,7 +340,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 
 See [ROADMAP.md](ROADMAP.md) for planned features and improvements.
 
-**Current Priority**: `0.6.x` public API docs/domain baseline is complete; next release-readiness step is `0.7.x` packaging hardening (cross-platform verification/checksums/smoke workflow polish).
+**Current Priority**: `0.6.x` public documentation/domain baseline is complete; next release-readiness step is `0.7.x` packaging hardening (cross-platform verification/checksums/smoke workflow polish).
 
 ---
 
