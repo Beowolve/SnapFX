@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  release:
+  build-release-assets:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -30,7 +30,104 @@ jobs:
         run: git fetch --force --tags
 
       - name: Build and test
-        run: xvfb-run -a ./gradlew --no-daemon clean test :snapfx-demo:distZip :snapfx-demo:distTar
+        run: xvfb-run -a ./gradlew --no-daemon clean test :snapfx-core:jar :snapfx-demo:distZip :snapfx-demo:distTar
+
+      - name: Collect base release assets
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path release-assets/base | Out-Null
+          Copy-Item snapfx-demo/build/distributions/*.zip release-assets/base/
+          Copy-Item snapfx-demo/build/distributions/*.tar release-assets/base/
+          Copy-Item snapfx-core/build/libs/*.jar release-assets/base/
+
+      - name: Upload base release assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-base-assets
+          path: release-assets/base/*
+
+  build-demo-jpackage:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            os_id: linux
+            gradle_cmd: ./gradlew --no-daemon :snapfx-demo:jpackageImage :snapfx-demo:packageJPackageImageZip
+          - os: windows-latest
+            os_id: windows
+            gradle_cmd: .\gradlew.bat --no-daemon :snapfx-demo:jpackageImage :snapfx-demo:packageJPackageImageZip
+          - os: macos-latest
+            os_id: macos
+            gradle_cmd: ./gradlew --no-daemon :snapfx-demo:jpackageImage :snapfx-demo:packageJPackageImageZip
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Fetch tags for jgitver
+        run: git fetch --force --tags
+
+      - name: Build jpackage image and zip
+        run: ${{ matrix.gradle_cmd }}
+
+      - name: Rename jpackage zip for release
+        shell: pwsh
+        run: |
+          $zip = Get-ChildItem "snapfx-demo/build/distributions/snapfx-demo-jpackage-image-*.zip" | Select-Object -First 1
+          if (-not $zip) {
+            throw "No jpackage ZIP found in snapfx-demo/build/distributions"
+          }
+          New-Item -ItemType Directory -Force -Path release-assets/jpackage | Out-Null
+          $targetName = "snapfx-demo-jpackage-image-${{ matrix.os_id }}-${{ github.ref_name }}.zip"
+          Copy-Item $zip.FullName (Join-Path "release-assets/jpackage" $targetName)
+
+      - name: Upload jpackage release asset
+        uses: actions/upload-artifact@v4
+        with:
+          name: demo-jpackage-${{ matrix.os_id }}
+          path: release-assets/jpackage/*.zip
+
+  publish-release:
+    needs:
+      - build-release-assets
+      - build-demo-jpackage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch tags for jgitver
+        run: git fetch --force --tags
+
+      - name: Download base release assets
+        uses: actions/download-artifact@v4
+        with:
+          name: release-base-assets
+          path: release-assets/base
+
+      - name: Download jpackage release assets
+        uses: actions/download-artifact@v4
+        with:
+          pattern: demo-jpackage-*
+          merge-multiple: true
+          path: release-assets/jpackage
+
+      - name: List release assets
+        run: ls -R release-assets
 
       - name: Generate release notes (git-cliff)
         id: git-cliff
@@ -50,6 +147,7 @@ jobs:
           fail_on_unmatched_files: true
           prerelease: ${{ contains(github.ref_name, '-') }}
           files: |
-            snapfx-demo/build/distributions/*.zip
-            snapfx-demo/build/distributions/*.tar
-            snapfx-core/build/libs/*.jar
+            release-assets/base/*.zip
+            release-assets/base/*.tar
+            release-assets/base/*.jar
+            release-assets/jpackage/*.zip

@@ -54,7 +54,14 @@ Optional push using helper:
 
 - CI workflow (`.github/workflows/ci.yml`) runs tests on every push and pull request.
 - Release workflow (`.github/workflows/release.yml`) runs when a `v*` tag is pushed.
-- Release workflow builds and tests, then publishes GitHub Release artifacts.
+- Release workflow runs as a three-stage pipeline:
+  - `build-release-assets` (Linux): `clean test`, `:snapfx-core:jar`, `:snapfx-demo:distZip`, `:snapfx-demo:distTar`
+  - `build-demo-jpackage` (matrix: Windows/macOS/Linux): `:snapfx-demo:jpackageImage` + `:snapfx-demo:packageJPackageImageZip`
+  - `publish-release` (Linux): collects all artifacts, generates notes with `git-cliff`, and publishes one GitHub Release
+- Demo `jpackage` assets are published with OS-specific names:
+  - `snapfx-demo-jpackage-image-windows-<tag>.zip`
+  - `snapfx-demo-jpackage-image-macos-<tag>.zip`
+  - `snapfx-demo-jpackage-image-linux-<tag>.zip`
 
 ## Release Notes
 
