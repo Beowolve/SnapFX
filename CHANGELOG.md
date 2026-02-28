@@ -6,37 +6,26 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 
 ## Unreleased
 
-### Build and Test
-- ✅ Fixed demo jpackage app-version normalization for macOS runners by enforcing a major-version floor of `1` (for example `0.4.1-*` becomes `1.4.1` for packaging), resolving `jpackageImage` failures in the release matrix.
-- ✅ Expanded the release workflow into a multi-job pipeline with a Windows/macOS/Linux matrix for demo `jpackage` ZIP assets, and centralized final release publishing from aggregated artifacts.
-- ✅ Added `org.beryx.jlink` demo packaging baseline in `snapfx-demo` with `jlink`, `jpackageImage`, and `packageJPackageImageZip`, including jpackage-safe version normalization for git-derived dev versions and OS-specific app icon selection (`snapfx.ico`/`snapfx.icns`/`snapfx.png`).
-- ✅ Aligned release workflow build tasks and artifact upload paths with split modules (`:snapfx-demo:distZip`/`:distTar`, `snapfx-demo/build/distributions/*`, `snapfx-core/build/libs/*`).
-- ✅ Fixed CI stability-check filters after the core/demo split by targeting `:snapfx-core:test` with `org.snapfx...` test classes.
-- ✅ Added `DockDebugOverlayTest` coverage for HUD layout defaults (managed pref-sized panel + background presence) and live target/zone diagnostics refresh when drag data mutates in place.
-- ✅ Hardened `SnapFXTest` sidebar overlay width/resize-handle tests against a CI-only async sidebar rebuild race by removing an unnecessary prebuild step before reflective sidebar icon clicks.
-- ✅ Simplified `MarkdownDocumentationConsistencyTest` to keep non-brittle guardrails only (Mojibake detection and markdown status-bullet icon-prefix checks), removing content-specific wording assertions.
-- ✅ Split the Gradle project into `snapfx-core` (framework code/resources/tests) and `snapfx-demo` (demo app/resources/tests) modules, and updated the markdown consistency test to resolve markdown files from the repository root after the test move.
-- ✅ Switched the Gradle `groupId` baseline to `org.snapfx` after registering the project domain (`snapfx.org`), preparing Maven Central publishing coordinates for `snapfx-core`.
-- ✅ Renamed Java package and JPMS module namespaces from `com.github.beowolve.snapfx...` to `org.snapfx...` across core/demo sources and tests (including demo launch configuration and documentation references).
-- ✅ Added a `snapfx-core` Maven publish dry-run baseline (`maven-publish`, `sourcesJar`, `javadocJar`, POM metadata for `snapfx.org`/MIT/SCM/developer) and verified local publication with `:snapfx-core:publishToMavenLocal`.
-- ✅ Added a dedicated GitHub Pages workflow (`.github/workflows/docs-pages.yml`) that builds `:snapfx-core:javadoc`, deploys it on pushes to `main`/manual dispatch, and publishes with `CNAME` routing for `snapfx.org`.
+No changes yet.
 
-### Framework and UI
-- ✅ Fixed `DockDebugOverlay` HUD rendering and diagnostics behavior used by MainDemo debugging: the HUD panel now lays out correctly with visible background (no top-left clipping), and target/zone text updates live during active drags instead of staying at `none`.
-- ✅ Improved `DockDebugOverlay` target diagnostics text to show the dragged hover target dock-node title for `DockNode` targets (instead of the generic `DockNode` type label).
-- ✅ Kept the MainDemo `DockDebugOverlay` HUD as a local debug-toggle option after the overlay fixes (no default-on requirement).
+## v0.6.0 - 2026-02-28
+
+### CI and Documentation
+- ✅ Switched GitHub Pages publishing from plain JavaDoc output to a Docusaurus documentation portal at `https://snapfx.org/`, while bundling generated API JavaDoc under `https://snapfx.org/api/`.
+- ✅ Updated `.github/workflows/docs-pages.yml` to build JavaDoc plus Docusaurus (`website/`) and deploy a single combined Pages artifact with `CNAME` support.
 
 ### Documentation
-- ✅ Added an explicit release-readiness version lane plan (`0.5.x` to `0.9.x`) and documented the policy split between continuous release readiness (`0.x`) and controlled public launch (`1.0.0`).
-- ✅ Refined demo smoke validation guidance in `RELEASING.md` to a pragmatic policy: required local-OS smoke per RC, cross-OS checks as nice-to-have, per-OS start commands/checklist, and optional CI startup-smoke scope.
-- ✅ Updated roadmap/status/done docs to mark the `DockDebugOverlay` HUD fixes follow-up as completed (while noting the MainDemo HUD remains opt-in) and return current priority focus to the Phase 3 UX backlog.
-- ✅ Started the `0.5.x` JavaDoc completion track with a broad first-pass remediation across `snapfx-core` public API classes (including model/view/dnd/floating/debug surfaces), plus follow-up roadmap/status tracking for the remaining warning backlog.
-- ✅ Closed the `0.5.x` JavaDoc baseline by making `:snapfx-core:javadoc --rerun-tasks` warning-free and tightening AGENTS workflow rules to require complete JavaDoc updates for every new/changed public/protected API element in the same change.
-- ✅ Added API docs publishing documentation for GitHub Pages + `snapfx.org` in [RELEASING.md](RELEASING.md), surfaced the hosted API docs URL in [README.md](README.md), and updated roadmap/status/done priorities to mark the `0.6.x` docs-domain baseline complete.
-- ✅ Updated README public-facing messaging for repository visibility: removed the top-level JPMS note, added explicit `0.x` public-preview/pre-Maven-Central status, and linked users to current progress tracking via [STATUS.md](STATUS.md) and [ROADMAP.md](ROADMAP.md).
-- ✅ Added JavaDoc discoverability improvements for hosted API docs: package-level overviews via `package-info.java` on exported packages and practical usage snippets in key entry classes (`SnapFX`, `DockGraph`, `DockLayoutSerializer`, `DockFloatingWindow`).
-- ✅ Added a Docusaurus documentation portal baseline (`website/`) and switched GitHub Pages deployment to publish the portal at `https://snapfx.org/` while bundling generated API JavaDoc under `https://snapfx.org/api/`.
-- ✅ Documented a post-`1.0.0` docs versioning policy: keep docs/API publication latest-only during pre-`1.0.0`, and introduce multi-version docs/API publication after the first stable release.
+- ✅ Improved public-facing README/API discoverability wording and aligned release/status planning docs to the docs-portal baseline.
+- ✅ Added Docusaurus baseline source under `website/` (config, sidebars, starter docs pages, custom CSS, and site assets).
+- ✅ Documented the policy to defer multi-version docs/API publication until post-`1.0.0` (pre-`1.0.0` remains latest-only).
+
+## v0.5.0 - 2026-02-28
+
+### Documentation
+- ✅ Added an explicit release-readiness version lane plan (`0.5.x` to `0.9.x`) with a controlled `1.0.0` public-launch cut policy.
+- ✅ Refined demo smoke validation guidance in [RELEASING.md](RELEASING.md): required local-OS smoke per RC, cross-OS checks as nice-to-have, per-OS start commands/checklist, and optional CI startup-smoke scope.
+- ✅ Started and completed the `0.5.x` JavaDoc remediation track, making `:snapfx-core:javadoc --rerun-tasks` warning-free.
+- ✅ Tightened AGENTS collaboration rules to require full JavaDoc updates for every new/changed public/protected API element in the same change.
 
 ## v0.4.0 - 2026-02-25
 

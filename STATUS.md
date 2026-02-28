@@ -22,6 +22,7 @@
 ✅ **JavaDoc Completion Track (`0.5.x`)**: `snapfx-core` JavaDoc is now warning-free (`./gradlew :snapfx-core:javadoc --rerun-tasks`), with AGENTS workflow rules tightened to require immediate complete JavaDoc updates for new/changed API elements.
 ✅ **Docs Portal Baseline (`0.6.x`)**: GitHub Pages workflow now builds and publishes the Docusaurus documentation portal at `https://snapfx.org/`, bundles generated `:snapfx-core:javadoc` under `/api`, and writes a `CNAME` for `snapfx.org` (`.github/workflows/docs-pages.yml`).
 ✅ **JavaDoc Usability Pass**: Exported API packages now include `package-info.java` overviews, and key entry classes (`SnapFX`, `DockGraph`, `DockLayoutSerializer`, `DockFloatingWindow`) now include concise usage snippets in JavaDoc.
+✅ **Changelog Tag Backfill**: `CHANGELOG.md` now contains explicit `v0.5.0` and `v0.6.0` sections, and `Unreleased` is reset to post-tag changes only.
 
 ## Documentation Scope
 

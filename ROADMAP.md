@@ -366,6 +366,7 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 - 📋 **Tutorial series**: Step-by-step tutorials
 - 📋 **Example projects**: Real-world examples
 - ✅ **GitHub Pages site**: Docusaurus-based documentation portal is now live at `https://snapfx.org/` (guides, architecture, release status) with JavaDoc integrated under `/api`.
+- ✅ **Changelog release hygiene baseline**: `CHANGELOG.md` now keeps explicit sections per release tag (including backfilled `v0.5.0` and `v0.6.0`), and `Unreleased` is reserved for post-tag work.
 - 📋 **Docs versioning (post-`1.0.0`)**: Start Docusaurus multi-version docs and versioned API JavaDoc paths only after the first stable release to keep pre-`1.0.0` maintenance overhead low.
 - 📋 **Video tutorials**: Screen recordings
 - 📋 **Doc consistency guardrails**: Keep markdown consistency tests aligned with documentation scope rules while avoiding brittle content-specific assertions (focus on encoding/format guardrails)
