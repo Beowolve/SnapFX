@@ -10,8 +10,8 @@ import javafx.scene.control.TextArea;
  */
 public class SerializableEditor extends TextArea implements DockNodeContentSerializer {
 
-    public static final String CARET_POSITION = "caretPosition";
-    public static final String TEXT = "text";
+    private static final String CARET_POSITION = "caretPosition";
+    private static final String TEXT = "text";
 
     /**
      * Creates a new serializable editor with default content.
@@ -22,6 +22,7 @@ public class SerializableEditor extends TextArea implements DockNodeContentSeria
 
     /**
      * Creates a new serializable editor with initial content.
+     * @param initialContent The initial text content for the editor.
      */
     public SerializableEditor(String initialContent) {
         super(initialContent);

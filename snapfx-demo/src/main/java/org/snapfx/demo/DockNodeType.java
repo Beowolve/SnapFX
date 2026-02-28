@@ -42,6 +42,7 @@ public enum DockNodeType {
 
     /**
      * Returns the unique ID for this node type.
+     * @return unique ID for this node type
      */
     public String getId() {
         return id;
@@ -49,6 +50,7 @@ public enum DockNodeType {
 
     /**
      * Returns the icon filename for this node type.
+     * @return icon filename for this node type
      */
     public String getIconName() {
         return iconName;
@@ -56,6 +58,7 @@ public enum DockNodeType {
 
     /**
      * Returns the default display title for this node type.
+     * @return default display title for this node type
      */
     public String getDefaultTitle() {
         return defaultTitle;
@@ -63,6 +66,7 @@ public enum DockNodeType {
 
     /**
      * Returns whether this node type is a singleton.
+     * @return true if this node type is a singleton, false otherwise
      */
     public boolean isSingleton() {
         return singleton;

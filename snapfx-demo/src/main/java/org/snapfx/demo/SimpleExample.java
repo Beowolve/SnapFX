@@ -118,6 +118,11 @@ public class SimpleExample extends Application {
         return props;
     }
 
+    /**
+     * Main entry point for the application.
+     * Launches the JavaFX application.
+     * @param args Command-line arguments.
+     */
     public static void main(String[] args) {
         launch(args);
     }

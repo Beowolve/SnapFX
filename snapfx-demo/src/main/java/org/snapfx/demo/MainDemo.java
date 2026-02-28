@@ -60,7 +60,7 @@ import java.util.Optional;
  */
 public class MainDemo extends Application {
     private static final System.Logger LOGGER = System.getLogger(MainDemo.class.getName());
-    public static final String FX_FONT_WEIGHT_BOLD = "-fx-font-weight: bold;";
+    public static final String FX_FONT_WEIGHT_BOLD = "-fx-font-weight: bold;"; // Used for bold text in the demo
     private static final String DIRTY_TITLE_SUFFIX = " *";
     private static final String JSON_FILE_GLOB = "*.json";
     private static final String ALL_FILES_GLOB = "*.*";
@@ -1754,6 +1754,11 @@ public class MainDemo extends Application {
         alert.showAndWait();
     }
 
+    /**
+     * Main entry point for the application.
+     * Launches the JavaFX application.
+     * @param args Command-line arguments.
+     */
     public static void main(String[] args) {
         launch(args);
     }

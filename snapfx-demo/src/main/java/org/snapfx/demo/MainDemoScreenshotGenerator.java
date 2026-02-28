@@ -76,6 +76,11 @@ public class MainDemoScreenshotGenerator extends Application {
         }
     }
 
+    /**
+     * Main entry point for the application.
+     * Launches the JavaFX application.
+     * @param args Command-line arguments.
+     */
     public static void main(String[] args) {
         launch(args);
     }
