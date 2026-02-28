@@ -17,6 +17,8 @@
 ✅ **Demo Runtime Packaging Baseline**: `org.beryx.jlink` now configures `:snapfx-demo:jlink`, `:snapfx-demo:jpackageImage`, and `:snapfx-demo:packageJPackageImageZip`, including OS-specific app icons (`.ico`/`.icns`/`.png`) and a temporary macOS-compatible jpackage app-version normalization (major version floor `1`, planned removal at first `v1.x` release)
 ✅ **Cross-Platform Demo Release Assets**: Tag releases now build `jpackage` demo ZIPs on Windows/macOS/Linux and publish them with deterministic OS-specific filenames (`snapfx-demo-jpackage-image-<os>-<tag>.zip`)
 
+✅ **Release-Ready Version Strategy**: Roadmap/releasing docs now define an explicit `0.5.x` to `0.9.x` readiness lane with RC drill tags and a controlled `1.0.0` public-launch cut.
+
 ## Documentation Scope
 
 - ✅ [STATUS.md](STATUS.md) tracks only the current state: build health, current capabilities, and open issues.

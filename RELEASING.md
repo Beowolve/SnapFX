@@ -14,6 +14,15 @@ Inspect the resolved version:
 ./gradlew version
 ```
 
+## Release-Ready Track (`0.x`) vs Public Launch (`1.0.0`)
+
+- Current strategy is **release-ready, not release-now**:
+  - keep release automation and artifacts continuously healthy on `0.x`
+  - continue feature development in parallel
+- Use RC drill tags (`v0.x.y-rc.z`) to validate full release automation without committing to a public stable cut.
+- Only cut `v1.0.0` after an explicit go-public decision and after release-readiness gates are green (docs, packaging, publishing, QA, platform validation).
+- Before the final `v1.x` cut, remove the temporary macOS jpackage app-version major-floor workaround so demo and core versions match exactly again.
+
 ## Branch and Release Flow
 
 - Current phase: active implementation happens on `main`.

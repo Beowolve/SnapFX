@@ -412,6 +412,22 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 
 ---
 
+### 8.1.1 Release-Ready Version Lane (`0.5.x` to `1.0.0`)
+**Priority**: 🟡 High
+
+- 📋 **Policy baseline (not release-now)**: Keep SnapFX continuously release-ready while feature development continues; cut `1.0.0` only after an explicit go-public decision.
+- 📋 **`0.5.x` Documentation baseline**: Complete public API JavaDoc and keep API docs generation quality gates green.
+- 📋 **`0.6.x` Public docs + domain**: Publish API docs via GitHub Pages and align `snapfx.org` routing/documentation structure.
+- 📋 **`0.7.x` Packaging hardening**: Finalize cross-platform demo packaging validation, smoke-check checklists, and release-asset checksum flow.
+- 📋 **`0.8.x` Publishing readiness**: Finalize Maven Central CI signing/staging/release flow and maintainer release checklist.
+- 📋 **`0.9.x` Release rehearsal + freeze**: Run end-to-end RC drills (`v0.9.x-rc.y`), close final blockers, and freeze public API for `1.0.0`.
+- 📋 **`1.0.0` stable cut**: Tag and publish the first stable public release once all release-readiness gates are green.
+- 📋 **Scope guard**: Keep optional backlog items (for example video tutorials, layout designer, major UX expansions) out of the `1.0.0` critical path unless explicitly promoted.
+
+**Estimated Time**: Iterative across `0.5.x` to `0.9.x`
+
+---
+
 ### 8.2 Quality Assurance
 **Priority**: 🔴 Critical
 

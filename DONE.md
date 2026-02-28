@@ -131,6 +131,8 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ ADR documentation baseline added: significant design decisions are now captured under `docs/adr/` and reflected in architecture/API docs
 - ✅ Markdown documentation consistency tests now keep Unicode icon constants readable via inline icon comments
 
+- ✅ Release-readiness version lane planning is now documented (`0.5.x` to `0.9.x` readiness phases, RC drills, and controlled `1.0.0` public-launch cut policy).
+
 ### Resources
 - ✅ `snapfx.css` - Native Modena theme styling
 - ✅ Icon set from Yusuke Kamiyamane (64 icons in 16px size)

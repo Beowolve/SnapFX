@@ -26,6 +26,7 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Kept the MainDemo `DockDebugOverlay` HUD as a local debug-toggle option after the overlay fixes (no default-on requirement).
 
 ### Documentation
+- ✅ Added an explicit release-readiness version lane plan (`0.5.x` to `0.9.x`) and documented the policy split between continuous release readiness (`0.x`) and controlled public launch (`1.0.0`).
 - ✅ Updated roadmap/status/done docs to mark the `DockDebugOverlay` HUD fixes follow-up as completed (while noting the MainDemo HUD remains opt-in) and return current priority focus to the Phase 3 UX backlog.
 
 ## v0.4.0 - 2026-02-25
