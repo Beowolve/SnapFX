@@ -407,10 +407,11 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 - ✅ **Package/module namespace baseline**: Java packages and JPMS module names now use `org.snapfx...` across core/demo code and tests
 - ✅ **Repository metadata hygiene baseline**: `.idea/` is fully ignored and tracked IntelliJ workspace/project metadata has been removed from Git
 - ✅ **Maven publish dry-run baseline (`snapfx-core`)**: `maven-publish` + optional signing wiring, `sourcesJar`/`javadocJar`, and POM metadata are in place; local `:snapfx-core:publishToMavenLocal` succeeds
-- 📋 **Maven Central**: Publish to Maven Central
+- 🚧 **Maven Central publish baseline**: `snapfx-core` now includes Sonatype Central repository wiring and release workflow support, with live publish intentionally gated to stable tags `>= v1.0.0`; first live Central publication verification remains pending.
 - ✅ **jlink support baseline**: `snapfx-demo` now uses `org.beryx.jlink` and provides `:snapfx-demo:jlink` runtime-image packaging
 - 🚧 **jpackage support baseline**: `snapfx-demo` now provides `:snapfx-demo:jpackageImage` and `:snapfx-demo:packageJPackageImageZip` with OS-specific app icon selection (`.ico`/`.icns`/`.png`) plus macOS-compatible app-version normalization (major version floor `1`), and release automation now publishes per-OS demo ZIP assets (Windows/macOS/Linux); installer generation/signing remains pending
 - ✅ **Smoke validation policy baseline**: `RELEASING.md` now defines required local-OS smoke validation per RC, cross-OS checks as nice-to-have, per-OS start commands/checklist, and optional CI startup-smoke scope (validated against successful `v0.4.1-rc.2` release workflow run).
+- ✅ **Release checksum baseline**: Release automation now generates SHA256 checksum files for all release assets (`.zip`/`.tar`/`.jar`) and publishes matching `*.sha256` files in GitHub Releases.
 - 📋 **Remove temporary macOS appVersion workaround at v1.x**: After the first real `v1.x` project release, drop the major-floor mapping so demo appVersion equals the core/project version again.
 - 📋 **Version management**: Semantic versioning
 
@@ -424,8 +425,8 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 - 📋 **Policy baseline (not release-now)**: Keep SnapFX continuously release-ready while feature development continues; cut `1.0.0` only after an explicit go-public decision.
 - ✅ **`0.5.x` Documentation baseline**: Public API JavaDoc is now warning-free for `snapfx-core` (`./gradlew :snapfx-core:javadoc --rerun-tasks`), and AGENTS workflow rules now enforce immediate complete JavaDoc updates for API changes.
 - ✅ **`0.6.x` Public docs + domain baseline**: GitHub Pages now publishes a Docusaurus documentation portal at `https://snapfx.org/` and generated JavaDoc at `https://snapfx.org/api/`, with `CNAME`-based domain routing and release docs covering setup/validation flow.
-- 📋 **`0.7.x` Packaging hardening**: Finalize cross-platform demo packaging validation, smoke-check checklists, and release-asset checksum flow.
-- 📋 **`0.8.x` Publishing readiness**: Finalize Maven Central CI signing/staging/release flow and maintainer release checklist.
+- ✅ **`0.7.x` Packaging hardening**: Cross-platform demo packaging baseline, smoke-check policy, and release-asset checksum flow are in place.
+- 🚧 **`0.8.x` Publishing readiness**: Maven Central CI/signing/checklist baseline is wired (live publish remains gated to stable tags `>= v1.0.0`); finalize dry-run verification and maintainer hardening steps before `1.0.0`.
 - 📋 **`0.9.x` Release rehearsal + freeze**: Run end-to-end RC drills (`v0.9.x-rc.y`), close final blockers, and freeze public API for `1.0.0`.
 - 📋 **`1.0.0` stable cut**: Tag and publish the first stable public release once all release-readiness gates are green.
 - 📋 **Scope guard**: Keep optional backlog items (for example video tutorials, layout designer, major UX expansions) out of the `1.0.0` critical path unless explicitly promoted.

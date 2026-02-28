@@ -141,6 +141,8 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Backfilled missing release sections in `CHANGELOG.md` for `v0.5.0` and `v0.6.0`, and reset `Unreleased` to post-tag changes only.
 - ✅ Expanded Docusaurus content baseline with a practical User Guide, First Layout tutorial, and Examples catalog, plus sidebar/entry-page cross-linking for faster onboarding.
 - ✅ Completed docs link/status hygiene pass: release-readiness page updated to current `v0.6.x` progression and URL references across docs pages are now rendered as clickable links.
+- ✅ Added Maven Central publish readiness baseline: `snapfx-core` now defines Sonatype Central repository wiring with credential/signing preflight checks, `release.yml` includes a stable-tag `publish-maven-central` job (policy-gated to `>= v1.0.0`), and `RELEASING.md` documents required secrets plus publish checklist flow.
+- ✅ Added release-asset checksum automation baseline (`0.7.x`): `release.yml` now generates SHA256 files for all shipped `.zip`/`.tar`/`.jar` assets and publishes matching `*.sha256` files with each GitHub Release.
 
 ### Resources
 - ✅ `snapfx.css` - Native Modena theme styling
@@ -343,7 +345,7 @@ SnapFX has been fully implemented with core functionality and is production-read
 
 See [ROADMAP.md](ROADMAP.md) for planned features and improvements.
 
-**Current Priority**: `0.6.x` public documentation/domain baseline is complete; next release-readiness step is `0.7.x` packaging hardening (cross-platform verification/checksums/smoke workflow polish).
+**Current Priority**: `0.7.x` packaging hardening is now covered; next release-readiness step is `0.8.x` Maven Central dry-run verification and maintainer hardening for the first live publish at `v1.0.0`.
 
 ---
 

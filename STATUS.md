@@ -17,6 +17,7 @@
 ✅ **Demo Runtime Packaging Baseline**: `org.beryx.jlink` now configures `:snapfx-demo:jlink`, `:snapfx-demo:jpackageImage`, and `:snapfx-demo:packageJPackageImageZip`, including OS-specific app icons (`.ico`/`.icns`/`.png`) and a temporary macOS-compatible jpackage app-version normalization (major version floor `1`, planned removal at first `v1.x` release)
 ✅ **Cross-Platform Demo Release Assets**: Tag releases now build `jpackage` demo ZIPs on Windows/macOS/Linux and publish them with deterministic OS-specific filenames (`snapfx-demo-jpackage-image-<os>-<tag>.zip`)
 ✅ **Release Smoke Validation Baseline**: `RELEASING.md` now defines a practical smoke policy (required on at least one local OS, cross-OS manual checks as nice-to-have) plus per-OS start commands and a minimal checklist; an optional CI startup-smoke scope is documented.
+✅ **Release Asset Checksum Baseline (`0.7.x`)**: Release workflow now generates SHA256 files for all shipped `.zip`/`.tar`/`.jar` assets and publishes matching `*.sha256` artifacts in GitHub Releases.
 
 ✅ **Release-Ready Version Strategy**: Roadmap/releasing docs now define an explicit `0.5.x` to `0.9.x` readiness lane with RC drill tags and a controlled `1.0.0` public-launch cut.
 ✅ **JavaDoc Completion Track (`0.5.x`)**: `snapfx-core` JavaDoc is now warning-free (`./gradlew :snapfx-core:javadoc --rerun-tasks`), with AGENTS workflow rules tightened to require immediate complete JavaDoc updates for new/changed API elements.
@@ -25,6 +26,7 @@
 ✅ **Changelog Tag Backfill**: `CHANGELOG.md` now contains explicit `v0.5.0` and `v0.6.0` sections, and `Unreleased` is reset to post-tag changes only.
 ✅ **Docs Content Baseline**: Docusaurus now includes first structured content slices beyond overview pages (User Guide, First Layout tutorial, and Examples catalog) with sidebar navigation wiring.
 ✅ **Docs Link/Status Refresh**: Documentation pages now expose references as clickable links (including API references), and release-status content reflects current `v0.6.x` progress.
+🚧 **Maven Central Publish Baseline (`0.8.x`)**: `snapfx-core` now has Sonatype Central repository wiring plus release-workflow stable-tag publish job gating (`>= v1.0.0`); first successful live Central publish verification is still pending.
 
 ## Documentation Scope
 
@@ -250,7 +252,7 @@
 
 See [ROADMAP.md](ROADMAP.md) for detailed future development plans.
 
-**Priority**: `0.6.x` public documentation/domain baseline is complete; next release-readiness focus is `0.7.x` (cross-platform packaging hardening, release checksums, and smoke-check workflow polish).
+**Priority**: `0.7.x` packaging hardening is now covered (cross-platform packaging, smoke policy, release checksums); next release-readiness focus is `0.8.x` Maven Central dry-run verification and maintainer hardening for the first live publish at `v1.0.0`.
 
 ---
 

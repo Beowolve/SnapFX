@@ -6,8 +6,15 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 
 ## Unreleased
 
+### Build and Test
+- ✅ Added Sonatype Central publish repository wiring for `snapfx-core` with environment/property-based credential support (`MAVEN_CENTRAL_USERNAME` / `MAVEN_CENTRAL_PASSWORD`) and signing-secret preflight checks for remote publish tasks.
+- ✅ Extended the release workflow with a stable-tag `publish-maven-central` job that is policy-gated to versions `>= v1.0.0`, and gated final GitHub release publishing on successful/explicitly skipped Central publish execution.
+- ✅ Added release-asset SHA256 generation in the release workflow and publish of matching `*.sha256` files for base and jpackage artifacts.
+
 ### Documentation
 - ✅ Redundant documentation link to snapfx.org in README.md removed.
+- ✅ Added a Maven Central publishing section to [RELEASING.md](RELEASING.md) with required secrets, local validation commands, release URL override options, and stable-tag publish checklist items.
+- ✅ Added release-checksum documentation to [RELEASING.md](RELEASING.md), including generated file locations and local verification commands.
 
 ## v0.6.1 - 2026-02-28
 

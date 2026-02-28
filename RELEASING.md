@@ -63,14 +63,81 @@ Optional push using helper:
 
 - CI workflow (`.github/workflows/ci.yml`) runs tests on every push and pull request.
 - Release workflow (`.github/workflows/release.yml`) runs when a `v*` tag is pushed.
-- Release workflow runs as a three-stage pipeline:
+- Release workflow runs as a four-stage pipeline:
   - `build-release-assets` (Linux): `clean test`, `:snapfx-core:jar`, `:snapfx-demo:distZip`, `:snapfx-demo:distTar`
   - `build-demo-jpackage` (matrix: Windows/macOS/Linux): `:snapfx-demo:jpackageImage` + `:snapfx-demo:packageJPackageImageZip`
-  - `publish-release` (Linux): collects all artifacts, generates notes with `git-cliff`, and publishes one GitHub Release
+  - `publish-maven-central` (Linux, stable tags `>= v1.0.0`): publishes `:snapfx-core` to Sonatype Central via the OSSRH staging API compatibility endpoint
+  - `publish-release` (Linux): collects all artifacts, generates SHA256 checksums (`*.sha256`), generates notes with `git-cliff`, and publishes one GitHub Release
 - Demo `jpackage` assets are published with OS-specific names:
   - `snapfx-demo-jpackage-image-windows-<tag>.zip`
   - `snapfx-demo-jpackage-image-macos-<tag>.zip`
   - `snapfx-demo-jpackage-image-linux-<tag>.zip`
+
+## Maven Central Publishing (`snapfx-core`)
+
+`snapfx-core` is published from the release workflow on stable tags `>= v1.0.0` (for example `v1.0.0`, not `v0.9.5` and not `v1.0.0-rc.1`).
+
+### Required GitHub Secrets
+
+- `MAVEN_CENTRAL_USERNAME` (Sonatype Central portal token username)
+- `MAVEN_CENTRAL_PASSWORD` (Sonatype Central portal token password)
+- `SIGNING_KEY` (ASCII-armored private PGP key)
+- `SIGNING_PASSWORD` (PGP key passphrase)
+
+### Gradle Wiring
+
+- Repository target: `sonatypeCentral`
+- Default publish URL:
+  - `https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/`
+- Override options (if needed):
+  - Gradle property: `mavenCentralReleaseUrl`
+  - Environment variable: `MAVEN_CENTRAL_RELEASE_URL`
+
+### Local Validation
+
+- Always validate packaging/signing prerequisites locally before tagging:
+
+```bash
+./gradlew :snapfx-core:publishToMavenLocal
+```
+
+- Optional remote publish check (requires credentials/signing env vars):
+
+```bash
+./gradlew :snapfx-core:publishMavenJavaPublicationToSonatypeCentralRepository
+```
+
+### Release Checklist Additions (Central)
+
+- Namespace ownership is verified in Sonatype Central (`org.snapfx`).
+- Portal token is valid and stored in GitHub secrets.
+- PGP key is valid (not expired/revoked) and loaded via `SIGNING_KEY` / `SIGNING_PASSWORD`.
+- Release tag is stable and `>= v1.0.0` (`vX.Y.Z`) when Central publishing should run.
+
+## Release Asset Checksums
+
+Release workflow generates SHA256 checksum files for all uploaded release assets:
+
+- `release-assets/base/*.(zip|tar|jar).sha256`
+- `release-assets/jpackage/*.zip.sha256`
+
+Each checksum file contains one line:
+
+```text
+<sha256>  <filename>
+```
+
+Local verification examples:
+
+```powershell
+Get-FileHash -Algorithm SHA256 .\path\to\artifact.zip
+Get-Content .\path\to\artifact.zip.sha256
+```
+
+```bash
+sha256sum artifact.zip
+cat artifact.zip.sha256
+```
 
 ## Documentation Site Publishing (GitHub Pages + `snapfx.org`)
 
