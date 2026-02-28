@@ -1,4 +1,5 @@
 import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
 
 plugins {
     `java-library`
@@ -10,6 +11,17 @@ plugins {
 val javafxModules = listOf("javafx.controls")
 val javaVersion = JavaVersion.VERSION_21
 val javafxRuntimeVersion = javaVersion.majorVersion
+val mavenCentralUsernameProvider = providers.gradleProperty("mavenCentralUsername")
+    .orElse(providers.environmentVariable("MAVEN_CENTRAL_USERNAME"))
+val mavenCentralPasswordProvider = providers.gradleProperty("mavenCentralPassword")
+    .orElse(providers.environmentVariable("MAVEN_CENTRAL_PASSWORD"))
+val mavenCentralReleaseUrlProvider = providers.gradleProperty("mavenCentralReleaseUrl")
+    .orElse(providers.environmentVariable("MAVEN_CENTRAL_RELEASE_URL"))
+    .orElse("https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/")
+val signingKeyProvider = providers.gradleProperty("signingInMemoryKey")
+    .orElse(providers.environmentVariable("SIGNING_KEY"))
+val signingPasswordProvider = providers.gradleProperty("signingInMemoryKeyPassword")
+    .orElse(providers.environmentVariable("SIGNING_PASSWORD"))
 
 java {
     sourceCompatibility = javaVersion
@@ -97,19 +109,46 @@ publishing {
             }
         }
     }
+
+    repositories {
+        maven {
+            name = "sonatypeCentral"
+            url = uri(mavenCentralReleaseUrlProvider.get())
+            credentials {
+                username = mavenCentralUsernameProvider.orNull
+                password = mavenCentralPasswordProvider.orNull
+            }
+        }
+    }
 }
 
 signing {
     // Signing remains optional for local dry runs; CI/real releases can provide keys via env/Gradle properties.
-    val signingKey = providers.gradleProperty("signingInMemoryKey")
-        .orElse(providers.environmentVariable("SIGNING_KEY"))
-        .orNull
-    val signingPassword = providers.gradleProperty("signingInMemoryKeyPassword")
-        .orElse(providers.environmentVariable("SIGNING_PASSWORD"))
-        .orNull
+    val signingKey = signingKeyProvider.orNull
+    val signingPassword = signingPasswordProvider.orNull
 
     if (!signingKey.isNullOrBlank()) {
-        useInMemoryPgpKeys(signingKey, signingPassword)
+        // Secrets may arrive with CRLF from CI; normalize to avoid parser issues.
+        useInMemoryPgpKeys(signingKey.replace("\r\n", "\n"), signingPassword)
         sign(publishing.publications["mavenJava"])
+    }
+}
+
+tasks.withType<PublishToMavenRepository>().configureEach {
+    if (repository.name == "sonatypeCentral") {
+        doFirst {
+            check(!mavenCentralUsernameProvider.orNull.isNullOrBlank()) {
+                "Missing Maven Central username. Set mavenCentralUsername or MAVEN_CENTRAL_USERNAME."
+            }
+            check(!mavenCentralPasswordProvider.orNull.isNullOrBlank()) {
+                "Missing Maven Central password/token. Set mavenCentralPassword or MAVEN_CENTRAL_PASSWORD."
+            }
+            check(!signingKeyProvider.orNull.isNullOrBlank()) {
+                "Missing signing key. Set signingInMemoryKey or SIGNING_KEY."
+            }
+            check(!signingPasswordProvider.orNull.isNullOrBlank()) {
+                "Missing signing password. Set signingInMemoryKeyPassword or SIGNING_PASSWORD."
+            }
+        }
     }
 }
