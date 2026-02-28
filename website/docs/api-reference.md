@@ -2,7 +2,7 @@
 
 SnapFX API documentation is generated from JavaDoc and published at:
 
-- `https://snapfx.org/api/`
+- [SnapFX API JavaDoc](https://snapfx.org/api/)
 
 ## Main Entry Points
 

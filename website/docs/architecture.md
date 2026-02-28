@@ -13,4 +13,4 @@ Detailed architecture documentation remains in the repository:
 
 For API-level details, use:
 
-- `https://snapfx.org/api/`
+- [API JavaDoc](https://snapfx.org/api/)

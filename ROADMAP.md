@@ -362,11 +362,12 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 - 📋 **Roadmap structure cleanup**: Keep each subsection as one block (`Priority` + open/planned items) and move detailed completed history to [CHANGELOG.md](CHANGELOG.md) / [DONE.md](DONE.md)
 - ✅ **API documentation**: `snapfx-core` JavaDoc completion baseline is now warning-free via `./gradlew :snapfx-core:javadoc --rerun-tasks`, collaboration rules require immediate full JavaDoc updates for new/changed public API, and API docs are now published at `https://snapfx.org/api/`.
 - ✅ **JavaDoc discoverability baseline**: Exported API packages now include `package-info.java` overviews, and key API classes now include usage snippets to improve first-time navigation on hosted docs.
-- 📋 **User guide**: Comprehensive usage guide
-- 📋 **Tutorial series**: Step-by-step tutorials
-- 📋 **Example projects**: Real-world examples
+- ✅ **User guide baseline**: Docusaurus now includes a practical SnapFX user guide covering core concepts, setup flow, docking/floating/sidebars, persistence, and theme usage.
+- ✅ **Tutorial baseline**: Docusaurus now includes a "First Layout" step-by-step tutorial from root setup through save/load.
+- ✅ **Examples baseline**: Docusaurus now includes reusable code examples for common integration patterns (IDE layout, tab grouping, floating, lock mode, shortcuts, themes, save/load).
 - ✅ **GitHub Pages site**: Docusaurus-based documentation portal is now live at `https://snapfx.org/` (guides, architecture, release status) with JavaDoc integrated under `/api`.
 - ✅ **Changelog release hygiene baseline**: `CHANGELOG.md` now keeps explicit sections per release tag (including backfilled `v0.5.0` and `v0.6.0`), and `Unreleased` is reserved for post-tag work.
+- ✅ **Docs link + status hygiene pass**: docs pages now use clickable links for references (including API links), and release-readiness status content is aligned to the current `v0.6.x` state.
 - 📋 **Docs versioning (post-`1.0.0`)**: Start Docusaurus multi-version docs and versioned API JavaDoc paths only after the first stable release to keep pre-`1.0.0` maintenance overhead low.
 - 📋 **Video tutorials**: Screen recordings
 - 📋 **Doc consistency guardrails**: Keep markdown consistency tests aligned with documentation scope rules while avoiding brittle content-specific assertions (focus on encoding/format guardrails)

@@ -8,6 +8,13 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 
 No changes yet.
 
+## v0.6.1 - 2026-02-28
+
+### Documentation
+- ✅ Expanded Docusaurus content baseline with dedicated User Guide, First Layout tutorial, and Examples pages.
+- ✅ Updated docs navigation and entry pages (`intro`, `getting-started`, sidebar) to surface the new onboarding flow.
+- ✅ Refreshed docs link hygiene (clickable references instead of URL code formatting where applicable) and updated release-status content to reflect current `v0.6.x` progress.
+
 ## v0.6.0 - 2026-02-28
 
 ### CI and Documentation

@@ -30,5 +30,7 @@ Until Maven Central publication is live, use source checkout or GitHub Release d
 
 ## Next
 
-- Read the architecture overview in this docs portal.
-- Use JavaDoc at `/api` for full public API details.
+- Continue with the [User Guide](/user-guide).
+- Follow [Tutorial: First Layout](/tutorial-first-layout) for a complete start-to-finish flow.
+- Browse [Examples](/examples) for reusable snippets.
+- Use [API JavaDoc](https://snapfx.org/api/) for full public API details.

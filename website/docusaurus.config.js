@@ -98,7 +98,7 @@ const config = {
           ]
         }
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} SnapFX contributors`
+      copyright: `Copyright (c) ${new Date().getFullYear()} SnapFX contributors`
     }
   }
 };

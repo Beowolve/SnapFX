@@ -23,6 +23,8 @@
 ✅ **Docs Portal Baseline (`0.6.x`)**: GitHub Pages workflow now builds and publishes the Docusaurus documentation portal at `https://snapfx.org/`, bundles generated `:snapfx-core:javadoc` under `/api`, and writes a `CNAME` for `snapfx.org` (`.github/workflows/docs-pages.yml`).
 ✅ **JavaDoc Usability Pass**: Exported API packages now include `package-info.java` overviews, and key entry classes (`SnapFX`, `DockGraph`, `DockLayoutSerializer`, `DockFloatingWindow`) now include concise usage snippets in JavaDoc.
 ✅ **Changelog Tag Backfill**: `CHANGELOG.md` now contains explicit `v0.5.0` and `v0.6.0` sections, and `Unreleased` is reset to post-tag changes only.
+✅ **Docs Content Baseline**: Docusaurus now includes first structured content slices beyond overview pages (User Guide, First Layout tutorial, and Examples catalog) with sidebar navigation wiring.
+✅ **Docs Link/Status Refresh**: Documentation pages now expose references as clickable links (including API references), and release-status content reflects current `v0.6.x` progress.
 
 ## Documentation Scope
 
@@ -233,6 +235,7 @@
 - ✅ Sidebar overlay/pin rendering state split is documented in ADR [docs/adr/0003-sidebar-overlay-and-pin-rendering-state-split.md](docs/adr/0003-sidebar-overlay-and-pin-rendering-state-split.md)
 - ✅ Sidebar panel width state/runtime-clamping behavior is documented in ADR [docs/adr/0004-sidebar-panel-width-state-and-runtime-clamping.md](docs/adr/0004-sidebar-panel-width-state-and-runtime-clamping.md)
 - ✅ Sidebar visibility mode and framework sidebar-menu gating behavior are documented in ADR [docs/adr/0005-sidebar-visibility-mode-and-framework-menu-gating.md](docs/adr/0005-sidebar-visibility-mode-and-framework-menu-gating.md)
+- ✅ Docusaurus content baseline pages are now available at `https://snapfx.org/`: User Guide, First Layout tutorial, and Examples.
 
 ## Issues
 

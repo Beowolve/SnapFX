@@ -139,6 +139,8 @@ SnapFX has been fully implemented with core functionality and is production-read
 - ✅ Added a Docusaurus documentation portal baseline and integrated generated JavaDoc under `/api` so `https://snapfx.org/` now serves guides/overview while keeping API reference at `https://snapfx.org/api/`.
 - ✅ Documented the release policy decision to defer multi-version docs/API publication until after `1.0.0`, keeping pre-`1.0.0` documentation delivery latest-only for lower maintenance overhead.
 - ✅ Backfilled missing release sections in `CHANGELOG.md` for `v0.5.0` and `v0.6.0`, and reset `Unreleased` to post-tag changes only.
+- ✅ Expanded Docusaurus content baseline with a practical User Guide, First Layout tutorial, and Examples catalog, plus sidebar/entry-page cross-linking for faster onboarding.
+- ✅ Completed docs link/status hygiene pass: release-readiness page updated to current `v0.6.x` progression and URL references across docs pages are now rendered as clickable links.
 
 ### Resources
 - ✅ `snapfx.css` - Native Modena theme styling

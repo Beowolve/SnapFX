@@ -9,13 +9,16 @@ SnapFX is a lightweight JavaFX docking framework for desktop applications that n
 Use this documentation portal for guides and architecture context.
 Use the generated JavaDoc for detailed API reference.
 
-- Documentation home: `https://snapfx.org/`
-- API JavaDoc: `https://snapfx.org/api/`
-- Source repository: `https://github.com/Beowolve/SnapFX`
+- [Documentation Home](https://snapfx.org/)
+- [API JavaDoc](https://snapfx.org/api/)
+- [Source Repository](https://github.com/Beowolve/SnapFX)
 
 ## What You Can Read Here
 
 - Getting started and setup guidance
+- A practical user guide with core workflows
+- A step-by-step first-layout tutorial
+- Reusable integration examples
 - Architecture overview and design references
 - Release/readiness status references for maintainers
 
@@ -23,4 +26,4 @@ Use the generated JavaDoc for detailed API reference.
 
 The full public API JavaDoc is published under:
 
-- `https://snapfx.org/api/`
+- [SnapFX API JavaDoc](https://snapfx.org/api/)
