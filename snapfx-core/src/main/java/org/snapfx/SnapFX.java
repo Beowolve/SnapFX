@@ -18,6 +18,7 @@ import org.snapfx.floating.DockFloatingWindow;
 import org.snapfx.model.*;
 import org.snapfx.persistence.DockLayoutSerializer;
 import org.snapfx.persistence.DockLayoutLoadException;
+import org.snapfx.persistence.DockLayoutSnapshotService;
 import org.snapfx.persistence.DockNodeFactory;
 import org.snapfx.sidebar.DockSideBarMode;
 import org.snapfx.sidebar.DockSideBarController;
@@ -26,13 +27,7 @@ import org.snapfx.shortcuts.DockShortcutController;
 import org.snapfx.theme.DockThemeCatalog;
 import org.snapfx.theme.DockThemeStyleClasses;
 import org.snapfx.theme.DockThemeStylesheetManager;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
 import org.snapfx.view.DockCloseButtonMode;
 import org.snapfx.view.DockLayoutEngine;
 import org.snapfx.view.DockNodeView;
@@ -107,15 +102,6 @@ import java.util.function.Function;
  * }</pre>
  */
 public class SnapFX {
-    private static final Gson SNAPSHOT_GSON = new GsonBuilder().setPrettyPrinting().create();
-    private static final String SNAPSHOT_MAIN_LAYOUT_KEY = "mainLayout";
-    private static final String SNAPSHOT_FLOATING_WINDOWS_KEY = "floatingWindows";
-    private static final String SNAPSHOT_FLOATING_LAYOUT_KEY = "layout";
-    private static final String SNAPSHOT_FLOATING_X_KEY = "x";
-    private static final String SNAPSHOT_FLOATING_Y_KEY = "y";
-    private static final String SNAPSHOT_FLOATING_WIDTH_KEY = "width";
-    private static final String SNAPSHOT_FLOATING_HEIGHT_KEY = "height";
-    private static final String SNAPSHOT_FLOATING_ALWAYS_ON_TOP_KEY = "alwaysOnTop";
     private static final String SIDEBAR_CHROME_MARKER_KEY = "snapfx.sidebarChrome";
     private static final String SIDEBAR_NODE_CONTEXT_MENU_PROPERTY_KEY = "snapfx.sideBarNodeContextMenu";
     private static final double SIDEBAR_STRIP_WIDTH = 36.0;
@@ -131,6 +117,7 @@ public class SnapFX {
     private final DockLayoutEngine layoutEngine;
     private final DockDragService dragService;
     private final DockLayoutSerializer serializer;
+    private final DockLayoutSnapshotService layoutSnapshotService;
     private final DockShortcutController shortcutController;
     private final DockSideBarController sideBarController;
     private final DockFloatingController floatingController;
@@ -180,6 +167,7 @@ public class SnapFX {
         this.dragService = new DockDragService(dockGraph);
         this.layoutEngine = new DockLayoutEngine(dockGraph, dragService);
         this.serializer = new DockLayoutSerializer(dockGraph);
+        this.layoutSnapshotService = new DockLayoutSnapshotService();
         this.shortcutController = new DockShortcutController();
         this.sideBarController = new DockSideBarController();
         this.floatingController = new DockFloatingController();
@@ -1512,11 +1500,7 @@ public class SnapFX {
         if (floatingWindows.isEmpty()) {
             return mainLayoutJson;
         }
-
-        JsonObject snapshot = new JsonObject();
-        snapshot.add(SNAPSHOT_MAIN_LAYOUT_KEY, parseJsonObjectOrEmpty(mainLayoutJson));
-        snapshot.add(SNAPSHOT_FLOATING_WINDOWS_KEY, serializeFloatingWindows());
-        return SNAPSHOT_GSON.toJson(snapshot);
+        return layoutSnapshotService.createSnapshotJson(mainLayoutJson, serializeFloatingWindows());
     }
 
     /**
@@ -1526,18 +1510,18 @@ public class SnapFX {
      * @throws DockLayoutLoadException if layout JSON is invalid or cannot be deserialized
      */
     public void loadLayout(String json) throws DockLayoutLoadException {
-        LayoutSnapshot snapshot = tryParseLayoutSnapshot(json);
+        DockLayoutSnapshotService.DockLayoutSnapshot snapshot = layoutSnapshotService.tryParseSnapshot(json);
         if (snapshot != null) {
-            validateSnapshotLayout(snapshot);
+            layoutSnapshotService.validateSnapshot(snapshot, nodeFactory);
         } else {
-            validateLayoutJson(json, "$");
+            layoutSnapshotService.validateLayoutJson(json, "$", nodeFactory);
         }
 
         clearFloatingDropPreviews();
         closeAllFloatingWindows(false);
         resetSideBarTransientViewState();
         if (snapshot != null) {
-            serializer.deserialize(SNAPSHOT_GSON.toJson(snapshot.mainLayout()));
+            serializer.deserialize(layoutSnapshotService.toJson(snapshot.mainLayout()));
             restoreFloatingWindows(snapshot.floatingWindows());
         } else {
             serializer.deserialize(json);
@@ -3362,35 +3346,37 @@ public class SnapFX {
         for (DockFloatingWindow floatingWindow : floatingWindows) {
             rememberFloatingBoundsForNodes(floatingWindow);
             DockLayoutSerializer floatingSerializer = createLayoutSerializer(floatingWindow.getDockGraph());
-            JsonObject floatingData = new JsonObject();
-            floatingData.add(SNAPSHOT_FLOATING_LAYOUT_KEY, parseJsonObjectOrEmpty(floatingSerializer.serialize()));
-            addOptionalNumber(floatingData, SNAPSHOT_FLOATING_X_KEY, floatingWindow.getPreferredX());
-            addOptionalNumber(floatingData, SNAPSHOT_FLOATING_Y_KEY, floatingWindow.getPreferredY());
-            floatingData.addProperty(SNAPSHOT_FLOATING_WIDTH_KEY, floatingWindow.getPreferredWidth());
-            floatingData.addProperty(SNAPSHOT_FLOATING_HEIGHT_KEY, floatingWindow.getPreferredHeight());
-            floatingData.addProperty(SNAPSHOT_FLOATING_ALWAYS_ON_TOP_KEY, floatingWindow.isAlwaysOnTop());
-            floatingArray.add(floatingData);
+            floatingArray.add(layoutSnapshotService.createFloatingWindowEntry(
+                floatingSerializer.serialize(),
+                floatingWindow.getPreferredX(),
+                floatingWindow.getPreferredY(),
+                floatingWindow.getPreferredWidth(),
+                floatingWindow.getPreferredHeight(),
+                floatingWindow.isAlwaysOnTop()
+            ));
         }
         return floatingArray;
     }
 
-    private void restoreFloatingWindows(List<FloatingWindowSnapshot> snapshots) throws DockLayoutLoadException {
+    private void restoreFloatingWindows(List<DockLayoutSnapshotService.DockFloatingWindowSnapshot> snapshots)
+        throws DockLayoutLoadException {
         if (snapshots == null || snapshots.isEmpty()) {
             return;
         }
-        for (FloatingWindowSnapshot snapshot : snapshots) {
+        for (DockLayoutSnapshotService.DockFloatingWindowSnapshot snapshot : snapshots) {
             restoreFloatingWindow(snapshot);
         }
     }
 
-    private void restoreFloatingWindow(FloatingWindowSnapshot snapshot) throws DockLayoutLoadException {
+    private void restoreFloatingWindow(DockLayoutSnapshotService.DockFloatingWindowSnapshot snapshot)
+        throws DockLayoutLoadException {
         if (snapshot == null || snapshot.layout() == null) {
             return;
         }
 
         DockGraph floatingGraph = new DockGraph();
         DockLayoutSerializer floatingSerializer = createLayoutSerializer(floatingGraph);
-        floatingSerializer.deserialize(SNAPSHOT_GSON.toJson(snapshot.layout()));
+        floatingSerializer.deserialize(layoutSnapshotService.toJson(snapshot.layout()));
         DockElement floatingRoot = floatingGraph.getRoot();
         if (floatingRoot == null) {
             return;
@@ -3423,164 +3409,12 @@ public class SnapFX {
         }
     }
 
-    private LayoutSnapshot tryParseLayoutSnapshot(String json) {
-        if (json == null || json.isBlank()) {
-            return null;
-        }
-
-        try {
-            JsonElement parsed = JsonParser.parseString(json);
-            if (!parsed.isJsonObject()) {
-                return null;
-            }
-            JsonObject snapshotJson = parsed.getAsJsonObject();
-            JsonElement mainLayoutElement = snapshotJson.get(SNAPSHOT_MAIN_LAYOUT_KEY);
-            if (mainLayoutElement == null || !mainLayoutElement.isJsonObject()) {
-                return null;
-            }
-
-            JsonObject mainLayout = mainLayoutElement.getAsJsonObject();
-            List<FloatingWindowSnapshot> snapshots = new ArrayList<>();
-            JsonElement floatingWindowsElement = snapshotJson.get(SNAPSHOT_FLOATING_WINDOWS_KEY);
-            if (floatingWindowsElement != null && floatingWindowsElement.isJsonArray()) {
-                for (JsonElement floatingElement : floatingWindowsElement.getAsJsonArray()) {
-                    if (!floatingElement.isJsonObject()) {
-                        continue;
-                    }
-                    JsonObject floatingJson = floatingElement.getAsJsonObject();
-                    JsonElement floatingLayoutElement = floatingJson.get(SNAPSHOT_FLOATING_LAYOUT_KEY);
-                    if (floatingLayoutElement == null || !floatingLayoutElement.isJsonObject()) {
-                        continue;
-                    }
-                    snapshots.add(new FloatingWindowSnapshot(
-                        floatingLayoutElement.getAsJsonObject(),
-                        readOptionalFiniteDouble(floatingJson, SNAPSHOT_FLOATING_X_KEY),
-                        readOptionalFiniteDouble(floatingJson, SNAPSHOT_FLOATING_Y_KEY),
-                        readOptionalFiniteDouble(floatingJson, SNAPSHOT_FLOATING_WIDTH_KEY),
-                        readOptionalFiniteDouble(floatingJson, SNAPSHOT_FLOATING_HEIGHT_KEY),
-                        readOptionalBoolean(floatingJson, SNAPSHOT_FLOATING_ALWAYS_ON_TOP_KEY)
-                    ));
-                }
-            }
-            return new LayoutSnapshot(mainLayout, snapshots);
-        } catch (JsonSyntaxException ignored) {
-            return null;
-        }
-    }
-
-    private void validateSnapshotLayout(LayoutSnapshot snapshot) throws DockLayoutLoadException {
-        if (snapshot == null || snapshot.mainLayout() == null) {
-            throw new DockLayoutLoadException("Snapshot is missing main layout data.", "$.mainLayout");
-        }
-        validateLayoutJson(SNAPSHOT_GSON.toJson(snapshot.mainLayout()), "$.mainLayout");
-        List<FloatingWindowSnapshot> floatingSnapshots = snapshot.floatingWindows();
-        if (floatingSnapshots == null || floatingSnapshots.isEmpty()) {
-            return;
-        }
-        for (int i = 0; i < floatingSnapshots.size(); i++) {
-            FloatingWindowSnapshot floatingSnapshot = floatingSnapshots.get(i);
-            if (floatingSnapshot == null || floatingSnapshot.layout() == null) {
-                throw new DockLayoutLoadException(
-                    "Floating window snapshot is missing layout data.",
-                    "$.floatingWindows[" + i + "].layout"
-                );
-            }
-            validateLayoutJson(
-                SNAPSHOT_GSON.toJson(floatingSnapshot.layout()),
-                "$.floatingWindows[" + i + "].layout"
-            );
-        }
-    }
-
-    private void validateLayoutJson(String layoutJson, String rootPath) throws DockLayoutLoadException {
-        DockLayoutSerializer validationSerializer = createLayoutSerializer(new DockGraph());
-        try {
-            validationSerializer.deserialize(layoutJson);
-        } catch (DockLayoutLoadException e) {
-            throw rebaseLoadException(e, rootPath);
-        }
-    }
-
-    private DockLayoutLoadException rebaseLoadException(DockLayoutLoadException exception, String basePath) {
-        if (exception == null) {
-            return new DockLayoutLoadException("Layout could not be loaded.", basePath);
-        }
-        String location = combineJsonPath(basePath, exception.getLocation());
-        return new DockLayoutLoadException(exception.getMessage(), location, exception.getCause());
-    }
-
-    private String combineJsonPath(String basePath, String nestedPath) {
-        String base = (basePath == null || basePath.isBlank()) ? "$" : basePath;
-        if (nestedPath == null || nestedPath.isBlank() || "$".equals(nestedPath)) {
-            return base;
-        }
-        if (!nestedPath.startsWith("$")) {
-            return base + "." + nestedPath;
-        }
-        String nestedSuffix = nestedPath.substring(1);
-        if (nestedSuffix.isBlank()) {
-            return base;
-        }
-        if (nestedSuffix.startsWith(".")) {
-            return base + nestedSuffix;
-        }
-        return base + "." + nestedSuffix;
-    }
-
     private DockLayoutSerializer createLayoutSerializer(DockGraph graph) {
         DockLayoutSerializer layoutSerializer = new DockLayoutSerializer(graph);
         if (nodeFactory != null) {
             layoutSerializer.setNodeFactory(nodeFactory);
         }
         return layoutSerializer;
-    }
-
-    private JsonObject parseJsonObjectOrEmpty(String json) {
-        if (json == null || json.isBlank()) {
-            return new JsonObject();
-        }
-        try {
-            JsonElement parsed = JsonParser.parseString(json);
-            if (parsed.isJsonObject()) {
-                return parsed.getAsJsonObject();
-            }
-        } catch (JsonSyntaxException ignored) {
-            // Ignore invalid data and return empty object fallback.
-        }
-        return new JsonObject();
-    }
-
-    private void addOptionalNumber(JsonObject object, String key, Double value) {
-        if (object == null || key == null || !isFiniteNumber(value)) {
-            return;
-        }
-        object.addProperty(key, value);
-    }
-
-    private Double readOptionalFiniteDouble(JsonObject object, String key) {
-        if (object == null || key == null || !object.has(key)) {
-            return null;
-        }
-        JsonElement value = object.get(key);
-        if (value == null || !value.isJsonPrimitive() || !value.getAsJsonPrimitive().isNumber()) {
-            return null;
-        }
-        double parsed = value.getAsDouble();
-        if (!Double.isFinite(parsed)) {
-            return null;
-        }
-        return parsed;
-    }
-
-    private Boolean readOptionalBoolean(JsonObject object, String key) {
-        if (object == null || key == null || !object.has(key)) {
-            return null;
-        }
-        JsonElement value = object.get(key);
-        if (value == null || !value.isJsonPrimitive() || !value.getAsJsonPrimitive().isBoolean()) {
-            return null;
-        }
-        return value.getAsBoolean();
     }
 
     private boolean isFinitePositive(Double value) {
@@ -3609,18 +3443,5 @@ public class SnapFX {
     }
 
     private record SideBarDropPreview(Side side, int insertIndex, double sceneX, double sceneY, double width) {
-    }
-
-    private record LayoutSnapshot(JsonObject mainLayout, List<FloatingWindowSnapshot> floatingWindows) {
-    }
-
-    private record FloatingWindowSnapshot(
-        JsonObject layout,
-        Double x,
-        Double y,
-        Double width,
-        Double height,
-        Boolean alwaysOnTop
-    ) {
     }
 }

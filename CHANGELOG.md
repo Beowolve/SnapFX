@@ -12,10 +12,10 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Added release-asset SHA256 generation in the release workflow and publish of matching `*.sha256` files for base and jpackage artifacts.
 - ✅ Fixed empty-main-layout D&D re-docking: when the main layout has no root (all nodes floating), center-drop over the empty layout now resolves as a valid dock target and re-attaches the dragged node to the main layout.
 - ✅ Added regression coverage for empty-layout drop-zone collection and validation (`DockLayoutEngineTest`, `DockDragServiceTest`) plus resolved-drop handling into an empty main layout (`SnapFXTest`).
-- ✅ Expanded maintainability-refactor regression coverage with dedicated controller tests for shortcut, sidebar, and floating controller slices.
+- ✅ Expanded maintainability-refactor regression coverage with dedicated controller/service tests for shortcut, sidebar, floating, and snapshot-handling slices.
 
 ### Framework and UI
-- ✅ Advanced the pre-`v1.0.0` maintainability refactor by decomposing `SnapFX` into dedicated thematic controllers for shortcuts, sidebar transient state, and floating active-window/lookup behavior, while preserving public API behavior.
+- ✅ Advanced the pre-`v1.0.0` maintainability refactor by decomposing `SnapFX` into dedicated thematic controllers/services for shortcuts, sidebar transient state, floating active-window/lookup behavior, and snapshot JSON parse/validation/composition handling, while preserving public API behavior.
 
 ### Documentation
 - ✅ Redundant documentation link to snapfx.org in README.md removed.
