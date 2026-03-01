@@ -1,9 +1,10 @@
 # SnapFX Development Roadmap
 
-**Last Updated**: 2026-02-28
+**Last Updated**: 2026-03-01
 
 This document tracks planned and proposed work for SnapFX.
 This roadmap keeps a high-level progress view plus planned/proposed work; detailed completed/fixed release history is tracked in [CHANGELOG.md](CHANGELOG.md).
+Planned items stay high-level in this file; granular test-count tracking and change-by-change history are intentionally kept outside the roadmap.
 
 ---
 
@@ -11,16 +12,16 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 
 | Phase | Status | Completion |
 |-------|--------|------------|
-| Phase 1: Core Stability | ✅ Completed | 100% |
-| Phase 2: Floating Windows | ✅ Completed | 100% |
-| Phase 3: User Experience | 🚧 In Progress | 64% |
-| Phase 4: Advanced Features | 🚧 In Progress | 35% |
-| Phase 5: Themes & Customization | 🚧 In Progress | 60% |
-| Phase 6: Performance & Polish | 📋 Planned | 0% |
-| Phase 7: Developer Experience | 📋 Planned | 50% |
-| Phase 8: Production Readiness | 📋 Planned | 35% |
+| Phase 1: Core Stability | ✅ Completed | 100%       |
+| Phase 2: Floating Windows | ✅ Completed | 100%       |
+| Phase 3: User Experience | 🚧 In Progress | 75%        |
+| Phase 4: Advanced Features | 🚧 In Progress | 35%        |
+| Phase 5: Themes & Customization | 🚧 In Progress | 60%        |
+| Phase 6: Performance & Polish | 📋 Planned | 0%         |
+| Phase 7: Developer Experience | 🚧 In Progress | 50%        |
+| Phase 8: Production Readiness | 🚧 In Progress | 40%        |
 
-**Total Project Completion**: ~85%
+**Total Project Completion**: ~86%
 
 ## Legend
 
@@ -161,7 +162,7 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 - ✅ **Right-click on header**: Float and Close actions for dock-node headers (with control-glyph icons)
 - ✅ **Header context-menu dismiss behavior**: Dock-node header context menu now hides when pressing the header (including the same toolbar area)
 - ✅ **Right-click on floating title bar**: `Attach to Layout` and toggle "Always on Top"
-- 📋 **Customizable menu items**: API for adding custom actions
+- 💡 **Customizable menu items**: API for adding custom actions
 
 **Estimated Time**: Remaining ~0.5 day
 
@@ -170,7 +171,7 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 ### 3.3 Animations
 **Priority**: 🟡 Low
 
-- ✅ Completed: Demo About dialog easter egg animation (triple-click logo trigger on SnapFX branding).
+- ✅ Completed: Demo About dialog easter egg animation (triple-click logo trigger on SnapFX Icon).
 - 💡 **Smooth docking**: Fade in/out when adding/removing nodes
 - 💡 **Tab switching**: Slide animation
 - 💡 **Splitter adjustment**: Smooth resize
@@ -185,6 +186,10 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 
 ### 4.1 Perspectives
 **Priority**: 🟢 Medium
+
+**Note:**
+This can be easily implemented in the application code as well, but it is a common feature
+for many applications and is a good candidate for a framework-level API.
 
 - 📋 **Perspective API**: Save/load named layouts
 - 📋 **Perspective switcher**: Quick switch between predefined layouts
@@ -224,7 +229,11 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 ---
 
 ### 4.3 Size Constraints
-**Priority**: 🟡 High
+**Priority**: 🔵 Low
+
+**Note:**
+The current implementation shows no high demand for size constraints.
+However, it is important to ensure that panels have a minimum size to prevent them from becoming too small and unreadable.
 
 - 📋 **Min/max width**: Prevent panels from becoming too small/large
 - 📋 **Preferred size**: Respect component size hints
@@ -237,6 +246,12 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 
 ### 4.4 Grid Layout
 **Priority**: 🔵 Low
+
+**Note:**
+The Idea behind this feature is to provide a 2D grid container that can be used to organize and arrange panels in a grid-like layout.
+However, this would be only usable via API and not directly in the UI in a reliable manner.
+This is why the feature is not included in the current release and maybe never will. If experimental tests show that it is useful
+and can be implemented in a way that is not too difficult and fits the current design, then it might be considered for future releases.
 
 - 💡 **DockGridPane class**: 2D grid container
 - 💡 **Row/column spanning**: Multi-cell panels
@@ -256,9 +271,9 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 - ✅ **Configurable snap targets**: `SnapFX.setFloatingWindowSnapTargets(...)` controls screen/main/floating snap surfaces
 - ✅ **MainDemo snapping settings controls**: Debug settings tab now exposes snapping enable, snap distance, and snap targets for direct manual API verification
 - ✅ **Snapping engine consolidation**: Candidate generation and overlap-aware snap logic are centralized in `DockFloatingSnapEngine` for maintainability and focused testing
-- 📋 **Visual snap guides**: Alignment indicator lines while dragging
+- 💡 **Visual snap guides**: Alignment indicator lines while dragging
 
-**Estimated Time**: 2-3 days
+**Estimated Time**: 1-2 hours
 
 ---
 
@@ -280,8 +295,12 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 ### 5.2 Visual Customization
 **Priority**: 🔵 Low
 
+**Note:**
+All visual aspects of the framework are designed to be customizable via CSS, the goal is to provide some
+examples of how this can be done.
+
 - ✅ **Control glyph styling via CSS**: Dock/floating control icons are stylesheet-defined (no hardcoded vector icon factory)
-- ✅ **MainDemo application icon branding**: Multi-size SnapFX app icons are wired to the demo stage
+- ✅ **MainDemo application icon**: Multi-size SnapFX app icons are wired to the demo stage
 - 💡 **Custom icons**: Replace default icons
 - 💡 **Tab styles**: Different tab appearances
 - 💡 **Header styles**: Customizable node headers
@@ -381,10 +400,10 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 **Priority**: 🔵 Low
 
 - ✅ Completed: `runSimpleExample` task for launching `SimpleExample` with JavaFX module runtime wiring.
-- 💡 **Layout designer**: Visual layout editor
-- 💡 **FXML support**: Alternative to programmatic API
-- 💡 **CSS inspector**: Debug styling issues
-- 💡 **Layout validator**: Check for common issues
+- 💡 **Layout validator**: Check for common issues (circular references, missing nodes)
+- 💡 **CSS inspector**: Debug styling issues (similar to browser dev tools)
+- 💡 **FXML support**: Alternative to programmatic API (under consideration, as it may not fit well with the dynamic nature of SnapFX layouts)
+- 💡 **Layout designer**: Visual layout editor (this is a stretch goal, but it would be cool to have a layout designer that can be used to create layouts directly in the IDE)
 
 **Estimated Time**: 7-10 days
 
@@ -408,13 +427,13 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 - ✅ **Package/module namespace baseline**: Java packages and JPMS module names now use `org.snapfx...` across core/demo code and tests
 - ✅ **Repository metadata hygiene baseline**: `.idea/` is fully ignored and tracked IntelliJ workspace/project metadata has been removed from Git
 - ✅ **Maven publish dry-run baseline (`snapfx-core`)**: `maven-publish` + optional signing wiring, `sourcesJar`/`javadocJar`, and POM metadata are in place; local `:snapfx-core:publishToMavenLocal` succeeds
-- 🚧 **Maven Central publish baseline**: `snapfx-core` now includes Sonatype Central repository wiring and release workflow support, with live publish intentionally gated to stable tags `>= v1.0.0`; first live Central publication verification remains pending.
+- ✅ **Maven Central publish readiness gate (`0.8.x`)**: `snapfx-core` now includes Sonatype Central repository wiring, release workflow support, secret/signing preflight checks, and maintainer checklist guidance; live publish remains intentionally gated to stable tags `>= v1.0.0`.
 - ✅ **jlink support baseline**: `snapfx-demo` now uses `org.beryx.jlink` and provides `:snapfx-demo:jlink` runtime-image packaging
-- 🚧 **jpackage support baseline**: `snapfx-demo` now provides `:snapfx-demo:jpackageImage` and `:snapfx-demo:packageJPackageImageZip` with OS-specific app icon selection (`.ico`/`.icns`/`.png`) plus macOS-compatible app-version normalization (major version floor `1`), and release automation now publishes per-OS demo ZIP assets (Windows/macOS/Linux); installer generation/signing remains pending
+- ✅ **jpackage support baseline**: `snapfx-demo` now provides `:snapfx-demo:jpackageImage` and `:snapfx-demo:packageJPackageImageZip` with OS-specific app icon selection (`.ico`/`.icns`/`.png`) plus macOS-compatible app-version normalization (major version floor `1`), and release automation now publishes per-OS demo ZIP assets (Windows/macOS/Linux); installer generation/signing remains pending
 - ✅ **Smoke validation policy baseline**: `RELEASING.md` now defines required local-OS smoke validation per RC, cross-OS checks as nice-to-have, per-OS start commands/checklist, and optional CI startup-smoke scope (validated against successful `v0.4.1-rc.2` release workflow run).
 - ✅ **Release checksum baseline**: Release automation now generates SHA256 checksum files for all release assets (`.zip`/`.tar`/`.jar`) and publishes matching `*.sha256` files in GitHub Releases.
+- ✅ **Version management**: Semantic versioning
 - 📋 **Remove temporary macOS appVersion workaround at v1.x**: After the first real `v1.x` project release, drop the major-floor mapping so demo appVersion equals the core/project version again.
-- 📋 **Version management**: Semantic versioning
 
 **Estimated Time**: 2-3 days
 
@@ -427,8 +446,8 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 - ✅ **`0.5.x` Documentation baseline**: Public API JavaDoc is now warning-free for `snapfx-core` (`./gradlew :snapfx-core:javadoc --rerun-tasks`), and AGENTS workflow rules now enforce immediate complete JavaDoc updates for API changes.
 - ✅ **`0.6.x` Public docs + domain baseline**: GitHub Pages now publishes a Docusaurus documentation portal at `https://snapfx.org/` and generated JavaDoc at `https://snapfx.org/api/`, with `CNAME`-based domain routing and release docs covering setup/validation flow.
 - ✅ **`0.7.x` Packaging hardening**: Cross-platform demo packaging baseline, smoke-check policy, and release-asset checksum flow are in place.
-- 🚧 **`0.8.x` Publishing readiness**: Maven Central CI/signing/checklist baseline is wired (live publish remains gated to stable tags `>= v1.0.0`); finalize dry-run verification and maintainer hardening steps before `1.0.0`.
-- 📋 **`0.9.x` Release rehearsal + freeze**: Run end-to-end RC drills (`v0.9.x-rc.y`), close final blockers, and freeze public API for `1.0.0`.
+- 🚧 **`0.8.x` Publishing readiness**: Active: Adding more features and fixes. Maven Central CI/signing/checklist baseline is complete, including stable-tag publish policy gating (`>= v1.0.0`)
+- 🚧 **`0.9.x` Release rehearsal + freeze**: Run end-to-end RC drills (`v0.9.x-rc.y`), close final blockers, and freeze public API for `1.0.0`.
 - 📋 **`1.0.0` stable cut**: Tag and publish the first stable public release once all release-readiness gates are green.
 - 📋 **Scope guard**: Keep optional backlog items (for example video tutorials, layout designer, major UX expansions) out of the `1.0.0` critical path unless explicitly promoted.
 
@@ -438,6 +457,10 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 
 ### 8.2 Quality Assurance
 **Priority**: 🔴 Critical
+
+**Note:**
+The code has already been tested extensively and has a lot of automated tests to ensure stability and correctness.
+The goal is to maintain high code quality and prevent regressions.
 
 - 📋 **Code coverage**: Target 85%+ coverage
 - 📋 **Mutation testing**: Verify test quality
@@ -451,6 +474,10 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 
 ### 8.3 Production Testing
 **Priority**: 🔴 Critical
+
+**Note:**
+User acceptance testing is hard to do before the first release. 
+Would love to see some real-world usage feedback from early adopters.
 
 - 📋 **User acceptance testing**: Real user feedback
 - 📋 **Load testing**: Handle complex layouts
@@ -467,18 +494,18 @@ This roadmap keeps a high-level progress view plus planned/proposed work; detail
 ### Potential Features
 - 💡 **Layout history**: Undo/redo for layout changes
 - 💡 **Layout diff**: Compare two layouts
-- 💡 **Layout merge**: Combine layouts
-- 💡 **Remote layouts**: Share layouts across network
+- 💡 **Layout merge**: Combine layouts (if that is even possible?)
 - 💡 **Layout versioning**: Track layout changes over time
-- 💡 **Collaborative editing**: Multiple users editing layout
 - 💡 **Layout templates**: Pre-built layout patterns
-- 💡 **Layout marketplace**: Share layouts with community
-- 💡 **AI-assisted layout**: Suggest optimal layouts
+- 💡 **Layout marketplace**: Share layouts with community (application level feature, not layout level...)
 - 💡 **Gesture support**: Touch gestures for tablets
+- 💡 **AI-assisted layout**: Suggest optimal layouts
 
 ### Technical Debt
 - 💡 **Refactor DockDragService**: Simplify complex logic
+- 💡 **Refactor SnapFX**: The main class is getting a bit large and could be split into smaller components
 - 💡 **Improve error handling**: Better error messages
+- 💡 **Logging**: Current logging is very basic and rare, a decision about logging framework is needed (there is an argument for not using any logging at all)
 - 💡 **Reduce coupling**: Further decouple components
 - 💡 **Optimize imports**: Clean up dependencies
 
