@@ -13,6 +13,7 @@ import org.snapfx.floating.DockFloatingPinChangeEvent;
 import org.snapfx.floating.DockFloatingPinLockedBehavior;
 import org.snapfx.floating.DockFloatingPinSource;
 import org.snapfx.floating.DockFloatingSnapTarget;
+import org.snapfx.floating.DockFloatingController;
 import org.snapfx.floating.DockFloatingWindow;
 import org.snapfx.model.*;
 import org.snapfx.persistence.DockLayoutSerializer;
@@ -132,6 +133,7 @@ public class SnapFX {
     private final DockLayoutSerializer serializer;
     private final DockShortcutController shortcutController;
     private final DockSideBarController sideBarController;
+    private final DockFloatingController floatingController;
     private final EventHandler<KeyEvent> shortcutKeyEventFilter;
     private final EventHandler<MouseEvent> sideBarOverlayMouseEventFilter;
     private final ChangeListener<Scene> rootContainerSceneListener;
@@ -141,7 +143,6 @@ public class SnapFX {
     private Stage primaryStage;
     private DockNodeFactory nodeFactory;
     private Scene shortcutScene;
-    private DockFloatingWindow activeFloatingWindow;
 
     // Hidden nodes (removed from layout but not destroyed)
     private final ObservableList<DockNode> hiddenNodes;
@@ -181,6 +182,7 @@ public class SnapFX {
         this.serializer = new DockLayoutSerializer(dockGraph);
         this.shortcutController = new DockShortcutController();
         this.sideBarController = new DockSideBarController();
+        this.floatingController = new DockFloatingController();
         this.shortcutKeyEventFilter = this::handleShortcutKeyPressed;
         this.sideBarOverlayMouseEventFilter = this::handleRootContainerMousePressed;
         this.rootContainerSceneListener = (obs, oldScene, newScene) -> rebindShortcutScene(newScene);
@@ -1404,36 +1406,11 @@ public class SnapFX {
     }
 
     private DockFloatingWindow resolveActiveFloatingWindow(Object eventTarget) {
-        DockFloatingWindow fromEventScene = resolveFloatingWindowByScene(resolveSceneFromEventTarget(eventTarget));
-        if (fromEventScene != null) {
-            return fromEventScene;
-        }
-
-        DockFloatingWindow fromFocusedScene = resolveFloatingWindowByScene(resolveSceneFromNode(resolveFocusedNode(eventTarget)));
-        if (fromFocusedScene != null) {
-            return fromFocusedScene;
-        }
-
-        if (activeFloatingWindow != null && floatingWindows.contains(activeFloatingWindow)) {
-            return activeFloatingWindow;
-        }
-
-        if (floatingWindows.isEmpty()) {
-            return null;
-        }
-        return floatingWindows.getLast();
-    }
-
-    private DockFloatingWindow resolveFloatingWindowByScene(Scene scene) {
-        if (scene == null || floatingWindows.isEmpty()) {
-            return null;
-        }
-        for (DockFloatingWindow floatingWindow : floatingWindows) {
-            if (floatingWindow != null && floatingWindow.ownsScene(scene)) {
-                return floatingWindow;
-            }
-        }
-        return null;
+        return floatingController.resolveActiveFloatingWindow(
+            floatingWindows,
+            resolveSceneFromEventTarget(eventTarget),
+            resolveSceneFromNode(resolveFocusedNode(eventTarget))
+        );
     }
 
     private Scene resolveSceneFromEventTarget(Object eventTarget) {
@@ -1889,7 +1866,7 @@ public class SnapFX {
             existingWindow.setPreferredPosition(screenX, screenY);
             existingWindow.show(primaryStage);
             bindFloatingShortcutScene(existingWindow);
-            activeFloatingWindow = existingWindow;
+            floatingController.setActiveFloatingWindow(existingWindow);
             return existingWindow;
         }
 
@@ -1932,7 +1909,7 @@ public class SnapFX {
             floatingWindow.show(primaryStage);
             bindFloatingShortcutScene(floatingWindow);
         }
-        activeFloatingWindow = floatingWindow;
+        floatingController.setActiveFloatingWindow(floatingWindow);
         return floatingWindow;
     }
 
@@ -1958,9 +1935,7 @@ public class SnapFX {
         }
 
         unbindFloatingShortcutScene(floatingWindow);
-        if (activeFloatingWindow == floatingWindow) {
-            activeFloatingWindow = null;
-        }
+        floatingController.clearActiveFloatingWindowIfMatches(floatingWindow);
         floatingWindow.closeWithoutNotification();
         rememberFloatingBoundsForNodes(floatingWindow);
 
@@ -2380,14 +2355,12 @@ public class SnapFX {
         floatingWindow.setOnCloseRequested(() -> handleFloatingWindowCloseRequested(floatingWindow));
         floatingWindow.setOnWindowClosed(window -> {
             unbindFloatingShortcutScene(window);
-            if (activeFloatingWindow == window) {
-                activeFloatingWindow = null;
-            }
+            floatingController.clearActiveFloatingWindowIfMatches(window);
             handleFloatingWindowClosed(window);
         });
         floatingWindow.setOnWindowActivated(() -> {
             bindFloatingShortcutScene(floatingWindow);
-            activeFloatingWindow = floatingWindow;
+            floatingController.setActiveFloatingWindow(floatingWindow);
             promoteFloatingWindowToFront(floatingWindow);
         });
         floatingWindow.setOnNodeCloseRequest(this::handleDockNodeCloseRequest);
@@ -2507,7 +2480,7 @@ public class SnapFX {
             floatingWindow.show(primaryStage);
             bindFloatingShortcutScene(floatingWindow);
         }
-        activeFloatingWindow = floatingWindow;
+        floatingController.setActiveFloatingWindow(floatingWindow);
         return floatingWindow;
     }
 
@@ -3083,15 +3056,7 @@ public class SnapFX {
     }
 
     private DockFloatingWindow findFloatingWindow(DockNode node) {
-        if (node == null) {
-            return null;
-        }
-        for (DockFloatingWindow floatingWindow : floatingWindows) {
-            if (floatingWindow.containsNode(node)) {
-                return floatingWindow;
-            }
-        }
-        return null;
+        return floatingController.findFloatingWindowContainingNode(floatingWindows, node);
     }
 
     private void closeAllFloatingWindows(boolean attachBack) {
@@ -3112,9 +3077,7 @@ public class SnapFX {
         if (floatingWindow == null || !floatingWindows.remove(floatingWindow)) {
             return;
         }
-        if (activeFloatingWindow == floatingWindow) {
-            activeFloatingWindow = null;
-        }
+        floatingController.clearActiveFloatingWindowIfMatches(floatingWindow);
         rememberFloatingBoundsForNodes(floatingWindow);
         List<DockNode> nodes = new ArrayList<>(floatingWindow.getDockNodes());
         for (DockNode node : nodes) {
@@ -3131,9 +3094,7 @@ public class SnapFX {
             return;
         }
         unbindFloatingShortcutScene(floatingWindow);
-        if (activeFloatingWindow == floatingWindow) {
-            activeFloatingWindow = null;
-        }
+        floatingController.clearActiveFloatingWindowIfMatches(floatingWindow);
         floatingWindow.closeWithoutNotification();
     }
 
