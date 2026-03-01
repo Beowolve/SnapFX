@@ -30,7 +30,6 @@ import org.snapfx.theme.DockThemeStylesheetManager;
 import com.google.gson.JsonArray;
 import org.snapfx.view.DockCloseButtonMode;
 import org.snapfx.view.DockLayoutEngine;
-import org.snapfx.view.DockNodeView;
 import org.snapfx.view.DockTitleBarMode;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -52,8 +51,6 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.KeyCombination;
@@ -1159,7 +1156,7 @@ public class SnapFX {
         if (event == null || event.getEventType() != KeyEvent.KEY_PRESSED) {
             return;
         }
-        DockShortcutAction action = resolveShortcutAction(event);
+        DockShortcutAction action = shortcutController.resolveShortcutAction(event);
         if (action == null) {
             return;
         }
@@ -1168,18 +1165,14 @@ public class SnapFX {
         }
     }
 
-    private DockShortcutAction resolveShortcutAction(KeyEvent event) {
-        return shortcutController.resolveShortcutAction(event);
-    }
-
     boolean executeShortcutAction(DockShortcutAction action, Object eventTarget) {
         if (action == null) {
             return false;
         }
         return switch (action) {
             case CLOSE_ACTIVE_NODE -> closeActiveDockNode(eventTarget);
-            case NEXT_TAB -> selectTabRelative(1, eventTarget);
-            case PREVIOUS_TAB -> selectTabRelative(-1, eventTarget);
+            case NEXT_TAB -> shortcutController.selectTabRelative(1, eventTarget, shortcutScene, rootContainer);
+            case PREVIOUS_TAB -> shortcutController.selectTabRelative(-1, eventTarget, shortcutScene, rootContainer);
             case CANCEL_DRAG -> cancelActiveDrag();
             case TOGGLE_ACTIVE_FLOATING_ALWAYS_ON_TOP -> toggleActiveFloatingAlwaysOnTop(eventTarget);
         };
@@ -1189,32 +1182,11 @@ public class SnapFX {
         if (dockGraph.isLocked()) {
             return false;
         }
-        DockNode activeNode = resolveActiveDockNode(eventTarget);
+        DockNode activeNode = shortcutController.resolveActiveDockNode(eventTarget, shortcutScene, dockGraph.getRoot());
         if (activeNode == null || !activeNode.isCloseable()) {
             return false;
         }
         handleDockNodeCloseRequest(activeNode, DockCloseSource.TITLE_BAR);
-        return true;
-    }
-
-    private boolean selectTabRelative(int direction, Object eventTarget) {
-        TabPane activeTabPane = shortcutController.resolveActiveTabPane(eventTarget, shortcutScene, rootContainer);
-        if (activeTabPane == null || activeTabPane.getTabs().size() < 2) {
-            return false;
-        }
-
-        int tabCount = activeTabPane.getTabs().size();
-        int selectedIndex = activeTabPane.getSelectionModel().getSelectedIndex();
-        if (selectedIndex < 0) {
-            selectedIndex = 0;
-        }
-        int nextIndex = Math.floorMod(selectedIndex + direction, tabCount);
-        activeTabPane.getSelectionModel().select(nextIndex);
-
-        Tab selectedTab = activeTabPane.getSelectionModel().getSelectedItem();
-        if (selectedTab != null && selectedTab.getContent() != null) {
-            selectedTab.getContent().requestFocus();
-        }
         return true;
     }
 
@@ -1233,77 +1205,6 @@ public class SnapFX {
         }
         activeWindow.setAlwaysOnTop(!activeWindow.isAlwaysOnTop(), DockFloatingPinSource.API);
         return true;
-    }
-
-    private DockNode resolveActiveDockNode(Object eventTarget) {
-        Node targetNode = shortcutController.resolveNodeFromEventTarget(eventTarget);
-        DockNode nodeFromTarget = resolveDockNodeFromHierarchy(targetNode);
-        if (nodeFromTarget != null) {
-            return nodeFromTarget;
-        }
-
-        Node focusedNode = shortcutController.resolveFocusedNode(eventTarget, shortcutScene);
-        DockNode nodeFromFocus = resolveDockNodeFromHierarchy(focusedNode);
-        if (nodeFromFocus != null) {
-            return nodeFromFocus;
-        }
-
-        return resolveSelectedDockNode(dockGraph.getRoot());
-    }
-
-    private DockNode resolveDockNodeFromHierarchy(Node node) {
-        Node current = node;
-        while (current != null) {
-            if (current instanceof DockNodeView dockNodeView) {
-                return dockNodeView.getDockNode();
-            }
-            if (current instanceof TabPane tabPane) {
-                DockNode selectedNode = resolveDockNodeFromSelectedTab(tabPane);
-                if (selectedNode != null) {
-                    return selectedNode;
-                }
-            }
-            current = current.getParent();
-        }
-        return null;
-    }
-
-    private DockNode resolveDockNodeFromSelectedTab(TabPane tabPane) {
-        if (tabPane == null) {
-            return null;
-        }
-        Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
-        if (selectedTab == null) {
-            return null;
-        }
-        Object tabNode = selectedTab.getProperties().get(DockLayoutEngine.TAB_DOCK_NODE_KEY);
-        if (tabNode instanceof DockNode dockNode) {
-            return dockNode;
-        }
-        if (selectedTab.getContent() != null) {
-            return resolveDockNodeFromHierarchy(selectedTab.getContent());
-        }
-        return null;
-    }
-
-    private DockNode resolveSelectedDockNode(DockElement element) {
-        if (element == null) {
-            return null;
-        }
-        if (element instanceof DockNode dockNode) {
-            return dockNode;
-        }
-        if (element instanceof DockTabPane tabPane) {
-            if (tabPane.getChildren().isEmpty()) {
-                return null;
-            }
-            int selectedIndex = Math.clamp(tabPane.getSelectedIndex(), 0, tabPane.getChildren().size() - 1);
-            return resolveSelectedDockNode(tabPane.getChildren().get(selectedIndex));
-        }
-        if (element instanceof DockContainer container && !container.getChildren().isEmpty()) {
-            return resolveSelectedDockNode(container.getChildren().getFirst());
-        }
-        return null;
     }
 
     private DockFloatingWindow resolveActiveFloatingWindow(Object eventTarget) {

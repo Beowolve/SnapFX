@@ -27,6 +27,7 @@ Changelog categories for `Unreleased` and new release sections (in order, includ
 - ✅ Moved shortcut target/scene/tab-pane resolver helpers from `SnapFX` into `DockShortcutController` and removed the duplicated `SnapFX` private helper block.
 - ✅ Centralized floating pin/snap/initial always-on-top configuration application in `DockFloatingController` and switched `SnapFX` floating-setting flows to delegate to that shared path.
 - ✅ Moved floating-window registry helpers (active host resolution and remove/lookup flow) from `SnapFX` into `DockFloatingController` and switched attach/close/placement-restore paths to those shared controller methods.
+- ✅ Moved shortcut tab-navigation and active dock-node resolver logic from `SnapFX` into `DockShortcutController`, keeping `SnapFX` focused on shortcut action orchestration.
 
 ### Tests
 - ✅ Added regression coverage for empty-layout drop-zone collection and validation (`DockLayoutEngineTest`, `DockDragServiceTest`) plus resolved-drop handling into an empty main layout (`SnapFXTest`).
@@ -35,6 +36,7 @@ Changelog categories for `Unreleased` and new release sections (in order, includ
 - ✅ Extended `DockShortcutControllerTest` with resolver coverage for node/scene and active-tab-pane fallback resolution paths.
 - ✅ Extended `DockFloatingControllerTest` with coverage for floating pin/snap setting application and initial always-on-top resolution.
 - ✅ Extended `DockFloatingControllerTest` with coverage for active placement-host resolution and floating-window registry removal behavior.
+- ✅ Extended `DockShortcutControllerTest` with coverage for tab-relative selection behavior and active dock-node resolution from tab mapping and fallback root.
 
 ### Documentation
 - ✅ Redundant documentation link to snapfx.org in README.md removed.

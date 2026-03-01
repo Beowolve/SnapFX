@@ -2,6 +2,7 @@ package org.snapfx.shortcuts;
 
 import org.snapfx.floating.DockFloatingWindow;
 import org.snapfx.model.DockNode;
+import org.snapfx.view.DockLayoutEngine;
 import javafx.application.Platform;
 import javafx.event.Event;
 import javafx.event.EventHandler;
@@ -24,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -189,6 +191,47 @@ class DockShortcutControllerTest {
 
             assertEquals(fallbackTabPane, controller.findFirstTabPane(fallbackRoot));
             assertEquals(fallbackTabPane, controller.resolveActiveTabPane(new Object(), null, fallbackRoot));
+        });
+    }
+
+    @Test
+    void selectTabRelativeMovesSelectionAndWraps() {
+        runOnFxThreadAndWait(() -> {
+            DockShortcutController controller = new DockShortcutController();
+            TabPane tabPane = new TabPane(
+                new Tab("First", new Label("first")),
+                new Tab("Second", new Label("second"))
+            );
+
+            assertTrue(controller.selectTabRelative(1, tabPane, null, null));
+            assertEquals(1, tabPane.getSelectionModel().getSelectedIndex());
+
+            assertTrue(controller.selectTabRelative(1, tabPane, null, null));
+            assertEquals(0, tabPane.getSelectionModel().getSelectedIndex());
+
+            VBox fallbackRoot = new VBox(tabPane);
+            assertTrue(controller.selectTabRelative(-1, new Object(), null, fallbackRoot));
+            assertEquals(1, tabPane.getSelectionModel().getSelectedIndex());
+
+            TabPane singleTabPane = new TabPane(new Tab("Only", new Label("only")));
+            assertFalse(controller.selectTabRelative(1, singleTabPane, null, null));
+        });
+    }
+
+    @Test
+    void resolveActiveDockNodeUsesTabMappingThenFallbackRoot() {
+        runOnFxThreadAndWait(() -> {
+            DockShortcutController controller = new DockShortcutController();
+            DockNode mappedNode = new DockNode("mapped", new Label("Mapped"), "Mapped");
+            TabPane tabPane = new TabPane();
+            Tab mappedTab = new Tab("Mapped", new Label("mapped-content"));
+            mappedTab.getProperties().put(DockLayoutEngine.TAB_DOCK_NODE_KEY, mappedNode);
+            tabPane.getTabs().add(mappedTab);
+
+            assertEquals(mappedNode, controller.resolveActiveDockNode(tabPane, null, null));
+
+            DockNode fallbackNode = new DockNode("fallback", new Label("Fallback"), "Fallback");
+            assertEquals(fallbackNode, controller.resolveActiveDockNode(new Object(), null, fallbackNode));
         });
     }
 

@@ -1,10 +1,17 @@
 package org.snapfx.shortcuts;
 
 import org.snapfx.floating.DockFloatingWindow;
+import org.snapfx.model.DockContainer;
+import org.snapfx.model.DockElement;
+import org.snapfx.model.DockNode;
+import org.snapfx.model.DockTabPane;
+import org.snapfx.view.DockLayoutEngine;
+import org.snapfx.view.DockNodeView;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
@@ -315,6 +322,115 @@ public final class DockShortcutController {
             if (childTabPane != null) {
                 return childTabPane;
             }
+        }
+        return null;
+    }
+
+    /**
+     * Selects the next/previous tab relative to the currently selected tab in the active tab pane.
+     *
+     * @param direction selection direction ({@code +1} for next, {@code -1} for previous)
+     * @param eventTarget event target object ({@link Node}, {@link Scene}, or other)
+     * @param fallbackScene fallback scene used for focus lookup
+     * @param fallbackRoot fallback root node searched when no target/focus tab pane is found
+     * @return {@code true} when a tab selection changed; otherwise {@code false}
+     */
+    public boolean selectTabRelative(int direction, Object eventTarget, Scene fallbackScene, Node fallbackRoot) {
+        TabPane activeTabPane = resolveActiveTabPane(eventTarget, fallbackScene, fallbackRoot);
+        if (activeTabPane == null || activeTabPane.getTabs().size() < 2) {
+            return false;
+        }
+
+        int tabCount = activeTabPane.getTabs().size();
+        int selectedIndex = activeTabPane.getSelectionModel().getSelectedIndex();
+        if (selectedIndex < 0) {
+            selectedIndex = 0;
+        }
+        int nextIndex = Math.floorMod(selectedIndex + direction, tabCount);
+        activeTabPane.getSelectionModel().select(nextIndex);
+
+        Tab selectedTab = activeTabPane.getSelectionModel().getSelectedItem();
+        if (selectedTab != null && selectedTab.getContent() != null) {
+            selectedTab.getContent().requestFocus();
+        }
+        return true;
+    }
+
+    /**
+     * Resolves the active {@link DockNode} for shortcut actions from event/focus context with root fallback.
+     *
+     * @param eventTarget event target object ({@link Node}, {@link Scene}, or other)
+     * @param fallbackScene fallback scene used for focus lookup
+     * @param fallbackRoot fallback dock root used when event/focus lookup yields no node
+     * @return resolved active dock node, or {@code null}
+     */
+    public DockNode resolveActiveDockNode(Object eventTarget, Scene fallbackScene, DockElement fallbackRoot) {
+        Node targetNode = resolveNodeFromEventTarget(eventTarget);
+        DockNode nodeFromTarget = resolveDockNodeFromHierarchy(targetNode);
+        if (nodeFromTarget != null) {
+            return nodeFromTarget;
+        }
+
+        Node focusedNode = resolveFocusedNode(eventTarget, fallbackScene);
+        DockNode nodeFromFocus = resolveDockNodeFromHierarchy(focusedNode);
+        if (nodeFromFocus != null) {
+            return nodeFromFocus;
+        }
+
+        return resolveSelectedDockNode(fallbackRoot);
+    }
+
+    private DockNode resolveDockNodeFromHierarchy(Node node) {
+        Node current = node;
+        while (current != null) {
+            if (current instanceof DockNodeView dockNodeView) {
+                return dockNodeView.getDockNode();
+            }
+            if (current instanceof TabPane tabPane) {
+                DockNode selectedNode = resolveDockNodeFromSelectedTab(tabPane);
+                if (selectedNode != null) {
+                    return selectedNode;
+                }
+            }
+            current = current.getParent();
+        }
+        return null;
+    }
+
+    private DockNode resolveDockNodeFromSelectedTab(TabPane tabPane) {
+        if (tabPane == null) {
+            return null;
+        }
+        Tab selectedTab = tabPane.getSelectionModel().getSelectedItem();
+        if (selectedTab == null) {
+            return null;
+        }
+        Object tabNode = selectedTab.getProperties().get(DockLayoutEngine.TAB_DOCK_NODE_KEY);
+        if (tabNode instanceof DockNode dockNode) {
+            return dockNode;
+        }
+        if (selectedTab.getContent() != null) {
+            return resolveDockNodeFromHierarchy(selectedTab.getContent());
+        }
+        return null;
+    }
+
+    private DockNode resolveSelectedDockNode(DockElement element) {
+        if (element == null) {
+            return null;
+        }
+        if (element instanceof DockNode dockNode) {
+            return dockNode;
+        }
+        if (element instanceof DockTabPane tabPane) {
+            if (tabPane.getChildren().isEmpty()) {
+                return null;
+            }
+            int selectedIndex = Math.clamp(tabPane.getSelectedIndex(), 0, tabPane.getChildren().size() - 1);
+            return resolveSelectedDockNode(tabPane.getChildren().get(selectedIndex));
+        }
+        if (element instanceof DockContainer container && !container.getChildren().isEmpty()) {
+            return resolveSelectedDockNode(container.getChildren().getFirst());
         }
         return null;
     }
