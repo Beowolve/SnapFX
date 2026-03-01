@@ -5,11 +5,16 @@ import org.snapfx.model.DockNode;
 import javafx.application.Platform;
 import javafx.event.Event;
 import javafx.event.EventHandler;
+import javafx.scene.Scene;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.control.Label;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -149,6 +154,41 @@ class DockShortcutControllerTest {
             } finally {
                 floatingWindow.closeWithoutNotification();
             }
+        });
+    }
+
+    @Test
+    void nodeAndSceneResolversReturnExpectedTargets() {
+        runOnFxThreadAndWait(() -> {
+            DockShortcutController controller = new DockShortcutController();
+            Label node = new Label("target");
+            Scene scene = new Scene(new StackPane(node), 320, 200);
+
+            assertEquals(node, controller.resolveNodeFromEventTarget(node));
+            assertNull(controller.resolveNodeFromEventTarget(scene));
+
+            assertEquals(scene, controller.resolveSceneFromEventTarget(scene));
+            assertEquals(scene, controller.resolveSceneFromEventTarget(node));
+            assertEquals(scene, controller.resolveSceneFromNode(node));
+            assertNull(controller.resolveSceneFromNode(null));
+        });
+    }
+
+    @Test
+    void tabPaneResolversUseHierarchyThenFallbackRoot() {
+        runOnFxThreadAndWait(() -> {
+            DockShortcutController controller = new DockShortcutController();
+
+            TabPane eventTabPane = new TabPane(new Tab("Event", new Label("content")));
+
+            assertEquals(eventTabPane, controller.findTabPaneInHierarchy(eventTabPane));
+            assertEquals(eventTabPane, controller.resolveActiveTabPane(eventTabPane, null, null));
+
+            TabPane fallbackTabPane = new TabPane(new Tab("Fallback", new Label("fallback")));
+            VBox fallbackRoot = new VBox(new StackPane(new Label("before")), fallbackTabPane);
+
+            assertEquals(fallbackTabPane, controller.findFirstTabPane(fallbackRoot));
+            assertEquals(fallbackTabPane, controller.resolveActiveTabPane(new Object(), null, fallbackRoot));
         });
     }
 

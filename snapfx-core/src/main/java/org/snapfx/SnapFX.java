@@ -1198,7 +1198,7 @@ public class SnapFX {
     }
 
     private boolean selectTabRelative(int direction, Object eventTarget) {
-        TabPane activeTabPane = resolveActiveTabPane(eventTarget);
+        TabPane activeTabPane = shortcutController.resolveActiveTabPane(eventTarget, shortcutScene, rootContainer);
         if (activeTabPane == null || activeTabPane.getTabs().size() < 2) {
             return false;
         }
@@ -1236,13 +1236,13 @@ public class SnapFX {
     }
 
     private DockNode resolveActiveDockNode(Object eventTarget) {
-        Node targetNode = resolveNodeFromEventTarget(eventTarget);
+        Node targetNode = shortcutController.resolveNodeFromEventTarget(eventTarget);
         DockNode nodeFromTarget = resolveDockNodeFromHierarchy(targetNode);
         if (nodeFromTarget != null) {
             return nodeFromTarget;
         }
 
-        Node focusedNode = resolveFocusedNode(eventTarget);
+        Node focusedNode = shortcutController.resolveFocusedNode(eventTarget, shortcutScene);
         DockNode nodeFromFocus = resolveDockNodeFromHierarchy(focusedNode);
         if (nodeFromFocus != null) {
             return nodeFromFocus;
@@ -1306,98 +1306,12 @@ public class SnapFX {
         return null;
     }
 
-    private TabPane resolveActiveTabPane(Object eventTarget) {
-        Node targetNode = resolveNodeFromEventTarget(eventTarget);
-        TabPane tabPaneFromTarget = findTabPaneInHierarchy(targetNode);
-        if (tabPaneFromTarget != null) {
-            return tabPaneFromTarget;
-        }
-
-        Node focusedNode = resolveFocusedNode(eventTarget);
-        TabPane tabPaneFromFocus = findTabPaneInHierarchy(focusedNode);
-        if (tabPaneFromFocus != null) {
-            return tabPaneFromFocus;
-        }
-
-        return findFirstTabPane(rootContainer);
-    }
-
-    private Node resolveNodeFromEventTarget(Object eventTarget) {
-        if (eventTarget instanceof Node node) {
-            return node;
-        }
-        if (eventTarget instanceof Scene scene) {
-            return scene.getFocusOwner();
-        }
-        return null;
-    }
-
-    private Node resolveFocusedNode(Object eventTarget) {
-        if (eventTarget instanceof Node node && node.getScene() != null) {
-            return node.getScene().getFocusOwner();
-        }
-        if (eventTarget instanceof Scene scene) {
-            return scene.getFocusOwner();
-        }
-        if (shortcutScene != null) {
-            return shortcutScene.getFocusOwner();
-        }
-        return null;
-    }
-
     private DockFloatingWindow resolveActiveFloatingWindow(Object eventTarget) {
         return floatingController.resolveActiveFloatingWindow(
             floatingWindows,
-            resolveSceneFromEventTarget(eventTarget),
-            resolveSceneFromNode(resolveFocusedNode(eventTarget))
+            shortcutController.resolveSceneFromEventTarget(eventTarget),
+            shortcutController.resolveSceneFromNode(shortcutController.resolveFocusedNode(eventTarget, shortcutScene))
         );
-    }
-
-    private Scene resolveSceneFromEventTarget(Object eventTarget) {
-        if (eventTarget instanceof Scene scene) {
-            return scene;
-        }
-        if (eventTarget instanceof Node node) {
-            return node.getScene();
-        }
-        return null;
-    }
-
-    private Scene resolveSceneFromNode(Node node) {
-        if (node == null) {
-            return null;
-        }
-        return node.getScene();
-    }
-
-    private TabPane findTabPaneInHierarchy(Node node) {
-        Node current = node;
-        while (current != null) {
-            if (current instanceof TabPane tabPane) {
-                return tabPane;
-            }
-            current = current.getParent();
-        }
-        return null;
-    }
-
-    private TabPane findFirstTabPane(Node root) {
-        if (root == null) {
-            return null;
-        }
-        if (root instanceof TabPane tabPane) {
-            return tabPane;
-        }
-        if (!(root instanceof Parent parent)) {
-            return null;
-        }
-        for (Node child : parent.getChildrenUnmodifiable()) {
-            TabPane childTabPane = findFirstTabPane(child);
-            if (childTabPane != null) {
-                return childTabPane;
-            }
-        }
-        return null;
     }
 
     /**

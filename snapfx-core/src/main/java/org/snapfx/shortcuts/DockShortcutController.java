@@ -2,7 +2,10 @@ package org.snapfx.shortcuts;
 
 import org.snapfx.floating.DockFloatingWindow;
 import javafx.event.EventHandler;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.TabPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
@@ -183,5 +186,136 @@ public final class DockShortcutController {
             return;
         }
         scene.removeEventFilter(KeyEvent.KEY_PRESSED, keyEventFilter);
+    }
+
+    /**
+     * Resolves a node from an event target object.
+     *
+     * @param eventTarget event target object ({@link Node}, {@link Scene}, or other)
+     * @return resolved node, or {@code null}
+     */
+    public Node resolveNodeFromEventTarget(Object eventTarget) {
+        if (eventTarget instanceof Node node) {
+            return node;
+        }
+        if (eventTarget instanceof Scene scene) {
+            return scene.getFocusOwner();
+        }
+        return null;
+    }
+
+    /**
+     * Resolves the focused node associated with an event target.
+     *
+     * @param eventTarget event target object ({@link Node}, {@link Scene}, or other)
+     * @param fallbackScene fallback scene used when target does not provide a focus owner
+     * @return focused node, or {@code null}
+     */
+    public Node resolveFocusedNode(Object eventTarget, Scene fallbackScene) {
+        if (eventTarget instanceof Node node && node.getScene() != null) {
+            return node.getScene().getFocusOwner();
+        }
+        if (eventTarget instanceof Scene scene) {
+            return scene.getFocusOwner();
+        }
+        if (fallbackScene != null) {
+            return fallbackScene.getFocusOwner();
+        }
+        return null;
+    }
+
+    /**
+     * Resolves a scene from an event target object.
+     *
+     * @param eventTarget event target object ({@link Scene}, {@link Node}, or other)
+     * @return resolved scene, or {@code null}
+     */
+    public Scene resolveSceneFromEventTarget(Object eventTarget) {
+        if (eventTarget instanceof Scene scene) {
+            return scene;
+        }
+        if (eventTarget instanceof Node node) {
+            return node.getScene();
+        }
+        return null;
+    }
+
+    /**
+     * Resolves a scene from a node.
+     *
+     * @param node source node
+     * @return node scene, or {@code null}
+     */
+    public Scene resolveSceneFromNode(Node node) {
+        if (node == null) {
+            return null;
+        }
+        return node.getScene();
+    }
+
+    /**
+     * Resolves the currently active tab pane from event/focus context and an optional root fallback.
+     *
+     * @param eventTarget event target object ({@link Node}, {@link Scene}, or other)
+     * @param fallbackScene fallback scene used for focus lookup
+     * @param fallbackRoot fallback root node searched when no target/focus tab pane is found
+     * @return resolved tab pane, or {@code null}
+     */
+    public TabPane resolveActiveTabPane(Object eventTarget, Scene fallbackScene, Node fallbackRoot) {
+        Node targetNode = resolveNodeFromEventTarget(eventTarget);
+        TabPane tabPaneFromTarget = findTabPaneInHierarchy(targetNode);
+        if (tabPaneFromTarget != null) {
+            return tabPaneFromTarget;
+        }
+
+        Node focusedNode = resolveFocusedNode(eventTarget, fallbackScene);
+        TabPane tabPaneFromFocus = findTabPaneInHierarchy(focusedNode);
+        if (tabPaneFromFocus != null) {
+            return tabPaneFromFocus;
+        }
+
+        return findFirstTabPane(fallbackRoot);
+    }
+
+    /**
+     * Finds the nearest {@link TabPane} while traversing parent hierarchy upward.
+     *
+     * @param node start node
+     * @return nearest ancestor tab pane, or {@code null}
+     */
+    public TabPane findTabPaneInHierarchy(Node node) {
+        Node current = node;
+        while (current != null) {
+            if (current instanceof TabPane tabPane) {
+                return tabPane;
+            }
+            current = current.getParent();
+        }
+        return null;
+    }
+
+    /**
+     * Finds the first {@link TabPane} in a depth-first traversal of a node subtree.
+     *
+     * @param root traversal root node
+     * @return first tab pane found, or {@code null}
+     */
+    public TabPane findFirstTabPane(Node root) {
+        if (root == null) {
+            return null;
+        }
+        if (root instanceof TabPane tabPane) {
+            return tabPane;
+        }
+        if (!(root instanceof Parent parent)) {
+            return null;
+        }
+        for (Node child : parent.getChildrenUnmodifiable()) {
+            TabPane childTabPane = findFirstTabPane(child);
+            if (childTabPane != null) {
+                return childTabPane;
+            }
+        }
+        return null;
     }
 }
