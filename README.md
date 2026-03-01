@@ -1,75 +1,47 @@
 # ![SnapFX Logo](snapfx-demo/src/main/resources/images/32/snapfx.png) SnapFX - Lightweight JavaFX Docking Framework
 
-A high-performance, lightweight JavaFX docking framework that behaves like native professional software (IntelliJ, Visual Studio).
-
-## MainDemo Preview
+![License](https://img.shields.io/github/license/Beowolve/SnapFX)
+![Build](https://img.shields.io/github/actions/workflow/status/Beowolve/SnapFX/ci.yml?branch=main)
+![Release](https://img.shields.io/github/v/release/Beowolve/SnapFX)
+![Java](https://img.shields.io/badge/Java-21+-blue)
+![JavaFX](https://img.shields.io/badge/JavaFX-21+-orange)
 
 ![MainDemo App Screenshot](docs/images/main-demo.png)
+*MainDemo application showing docking and tabbing.*
 
-## Documentation Map
+A high-performance, lightweight JavaFX docking framework that behaves like native professional software (IntelliJ, Visual Studio).
 
-| File                               | Purpose                                                                      |
-|------------------------------------|------------------------------------------------------------------------------|
-| [README.md](README.md)             | Entry point, feature overview, and quick start                               |
-| [SETUP.md](SETUP.md)               | Local development environment setup                                          |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Technical architecture and design                                            |
-| [STATUS.md](STATUS.md)             | Current state and open issues                                                |
-| [ROADMAP.md](ROADMAP.md)           | Planned work and future priorities                                           |
-| [DONE.md](DONE.md)                 | Completed milestones and delivered capabilities                              |
-| [CHANGELOG.md](CHANGELOG.md)       | Versioned release history grouped by tags                                    |
-| [TESTING_POLICY.md](TESTING_POLICY.md)           | Stable testing rules and quality gates                                       |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution workflow, branch strategy, and PR checklist                     |
-| [RELEASING.md](RELEASING.md)                | Maintainer release process, versioning, tags, and CI release flow            |
-| [AGENTS.md](AGENTS.md)             | Collaboration and workflow rules for AI agents                               |
-| `docs/adr/*.md`                    | Architecture Decision Records (context, decisions, and trade-offs)           |
+* [x] JPMS compatible
+* [x] No reflection hacks
+* [x] Production-ready architecture
+* [x] Cross-window drag & dock
 
-## Hosted Documentation
+## Getting Started
 
-- Documentation portal: `https://snapfx.org/`
-- Public API JavaDoc: `https://snapfx.org/api/`
+Maven Central publishing is currently in progress and not yet publicly available.
+Until then, use the project source directly and/or the demo assets from GitHub Releases.
 
 ## Public Preview Status
 
-- SnapFX is currently in a release-readiness/public-preview phase (`0.x`) on the path to `1.0.0`.
+- **Status:** Public Preview (0.6.1)
+- API considered stable but packaging is still being finalized.
 - Maven Central publishing is not live yet; current work focuses on packaging hardening and publishing readiness.
 - Planned first Maven coordinates remain: `org.snapfx:snapfx-core`.
 - Current project state and open items are tracked in [STATUS.md](STATUS.md) and [ROADMAP.md](ROADMAP.md).
 
-## Features
+### Installation
 
-### Core Architecture
-- **Tree-Based Model**: Logical structure (DockGraph) decoupled from the visual representation
-- **Minimal Wrapper**: Simple API `SnapFX.dock(myNode, "Title")`
-- **Smart Splitting**: Automatic flattening when orientation matches
-- **Auto-Cleanup**: Empty containers remove themselves automatically
-- **Java Module**: Full support for Java Platform Module System (JPMS)
+**Gradle**
+```
+implementation("org.snapfx:snapfx-core:<version>")
+```
 
-### Visual Features
-- **Drag & Drop**: Global drag service with visual feedback
-- **Dock Zones**: 5 zones (Top, Bottom, Left, Right, Center)
-- **Floating Windows**: Custom undecorated floating windows with attach/maximize/restore/close controls
-- **Cross-Window D&D**: Dock nodes between main layout and floating windows, including split/tab targets
-- **Quick Float Actions**: Float buttons in title bars and tab headers
-- **Context Menus**: Right-click actions for tabs, splitters, dock headers, and floating title bars (`Attach to Layout`, always-on-top toggle)
-- **Resizable Floating Windows**: Resize from edges and corners (undecorated behavior)
-- **Locked Mode**: Lock the layout; no D&D; no close buttons
-- **Configurable Keyboard Shortcuts**: Default actions (`Ctrl+W`, `Ctrl+Tab`, `Ctrl+Shift+Tab`, `Escape`, `Ctrl+Shift+P`) can be remapped or disabled via API
-- **Title Bar Modes**: ALWAYS/NEVER/AUTO; AUTO hides title bars for tabbed nodes to save space, so those nodes are moved via tabs only (pairs well with compact/locked layouts)
+Temporarily build from source:
 
-### Persistence
-- **Layout Save/Load**: JSON-based serialization
-- **Full Structure**: Positions and split percentages
-- **Runtime Floating Memory**: Float/attach toggles preserve last floating bounds per node in-session
-
-### Look & Feel
-- **Native Look**: Seamless integration with the JavaFX Modena theme
-- **CSS-based**: Fully customizable
-
-## Quick Start
-
-Maven Central publishing is currently in progress and not yet publicly available.
-Until then, use the project source directly and/or the demo assets from GitHub Releases.
-Planned first Maven coordinates: `org.snapfx:snapfx-core`.
+```bash
+git clone https://github.com/Beowolve/SnapFX.git
+./gradlew publishToMavenLocal
+```
 
 ### Simple Example
 
@@ -157,91 +129,81 @@ try {
 }
 ```
 
-## Architecture
+## Documentation Map
 
-Technical internals and component structure are documented in [ARCHITECTURE.md](ARCHITECTURE.md).
+| File                               | Purpose                                                                      |
+|------------------------------------|------------------------------------------------------------------------------|
+| [README.md](README.md)             | Entry point, feature overview, and quick start                               |
+| [SETUP.md](SETUP.md)               | Local development environment setup                                          |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Technical architecture and design                                            |
+| [STATUS.md](STATUS.md)             | Current state and open issues                                                |
+| [ROADMAP.md](ROADMAP.md)           | Planned work and future priorities                                           |
+| [DONE.md](DONE.md)                 | Completed milestones and delivered capabilities                              |
+| [CHANGELOG.md](CHANGELOG.md)       | Versioned release history grouped by tags                                    |
+| [TESTING_POLICY.md](TESTING_POLICY.md)           | Stable testing rules and quality gates                                       |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution workflow, branch strategy, and PR checklist                     |
+| [RELEASING.md](RELEASING.md)                | Maintainer release process, versioning, tags, and CI release flow            |
+| [AGENTS.md](AGENTS.md)             | Collaboration and workflow rules for AI agents                               |
+| `docs/adr/*.md`                    | Architecture Decision Records (context, decisions, and trade-offs)           |
 
-## Testing
+## Hosted Documentation
 
-Run the full test suite:
+- Documentation portal: [https://snapfx.org/](https://snapfx.org/)
+- Public API JavaDoc: [https://snapfx.org/api/](https://snapfx.org/api/)
 
-```bash
-./gradlew test
-```
+## Features
 
-Testing rules and merge gates are defined in [TESTING_POLICY.md](TESTING_POLICY.md).
-Current health and validation snapshots are tracked in [STATUS.md](STATUS.md).
-Versioned release history per tag is tracked in [CHANGELOG.md](CHANGELOG.md).
+### Core Architecture
+- **Tree-Based Model**: Logical structure (DockGraph) decoupled from the visual representation
+- **Minimal Wrapper**: Simple API `SnapFX.dock(myNode, "Title")`
+- **Smart Splitting**: Automatic flattening when orientation matches
+- **Auto-Cleanup**: Empty containers remove themselves automatically
+- **Java Module**: Full support for Java Platform Module System (JPMS)
+
+### Visual Features
+- **Drag & Drop**: Global drag service with visual feedback
+- **Dock Zones**: 5 zones (Top, Bottom, Left, Right, Center)
+- **Floating Windows**: Custom undecorated floating windows with attach/maximize/restore/close controls
+- **Snapping**: Floating windows snap to edges and corners (configurable)
+- **Cross-Window D&D**: Dock nodes between main layout and floating windows, including split/tab targets
+- **Quick Float Actions**: Float buttons in title bars and tab headers
+- **Context Menus**: Right-click actions for tabs, splitters, dock headers, and floating title bars (`Attach to Layout`, always-on-top toggle)
+- **Resizable Floating Windows**: Resize from edges and corners (undecorated behavior)
+- **Locked Mode**: Lock the layout; no D&D; no close buttons
+- **Configurable Keyboard Shortcuts**: Default actions (`Ctrl+W`, `Ctrl+Tab`, `Ctrl+Shift+Tab`, `Escape`, `Ctrl+Shift+P`) can be remapped or disabled via API
+- **Title Bar Modes**: ALWAYS/NEVER/AUTO; AUTO hides title bars for tabbed nodes to save space, so those nodes are moved via tabs only (pairs well with compact/locked layouts)
+
+### Persistence
+- **Layout Save/Load**: JSON-based serialization
+- **Full Structure**: Positions and split percentages
+- **Runtime Floating Memory**: Float/attach toggles preserve last floating bounds per node in-session
+
+### Look & Feel
+- **Native Look**: Seamless integration with the JavaFX Modena theme
+- **Themeable**: Dark/Light mode included
+- **CSS-based**: Fully customizable
+
 
 ## Demo Application
 
-A full demo app is included:
+A full demo app is included in the project.
+You can run it with gradle or download the release assets from GitHub Releases.
+Everything is packaged with the jre and dependencies, so no installation required.
+Just unzip the archive and run it.
+
+**Windows**, **macOS**, **Linux** packages are provided for each release.
 
 ```bash
 ./gradlew run
 ```
 
-The demo shows:
+### The demo shows all the features, including:
 - Typical IDE layout (sidebar, editor, console)
 - Lock/unlock functionality
 - Save/load layout
-- Multiple tabs
+- D&D between main layout and floating windows
 - Floating/attach workflows from menu, title bars, and tab headers
-- App-level `F11` fullscreen shortcut example
-
-### Update Preview Screenshot
-
-```bash
-# Regenerate README preview image from the current MainDemo UI
-./scripts/update-main-demo-preview.ps1
-```
-
-Optional output path:
-
-```bash
-./scripts/update-main-demo-preview.ps1 -OutputPath "docs/images/main-demo.png"
-```
-
-## Example Layouts
-
-### IDE Layout
-```
-┌─────────────┬──────────────────────┬─────────────┐
-│   Project   │       Editor         │ Properties  │
-│   Explorer  │                      │             │
-│             ├──────────────────────┤             │
-│             │   Console | Tasks    │             │
-└─────────────┴──────────────────────┴─────────────┘
-```
-
-### Code with SnapFX
-```java
-DockNode project = snapFX.dock(projectTree, "Project");
-DockNode editor = snapFX.dock(editorArea, "Editor", project, DockPosition.RIGHT);
-DockNode props = snapFX.dock(propsPanel, "Properties", editor, DockPosition.RIGHT);
-DockNode console = snapFX.dock(consoleArea, "Console", editor, DockPosition.BOTTOM);
-DockNode tasks = snapFX.dock(tasksList, "Tasks", console, DockPosition.CENTER);
-```
-
-## Roadmap
-
-Planned work is tracked in [ROADMAP.md](ROADMAP.md).
-
-## License
-
-This project is licensed under the MIT License.
-
-SnapFX is intended for personal and commercial use, including large applications.
-
-## Contributing
-
-For contribution workflow, branch strategy, commit/PR expectations, and quality gates, see [CONTRIBUTING.md](CONTRIBUTING.md).
-
-For maintainer release/versioning/tag flow, see [RELEASING.md](RELEASING.md).
-
-## Documentation
-
-See JavaDoc in the source files and [ARCHITECTURE.md](ARCHITECTURE.md) for detailed framework internals.
+- Theme switching
 
 ## Technology Stack
 
@@ -251,10 +213,25 @@ See JavaDoc in the source files and [ARCHITECTURE.md](ARCHITECTURE.md) for detai
 - **JUnit 5 / TestFX** (testing)
 - **Gradle** (build)
 
+
+## Contributing
+
+* For contribution workflow, branch strategy, commit/PR expectations, and quality gates, see [CONTRIBUTING.md](CONTRIBUTING.md).
+* For maintainer release/versioning/tag flow, see [RELEASING.md](RELEASING.md).
+* Contact me via Discord if you have questions or suggestions. (Discord invite: https://discord.gg/WwDGWkVsnB)
+
+
+## License
+
+This project is licensed under the MIT License.
+
+SnapFX is intended for personal and commercial use, including large applications.
+
+
 ## Support
 
-If you have questions or issues, open an issue in the repository.
-There is also a Discord server for community support: https://discord.gg/WwDGWkVsnB
+* If you have questions or issues, open an issue in the repository.
+* Discord server to get in contact with the devs and community: https://discord.gg/WwDGWkVsnB
 
 ---
 
