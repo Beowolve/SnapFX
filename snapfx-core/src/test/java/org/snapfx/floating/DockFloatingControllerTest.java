@@ -1,14 +1,17 @@
 package org.snapfx.floating;
 
 import org.snapfx.model.DockNode;
+import org.snapfx.model.DockPosition;
 import javafx.application.Platform;
 import javafx.scene.control.Label;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 class DockFloatingControllerTest {
@@ -59,6 +62,93 @@ class DockFloatingControllerTest {
         assertEquals(firstWindow, controller.findFloatingWindowContainingNode(windows, firstNode));
         assertEquals(secondWindow, controller.findFloatingWindowContainingNode(windows, secondNode));
         assertNull(controller.findFloatingWindowContainingNode(windows, new DockNode("missing", new Label("M"), "M")));
+    }
+
+    @Test
+    void findTopFloatingWindowAtReturnsNullForEmptyInput() {
+        DockFloatingController controller = new DockFloatingController();
+
+        assertNull(controller.findTopFloatingWindowAt(null, 42.0, 73.0));
+        assertNull(controller.findTopFloatingWindowAt(List.of(), 42.0, 73.0));
+    }
+
+    @Test
+    void isMainDropSuppressedByFloatingWindowReturnsFalseForMissingCoordinates() {
+        DockFloatingController controller = new DockFloatingController();
+        List<DockFloatingWindow> windows = List.of(createFloatingWindow("first"));
+
+        assertFalse(controller.isMainDropSuppressedByFloatingWindow(windows, null, 10.0));
+        assertFalse(controller.isMainDropSuppressedByFloatingWindow(windows, 10.0, null));
+    }
+
+    @Test
+    void promoteFloatingWindowToFrontMovesWindowToListEnd() {
+        DockFloatingController controller = new DockFloatingController();
+        DockFloatingWindow first = createFloatingWindow("first");
+        DockFloatingWindow second = createFloatingWindow("second");
+        DockFloatingWindow third = createFloatingWindow("third");
+        List<DockFloatingWindow> windows = new ArrayList<>(List.of(first, second, third));
+
+        controller.promoteFloatingWindowToFront(windows, second);
+
+        assertEquals(List.of(first, third, second), windows);
+
+        controller.promoteFloatingWindowToFront(windows, second);
+        controller.promoteFloatingWindowToFront(windows, null);
+        assertEquals(List.of(first, third, second), windows);
+    }
+
+    @Test
+    void applyRememberedFloatingBoundsAppliesNodeSnapshotToWindow() {
+        DockFloatingController controller = new DockFloatingController();
+        DockNode source = new DockNode("source", new Label("Source"), "Source");
+        DockFloatingWindow floatingWindow = createFloatingWindow("target");
+
+        source.setLastFloatingX(321.0);
+        source.setLastFloatingY(222.0);
+        source.setLastFloatingWidth(640.0);
+        source.setLastFloatingHeight(420.0);
+        source.setLastFloatingAlwaysOnTop(false);
+
+        controller.applyRememberedFloatingBounds(source, floatingWindow);
+
+        assertEquals(Double.valueOf(321.0), floatingWindow.getPreferredX());
+        assertEquals(Double.valueOf(222.0), floatingWindow.getPreferredY());
+        assertEquals(640.0, floatingWindow.getPreferredWidth(), 0.0001);
+        assertEquals(420.0, floatingWindow.getPreferredHeight(), 0.0001);
+        assertFalse(floatingWindow.isAlwaysOnTop());
+    }
+
+    @Test
+    void rememberFloatingBoundsForNodesStoresWindowSnapshotForAllNodes() {
+        DockFloatingController controller = new DockFloatingController();
+        DockNode firstNode = new DockNode("first", new Label("First"), "First");
+        DockNode secondNode = new DockNode("second", new Label("Second"), "Second");
+        DockFloatingWindow floatingWindow = new DockFloatingWindow(firstNode);
+        floatingWindow.dockNode(secondNode, firstNode, DockPosition.CENTER, null);
+        floatingWindow.setPreferredPosition(450.0, 250.0);
+        floatingWindow.setPreferredSize(700.0, 480.0);
+        floatingWindow.setAlwaysOnTop(false, DockFloatingPinSource.API);
+
+        controller.rememberFloatingBoundsForNodes(floatingWindow);
+
+        assertFloatingSnapshot(firstNode, 450.0, 250.0, 700.0, 480.0, false);
+        assertFloatingSnapshot(secondNode, 450.0, 250.0, 700.0, 480.0, false);
+    }
+
+    private void assertFloatingSnapshot(
+        DockNode node,
+        double x,
+        double y,
+        double width,
+        double height,
+        boolean alwaysOnTop
+    ) {
+        assertEquals(Double.valueOf(x), node.getLastFloatingX());
+        assertEquals(Double.valueOf(y), node.getLastFloatingY());
+        assertEquals(Double.valueOf(width), node.getLastFloatingWidth());
+        assertEquals(Double.valueOf(height), node.getLastFloatingHeight());
+        assertEquals(Boolean.valueOf(alwaysOnTop), node.getLastFloatingAlwaysOnTop());
     }
 
     private DockFloatingWindow createFloatingWindow(String id) {

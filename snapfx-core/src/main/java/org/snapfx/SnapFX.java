@@ -190,7 +190,9 @@ public class SnapFX {
         this.dragService.setOnFloatDetachRequest(this::handleUnresolvedDropRequest);
         this.dragService.setOnDragHover(this::handleDragHover);
         this.dragService.setOnDragFinished(this::clearDragPreviews);
-        this.dragService.setSuppressMainDropAtScreenPoint(this::isMainDropSuppressedByFloatingWindow);
+        this.dragService.setSuppressMainDropAtScreenPoint(
+            (screenX, screenY) -> floatingController.isMainDropSuppressedByFloatingWindow(floatingWindows, screenX, screenY)
+        );
 
         // Auto-rebuild view when revision changes (after D&D, dock/undock operations)
         this.dockGraph.revisionProperty().addListener((obs, o, n) -> {
@@ -1542,7 +1544,7 @@ public class SnapFX {
         DockFloatingWindow floatingWindow = findFloatingWindow(node);
         if (floatingWindow != null) {
             rememberLastKnownPlacement(node, floatingWindow);
-            rememberFloatingBoundsForNodes(floatingWindow);
+            floatingController.rememberFloatingBoundsForNodes(floatingWindow);
             floatingWindow.undockNode(node);
             node.setHiddenRestoreTarget(DockNode.HiddenRestoreTarget.FLOATING);
             if (floatingWindow.isEmpty()) {
@@ -1573,7 +1575,7 @@ public class SnapFX {
         DockFloatingWindow floatingWindow = findFloatingWindow(node);
         if (floatingWindow != null) {
             rememberLastKnownPlacement(node, floatingWindow);
-            rememberFloatingBoundsForNodes(floatingWindow);
+            floatingController.rememberFloatingBoundsForNodes(floatingWindow);
             floatingWindow.undockNode(node);
             if (floatingWindow.isEmpty()) {
                 removeFloatingWindowSilently(floatingWindow);
@@ -1640,7 +1642,7 @@ public class SnapFX {
         DockFloatingWindow floatingWindow = findFloatingWindow(node);
         if (floatingWindow != null) {
             rememberLastKnownPlacement(node, floatingWindow);
-            rememberFloatingBoundsForNodes(floatingWindow);
+            floatingController.rememberFloatingBoundsForNodes(floatingWindow);
             floatingWindow.undockNode(node);
             if (floatingWindow.isEmpty()) {
                 removeFloatingWindowSilently(floatingWindow);
@@ -1877,7 +1879,7 @@ public class SnapFX {
 
         DockFloatingWindow floatingWindow = new DockFloatingWindow(node, dragService);
         floatingWindow.getDockGraph().setLocked(dockGraph.isLocked());
-        applyRememberedFloatingBounds(node, floatingWindow);
+        floatingController.applyRememberedFloatingBounds(node, floatingWindow);
         if (screenX != null || screenY != null) {
             floatingWindow.setPreferredPosition(screenX, screenY);
         }
@@ -1921,7 +1923,7 @@ public class SnapFX {
         unbindFloatingShortcutScene(floatingWindow);
         floatingController.clearActiveFloatingWindowIfMatches(floatingWindow);
         floatingWindow.closeWithoutNotification();
-        rememberFloatingBoundsForNodes(floatingWindow);
+        floatingController.rememberFloatingBoundsForNodes(floatingWindow);
 
         List<DockNode> nodesToAttach = new ArrayList<>(floatingWindow.getDockNodes());
         for (DockNode node : nodesToAttach) {
@@ -1995,7 +1997,7 @@ public class SnapFX {
         rememberLastKnownPlacement(draggedNode, sourceWindow);
         sourceWindow.undockNode(draggedNode);
         if (sourceWindow.isEmpty()) {
-            rememberFloatingBoundsForNodes(sourceWindow);
+            floatingController.rememberFloatingBoundsForNodes(sourceWindow);
             removeFloatingWindowSilently(sourceWindow);
         }
 
@@ -2026,7 +2028,11 @@ public class SnapFX {
             return;
         }
 
-        DockFloatingWindow topWindow = findTopFloatingWindowAt(hoverEvent.screenX(), hoverEvent.screenY());
+        DockFloatingWindow topWindow = floatingController.findTopFloatingWindowAt(
+            floatingWindows,
+            hoverEvent.screenX(),
+            hoverEvent.screenY()
+        );
         if (topWindow == null) {
             updateSideBarDropPreview(hoverEvent.draggedNode(), hoverEvent.screenX(), hoverEvent.screenY());
             clearFloatingDropPreviews();
@@ -2069,7 +2075,7 @@ public class SnapFX {
     }
 
     private boolean tryDropIntoFloatingWindow(DockNode node, double screenX, double screenY) {
-        DockFloatingWindow topWindow = findTopFloatingWindowAt(screenX, screenY);
+        DockFloatingWindow topWindow = floatingController.findTopFloatingWindowAt(floatingWindows, screenX, screenY);
         if (topWindow == null) {
             return false;
         }
@@ -2095,7 +2101,7 @@ public class SnapFX {
             }
         } else if (sourceWindow != null) {
             rememberLastKnownPlacement(node, sourceWindow);
-            rememberFloatingBoundsForNodes(sourceWindow);
+            floatingController.rememberFloatingBoundsForNodes(sourceWindow);
             sourceWindow.undockNode(node);
             if (sourceWindow.isEmpty()) {
                 removeFloatingWindowSilently(sourceWindow);
@@ -2172,7 +2178,7 @@ public class SnapFX {
             DockFloatingWindow sourceWindow = findFloatingWindow(node);
             if (sourceWindow != null) {
                 rememberLastKnownPlacement(node, sourceWindow);
-                rememberFloatingBoundsForNodes(sourceWindow);
+                floatingController.rememberFloatingBoundsForNodes(sourceWindow);
                 sourceWindow.undockNode(node);
                 if (sourceWindow.isEmpty()) {
                     removeFloatingWindowSilently(sourceWindow);
@@ -2345,7 +2351,7 @@ public class SnapFX {
         floatingWindow.setOnWindowActivated(() -> {
             bindFloatingShortcutScene(floatingWindow);
             floatingController.setActiveFloatingWindow(floatingWindow);
-            promoteFloatingWindowToFront(floatingWindow);
+            floatingController.promoteFloatingWindowToFront(floatingWindows, floatingWindow);
         });
         floatingWindow.setOnNodeCloseRequest(this::handleDockNodeCloseRequest);
         floatingWindow.setOnNodeFloatRequest(this::floatNodeFromFloatingLayout);
@@ -2409,7 +2415,7 @@ public class SnapFX {
         if (floatingWindow == null) {
             return;
         }
-        rememberFloatingAlwaysOnTopForNodes(floatingWindow);
+        floatingController.rememberFloatingAlwaysOnTopForNodes(floatingWindow);
         if (onFloatingPinChanged == null) {
             return;
         }
@@ -2436,7 +2442,7 @@ public class SnapFX {
         }
 
         rememberLastKnownPlacement(node, sourceWindow);
-        rememberFloatingBoundsForNodes(sourceWindow);
+        floatingController.rememberFloatingBoundsForNodes(sourceWindow);
         sourceWindow.undockNode(node);
         if (sourceWindow.isEmpty()) {
             removeFloatingWindowSilently(sourceWindow);
@@ -2444,7 +2450,7 @@ public class SnapFX {
 
         DockFloatingWindow floatingWindow = new DockFloatingWindow(node, dragService);
         floatingWindow.getDockGraph().setLocked(dockGraph.isLocked());
-        applyRememberedFloatingBounds(node, floatingWindow);
+        floatingController.applyRememberedFloatingBounds(node, floatingWindow);
         if (screenX != null || screenY != null) {
             floatingWindow.setPreferredPosition(screenX, screenY);
         } else if (sourceWindow.getPreferredX() != null || sourceWindow.getPreferredY() != null) {
@@ -2550,73 +2556,6 @@ public class SnapFX {
             return;
         }
         onCloseHandled.accept(new DockCloseResult(request, appliedBehavior, canceled));
-    }
-
-    private boolean isMainDropSuppressedByFloatingWindow(Double screenX, Double screenY) {
-        if (screenX == null || screenY == null) {
-            return false;
-        }
-        return findTopFloatingWindowAt(screenX, screenY) != null;
-    }
-
-    private DockFloatingWindow findTopFloatingWindowAt(double screenX, double screenY) {
-        for (int i = floatingWindows.size() - 1; i >= 0; i--) {
-            DockFloatingWindow floatingWindow = floatingWindows.get(i);
-            if (floatingWindow != null && floatingWindow.containsScreenPoint(screenX, screenY)) {
-                return floatingWindow;
-            }
-        }
-        return null;
-    }
-
-    private void promoteFloatingWindowToFront(DockFloatingWindow floatingWindow) {
-        if (floatingWindow == null) {
-            return;
-        }
-        int index = floatingWindows.indexOf(floatingWindow);
-        if (index < 0 || index == floatingWindows.size() - 1) {
-            return;
-        }
-        floatingWindows.remove(index);
-        floatingWindows.add(floatingWindow);
-    }
-
-    private void applyRememberedFloatingBounds(DockNode node, DockFloatingWindow floatingWindow) {
-        if (node == null || floatingWindow == null) {
-            return;
-        }
-        if (node.getLastFloatingWidth() != null && node.getLastFloatingHeight() != null) {
-            floatingWindow.setPreferredSize(node.getLastFloatingWidth(), node.getLastFloatingHeight());
-        }
-        if (node.getLastFloatingX() != null || node.getLastFloatingY() != null) {
-            floatingWindow.setPreferredPosition(node.getLastFloatingX(), node.getLastFloatingY());
-        }
-        if (node.getLastFloatingAlwaysOnTop() != null) {
-            floatingWindow.setAlwaysOnTop(node.getLastFloatingAlwaysOnTop(), DockFloatingPinSource.API);
-        }
-    }
-
-    private void rememberFloatingBoundsForNodes(DockFloatingWindow floatingWindow) {
-        if (floatingWindow == null) {
-            return;
-        }
-        floatingWindow.captureCurrentBounds();
-        rememberFloatingAlwaysOnTopForNodes(floatingWindow);
-        for (DockNode node : floatingWindow.getDockNodes()) {
-            node.setLastFloatingX(floatingWindow.getPreferredX());
-            node.setLastFloatingY(floatingWindow.getPreferredY());
-            node.setLastFloatingWidth(floatingWindow.getPreferredWidth());
-            node.setLastFloatingHeight(floatingWindow.getPreferredHeight());
-        }
-    }
-
-    private void rememberFloatingAlwaysOnTopForNodes(DockFloatingWindow floatingWindow) {
-        if (floatingWindow == null) {
-            return;
-        }
-        for (DockNode node : floatingWindow.getDockNodes()) {
-            node.setLastFloatingAlwaysOnTop(floatingWindow.isAlwaysOnTop());
-        }
     }
 
     private boolean isInGraph(DockNode node) {
@@ -3062,7 +3001,7 @@ public class SnapFX {
             return;
         }
         floatingController.clearActiveFloatingWindowIfMatches(floatingWindow);
-        rememberFloatingBoundsForNodes(floatingWindow);
+        floatingController.rememberFloatingBoundsForNodes(floatingWindow);
         List<DockNode> nodes = new ArrayList<>(floatingWindow.getDockNodes());
         for (DockNode node : nodes) {
             floatingWindow.undockNode(node);
@@ -3344,7 +3283,7 @@ public class SnapFX {
     private JsonArray serializeFloatingWindows() {
         JsonArray floatingArray = new JsonArray();
         for (DockFloatingWindow floatingWindow : floatingWindows) {
-            rememberFloatingBoundsForNodes(floatingWindow);
+            floatingController.rememberFloatingBoundsForNodes(floatingWindow);
             DockLayoutSerializer floatingSerializer = createLayoutSerializer(floatingWindow.getDockGraph());
             floatingArray.add(layoutSnapshotService.createFloatingWindowEntry(
                 floatingSerializer.serialize(),
