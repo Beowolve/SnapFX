@@ -17,6 +17,8 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Redundant documentation link to snapfx.org in README.md removed.
 - ✅ Added a Maven Central publishing section to [RELEASING.md](RELEASING.md) with required secrets, local validation commands, release URL override options, and stable-tag publish checklist items.
 - ✅ Added release-checksum documentation to [RELEASING.md](RELEASING.md), including generated file locations and local verification commands.
+- ✅ Added a release-notes quick-start template (Windows/macOS/Linux startup commands) to [RELEASING.md](RELEASING.md) for REL-008 readiness completeness.
+- ✅ Updated release-readiness status docs ([STATUS.md](STATUS.md), [DONE.md](DONE.md), [ROADMAP.md](ROADMAP.md), and `release_todo_temp.md`) to mark `0.8.x` Maven Central readiness as complete and shift focus to `0.9.x` rehearsal/freeze.
 
 ## v0.6.1 - 2026-02-28
 
