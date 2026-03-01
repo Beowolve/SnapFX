@@ -1,10 +1,14 @@
 package org.snapfx.shortcuts;
 
+import org.snapfx.floating.DockFloatingWindow;
+import javafx.event.EventHandler;
+import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 
+import java.util.HashMap;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
@@ -37,6 +41,7 @@ public final class DockShortcutController {
     );
 
     private final EnumMap<DockShortcutAction, KeyCombination> shortcuts = new EnumMap<>(DockShortcutAction.class);
+    private final Map<DockFloatingWindow, Scene> floatingShortcutScenes = new HashMap<>();
 
     /**
      * Creates a controller with the default shortcut mapping.
@@ -126,5 +131,57 @@ public final class DockShortcutController {
             }
         }
         return null;
+    }
+
+    /**
+     * Binds the framework shortcut key filter to the current scene of a floating window.
+     *
+     * <p>When the floating window scene changes, this method removes the filter from the previous
+     * scene and installs it on the new one.</p>
+     *
+     * @param floatingWindow floating window whose scene should receive shortcut handling
+     * @param keyEventFilter key filter used for framework shortcuts
+     */
+    public void bindFloatingShortcutScene(
+        DockFloatingWindow floatingWindow,
+        EventHandler<KeyEvent> keyEventFilter
+    ) {
+        if (floatingWindow == null || keyEventFilter == null) {
+            return;
+        }
+        Scene scene = floatingWindow.getScene();
+        Scene previousScene = floatingShortcutScenes.get(floatingWindow);
+        if (previousScene == scene) {
+            return;
+        }
+        if (previousScene != null) {
+            previousScene.removeEventFilter(KeyEvent.KEY_PRESSED, keyEventFilter);
+        }
+        if (scene == null) {
+            floatingShortcutScenes.remove(floatingWindow);
+            return;
+        }
+        scene.addEventFilter(KeyEvent.KEY_PRESSED, keyEventFilter);
+        floatingShortcutScenes.put(floatingWindow, scene);
+    }
+
+    /**
+     * Removes the framework shortcut key filter binding for a floating window scene.
+     *
+     * @param floatingWindow floating window whose bound scene should be unbound
+     * @param keyEventFilter key filter previously installed for framework shortcuts
+     */
+    public void unbindFloatingShortcutScene(
+        DockFloatingWindow floatingWindow,
+        EventHandler<KeyEvent> keyEventFilter
+    ) {
+        if (floatingWindow == null || keyEventFilter == null) {
+            return;
+        }
+        Scene scene = floatingShortcutScenes.remove(floatingWindow);
+        if (scene == null) {
+            return;
+        }
+        scene.removeEventFilter(KeyEvent.KEY_PRESSED, keyEventFilter);
     }
 }

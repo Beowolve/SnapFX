@@ -125,7 +125,6 @@ public class SnapFX {
     private final EventHandler<MouseEvent> sideBarOverlayMouseEventFilter;
     private final ChangeListener<Scene> rootContainerSceneListener;
     private final ChangeListener<Scene> primaryStageSceneListener;
-    private final Map<DockFloatingWindow, Scene> floatingShortcutScenes;
     private final Map<DockNode, DockPlacementMemory> dockPlacementMemory;
     private Stage primaryStage;
     private DockNodeFactory nodeFactory;
@@ -175,7 +174,6 @@ public class SnapFX {
         this.sideBarOverlayMouseEventFilter = this::handleRootContainerMousePressed;
         this.rootContainerSceneListener = (obs, oldScene, newScene) -> rebindShortcutScene(newScene);
         this.primaryStageSceneListener = (obs, oldScene, newScene) -> applyManagedThemeStylesheet(newScene, null);
-        this.floatingShortcutScenes = new HashMap<>();
         this.dockPlacementMemory = new HashMap<>();
         this.hiddenNodes = FXCollections.observableArrayList();
         this.floatingWindows = FXCollections.observableArrayList();
@@ -231,7 +229,7 @@ public class SnapFX {
         for (DockFloatingWindow floatingWindow : floatingWindows) {
             floatingWindow.show(primaryStage);
             applyManagedThemeStylesheet(floatingWindow.getScene(), null);
-            bindFloatingShortcutScene(floatingWindow);
+            shortcutController.bindFloatingShortcutScene(floatingWindow, shortcutKeyEventFilter);
         }
     }
 
@@ -1174,37 +1172,6 @@ public class SnapFX {
         themeStylesheetManager.applyToScene(scene, previousStylesheetUrl);
     }
 
-    private void bindFloatingShortcutScene(DockFloatingWindow floatingWindow) {
-        if (floatingWindow == null) {
-            return;
-        }
-        Scene scene = floatingWindow.getScene();
-        Scene previousScene = floatingShortcutScenes.get(floatingWindow);
-        if (previousScene == scene) {
-            return;
-        }
-        if (previousScene != null) {
-            previousScene.removeEventFilter(KeyEvent.KEY_PRESSED, shortcutKeyEventFilter);
-        }
-        if (scene == null) {
-            floatingShortcutScenes.remove(floatingWindow);
-            return;
-        }
-        scene.addEventFilter(KeyEvent.KEY_PRESSED, shortcutKeyEventFilter);
-        floatingShortcutScenes.put(floatingWindow, scene);
-    }
-
-    private void unbindFloatingShortcutScene(DockFloatingWindow floatingWindow) {
-        if (floatingWindow == null) {
-            return;
-        }
-        Scene scene = floatingShortcutScenes.remove(floatingWindow);
-        if (scene == null) {
-            return;
-        }
-        scene.removeEventFilter(KeyEvent.KEY_PRESSED, shortcutKeyEventFilter);
-    }
-
     private void handleShortcutKeyPressed(KeyEvent event) {
         if (event == null || event.getEventType() != KeyEvent.KEY_PRESSED) {
             return;
@@ -1851,7 +1818,7 @@ public class SnapFX {
         if (existingWindow != null) {
             existingWindow.setPreferredPosition(screenX, screenY);
             existingWindow.show(primaryStage);
-            bindFloatingShortcutScene(existingWindow);
+            shortcutController.bindFloatingShortcutScene(existingWindow, shortcutKeyEventFilter);
             floatingController.setActiveFloatingWindow(existingWindow);
             return existingWindow;
         }
@@ -1893,7 +1860,7 @@ public class SnapFX {
         floatingWindows.add(floatingWindow);
         if (primaryStage != null) {
             floatingWindow.show(primaryStage);
-            bindFloatingShortcutScene(floatingWindow);
+            shortcutController.bindFloatingShortcutScene(floatingWindow, shortcutKeyEventFilter);
         }
         floatingController.setActiveFloatingWindow(floatingWindow);
         return floatingWindow;
@@ -1920,7 +1887,7 @@ public class SnapFX {
             return;
         }
 
-        unbindFloatingShortcutScene(floatingWindow);
+        shortcutController.unbindFloatingShortcutScene(floatingWindow, shortcutKeyEventFilter);
         floatingController.clearActiveFloatingWindowIfMatches(floatingWindow);
         floatingWindow.closeWithoutNotification();
         floatingController.rememberFloatingBoundsForNodes(floatingWindow);
@@ -2344,12 +2311,12 @@ public class SnapFX {
         floatingWindow.setOnAttachRequested(() -> attachFloatingWindow(floatingWindow));
         floatingWindow.setOnCloseRequested(() -> handleFloatingWindowCloseRequested(floatingWindow));
         floatingWindow.setOnWindowClosed(window -> {
-            unbindFloatingShortcutScene(window);
+            shortcutController.unbindFloatingShortcutScene(window, shortcutKeyEventFilter);
             floatingController.clearActiveFloatingWindowIfMatches(window);
             handleFloatingWindowClosed(window);
         });
         floatingWindow.setOnWindowActivated(() -> {
-            bindFloatingShortcutScene(floatingWindow);
+            shortcutController.bindFloatingShortcutScene(floatingWindow, shortcutKeyEventFilter);
             floatingController.setActiveFloatingWindow(floatingWindow);
             floatingController.promoteFloatingWindowToFront(floatingWindows, floatingWindow);
         });
@@ -2468,7 +2435,7 @@ public class SnapFX {
         floatingWindows.add(floatingWindow);
         if (primaryStage != null) {
             floatingWindow.show(primaryStage);
-            bindFloatingShortcutScene(floatingWindow);
+            shortcutController.bindFloatingShortcutScene(floatingWindow, shortcutKeyEventFilter);
         }
         floatingController.setActiveFloatingWindow(floatingWindow);
         return floatingWindow;
@@ -3016,7 +2983,7 @@ public class SnapFX {
         if (floatingWindow == null || !floatingWindows.remove(floatingWindow)) {
             return;
         }
-        unbindFloatingShortcutScene(floatingWindow);
+        shortcutController.unbindFloatingShortcutScene(floatingWindow, shortcutKeyEventFilter);
         floatingController.clearActiveFloatingWindowIfMatches(floatingWindow);
         floatingWindow.closeWithoutNotification();
     }
@@ -3344,7 +3311,7 @@ public class SnapFX {
         floatingWindows.add(floatingWindow);
         if (primaryStage != null) {
             floatingWindow.show(primaryStage);
-            bindFloatingShortcutScene(floatingWindow);
+            shortcutController.bindFloatingShortcutScene(floatingWindow, shortcutKeyEventFilter);
         }
     }
 

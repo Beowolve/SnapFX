@@ -4,19 +4,29 @@ All notable changes to this project are documented in this file.
 
 The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased` section for changes after the latest tag.
 
+Changelog categories for `Unreleased` and new release sections (in order, include applicable sections only):
+- `Features`
+- `Fixes`
+- `UI and Interaction`
+- `Refactoring`
+- `Tests`
+- `Documentation`
+- `Build and Tooling`
+- `Other Changes`
+
 ## Unreleased
 
-### Build and Test
-- ✅ Added Sonatype Central publish repository wiring for `snapfx-core` with environment/property-based credential support (`MAVEN_CENTRAL_USERNAME` / `MAVEN_CENTRAL_PASSWORD`) and signing-secret preflight checks for remote publish tasks.
-- ✅ Extended the release workflow with a stable-tag `publish-maven-central` job that is policy-gated to versions `>= v1.0.0`, and gated final GitHub release publishing on successful/explicitly skipped Central publish execution.
-- ✅ Added release-asset SHA256 generation in the release workflow and publish of matching `*.sha256` files for base and jpackage artifacts.
+### Fixes
 - ✅ Fixed empty-main-layout D&D re-docking: when the main layout has no root (all nodes floating), center-drop over the empty layout now resolves as a valid dock target and re-attaches the dragged node to the main layout.
-- ✅ Added regression coverage for empty-layout drop-zone collection and validation (`DockLayoutEngineTest`, `DockDragServiceTest`) plus resolved-drop handling into an empty main layout (`SnapFXTest`).
-- ✅ Expanded maintainability-refactor regression coverage with dedicated controller/service tests for shortcut, sidebar, floating, and snapshot-handling slices.
 
-### Framework and UI
+### Refactoring
 - ✅ Advanced the pre-`v1.0.0` maintainability refactor by decomposing `SnapFX` into dedicated thematic controllers/services for shortcuts, sidebar transient state, floating active-window/lookup behavior, and snapshot JSON parse/validation/composition handling, while preserving public API behavior.
 - ✅ Continued the `SnapFX` decomposition by moving floating window ordering, hit-resolution, and remembered floating-state propagation helpers into `org.snapfx.floating.DockFloatingController`, with focused controller regression tests.
+- ✅ Moved floating-window shortcut-scene binding state and logic from `SnapFX` into `org.snapfx.shortcuts.DockShortcutController`, keeping behavior intact with added controller-level JavaFX binding coverage.
+
+### Tests
+- ✅ Added regression coverage for empty-layout drop-zone collection and validation (`DockLayoutEngineTest`, `DockDragServiceTest`) plus resolved-drop handling into an empty main layout (`SnapFXTest`).
+- ✅ Expanded maintainability-refactor regression coverage with dedicated controller/service tests for shortcut, sidebar, floating, and snapshot-handling slices.
 
 ### Documentation
 - ✅ Redundant documentation link to snapfx.org in README.md removed.
@@ -24,6 +34,11 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Added release-checksum documentation to [RELEASING.md](RELEASING.md), including generated file locations and local verification commands.
 - ✅ Added a release-notes quick-start template (Windows/macOS/Linux startup commands) to [RELEASING.md](RELEASING.md) for REL-008 readiness completeness.
 - ✅ Updated release-readiness status docs ([STATUS.md](STATUS.md), [DONE.md](DONE.md), [ROADMAP.md](ROADMAP.md), and `release_todo_temp.md`) to mark `0.8.x` Maven Central readiness as complete and shift focus to `0.9.x` rehearsal/freeze.
+
+### Build and Tooling
+- ✅ Added Sonatype Central publish repository wiring for `snapfx-core` with environment/property-based credential support (`MAVEN_CENTRAL_USERNAME` / `MAVEN_CENTRAL_PASSWORD`) and signing-secret preflight checks for remote publish tasks.
+- ✅ Extended the release workflow with a stable-tag `publish-maven-central` job that is policy-gated to versions `>= v1.0.0`, and gated final GitHub release publishing on successful/explicitly skipped Central publish execution.
+- ✅ Added release-asset SHA256 generation in the release workflow and publish of matching `*.sha256` files for base and jpackage artifacts.
 
 ## v0.6.1 - 2026-02-28
 
