@@ -23,10 +23,12 @@ Changelog categories for `Unreleased` and new release sections (in order, includ
 - ✅ Advanced the pre-`v1.0.0` maintainability refactor by decomposing `SnapFX` into dedicated thematic controllers/services for shortcuts, sidebar transient state, floating active-window/lookup behavior, and snapshot JSON parse/validation/composition handling, while preserving public API behavior.
 - ✅ Continued the `SnapFX` decomposition by moving floating window ordering, hit-resolution, and remembered floating-state propagation helpers into `org.snapfx.floating.DockFloatingController`, with focused controller regression tests.
 - ✅ Moved floating-window shortcut-scene binding state and logic from `SnapFX` into `org.snapfx.shortcuts.DockShortcutController`, keeping behavior intact with added controller-level JavaFX binding coverage.
+- ✅ Removed additional sidebar transient-state wrapper methods from `SnapFX` by delegating directly to `DockSideBarController` where the behavior is owned.
 
 ### Tests
 - ✅ Added regression coverage for empty-layout drop-zone collection and validation (`DockLayoutEngineTest`, `DockDragServiceTest`) plus resolved-drop handling into an empty main layout (`SnapFXTest`).
 - ✅ Expanded maintainability-refactor regression coverage with dedicated controller/service tests for shortcut, sidebar, floating, and snapshot-handling slices.
+- ✅ Added `DockSideBarControllerTest` coverage for null-resolver handling in `closeTransientOverlays(...)` to safeguard direct controller delegation paths.
 
 ### Documentation
 - ✅ Redundant documentation link to snapfx.org in README.md removed.

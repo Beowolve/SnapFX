@@ -92,6 +92,15 @@ class DockSideBarControllerTest {
     }
 
     @Test
+    void closeTransientOverlaysReturnsFalseWhenResolverIsMissing() {
+        DockSideBarController controller = new DockSideBarController();
+        controller.onIconClicked(Side.LEFT, dockNode("left"), false);
+
+        assertFalse(controller.closeTransientOverlays(null));
+        assertTrue(controller.isOverlayOpen(Side.LEFT));
+    }
+
+    @Test
     void pruneAndResolveSelectionHandleInvalidState() {
         DockSideBarController controller = new DockSideBarController();
         DockNode oldNode = dockNode("old");

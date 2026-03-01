@@ -460,7 +460,7 @@ public class SnapFX {
             return null;
         }
 
-        DockNode selectedNode = resolveSelectedSideBarNode(side, pinnedNodes);
+        DockNode selectedNode = sideBarController.resolveSelectedNode(side, pinnedNodes);
         boolean pinnedOpen = dockGraph.isSideBarPinnedOpen(side);
         boolean pinnedPanelVisible = pinnedOpen && !sideBarController.isPinnedPanelCollapsed(side);
         boolean sidePanelOpen = pinnedPanelVisible || sideBarController.isOverlayOpen(side);
@@ -491,7 +491,7 @@ public class SnapFX {
             return null;
         }
 
-        DockNode selectedNode = resolveSelectedSideBarNode(side, pinnedNodes);
+        DockNode selectedNode = sideBarController.resolveSelectedNode(side, pinnedNodes);
         if (selectedNode == null) {
             return null;
         }
@@ -1030,13 +1030,9 @@ public class SnapFX {
         if (isInSideBarChrome(event.getTarget())) {
             return;
         }
-        if (closeTransientSideBarOverlays()) {
+        if (sideBarController.closeTransientOverlays(dockGraph::isSideBarPinnedOpen)) {
             requestRebuild();
         }
-    }
-
-    private boolean closeTransientSideBarOverlays() {
-        return sideBarController.closeTransientOverlays(dockGraph::isSideBarPinnedOpen);
     }
 
     private boolean isInSideBarChrome(Object eventTarget) {
@@ -1066,25 +1062,12 @@ public class SnapFX {
         }
     }
 
-    private DockNode resolveSelectedSideBarNode(Side side, List<DockNode> pinnedNodes) {
-        return sideBarController.resolveSelectedNode(side, pinnedNodes);
-    }
-
     private List<DockNode> collectSideBarNodes(Side side) {
         ObservableList<DockNode> entries = dockGraph.getSideBarNodes(side);
         if (entries == null || entries.isEmpty()) {
             return List.of();
         }
         return List.copyOf(entries);
-    }
-
-    private void resetSideBarTransientViewState() {
-        sideBarController.resetTransientViewState();
-        renderedSideBarStrips.clear();
-    }
-
-    private void forgetTransientSideBarStateForNode(DockNode node) {
-        sideBarController.forgetTransientStateForNode(node);
     }
 
     /**
@@ -1488,7 +1471,8 @@ public class SnapFX {
 
         clearFloatingDropPreviews();
         closeAllFloatingWindows(false);
-        resetSideBarTransientViewState();
+        sideBarController.resetTransientViewState();
+        renderedSideBarStrips.clear();
         if (snapshot != null) {
             serializer.deserialize(layoutSnapshotService.toJson(snapshot.mainLayout()));
             restoreFloatingWindows(snapshot.floatingWindows());
@@ -1616,7 +1600,7 @@ public class SnapFX {
             }
         }
 
-        forgetTransientSideBarStateForNode(node);
+        sideBarController.forgetTransientStateForNode(node);
         sideBarController.onNodePinned(side, node);
         dockGraph.pinToSideBar(node, side);
     }
@@ -1633,7 +1617,7 @@ public class SnapFX {
         if (node == null || dockGraph.isLocked()) {
             return;
         }
-        forgetTransientSideBarStateForNode(node);
+        sideBarController.forgetTransientStateForNode(node);
         if (!dockGraph.unpinFromSideBar(node)) {
             return;
         }
@@ -1825,7 +1809,7 @@ public class SnapFX {
 
         hiddenNodes.remove(node);
         if (dockGraph.isPinnedToSideBar(node)) {
-            forgetTransientSideBarStateForNode(node);
+            sideBarController.forgetTransientStateForNode(node);
             dockGraph.unpinFromSideBar(node);
         }
 
@@ -1944,7 +1928,7 @@ public class SnapFX {
         DockFloatingWindow sourceWindow = findFloatingWindow(draggedNode);
 
         if (dockGraph.isPinnedToSideBar(draggedNode)) {
-            forgetTransientSideBarStateForNode(draggedNode);
+            sideBarController.forgetTransientStateForNode(draggedNode);
             if (!dockGraph.unpinFromSideBar(draggedNode)) {
                 return;
             }
@@ -2062,7 +2046,7 @@ public class SnapFX {
             rememberLastKnownPlacement(node);
             dockGraph.undock(node);
         } else if (dockGraph.isPinnedToSideBar(node)) {
-            forgetTransientSideBarStateForNode(node);
+            sideBarController.forgetTransientStateForNode(node);
             if (!dockGraph.unpinFromSideBar(node)) {
                 return false;
             }
@@ -2139,7 +2123,7 @@ public class SnapFX {
 
         hiddenNodes.remove(node);
         if (dockGraph.isPinnedToSideBar(node)) {
-            forgetTransientSideBarStateForNode(node);
+            sideBarController.forgetTransientStateForNode(node);
             dockGraph.pinToSideBar(node, dropTarget.side(), dropTarget.insertIndex());
         } else {
             DockFloatingWindow sourceWindow = findFloatingWindow(node);
