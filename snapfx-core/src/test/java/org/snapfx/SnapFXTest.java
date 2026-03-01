@@ -20,6 +20,7 @@ import org.snapfx.model.DockSplitPane;
 import org.snapfx.model.DockTabPane;
 import org.snapfx.persistence.DockLayoutLoadException;
 import org.snapfx.sidebar.DockSideBarMode;
+import org.snapfx.shortcuts.DockShortcutAction;
 import org.snapfx.theme.DockThemeStyleClasses;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;

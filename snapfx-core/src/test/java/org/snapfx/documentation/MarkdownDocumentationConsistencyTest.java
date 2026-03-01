@@ -65,7 +65,7 @@ class MarkdownDocumentationConsistencyTest {
         String content = readProjectFile("STATUS.md");
         assertAllBulletsUsePrefixes(
             "STATUS.md",
-            "### Open",
+            List.of("## Open Items", "### Open"),
             content,
             WARNING_PREFIXES
         );
@@ -76,7 +76,7 @@ class MarkdownDocumentationConsistencyTest {
         String content = readProjectFile("DONE.md");
         assertAllBulletsUsePrefixes(
             "DONE.md",
-            "### Build & Deployment",
+            List.of("## Engineering Baseline", "### Build & Deployment"),
             content,
             CHECKMARK_PREFIXES
         );
@@ -87,7 +87,7 @@ class MarkdownDocumentationConsistencyTest {
         String content = readProjectFile("ROADMAP.md");
         assertAllBulletsUsePrefixes(
             "ROADMAP.md",
-            "### 7.3 Tooling",
+            List.of("### 7.3 Tooling"),
             content,
             STATUS_ICON_PREFIXES
         );
@@ -99,29 +99,39 @@ class MarkdownDocumentationConsistencyTest {
 
     private void assertAllBulletsUsePrefixes(
         String fileName,
-        String sectionHeading,
+        List<String> sectionHeadingCandidates,
         String content,
         List<String> allowedPrefixes
     ) {
-        List<String> bullets = findSectionBullets(content, sectionHeading);
+        SectionBullets sectionBullets = findSectionBullets(content, sectionHeadingCandidates);
+        List<String> bullets = sectionBullets.bullets();
         assertFalse(
             bullets.isEmpty(),
-            () -> fileName + " section has no bullet entries: " + sectionHeading
+            () -> fileName + " section has no bullet entries: " + sectionBullets.heading()
         );
 
         for (String bullet : bullets) {
             boolean hasAllowedPrefix = allowedPrefixes.stream().anyMatch(bullet::startsWith);
             assertTrue(
                 hasAllowedPrefix,
-                () -> fileName + " section '" + sectionHeading + "' contains bullet without allowed icon prefix: " + bullet
+                () -> fileName + " section '" + sectionBullets.heading() + "' contains bullet without allowed icon prefix: " + bullet
             );
         }
     }
 
-    private List<String> findSectionBullets(String content, String sectionHeading) {
+    private SectionBullets findSectionBullets(String content, List<String> sectionHeadingCandidates) {
         List<String> lines = content.lines().toList();
-        int headingIndex = lines.indexOf(sectionHeading);
-        assertTrue(headingIndex >= 0, () -> "Section not found: " + sectionHeading);
+        int headingIndex = -1;
+        String resolvedHeading = null;
+        for (String candidate : sectionHeadingCandidates) {
+            int index = lines.indexOf(candidate);
+            if (index >= 0) {
+                headingIndex = index;
+                resolvedHeading = candidate;
+                break;
+            }
+        }
+        assertTrue(headingIndex >= 0, () -> "Section not found: " + sectionHeadingCandidates);
 
         List<String> bullets = new ArrayList<>();
         for (int i = headingIndex + 1; i < lines.size(); i++) {
@@ -133,7 +143,10 @@ class MarkdownDocumentationConsistencyTest {
                 bullets.add(line);
             }
         }
-        return bullets;
+        return new SectionBullets(resolvedHeading, bullets);
+    }
+
+    private record SectionBullets(String heading, List<String> bullets) {
     }
 
     private static Path locateProjectRoot() {

@@ -23,6 +23,7 @@ module org.snapfx {
     exports org.snapfx.persistence;
     exports org.snapfx.debug;
     exports org.snapfx.sidebar;
+    exports org.snapfx.shortcuts;
 
     // Open packages for reflection (needed by Gson for serialization)
     opens org.snapfx.model to com.google.gson;

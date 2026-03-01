@@ -1,4 +1,6 @@
-package org.snapfx;
+package org.snapfx.shortcuts;
+
+import org.snapfx.SnapFX;
 
 /**
  * Built-in shortcut actions supported by {@link SnapFX}.

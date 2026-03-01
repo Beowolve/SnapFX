@@ -17,6 +17,7 @@
 - ✅ **Quality Baseline Delivered**: Automated tests with regression-test policy and CI stability guards
 - ✅ **Release Pipeline Delivered**: Tag-driven releases, cross-platform demo packaging, and release checksums
 - ✅ **Maven Central Readiness Delivered**: Sonatype wiring and publish-policy gating for stable releases
+- ✅ **Maintainability Refactor Kickoff Delivered**: Shortcut binding management was extracted from `SnapFX` into `org.snapfx.shortcuts.DockShortcutController` (with `DockShortcutAction` co-located in `org.snapfx.shortcuts`) as the first pre-`v1.0.0` decomposition slice
 
 ## Documentation Baseline
 

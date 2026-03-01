@@ -19,6 +19,8 @@ import org.snapfx.persistence.DockLayoutSerializer;
 import org.snapfx.persistence.DockLayoutLoadException;
 import org.snapfx.persistence.DockNodeFactory;
 import org.snapfx.sidebar.DockSideBarMode;
+import org.snapfx.shortcuts.DockShortcutAction;
+import org.snapfx.shortcuts.DockShortcutController;
 import org.snapfx.theme.DockThemeCatalog;
 import org.snapfx.theme.DockThemeStyleClasses;
 import org.snapfx.theme.DockThemeStylesheetManager;
@@ -57,8 +59,6 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.ContextMenuEvent;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
@@ -124,31 +124,12 @@ public class SnapFX {
     private static final double SIDEBAR_DROP_INSERT_LINE_THICKNESS = 3.0;
     private static final double SIDEBAR_DROP_INSERT_LINE_HORIZONTAL_INSET = 3.0;
     private static final Duration SIDEBAR_TOOLTIP_SHOW_DELAY = Duration.ZERO;
-    private static final KeyCombination DEFAULT_SHORTCUT_CLOSE_ACTIVE_NODE = new KeyCodeCombination(
-        KeyCode.W,
-        KeyCombination.SHORTCUT_DOWN
-    );
-    private static final KeyCombination DEFAULT_SHORTCUT_NEXT_TAB = new KeyCodeCombination(
-        KeyCode.TAB,
-        KeyCombination.SHORTCUT_DOWN
-    );
-    private static final KeyCombination DEFAULT_SHORTCUT_PREVIOUS_TAB = new KeyCodeCombination(
-        KeyCode.TAB,
-        KeyCombination.SHORTCUT_DOWN,
-        KeyCombination.SHIFT_DOWN
-    );
-    private static final KeyCombination DEFAULT_SHORTCUT_CANCEL_DRAG = new KeyCodeCombination(KeyCode.ESCAPE);
-    private static final KeyCombination DEFAULT_SHORTCUT_TOGGLE_ACTIVE_FLOATING_PIN = new KeyCodeCombination(
-        KeyCode.P,
-        KeyCombination.SHORTCUT_DOWN,
-        KeyCombination.SHIFT_DOWN
-    );
 
     private final DockGraph dockGraph;
     private final DockLayoutEngine layoutEngine;
     private final DockDragService dragService;
     private final DockLayoutSerializer serializer;
-    private final EnumMap<DockShortcutAction, KeyCombination> shortcuts;
+    private final DockShortcutController shortcutController;
     private final EventHandler<KeyEvent> shortcutKeyEventFilter;
     private final EventHandler<MouseEvent> sideBarOverlayMouseEventFilter;
     private final ChangeListener<Scene> rootContainerSceneListener;
@@ -201,7 +182,7 @@ public class SnapFX {
         this.dragService = new DockDragService(dockGraph);
         this.layoutEngine = new DockLayoutEngine(dockGraph, dragService);
         this.serializer = new DockLayoutSerializer(dockGraph);
-        this.shortcuts = new EnumMap<>(DockShortcutAction.class);
+        this.shortcutController = new DockShortcutController();
         this.shortcutKeyEventFilter = this::handleShortcutKeyPressed;
         this.sideBarOverlayMouseEventFilter = this::handleRootContainerMousePressed;
         this.rootContainerSceneListener = (obs, oldScene, newScene) -> rebindShortcutScene(newScene);
@@ -1212,12 +1193,7 @@ public class SnapFX {
      * </ul>
      */
     public void resetShortcutsToDefaults() {
-        shortcuts.clear();
-        shortcuts.put(DockShortcutAction.CLOSE_ACTIVE_NODE, DEFAULT_SHORTCUT_CLOSE_ACTIVE_NODE);
-        shortcuts.put(DockShortcutAction.NEXT_TAB, DEFAULT_SHORTCUT_NEXT_TAB);
-        shortcuts.put(DockShortcutAction.PREVIOUS_TAB, DEFAULT_SHORTCUT_PREVIOUS_TAB);
-        shortcuts.put(DockShortcutAction.CANCEL_DRAG, DEFAULT_SHORTCUT_CANCEL_DRAG);
-        shortcuts.put(DockShortcutAction.TOGGLE_ACTIVE_FLOATING_ALWAYS_ON_TOP, DEFAULT_SHORTCUT_TOGGLE_ACTIVE_FLOATING_PIN);
+        shortcutController.resetToDefaults();
     }
 
     /**
@@ -1227,18 +1203,7 @@ public class SnapFX {
      * @param keyCombination Key combination to assign, or {@code null} to remove the binding
      */
     public void setShortcut(DockShortcutAction action, KeyCombination keyCombination) {
-        if (action == null) {
-            return;
-        }
-        if (keyCombination == null) {
-            shortcuts.remove(action);
-            return;
-        }
-
-        shortcuts.entrySet().removeIf(entry ->
-            entry.getKey() != action && entry.getValue().equals(keyCombination)
-        );
-        shortcuts.put(action, keyCombination);
+        shortcutController.setShortcut(action, keyCombination);
     }
 
     /**
@@ -1257,10 +1222,7 @@ public class SnapFX {
      * @return configured key combination, or {@code null}
      */
     public KeyCombination getShortcut(DockShortcutAction action) {
-        if (action == null) {
-            return null;
-        }
-        return shortcuts.get(action);
+        return shortcutController.getShortcut(action);
     }
 
     /**
@@ -1269,7 +1231,7 @@ public class SnapFX {
      * @return immutable snapshot of shortcut bindings
      */
     public Map<DockShortcutAction, KeyCombination> getShortcuts() {
-        return Collections.unmodifiableMap(new EnumMap<>(shortcuts));
+        return shortcutController.getShortcutsSnapshot();
     }
 
     private void rebindShortcutScene(Scene scene) {
@@ -1348,13 +1310,7 @@ public class SnapFX {
     }
 
     private DockShortcutAction resolveShortcutAction(KeyEvent event) {
-        for (Map.Entry<DockShortcutAction, KeyCombination> entry : shortcuts.entrySet()) {
-            KeyCombination combination = entry.getValue();
-            if (combination != null && combination.match(event)) {
-                return entry.getKey();
-            }
-        }
-        return null;
+        return shortcutController.resolveShortcutAction(event);
     }
 
     boolean executeShortcutAction(DockShortcutAction action, Object eventTarget) {

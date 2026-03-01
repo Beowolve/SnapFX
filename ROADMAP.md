@@ -356,6 +356,8 @@ examples of how this can be done.
 **Priority**: 🟢 Medium
 
 - ✅ **Split ratio API**: Configure split pane ratios directly via `SnapFX.setRootSplitRatios(...)` / `setSplitRatios(...)`
+- 🚧 **Pre-`v1.0.0` maintainability refactor track**: Decompose oversized orchestration classes (starting with `SnapFX`), deduplicate DnD/floating interaction policies, and reduce internal coupling while keeping public API behavior stable
+- ✅ **WS-1 shortcut slice**: Shortcut binding state/matching was extracted from `SnapFX` into `org.snapfx.shortcuts.DockShortcutController`, with `DockShortcutAction` co-located in `org.snapfx.shortcuts`
 - 📋 **Builder pattern**: Fluent API for layout construction
 - 📋 **Event API**: Listen to layout changes
 - 📋 **Validation API**: Check layout validity
