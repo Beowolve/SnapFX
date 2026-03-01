@@ -7,7 +7,7 @@ These instructions are shared for all AI agents working on this workspace.
 - For bug fixes, first add or update a test that reproduces the issue and verify it fails before implementing the fix.
 - Exception: if a bug is only reproducible via user interaction and cannot be automated yet, document manual reproduction/verification steps and add or improve logging so the failure path is observable.
 - Always run unit tests after code changes when possible (`./gradlew test`).
-- Always update [STATUS.md](STATUS.md), [DONE.md](DONE.md), and [ROADMAP.md](ROADMAP.md) after changes.
+- Always review [STATUS.md](STATUS.md), [DONE.md](DONE.md), and [ROADMAP.md](ROADMAP.md) after changes and update each file only when the change is relevant to that file's scope (`STATUS` = current state/open issues, `DONE` = completed milestones/capabilities, `ROADMAP` = planned/proposed work).
 - Keep [CHANGELOG.md](CHANGELOG.md) up to date for release-visible changes (`Unreleased` during development, grouped by tags for releases).
 - Update other `*.md` files if the change affects their content or accuracy.
 - Keep changes scoped and avoid unrelated edits.

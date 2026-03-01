@@ -13,9 +13,11 @@ The changelog is grouped by release tags (`vX.Y.Z`) and includes an `Unreleased`
 - ✅ Fixed empty-main-layout D&D re-docking: when the main layout has no root (all nodes floating), center-drop over the empty layout now resolves as a valid dock target and re-attaches the dragged node to the main layout.
 - ✅ Added regression coverage for empty-layout drop-zone collection and validation (`DockLayoutEngineTest`, `DockDragServiceTest`) plus resolved-drop handling into an empty main layout (`SnapFXTest`).
 - ✅ Added `DockShortcutControllerTest` coverage for the new shortcut-binding controller (`org.snapfx.shortcuts.DockShortcutController`), covering default bindings, duplicate binding eviction, shortcut resolution, clearing, and immutable snapshot behavior.
+- ✅ Added `DockSideBarControllerTest` coverage for the extracted sidebar transient-state controller (`org.snapfx.sidebar.DockSideBarController`) including icon-click transitions, overlay close behavior, prune/resolve flows, and node-state cleanup.
 
 ### Framework and UI
 - ✅ Started the pre-`v1.0.0` maintainability refactor by extracting shortcut-binding state and matching logic from `SnapFX` into `org.snapfx.shortcuts.DockShortcutController`, and moved `DockShortcutAction` into `org.snapfx.shortcuts`, while keeping the public `SnapFX` shortcut API behavior unchanged.
+- ✅ Continued the pre-`v1.0.0` maintainability refactor by extracting sidebar transient state (selection, overlay open/close, temporary pinned-panel collapse, and mode/collapse policy handling) from `SnapFX` into `org.snapfx.sidebar.DockSideBarController`.
 
 ### Documentation
 - ✅ Redundant documentation link to snapfx.org in README.md removed.

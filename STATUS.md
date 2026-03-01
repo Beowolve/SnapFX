@@ -9,7 +9,7 @@
 - ✅ **Runtime Baseline**: Java 21 + JavaFX 21 + JPMS are in place
 - ✅ **Delivery Baseline**: Demo app, CI workflows, tag-based releases, and release checksums are operational
 - ✅ **Release Readiness Focus**: `0.8.x` readiness is complete; active focus is `0.9.x` rehearsal/freeze before `v1.0.0`
-- 🚧 **Maintainability Refactor Track**: `WS-1` started; shortcut binding management was extracted from `SnapFX` into `org.snapfx.shortcuts.DockShortcutController` (with `DockShortcutAction` in the same package) as the first decomposition slice
+- 🚧 **Maintainability Refactor Track**: `WS-1` is active; shortcut state now runs through `org.snapfx.shortcuts.DockShortcutController`, and transient sidebar selection/overlay/collapse state was extracted into `org.snapfx.sidebar.DockSideBarController`
 
 ## Current Capability Baseline
 

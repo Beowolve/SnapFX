@@ -19,6 +19,7 @@ import org.snapfx.persistence.DockLayoutSerializer;
 import org.snapfx.persistence.DockLayoutLoadException;
 import org.snapfx.persistence.DockNodeFactory;
 import org.snapfx.sidebar.DockSideBarMode;
+import org.snapfx.sidebar.DockSideBarController;
 import org.snapfx.shortcuts.DockShortcutAction;
 import org.snapfx.shortcuts.DockShortcutController;
 import org.snapfx.theme.DockThemeCatalog;
@@ -130,6 +131,7 @@ public class SnapFX {
     private final DockDragService dragService;
     private final DockLayoutSerializer serializer;
     private final DockShortcutController shortcutController;
+    private final DockSideBarController sideBarController;
     private final EventHandler<KeyEvent> shortcutKeyEventFilter;
     private final EventHandler<MouseEvent> sideBarOverlayMouseEventFilter;
     private final ChangeListener<Scene> rootContainerSceneListener;
@@ -145,16 +147,11 @@ public class SnapFX {
     private final ObservableList<DockNode> hiddenNodes;
     private final ObservableList<DockFloatingWindow> floatingWindows;
     private final ObservableList<DockFloatingWindow> readOnlyFloatingWindows;
-    private final EnumMap<Side, DockNode> selectedSideBarNodes;
     private final EnumMap<Side, VBox> renderedSideBarStrips;
-    private final EnumSet<Side> openOverlaySideBars;
-    private final EnumSet<Side> collapsedPinnedSideBars;
     private Side activeSideBarResizeSide;
     private double sideBarResizeDragStartScreenX;
     private double sideBarResizeDragStartWidth;
     private Region sideBarDropInsertLine;
-    private DockSideBarMode sideBarMode = DockSideBarMode.AUTO;
-    private boolean collapsePinnedSideBarOnActiveIconClick = true;
     private DockCloseBehavior defaultCloseBehavior = DockCloseBehavior.HIDE;
     private Function<DockCloseRequest, DockCloseDecision> onCloseRequest;
     private Consumer<DockCloseResult> onCloseHandled;
@@ -183,6 +180,7 @@ public class SnapFX {
         this.layoutEngine = new DockLayoutEngine(dockGraph, dragService);
         this.serializer = new DockLayoutSerializer(dockGraph);
         this.shortcutController = new DockShortcutController();
+        this.sideBarController = new DockSideBarController();
         this.shortcutKeyEventFilter = this::handleShortcutKeyPressed;
         this.sideBarOverlayMouseEventFilter = this::handleRootContainerMousePressed;
         this.rootContainerSceneListener = (obs, oldScene, newScene) -> rebindShortcutScene(newScene);
@@ -192,10 +190,7 @@ public class SnapFX {
         this.hiddenNodes = FXCollections.observableArrayList();
         this.floatingWindows = FXCollections.observableArrayList();
         this.readOnlyFloatingWindows = FXCollections.unmodifiableObservableList(floatingWindows);
-        this.selectedSideBarNodes = new EnumMap<>(Side.class);
         this.renderedSideBarStrips = new EnumMap<>(Side.class);
-        this.openOverlaySideBars = EnumSet.noneOf(Side.class);
-        this.collapsedPinnedSideBars = EnumSet.noneOf(Side.class);
         this.themeStylesheetManager = new DockThemeStylesheetManager();
         resetShortcutsToDefaults();
         this.layoutEngine.setOnNodeCloseRequest(this::handleDockNodeCloseRequest);
@@ -437,7 +432,7 @@ public class SnapFX {
     private Node buildSideBarDecoratedLayout(Node mainLayout) {
         pruneInvalidSideBarViewState();
         renderedSideBarStrips.clear();
-        if (sideBarMode == DockSideBarMode.NEVER) {
+        if (sideBarController.getSideBarMode() == DockSideBarMode.NEVER) {
             return mainLayout;
         }
 
@@ -470,15 +465,15 @@ public class SnapFX {
 
     private Node createSideBarSideHost(Side side) {
         List<DockNode> pinnedNodes = collectSideBarNodes(side);
-        boolean showStripWithoutNodes = sideBarMode == DockSideBarMode.ALWAYS;
+        boolean showStripWithoutNodes = sideBarController.getSideBarMode() == DockSideBarMode.ALWAYS;
         if (pinnedNodes.isEmpty() && !showStripWithoutNodes) {
             return null;
         }
 
         DockNode selectedNode = resolveSelectedSideBarNode(side, pinnedNodes);
         boolean pinnedOpen = dockGraph.isSideBarPinnedOpen(side);
-        boolean pinnedPanelVisible = pinnedOpen && !collapsedPinnedSideBars.contains(side);
-        boolean sidePanelOpen = pinnedPanelVisible || openOverlaySideBars.contains(side);
+        boolean pinnedPanelVisible = pinnedOpen && !sideBarController.isPinnedPanelCollapsed(side);
+        boolean sidePanelOpen = pinnedPanelVisible || sideBarController.isOverlayOpen(side);
         VBox strip = createSideBarStrip(side, pinnedNodes, selectedNode, sidePanelOpen);
         Node pinnedPanel = pinnedPanelVisible && selectedNode != null ? createSideBarPanel(side, selectedNode, true) : null;
         if (pinnedPanel == null) {
@@ -497,7 +492,7 @@ public class SnapFX {
     }
 
     private Node createSideBarOverlayHost(Side side) {
-        if (dockGraph.isSideBarPinnedOpen(side) || !openOverlaySideBars.contains(side)) {
+        if (dockGraph.isSideBarPinnedOpen(side) || !sideBarController.isOverlayOpen(side)) {
             return null;
         }
 
@@ -931,29 +926,7 @@ public class SnapFX {
         if (side == null || dockNode == null) {
             return;
         }
-
-        DockNode previousSelection = selectedSideBarNodes.get(side);
-        boolean overlayWasOpen = openOverlaySideBars.contains(side);
-        selectedSideBarNodes.put(side, dockNode);
-
-        if (dockGraph.isSideBarPinnedOpen(side)) {
-            openOverlaySideBars.remove(side);
-            if (collapsedPinnedSideBars.contains(side)) {
-                collapsedPinnedSideBars.remove(side);
-            } else if (previousSelection == dockNode && collapsePinnedSideBarOnActiveIconClick) {
-                collapsedPinnedSideBars.add(side);
-            } else {
-                collapsedPinnedSideBars.remove(side);
-            }
-            requestRebuild();
-            return;
-        }
-
-        if (overlayWasOpen && previousSelection == dockNode) {
-            openOverlaySideBars.remove(side);
-        } else {
-            openOverlaySideBars.add(side);
-        }
+        sideBarController.onIconClicked(side, dockNode, dockGraph.isSideBarPinnedOpen(side));
         requestRebuild();
     }
 
@@ -967,20 +940,13 @@ public class SnapFX {
         if (side == null || dockNode == null) {
             return;
         }
-        selectedSideBarNodes.put(side, dockNode);
 
         if (dockGraph.isSideBarPinnedOpen(side)) {
-            collapsedPinnedSideBars.remove(side);
             dockGraph.collapsePinnedSideBar(side);
-            if (!dockGraph.isSideBarPinnedOpen(side)) {
-                openOverlaySideBars.add(side);
-            }
+            sideBarController.onPanelCollapsed(side, dockNode, dockGraph.isSideBarPinnedOpen(side));
         } else {
-            collapsedPinnedSideBars.remove(side);
             dockGraph.pinOpenSideBar(side);
-            if (dockGraph.isSideBarPinnedOpen(side)) {
-                openOverlaySideBars.remove(side);
-            }
+            sideBarController.onPanelPinnedOpen(side, dockNode, dockGraph.isSideBarPinnedOpen(side));
         }
         requestRebuild();
     }
@@ -989,10 +955,7 @@ public class SnapFX {
         if (dockNode == null) {
             return;
         }
-        openOverlaySideBars.remove(side);
-        if (selectedSideBarNodes.get(side) == dockNode) {
-            selectedSideBarNodes.remove(side);
-        }
+        sideBarController.onPanelRestoreRequested(side, dockNode);
         restoreFromSideBar(dockNode);
         requestRebuild();
     }
@@ -1071,7 +1034,7 @@ public class SnapFX {
     }
 
     private void handleRootContainerMousePressed(MouseEvent event) {
-        if (event == null || openOverlaySideBars.isEmpty()) {
+        if (event == null || !sideBarController.hasOpenOverlays()) {
             return;
         }
         if (isInSideBarChrome(event.getTarget())) {
@@ -1083,16 +1046,7 @@ public class SnapFX {
     }
 
     private boolean closeTransientSideBarOverlays() {
-        boolean changed = false;
-        for (Side side : List.of(Side.LEFT, Side.RIGHT)) {
-            if (dockGraph.isSideBarPinnedOpen(side)) {
-                continue;
-            }
-            if (openOverlaySideBars.remove(side)) {
-                changed = true;
-            }
-        }
-        return changed;
+        return sideBarController.closeTransientOverlays(dockGraph::isSideBarPinnedOpen);
     }
 
     private boolean isInSideBarChrome(Object eventTarget) {
@@ -1118,36 +1072,12 @@ public class SnapFX {
     private void pruneInvalidSideBarViewState() {
         for (Side side : List.of(Side.LEFT, Side.RIGHT)) {
             List<DockNode> pinnedNodes = collectSideBarNodes(side);
-            if (pinnedNodes.isEmpty()) {
-                selectedSideBarNodes.remove(side);
-                openOverlaySideBars.remove(side);
-                collapsedPinnedSideBars.remove(side);
-                continue;
-            }
-
-            DockNode selected = selectedSideBarNodes.get(side);
-            if (selected == null || !pinnedNodes.contains(selected)) {
-                selectedSideBarNodes.put(side, pinnedNodes.getFirst());
-            }
-            if (dockGraph.isSideBarPinnedOpen(side)) {
-                openOverlaySideBars.remove(side);
-            } else {
-                collapsedPinnedSideBars.remove(side);
-            }
+            sideBarController.pruneInvalidViewState(side, pinnedNodes, dockGraph.isSideBarPinnedOpen(side));
         }
     }
 
     private DockNode resolveSelectedSideBarNode(Side side, List<DockNode> pinnedNodes) {
-        if (pinnedNodes == null || pinnedNodes.isEmpty()) {
-            selectedSideBarNodes.remove(side);
-            return null;
-        }
-        DockNode selectedNode = selectedSideBarNodes.get(side);
-        if (selectedNode == null || !pinnedNodes.contains(selectedNode)) {
-            selectedNode = pinnedNodes.getFirst();
-            selectedSideBarNodes.put(side, selectedNode);
-        }
-        return selectedNode;
+        return sideBarController.resolveSelectedNode(side, pinnedNodes);
     }
 
     private List<DockNode> collectSideBarNodes(Side side) {
@@ -1159,25 +1089,12 @@ public class SnapFX {
     }
 
     private void resetSideBarTransientViewState() {
-        selectedSideBarNodes.clear();
+        sideBarController.resetTransientViewState();
         renderedSideBarStrips.clear();
-        openOverlaySideBars.clear();
-        collapsedPinnedSideBars.clear();
     }
 
     private void forgetTransientSideBarStateForNode(DockNode node) {
-        if (node == null) {
-            return;
-        }
-        selectedSideBarNodes.entrySet().removeIf(entry -> entry.getValue() == node);
-        openOverlaySideBars.removeIf(side -> {
-            DockNode selectedNode = selectedSideBarNodes.get(side);
-            return selectedNode == null || selectedNode == node;
-        });
-        collapsedPinnedSideBars.removeIf(side -> {
-            DockNode selectedNode = selectedSideBarNodes.get(side);
-            return selectedNode == null || selectedNode == node;
-        });
+        sideBarController.forgetTransientStateForNode(node);
     }
 
     /**
@@ -1770,8 +1687,7 @@ public class SnapFX {
         }
 
         forgetTransientSideBarStateForNode(node);
-        selectedSideBarNodes.put(side, node);
-        openOverlaySideBars.remove(side);
+        sideBarController.onNodePinned(side, node);
         dockGraph.pinToSideBar(node, side);
     }
 
@@ -1801,10 +1717,7 @@ public class SnapFX {
      */
     public void pinOpenSideBar(Side side) {
         dockGraph.pinOpenSideBar(side);
-        if (dockGraph.isSideBarPinnedOpen(side)) {
-            openOverlaySideBars.remove(side);
-            collapsedPinnedSideBars.remove(side);
-        }
+        sideBarController.onPinOpenApplied(side, dockGraph.isSideBarPinnedOpen(side));
     }
 
     /**
@@ -1814,9 +1727,7 @@ public class SnapFX {
      */
     public void collapsePinnedSideBar(Side side) {
         dockGraph.collapsePinnedSideBar(side);
-        if (!dockGraph.isSideBarPinnedOpen(side)) {
-            collapsedPinnedSideBars.remove(side);
-        }
+        sideBarController.onCollapseApplied(side, dockGraph.isSideBarPinnedOpen(side));
     }
 
     /**
@@ -1842,7 +1753,7 @@ public class SnapFX {
      * @return {@code true} when active-icon click collapses pinned sidebars
      */
     public boolean isCollapsePinnedSideBarOnActiveIconClick() {
-        return collapsePinnedSideBarOnActiveIconClick;
+        return sideBarController.isCollapsePinnedSideBarOnActiveIconClick();
     }
 
     /**
@@ -1853,7 +1764,7 @@ public class SnapFX {
      * @param collapsePinnedSideBarOnActiveIconClick collapse policy flag
      */
     public void setCollapsePinnedSideBarOnActiveIconClick(boolean collapsePinnedSideBarOnActiveIconClick) {
-        this.collapsePinnedSideBarOnActiveIconClick = collapsePinnedSideBarOnActiveIconClick;
+        sideBarController.setCollapsePinnedSideBarOnActiveIconClick(collapsePinnedSideBarOnActiveIconClick);
     }
 
     /**
@@ -1866,13 +1777,12 @@ public class SnapFX {
      * @param mode sidebar mode, defaults to {@link DockSideBarMode#AUTO} when {@code null}
      */
     public void setSideBarMode(DockSideBarMode mode) {
-        DockSideBarMode nextMode = mode == null ? DockSideBarMode.AUTO : mode;
-        if (sideBarMode == nextMode) {
+        boolean changed = sideBarController.setSideBarMode(mode);
+        if (!changed) {
             return;
         }
-        sideBarMode = nextMode;
         applySideBarModeToFrameworkMenus();
-        if (sideBarMode == DockSideBarMode.NEVER) {
+        if (sideBarController.getSideBarMode() == DockSideBarMode.NEVER) {
             clearSideBarDropPreview();
         }
         requestRebuild();
@@ -1884,7 +1794,7 @@ public class SnapFX {
      * @return current sidebar rendering mode
      */
     public DockSideBarMode getSideBarMode() {
-        return sideBarMode;
+        return sideBarController.getSideBarMode();
     }
 
     /**
@@ -2318,8 +2228,7 @@ public class SnapFX {
         if (!dockGraph.isPinnedToSideBar(node)) {
             return false;
         }
-        selectedSideBarNodes.put(dropTarget.side(), node);
-        openOverlaySideBars.remove(dropTarget.side());
+        sideBarController.onNodePinned(dropTarget.side(), node);
         return true;
     }
 
@@ -2483,7 +2392,9 @@ public class SnapFX {
         });
         floatingWindow.setOnNodeCloseRequest(this::handleDockNodeCloseRequest);
         floatingWindow.setOnNodeFloatRequest(this::floatNodeFromFloatingLayout);
-        floatingWindow.setOnNodePinToSideBarRequest(sideBarMode == DockSideBarMode.NEVER ? null : this::pinToSideBar);
+        floatingWindow.setOnNodePinToSideBarRequest(
+            sideBarController.getSideBarMode() == DockSideBarMode.NEVER ? null : this::pinToSideBar
+        );
         floatingWindow.setOnAlwaysOnTopChanged((alwaysOnTop, source) ->
             handleFloatingPinChanged(floatingWindow, alwaysOnTop, source)
         );
@@ -2492,9 +2403,13 @@ public class SnapFX {
     }
 
     private void applySideBarModeToFrameworkMenus() {
-        layoutEngine.setOnNodePinToSideBarRequest(sideBarMode == DockSideBarMode.NEVER ? null : this::pinToSideBar);
+        layoutEngine.setOnNodePinToSideBarRequest(
+            sideBarController.getSideBarMode() == DockSideBarMode.NEVER ? null : this::pinToSideBar
+        );
         for (DockFloatingWindow floatingWindow : floatingWindows) {
-            floatingWindow.setOnNodePinToSideBarRequest(sideBarMode == DockSideBarMode.NEVER ? null : this::pinToSideBar);
+            floatingWindow.setOnNodePinToSideBarRequest(
+                sideBarController.getSideBarMode() == DockSideBarMode.NEVER ? null : this::pinToSideBar
+            );
         }
     }
 

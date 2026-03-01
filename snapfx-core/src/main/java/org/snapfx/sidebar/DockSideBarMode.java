@@ -4,7 +4,7 @@ package org.snapfx.sidebar;
  * Controls sidebar visibility behavior in {@code SnapFX}.
  *
  * <p>This mode only affects framework sidebar UI availability and rendering behavior. Sidebar model state
- * (for example pinned nodes and per-side panel widths) remains stored in {@code DockGraph} so hosts can
+ * (for example, pinned nodes and per-side panel widths) remains stored in {@code DockGraph} so hosts can
  * switch modes without losing sidebar state.</p>
  */
 public enum DockSideBarMode {
