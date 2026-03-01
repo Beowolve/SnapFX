@@ -4,6 +4,8 @@ import org.snapfx.model.DockNode;
 import javafx.scene.Scene;
 
 import java.util.List;
+import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * Manages floating-window interaction helpers and active-floating-window state for {@code SnapFX}.
@@ -115,6 +117,40 @@ public final class DockFloatingController {
             }
         }
         return null;
+    }
+
+    /**
+     * Resolves a remembered host floating window only when it is still active in the current window list.
+     *
+     * @param floatingWindows current floating-window list
+     * @param hostWindow remembered host window candidate
+     * @return active host window, or {@code null}
+     */
+    public DockFloatingWindow resolveActivePlacementHost(
+        List<DockFloatingWindow> floatingWindows,
+        DockFloatingWindow hostWindow
+    ) {
+        if (hostWindow != null
+            && floatingWindows != null
+            && floatingWindows.contains(hostWindow)) {
+            return hostWindow;
+        }
+        return null;
+    }
+
+    /**
+     * Removes a floating window from the registry and clears active-window state when needed.
+     *
+     * @param floatingWindows current floating-window list
+     * @param floatingWindow window to remove
+     * @return {@code true} when a window was removed
+     */
+    public boolean removeFloatingWindow(List<DockFloatingWindow> floatingWindows, DockFloatingWindow floatingWindow) {
+        if (floatingWindows == null || floatingWindow == null || !floatingWindows.remove(floatingWindow)) {
+            return false;
+        }
+        clearActiveFloatingWindowIfMatches(floatingWindow);
+        return true;
     }
 
     /**
@@ -236,5 +272,73 @@ public final class DockFloatingController {
         for (DockNode node : floatingWindow.getDockNodes()) {
             node.setLastFloatingAlwaysOnTop(floatingWindow.isAlwaysOnTop());
         }
+    }
+
+    /**
+     * Applies floating-window pin interaction settings.
+     *
+     * @param floatingWindow target floating window
+     * @param pinButtonMode pin-button visibility mode
+     * @param pinToggleEnabled whether users may toggle always-on-top
+     * @param pinLockedBehavior locked-mode pin behavior
+     */
+    public void applyFloatingPinSettings(
+        DockFloatingWindow floatingWindow,
+        DockFloatingPinButtonMode pinButtonMode,
+        boolean pinToggleEnabled,
+        DockFloatingPinLockedBehavior pinLockedBehavior
+    ) {
+        if (floatingWindow == null) {
+            return;
+        }
+        floatingWindow.setPinButtonMode(pinButtonMode);
+        floatingWindow.setPinToggleEnabled(pinToggleEnabled);
+        floatingWindow.setPinLockedBehavior(pinLockedBehavior);
+    }
+
+    /**
+     * Applies floating-window snapping settings.
+     *
+     * @param floatingWindow target floating window
+     * @param snappingEnabled whether snapping is enabled
+     * @param snapDistance snapping distance in pixels
+     * @param snapTargets active snap targets
+     * @param snapPeerWindowsSupplier supplier for peer floating windows used as snap candidates
+     */
+    public void applyFloatingSnapSettings(
+        DockFloatingWindow floatingWindow,
+        boolean snappingEnabled,
+        double snapDistance,
+        Set<DockFloatingSnapTarget> snapTargets,
+        Supplier<List<DockFloatingWindow>> snapPeerWindowsSupplier
+    ) {
+        if (floatingWindow == null) {
+            return;
+        }
+        floatingWindow.setSnappingEnabled(snappingEnabled);
+        floatingWindow.setSnapDistance(snapDistance);
+        floatingWindow.setSnapTargets(snapTargets);
+        floatingWindow.setSnapPeerWindowsSupplier(snapPeerWindowsSupplier);
+    }
+
+    /**
+     * Applies initial always-on-top state to a floating window.
+     *
+     * @param floatingWindow target floating window
+     * @param initialValue explicit initial value, or {@code null}
+     * @param defaultFloatingAlwaysOnTop default value used when explicit value is {@code null}
+     * @param source source of the initial pin state
+     */
+    public void applyFloatingWindowInitialAlwaysOnTop(
+        DockFloatingWindow floatingWindow,
+        Boolean initialValue,
+        boolean defaultFloatingAlwaysOnTop,
+        DockFloatingPinSource source
+    ) {
+        if (floatingWindow == null) {
+            return;
+        }
+        boolean resolved = initialValue != null ? initialValue : defaultFloatingAlwaysOnTop;
+        floatingWindow.setAlwaysOnTop(resolved, source);
     }
 }

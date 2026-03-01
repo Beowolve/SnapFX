@@ -25,12 +25,16 @@ Changelog categories for `Unreleased` and new release sections (in order, includ
 - ✅ Moved floating-window shortcut-scene binding state and logic from `SnapFX` into `org.snapfx.shortcuts.DockShortcutController`, keeping behavior intact with added controller-level JavaFX binding coverage.
 - ✅ Removed additional sidebar transient-state wrapper methods from `SnapFX` by delegating directly to `DockSideBarController` where the behavior is owned.
 - ✅ Moved shortcut target/scene/tab-pane resolver helpers from `SnapFX` into `DockShortcutController` and removed the duplicated `SnapFX` private helper block.
+- ✅ Centralized floating pin/snap/initial always-on-top configuration application in `DockFloatingController` and switched `SnapFX` floating-setting flows to delegate to that shared path.
+- ✅ Moved floating-window registry helpers (active host resolution and remove/lookup flow) from `SnapFX` into `DockFloatingController` and switched attach/close/placement-restore paths to those shared controller methods.
 
 ### Tests
 - ✅ Added regression coverage for empty-layout drop-zone collection and validation (`DockLayoutEngineTest`, `DockDragServiceTest`) plus resolved-drop handling into an empty main layout (`SnapFXTest`).
 - ✅ Expanded maintainability-refactor regression coverage with dedicated controller/service tests for shortcut, sidebar, floating, and snapshot-handling slices.
 - ✅ Added `DockSideBarControllerTest` coverage for null-resolver handling in `closeTransientOverlays(...)` to safeguard direct controller delegation paths.
 - ✅ Extended `DockShortcutControllerTest` with resolver coverage for node/scene and active-tab-pane fallback resolution paths.
+- ✅ Extended `DockFloatingControllerTest` with coverage for floating pin/snap setting application and initial always-on-top resolution.
+- ✅ Extended `DockFloatingControllerTest` with coverage for active placement-host resolution and floating-window registry removal behavior.
 
 ### Documentation
 - ✅ Redundant documentation link to snapfx.org in README.md removed.

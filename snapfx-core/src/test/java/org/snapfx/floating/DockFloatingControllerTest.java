@@ -8,11 +8,13 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DockFloatingControllerTest {
 
@@ -62,6 +64,35 @@ class DockFloatingControllerTest {
         assertEquals(firstWindow, controller.findFloatingWindowContainingNode(windows, firstNode));
         assertEquals(secondWindow, controller.findFloatingWindowContainingNode(windows, secondNode));
         assertNull(controller.findFloatingWindowContainingNode(windows, new DockNode("missing", new Label("M"), "M")));
+    }
+
+    @Test
+    void resolveActivePlacementHostReturnsOnlyActiveHostFromCurrentList() {
+        DockFloatingController controller = new DockFloatingController();
+        DockFloatingWindow first = createFloatingWindow("first");
+        DockFloatingWindow second = createFloatingWindow("second");
+        List<DockFloatingWindow> windows = new ArrayList<>(List.of(first));
+
+        assertEquals(first, controller.resolveActivePlacementHost(windows, first));
+        assertNull(controller.resolveActivePlacementHost(windows, second));
+        assertNull(controller.resolveActivePlacementHost(null, first));
+        assertNull(controller.resolveActivePlacementHost(windows, null));
+    }
+
+    @Test
+    void removeFloatingWindowRemovesWindowAndClearsActiveState() {
+        DockFloatingController controller = new DockFloatingController();
+        DockFloatingWindow first = createFloatingWindow("first");
+        DockFloatingWindow second = createFloatingWindow("second");
+        List<DockFloatingWindow> windows = new ArrayList<>(List.of(first, second));
+
+        controller.setActiveFloatingWindow(first);
+        assertTrue(controller.removeFloatingWindow(windows, first));
+        assertEquals(List.of(second), windows);
+        assertFalse(controller.removeFloatingWindow(windows, first));
+
+        windows.addFirst(first);
+        assertEquals(second, controller.resolveActiveFloatingWindow(windows, null, null));
     }
 
     @Test
@@ -134,6 +165,67 @@ class DockFloatingControllerTest {
 
         assertFloatingSnapshot(firstNode, 450.0, 250.0, 700.0, 480.0, false);
         assertFloatingSnapshot(secondNode, 450.0, 250.0, 700.0, 480.0, false);
+    }
+
+    @Test
+    void applyFloatingPinSettingsAppliesAllPinConfiguration() {
+        DockFloatingController controller = new DockFloatingController();
+        DockFloatingWindow floatingWindow = createFloatingWindow("pin");
+
+        controller.applyFloatingPinSettings(
+            floatingWindow,
+            DockFloatingPinButtonMode.ALWAYS,
+            false,
+            DockFloatingPinLockedBehavior.HIDE_BUTTON
+        );
+
+        assertEquals(DockFloatingPinButtonMode.ALWAYS, floatingWindow.getPinButtonMode());
+        assertFalse(floatingWindow.isPinToggleEnabled());
+        assertEquals(DockFloatingPinLockedBehavior.HIDE_BUTTON, floatingWindow.getPinLockedBehavior());
+    }
+
+    @Test
+    void applyFloatingSnapSettingsAppliesSnappingConfiguration() {
+        DockFloatingController controller = new DockFloatingController();
+        DockFloatingWindow floatingWindow = createFloatingWindow("snap");
+
+        controller.applyFloatingSnapSettings(
+            floatingWindow,
+            false,
+            18.0,
+            EnumSet.of(DockFloatingSnapTarget.SCREEN, DockFloatingSnapTarget.FLOATING_WINDOWS),
+            () -> List.of(floatingWindow)
+        );
+
+        assertFalse(floatingWindow.isSnappingEnabled());
+        assertEquals(18.0, floatingWindow.getSnapDistance(), 0.0001);
+        assertEquals(
+            EnumSet.of(DockFloatingSnapTarget.SCREEN, DockFloatingSnapTarget.FLOATING_WINDOWS),
+            floatingWindow.getSnapTargets()
+        );
+    }
+
+    @Test
+    void applyFloatingWindowInitialAlwaysOnTopUsesExplicitOrDefaultValue() {
+        DockFloatingController controller = new DockFloatingController();
+        DockFloatingWindow explicitWindow = createFloatingWindow("explicit");
+        DockFloatingWindow defaultWindow = createFloatingWindow("default");
+
+        controller.applyFloatingWindowInitialAlwaysOnTop(
+            explicitWindow,
+            false,
+            true,
+            DockFloatingPinSource.API
+        );
+        controller.applyFloatingWindowInitialAlwaysOnTop(
+            defaultWindow,
+            null,
+            true,
+            DockFloatingPinSource.WINDOW_CREATE_DEFAULT
+        );
+
+        assertFalse(explicitWindow.isAlwaysOnTop());
+        assertTrue(defaultWindow.isAlwaysOnTop());
     }
 
     private void assertFloatingSnapshot(
