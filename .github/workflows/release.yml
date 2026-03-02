@@ -236,3 +236,48 @@ jobs:
             release-assets/base/*.sha256
             release-assets/jpackage/*.zip
             release-assets/jpackage/*.sha256
+
+      - name: Notify Discord about release notes
+        if: ${{ secrets.DISCORD_RELEASE_WEBHOOK != '' }}
+        shell: bash
+        env:
+          DISCORD_RELEASE_WEBHOOK: ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
+        run: |
+          release_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases/tag/${GITHUB_REF_NAME}"
+          notes="$(cat RELEASE_NOTES.md)"
+
+          if [ -z "${notes}" ]; then
+            notes="No release notes were generated for this release."
+          fi
+
+          max_length=3800
+          if [ ${#notes} -gt ${max_length} ]; then
+            notes="${notes:0:${max_length}}\n\n[... truncated, read full notes in GitHub release.]"
+          fi
+
+          payload="$(jq -n \
+            --arg username "SnapFX Releases" \
+            --arg title "SnapFX ${GITHUB_REF_NAME}" \
+            --arg url "${release_url}" \
+            --arg description "${notes}" \
+            '{
+              username: $username,
+              embeds: [
+                {
+                  title: $title,
+                  url: $url,
+                  description: $description,
+                  color: 3447003
+                }
+              ]
+            }')"
+
+          curl --fail-with-body \
+            --header "Content-Type: application/json" \
+            --request POST \
+            --data "${payload}" \
+            "${DISCORD_RELEASE_WEBHOOK}"
+
+      - name: Warn if Discord webhook is missing
+        if: ${{ secrets.DISCORD_RELEASE_WEBHOOK == '' }}
+        run: echo "::warning::DISCORD_RELEASE_WEBHOOK is not configured. Skipping Discord release notification."

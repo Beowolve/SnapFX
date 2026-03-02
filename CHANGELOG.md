@@ -16,6 +16,8 @@ Changelog categories for `Unreleased` and new release sections (in order, includ
 
 ## Unreleased
 
+## v0.6.2 - 2026-03-02
+
 ### Fixes
 - ✅ Fixed empty-main-layout D&D re-docking: when the main layout has no root (all nodes floating), center-drop over the empty layout now resolves as a valid dock target and re-attaches the dragged node to the main layout.
 
@@ -39,16 +41,18 @@ Changelog categories for `Unreleased` and new release sections (in order, includ
 - ✅ Extended `DockShortcutControllerTest` with coverage for tab-relative selection behavior and active dock-node resolution from tab mapping and fallback root.
 
 ### Documentation
-- ✅ Redundant documentation link to snapfx.org in README.md removed.
+- ✅ Redundant documentation link to snapfx.org in README.md removed, Badges added/updated.
 - ✅ Added a Maven Central publishing section to [RELEASING.md](RELEASING.md) with required secrets, local validation commands, release URL override options, and stable-tag publish checklist items.
 - ✅ Added release-checksum documentation to [RELEASING.md](RELEASING.md), including generated file locations and local verification commands.
-- ✅ Added a release-notes quick-start template (Windows/macOS/Linux startup commands) to [RELEASING.md](RELEASING.md) for REL-008 readiness completeness.
-- ✅ Updated release-readiness status docs ([STATUS.md](STATUS.md), [DONE.md](DONE.md), [ROADMAP.md](ROADMAP.md), and `release_todo_temp.md`) to mark `0.8.x` Maven Central readiness as complete and shift focus to `0.9.x` rehearsal/freeze.
+- ✅ Added a release-notes quick-start template (Windows/macOS/Linux startup commands) to [RELEASING.md](RELEASING.md)
+- ✅ Updated release-readiness status docs ([STATUS.md](STATUS.md), [DONE.md](DONE.md), [ROADMAP.md](ROADMAP.md)
+- ✅ Documented optional `DISCORD_RELEASE_WEBHOOK` setup in [RELEASING.md](RELEASING.md) for release-note Discord notifications.
 
 ### Build and Tooling
 - ✅ Added Sonatype Central publish repository wiring for `snapfx-core` with environment/property-based credential support (`MAVEN_CENTRAL_USERNAME` / `MAVEN_CENTRAL_PASSWORD`) and signing-secret preflight checks for remote publish tasks.
 - ✅ Extended the release workflow with a stable-tag `publish-maven-central` job that is policy-gated to versions `>= v1.0.0`, and gated final GitHub release publishing on successful/explicitly skipped Central publish execution.
 - ✅ Added release-asset SHA256 generation in the release workflow and publish of matching `*.sha256` files for base and jpackage artifacts.
+- ✅ Added Discord release-note notifications to the tag-based release workflow, posting generated `git-cliff` notes to an optional `DISCORD_RELEASE_WEBHOOK` repository secret.
 
 ## v0.6.1 - 2026-02-28
 

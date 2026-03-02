@@ -5,6 +5,7 @@
 ![Release](https://img.shields.io/github/v/release/Beowolve/SnapFX)
 ![Java](https://img.shields.io/badge/Java-21+-blue)
 ![JavaFX](https://img.shields.io/badge/JavaFX-21+-orange)
+![Discord](https://img.shields.io/discord/1472352970426290383)
 
 ![MainDemo App Screenshot](docs/images/main-demo.png)
 *MainDemo application showing docking and tabbing.*
@@ -218,8 +219,7 @@ Just unzip the archive and run it.
 
 * For contribution workflow, branch strategy, commit/PR expectations, and quality gates, see [CONTRIBUTING.md](CONTRIBUTING.md).
 * For maintainer release/versioning/tag flow, see [RELEASING.md](RELEASING.md).
-* Contact me via Discord if you have questions or suggestions. (Discord invite: https://discord.gg/WwDGWkVsnB)
-
+* Contact me via [Discord](https://discord.gg/WwDGWkVsnB) if you have questions or suggestions.
 
 ## License
 

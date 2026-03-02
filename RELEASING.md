@@ -67,11 +67,15 @@ Optional push using helper:
   - `build-release-assets` (Linux): `clean test`, `:snapfx-core:jar`, `:snapfx-demo:distZip`, `:snapfx-demo:distTar`
   - `build-demo-jpackage` (matrix: Windows/macOS/Linux): `:snapfx-demo:jpackageImage` + `:snapfx-demo:packageJPackageImageZip`
   - `publish-maven-central` (Linux, stable tags `>= v1.0.0`): publishes `:snapfx-core` to Sonatype Central via the OSSRH staging API compatibility endpoint
-  - `publish-release` (Linux): collects all artifacts, generates SHA256 checksums (`*.sha256`), generates notes with `git-cliff`, and publishes one GitHub Release
+  - `publish-release` (Linux): collects all artifacts, generates SHA256 checksums (`*.sha256`), generates notes with `git-cliff`, publishes one GitHub Release, and posts the release notes to Discord when `DISCORD_RELEASE_WEBHOOK` is configured
 - Demo `jpackage` assets are published with OS-specific names:
   - `snapfx-demo-jpackage-image-windows-<tag>.zip`
   - `snapfx-demo-jpackage-image-macos-<tag>.zip`
   - `snapfx-demo-jpackage-image-linux-<tag>.zip`
+
+### Optional GitHub Secret (Discord Notification)
+
+- `DISCORD_RELEASE_WEBHOOK` (Discord webhook URL for release-note notifications after GitHub Release publish)
 
 ## Maven Central Publishing (`snapfx-core`)
 
