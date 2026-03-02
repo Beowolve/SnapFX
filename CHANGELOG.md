@@ -16,6 +16,9 @@ Changelog categories for `Unreleased` and new release sections (in order, includ
 
 ## Unreleased
 
+### Build and Tooling
+- ✅ Release Notes are now generated more compactly with less empty lines, improving readability and reducing noise.
+
 ## v0.6.2 - 2026-03-02
 
 ### Fixes

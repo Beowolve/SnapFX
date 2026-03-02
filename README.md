@@ -24,7 +24,7 @@ Until then, use the project source directly and/or the demo assets from GitHub R
 
 ## Public Preview Status
 
-- **Status:** Public Preview (0.6.1)
+- **Status:** Public Preview (0.6.2)
 - API considered stable but packaging is still being finalized.
 - Maven Central publishing is not live yet; current work focuses on packaging hardening and publishing readiness.
 - Planned first Maven coordinates remain: `org.snapfx:snapfx-core`.
