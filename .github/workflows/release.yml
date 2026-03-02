@@ -174,6 +174,8 @@ jobs:
       - publish-maven-central
     if: ${{ needs.build-release-assets.result == 'success' && needs.build-demo-jpackage.result == 'success' && (needs.publish-maven-central.result == 'success' || needs.publish-maven-central.result == 'skipped') }}
     runs-on: ubuntu-latest
+    env:
+      DISCORD_RELEASE_WEBHOOK: ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -238,10 +240,8 @@ jobs:
             release-assets/jpackage/*.sha256
 
       - name: Notify Discord about release notes
-        if: ${{ secrets.DISCORD_RELEASE_WEBHOOK != '' }}
+        if: ${{ env.DISCORD_RELEASE_WEBHOOK != '' }}
         shell: bash
-        env:
-          DISCORD_RELEASE_WEBHOOK: ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
         run: |
           release_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases/tag/${GITHUB_REF_NAME}"
           notes="$(cat RELEASE_NOTES.md)"
@@ -279,5 +279,5 @@ jobs:
             "${DISCORD_RELEASE_WEBHOOK}"
 
       - name: Warn if Discord webhook is missing
-        if: ${{ secrets.DISCORD_RELEASE_WEBHOOK == '' }}
+        if: ${{ env.DISCORD_RELEASE_WEBHOOK == '' }}
         run: echo "::warning::DISCORD_RELEASE_WEBHOOK is not configured. Skipping Discord release notification."
