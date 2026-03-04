@@ -7,6 +7,12 @@ import org.snapfx.close.DockCloseRequest;
 import org.snapfx.close.DockCloseResult;
 import org.snapfx.debug.DockDebugOverlay;
 import org.snapfx.debug.DockGraphDebugView;
+import org.snapfx.demo.dialog.AboutDialog;
+import org.snapfx.demo.editor.EditorCloseDecisionPolicy;
+import org.snapfx.demo.editor.SerializableEditor;
+import org.snapfx.demo.factory.DemoNodeFactory;
+import org.snapfx.demo.factory.DockNodeType;
+import org.snapfx.demo.util.IconUtil;
 import org.snapfx.dnd.DockDropVisualizationMode;
 import org.snapfx.floating.DockFloatingPinButtonMode;
 import org.snapfx.floating.DockFloatingPinChangeEvent;
@@ -216,6 +222,10 @@ public class MainDemo extends Application {
 
     static List<String> getThemeStylesheetResources() {
         return List.copyOf(getNamedThemeStylesheets().values());
+    }
+
+    SnapFX getSnapFXForAutomation() {
+        return snapFX;
     }
 
     static boolean isDockDebugHudEnabled() {

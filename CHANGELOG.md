@@ -16,8 +16,16 @@ Changelog categories for `Unreleased` and new release sections (in order, includ
 
 ## Unreleased
 
+### Documentation
+- ✅ Added [docs/ANIMATED_GIFS.md](docs/ANIMATED_GIFS.md) as a dedicated animated feature showcase page (Drag & Drop, Side Bars, Snapping + Themes) and linked it from [README.md](README.md).
+
+### Refactoring
+- ✅ Reorganized `snapfx-demo` source layout into thematic packages (`dialog`, `editor`, `factory`, `util`) so demo classes are no longer concentrated in the root package.
+- ✅ Grouped demo preview/image generation classes into `org.snapfx.demo.tools` (`MainDemoScreenshotGenerator`, `MainDemoGifGenerator`, `AnimatedGifWriter`) and updated related build-task entry points and tests.
+
 ### Build and Tooling
 - ✅ Release Notes are now generated more compactly with less empty lines, improving readability and reducing noise.
+- ✅ Added automated MainDemo GIF preview capture (`:snapfx-demo:captureMainDemoGif`) with scripted interaction playback (DnD, sidebar context-menu move, sidebar drag roundtrip, and theme switching), robust sidebar/icon fallback handling, root-relative output paths, classpath launch parity for consistent icon resource loading, built-in duplicate-frame collapse for smaller GIF output, and optional `gifsicle` post-optimization via `./scripts/update-main-demo-preview.ps1 -IncludeGif -OptimizeGif`.
 
 ## v0.6.2 - 2026-03-02
 

@@ -1,6 +1,7 @@
 package org.snapfx.demo;
 
 import org.snapfx.SnapFX;
+import org.snapfx.demo.factory.DemoNodeFactory;
 import org.snapfx.model.DockNode;
 import org.snapfx.model.DockSplitPane;
 import org.snapfx.persistence.DockNodeFactory;

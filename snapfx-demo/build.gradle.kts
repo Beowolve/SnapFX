@@ -57,12 +57,25 @@ tasks.register<JavaExec>("captureMainDemoScreenshot") {
     group = "documentation"
     description = "Launches MainDemo and updates docs/images/main-demo.png"
 
-    mainClass.set("org.snapfx.demo.MainDemoScreenshotGenerator")
+    mainClass.set("org.snapfx.demo.tools.MainDemoScreenshotGenerator")
     classpath = sourceSets.main.get().runtimeClasspath
 
     val outputPath = (project.findProperty("snapfxScreenshotOutput") as String?)
         ?: "docs/images/main-demo.png"
-    args(layout.projectDirectory.file(outputPath).asFile.absolutePath)
+    args(rootProject.layout.projectDirectory.file(outputPath).asFile.absolutePath)
+}
+
+tasks.register<JavaExec>("captureMainDemoGif") {
+    group = "documentation"
+    description = "Launches MainDemo, performs scripted interactions, and updates docs/images/main-demo.gif"
+
+    // Keep classpath launch parity with screenshot capture to ensure demo icon resources resolve consistently.
+    mainClass.set("org.snapfx.demo.tools.MainDemoGifGenerator")
+    classpath = sourceSets.main.get().runtimeClasspath
+
+    val outputPath = (project.findProperty("snapfxGifOutput") as String?)
+        ?: "docs/images/main-demo.gif"
+    args(rootProject.layout.projectDirectory.file(outputPath).asFile.absolutePath)
 }
 
 tasks.register<JavaExec>("runSimpleExample") {

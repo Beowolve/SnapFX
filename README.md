@@ -10,6 +10,8 @@
 ![MainDemo App Screenshot](docs/images/main-demo.png)
 *MainDemo application showing docking and tabbing.*
 
+See animated feature previews: [docs/ANIMATED_GIFS.md](docs/ANIMATED_GIFS.md)
+
 A high-performance, lightweight JavaFX docking framework that behaves like native professional software (IntelliJ, Visual Studio).
 
 * [x] JPMS compatible
@@ -137,6 +139,7 @@ try {
 | [README.md](README.md)             | Entry point, feature overview, and quick start                               |
 | [SETUP.md](SETUP.md)               | Local development environment setup                                          |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Technical architecture and design                                            |
+| [docs/ANIMATED_GIFS.md](docs/ANIMATED_GIFS.md) | Feature showcase via animated GIF previews                                   |
 | [STATUS.md](STATUS.md)             | Current state and open issues                                                |
 | [ROADMAP.md](ROADMAP.md)           | Planned work and future priorities                                           |
 | [DONE.md](DONE.md)                 | Completed milestones and delivered capabilities                              |

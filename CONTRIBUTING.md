@@ -49,6 +49,7 @@ This guide is for contributors working on framework code, tests, documentation, 
 - [ ] [CHANGELOG.md](CHANGELOG.md) is updated for release-visible changes.
 - [ ] Other affected docs are updated ([README.md](README.md), [SETUP.md](SETUP.md), etc.).
 - [ ] MainDemo visual changes include updated preview image (`docs/images/main-demo.png`) regenerated with `./scripts/update-main-demo-preview.ps1`.
+- [ ] If `docs/images/main-demo.gif` is updated, regenerate it with `./scripts/update-main-demo-preview.ps1 -IncludeGif -OptimizeGif` (requires `gifsicle` in `PATH`; on GitHub Actions Ubuntu runners: `sudo apt-get update && sudo apt-get install -y gifsicle`).
 
 ## Collaboration Rules
 

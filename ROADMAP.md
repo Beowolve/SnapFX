@@ -1,6 +1,6 @@
 # SnapFX Development Roadmap
 
-**Last Updated**: 2026-03-01
+**Last Updated**: 2026-03-04
 
 This document tracks planned and proposed work for SnapFX.
 This roadmap keeps a high-level progress view plus planned/proposed work; detailed completed/fixed release history is tracked in [CHANGELOG.md](CHANGELOG.md).
@@ -401,6 +401,7 @@ examples of how this can be done.
 **Priority**: 🔵 Low
 
 - ✅ Completed: `runSimpleExample` task for launching `SimpleExample` with JavaFX module runtime wiring.
+- ✅ Completed: automated MainDemo GIF preview capture task (`:snapfx-demo:captureMainDemoGif`) with scripted interaction playback, duplicate-frame collapse, and optional `gifsicle` post-optimization for docs/media updates.
 - 💡 **Layout validator**: Check for common issues (circular references, missing nodes)
 - 💡 **CSS inspector**: Debug styling issues (similar to browser dev tools)
 - 💡 **FXML support**: Alternative to programmatic API (under consideration, as it may not fit well with the dynamic nature of SnapFX layouts)

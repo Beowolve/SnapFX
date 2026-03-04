@@ -4,6 +4,7 @@ import org.snapfx.close.DockCloseBehavior;
 import org.snapfx.close.DockCloseDecision;
 import org.snapfx.close.DockCloseRequest;
 import org.snapfx.close.DockCloseSource;
+import org.snapfx.demo.editor.EditorCloseDecisionPolicy;
 import org.snapfx.model.DockNode;
 import javafx.scene.layout.StackPane;
 import org.junit.jupiter.api.Test;
