@@ -253,21 +253,43 @@
     -fx-padding: 0;
 }
 
-.dock-split-pane > .split-pane-divider {
+.dock-split-pane > .split-pane-divider,
+.dock-split-pane .split-pane-divider {
     -fx-background-color: derive(-fx-background, -10%);
-    -fx-padding: 0 1 0 1;
+    -fx-padding: 0;
+    -fx-background-insets: 0;
 }
 
-.dock-split-pane:horizontal > .split-pane-divider {
-    -fx-background-color: derive(-fx-background, -10%);
-    -fx-padding: 0 1 0 1;
+.dock-split-pane:horizontal > .split-pane-divider,
+.dock-split-pane:horizontal .split-pane-divider {
+    -fx-padding:2px;
+    -fx-cursor: h_resize;
 }
 
-.dock-split-pane:vertical > .split-pane-divider {
-    -fx-background-color: derive(-fx-background, -10%);
-    -fx-padding: 1 0 1 0;
+.dock-split-pane:vertical > .split-pane-divider,
+.dock-split-pane:vertical .split-pane-divider {
+    -fx-cursor: v_resize;
+    -fx-padding:2px;
 }
 
+.dock-split-pane > .split-pane-divider > .grabber,
+.dock-split-pane > .split-pane-divider > .horizontal-grabber,
+.dock-split-pane > .split-pane-divider > .vertical-grabber,
+.dock-split-pane .split-pane-divider .grabber,
+.dock-split-pane .split-pane-divider .horizontal-grabber,
+.dock-split-pane .split-pane-divider .vertical-grabber {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+    -fx-opacity: 0;
+}
+
+.dock-split-pane > .split-pane-divider:hover,
+.dock-split-pane:horizontal > .split-pane-divider:hover,
+.dock-split-pane:vertical > .split-pane-divider:hover,
+.dock-split-pane .split-pane-divider:hover {
+    -fx-background-color: rgba(75, 140, 245, 0.18);
+}
 /* ===== DockTabPane ===== */
 .dock-tab-pane {
     -fx-background-color: -fx-background;

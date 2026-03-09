@@ -29,10 +29,17 @@
 
 .dock-split-pane > .split-pane-divider,
 .dock-split-pane:horizontal > .split-pane-divider,
-.dock-split-pane:vertical > .split-pane-divider {
+.dock-split-pane:vertical > .split-pane-divider,
+.dock-split-pane .split-pane-divider {
     -fx-background-color: #25272c;
 }
 
+.dock-split-pane > .split-pane-divider:hover,
+.dock-split-pane:horizontal > .split-pane-divider:hover,
+.dock-split-pane:vertical > .split-pane-divider:hover,
+.dock-split-pane .split-pane-divider:hover {
+    -fx-background-color: rgba(93, 169, 255, 0.20);
+}
 .dock-tab-pane .tab-header-area {
     -fx-background-color: #25272c;
 }

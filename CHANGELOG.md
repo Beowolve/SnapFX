@@ -16,6 +16,14 @@ Changelog categories for `Unreleased` and new release sections (in order, includ
 
 ## Unreleased
 
+## v0.6.3 - 2026-03-09
+
+### UI and Interaction
+- Improved DockSplitPane divider usability: both orientations now use a consistent 4px divider thickness with explicit resize cursors, and divider hover highlighting now matches the sidebar-resize interaction style.
+
+### Tests
+- Added `DockLayoutEngineTest` coverage to verify DockSplitPane style-class assignment and divider-node presence after DnD/rebuild flows.
+
 ### Documentation
 - ✅ Added [docs/ANIMATED_GIFS.md](docs/ANIMATED_GIFS.md) as a dedicated animated feature showcase page (Drag & Drop, Side Bars, Snapping + Themes) and linked it from [README.md](README.md).
 

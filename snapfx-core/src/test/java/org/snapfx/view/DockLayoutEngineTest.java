@@ -37,6 +37,10 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Stream;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -438,6 +442,138 @@ class DockLayoutEngineTest extends ApplicationTest {
         SplitPane splitPane = (SplitPane) view;
         assertEquals(2, splitPane.getItems().size());
     }
+    @Test
+    void testHorizontalSplitPaneHasDockStyleAndDividerNode() {
+        DockSplitPane root = new DockSplitPane(Orientation.HORIZONTAL);
+        root.addChild(new DockNode(new Label("Left"), "Left"));
+        root.addChild(new DockNode(new Label("Right"), "Right"));
+        dockGraph.setRoot(root);
+
+        SplitPane splitPane = assertInstanceOf(SplitPane.class, layoutEngine.buildSceneGraph());
+        Scene scene = createStyledScene(splitPane, 900, 600);
+        scene.getRoot().applyCss();
+        scene.getRoot().layout();
+        waitForFxEvents();
+
+        assertTrue(splitPane.getStyleClass().contains(DockThemeStyleClasses.DOCK_SPLIT_PANE));
+        assertTrue(countDirectDividerNodes(splitPane) >= 1, "Expected at least one direct divider node");
+    }
+
+    @Test
+    void testVerticalSplitPaneHasDockStyleAndDividerNode() {
+        DockSplitPane root = new DockSplitPane(Orientation.VERTICAL);
+        root.addChild(new DockNode(new Label("Top"), "Top"));
+        root.addChild(new DockNode(new Label("Bottom"), "Bottom"));
+        dockGraph.setRoot(root);
+
+        SplitPane splitPane = assertInstanceOf(SplitPane.class, layoutEngine.buildSceneGraph());
+        Scene scene = createStyledScene(splitPane, 900, 600);
+        scene.getRoot().applyCss();
+        scene.getRoot().layout();
+        waitForFxEvents();
+
+        assertTrue(splitPane.getStyleClass().contains(DockThemeStyleClasses.DOCK_SPLIT_PANE));
+        assertTrue(countDirectDividerNodes(splitPane) >= 1, "Expected at least one direct divider node");
+    }
+
+    @Test
+    void testVerticalSplitPaneDividerNodesUpdateAfterAddingChild() {
+        DockSplitPane root = new DockSplitPane(Orientation.VERTICAL);
+        root.addChild(new DockNode(new Label("Top"), "Top"));
+        root.addChild(new DockNode(new Label("Middle"), "Middle"));
+        dockGraph.setRoot(root);
+
+        SplitPane splitPane = assertInstanceOf(SplitPane.class, layoutEngine.buildSceneGraph());
+        Scene scene = createStyledScene(splitPane, 900, 700);
+        scene.getRoot().applyCss();
+        scene.getRoot().layout();
+        waitForFxEvents();
+
+        assertTrue(splitPane.getStyleClass().contains(DockThemeStyleClasses.DOCK_SPLIT_PANE));
+        assertTrue(countDirectDividerNodes(splitPane) >= 1, "Expected one divider node for two split items");
+
+        root.addChild(new DockNode(new Label("Bottom"), "Bottom"));
+        scene.getRoot().applyCss();
+        scene.getRoot().layout();
+        waitForFxEvents();
+
+        assertTrue(splitPane.getDividers().size() >= 2, "Expected an additional divider after adding third child");
+        assertTrue(countDirectDividerNodes(splitPane) >= 2, "Expected direct divider nodes to match multi-split layout");
+    }
+
+    @Test
+    void testDividerNodesRemainPresentAfterMovingPropertiesNodeToBottomAcrossFullWidth() {
+        DockNode projectNode = new DockNode(new Label("Project"), "Project Explorer");
+        DockNode editorNode = new DockNode(new Label("Editor"), "Main.java");
+        DockNode propertiesNode = new DockNode(new Label("Properties"), "Properties");
+        DockNode consoleNode = new DockNode(new Label("Console"), "Console");
+        DockNode tasksNode = new DockNode(new Label("Tasks"), "Tasks");
+
+        dockGraph.setRoot(projectNode);
+        dockGraph.dock(editorNode, projectNode, DockPosition.RIGHT);
+        dockGraph.dock(propertiesNode, editorNode, DockPosition.RIGHT);
+        dockGraph.dock(consoleNode, editorNode, DockPosition.BOTTOM);
+        dockGraph.dock(tasksNode, consoleNode, DockPosition.CENTER);
+
+        DockElement initialRoot = dockGraph.getRoot();
+        assertNotNull(initialRoot);
+        dockGraph.move(propertiesNode, initialRoot, DockPosition.BOTTOM);
+
+        SplitPane rootSplit = assertInstanceOf(SplitPane.class, layoutEngine.buildSceneGraph());
+        assertEquals(Orientation.VERTICAL, rootSplit.getOrientation());
+
+        Scene scene = createStyledScene(rootSplit, 1200, 800);
+        scene.getRoot().applyCss();
+        scene.getRoot().layout();
+        waitForFxEvents();
+
+        assertTrue(rootSplit.getStyleClass().contains(DockThemeStyleClasses.DOCK_SPLIT_PANE));
+        assertTrue(countDirectDividerNodes(rootSplit) >= 1, "Expected root split to expose divider node");
+
+        List<SplitPane> nestedVerticalSplits = rootSplit.lookupAll(".split-pane").stream()
+            .filter(SplitPane.class::isInstance)
+            .map(SplitPane.class::cast)
+            .filter(split -> split != rootSplit && split.getOrientation() == Orientation.VERTICAL)
+            .toList();
+        nestedVerticalSplits.forEach(split -> {
+            assertTrue(split.getStyleClass().contains(DockThemeStyleClasses.DOCK_SPLIT_PANE));
+            if (split.getItems().size() > 1) {
+                assertTrue(countDirectDividerNodes(split) >= 1, "Expected divider nodes for nested multi-item split");
+            }
+        });
+    }
+
+    @Test
+    void testAllDockSplitPaneViewsRetainStyleClassAfterDnDRebuild() {
+        DockNode projectNode = new DockNode(new Label("Project"), "Project Explorer");
+        DockNode editorNode = new DockNode(new Label("Editor"), "Main.java");
+        DockNode propertiesNode = new DockNode(new Label("Properties"), "Properties");
+        DockNode consoleNode = new DockNode(new Label("Console"), "Console");
+        DockNode tasksNode = new DockNode(new Label("Tasks"), "Tasks");
+
+        dockGraph.setRoot(projectNode);
+        dockGraph.dock(editorNode, projectNode, DockPosition.RIGHT);
+        dockGraph.dock(propertiesNode, editorNode, DockPosition.RIGHT);
+        dockGraph.dock(consoleNode, editorNode, DockPosition.BOTTOM);
+        dockGraph.dock(tasksNode, consoleNode, DockPosition.CENTER);
+
+        DockElement rootBeforeMove = dockGraph.getRoot();
+        assertNotNull(rootBeforeMove);
+        dockGraph.move(propertiesNode, rootBeforeMove, DockPosition.BOTTOM);
+
+        SplitPane rootSplit = assertInstanceOf(SplitPane.class, layoutEngine.buildSceneGraph());
+        Scene scene = createStyledScene(rootSplit, 1200, 800);
+        scene.getRoot().applyCss();
+        scene.getRoot().layout();
+        waitForFxEvents();
+
+        List<SplitPane> splitPanes = collectDockSplitPanes(rootSplit);
+        assertFalse(splitPanes.isEmpty(), "Expected at least one split pane in dock layout");
+        splitPanes.forEach(splitPane -> assertTrue(
+            splitPane.getStyleClass().contains(DockThemeStyleClasses.DOCK_SPLIT_PANE),
+            "Expected split pane to contain style class '" + DockThemeStyleClasses.DOCK_SPLIT_PANE + "'"
+        ));
+    }
 
     @Test
     void testAddElementZonesHandlesSmallLeafBoundsWithoutClampException() {
@@ -836,7 +972,46 @@ class DockLayoutEngineTest extends ApplicationTest {
             }
         }
     }
+    private List<Node> getDirectDividerNodes(SplitPane splitPane) {
+        return splitPane.getChildrenUnmodifiable().stream()
+            .filter(child -> child.getStyleClass().contains("split-pane-divider"))
+            .toList();
+    }
 
+    private int countDirectDividerNodes(SplitPane splitPane) {
+        return getDirectDividerNodes(splitPane).size();
+    }
+
+    private Scene createStyledScene(Node contentNode, double width, double height) {
+        Scene scene = new Scene(new StackPane(contentNode), width, height);
+        String stylesheetUrl = Objects.requireNonNull(
+            DockLayoutEngineTest.class.getResource("/snapfx.css"),
+            "Expected snapfx.css test resource to be available"
+        ).toExternalForm();
+        scene.getStylesheets().add(stylesheetUrl);
+        return scene;
+    }
+
+    private List<SplitPane> collectDockSplitPanes(SplitPane rootSplit) {
+        return Stream.concat(
+                Stream.of(rootSplit),
+                rootSplit.lookupAll(".split-pane").stream()
+                    .filter(SplitPane.class::isInstance)
+                    .map(SplitPane.class::cast)
+            )
+            .distinct()
+            .toList();
+    }
+    private void waitForFxEvents() {
+        CountDownLatch latch = new CountDownLatch(1);
+        Platform.runLater(latch::countDown);
+        try {
+            assertTrue(latch.await(5, TimeUnit.SECONDS), "Timed out waiting for JavaFX events");
+        } catch (InterruptedException interruptedException) {
+            Thread.currentThread().interrupt();
+            fail("Interrupted while waiting for JavaFX events", interruptedException);
+        }
+    }
     private List<DockNode> buildLargeLayout(int nodeCount) {
         List<DockNode> nodes = new ArrayList<>(nodeCount);
         DockPosition[] positions = {
