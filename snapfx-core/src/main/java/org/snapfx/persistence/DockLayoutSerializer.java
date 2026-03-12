@@ -7,10 +7,14 @@ import javafx.geometry.Orientation;
 import javafx.scene.control.Label;
 
 import java.lang.reflect.Type;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.BiFunction;
 
 /**
  * Serializes and deserializes {@link DockGraph} structures to/from JSON.
@@ -29,6 +33,15 @@ import java.util.Map;
  * }</pre>
  */
 public class DockLayoutSerializer {
+    private static final BiFunction<String, Object[], String> DEFAULT_TEXT_RESOLVER = (key, args) -> switch (key) {
+        case "dock.serializer.title.untitled" -> "Untitled";
+        case "dock.serializer.title.unavailableNodeWithId" -> "Unavailable Node ({0})";
+        case "dock.serializer.title.unavailableNode" -> "Unavailable Node";
+        case "dock.serializer.placeholder.message" ->
+            "Unavailable node restored as placeholder.\nSaved type: {0}\nNode ID: {1}\nLayout ID: {2}\nJSON path: {3}";
+        default -> key;
+    };
+
     /** Serialized type token for {@link DockNode}. */
     public static final String DOCK_NODE = "DockNode";
     /** Serialized type token for {@link DockSplitPane}. */
@@ -47,6 +60,7 @@ public class DockLayoutSerializer {
     private final Gson gson;
     private final Map<String, DockNode> nodeRegistry;
     private DockNodeFactory nodeFactory;
+    private BiFunction<String, Object[], String> textResolver = DEFAULT_TEXT_RESOLVER;
 
     /**
      * Creates a serializer bound to one dock graph.
@@ -72,6 +86,15 @@ public class DockLayoutSerializer {
      */
     public void setNodeFactory(DockNodeFactory factory) {
         this.nodeFactory = factory;
+    }
+
+    /**
+     * Sets the resolver used for localized serializer and placeholder texts.
+     *
+     * @param textResolver localized text resolver; {@code null} restores built-in English defaults
+     */
+    public void setTextResolver(BiFunction<String, Object[], String> textResolver) {
+        this.textResolver = textResolver == null ? DEFAULT_TEXT_RESOLVER : textResolver;
     }
 
     /**
@@ -509,12 +532,12 @@ public class DockLayoutSerializer {
             return data.title;
         }
         if (isBlank(unsupportedType)) {
-            return "Untitled";
+            return text("dock.serializer.title.untitled");
         }
         if (!isBlank(resolvedDockNodeId)) {
-            return "Unavailable Node (" + resolvedDockNodeId + ")";
+            return text("dock.serializer.title.unavailableNodeWithId", resolvedDockNodeId);
         }
-        return "Unavailable Node";
+        return text("dock.serializer.title.unavailableNode");
     }
 
     private String buildPlaceholderMessage(
@@ -526,11 +549,26 @@ public class DockLayoutSerializer {
         String savedType = isBlank(unsupportedType) ? DOCK_NODE : unsupportedType;
         String nodeId = isBlank(resolvedDockNodeId) ? "<unknown>" : resolvedDockNodeId;
         String layoutId = isBlank(resolvedLayoutId) ? "<unknown>" : resolvedLayoutId;
-        return "Unavailable node restored as placeholder.\n"
-            + "Saved type: " + savedType + "\n"
-            + "Node ID: " + nodeId + "\n"
-            + "Layout ID: " + layoutId + "\n"
-            + "JSON path: " + typePath;
+        return text(
+            "dock.serializer.placeholder.message",
+            savedType,
+            nodeId,
+            layoutId,
+            typePath
+        );
+    }
+
+    private String text(String key, Object... args) {
+        String resolvedKey = Objects.requireNonNull(key, "key");
+        Object[] resolvedArgs = args == null ? new Object[0] : args;
+        String pattern = textResolver.apply(resolvedKey, resolvedArgs);
+        if (pattern == null || pattern.isBlank()) {
+            pattern = resolvedKey;
+        }
+        if (resolvedArgs.length == 0) {
+            return pattern;
+        }
+        return new MessageFormat(pattern, Locale.ENGLISH).format(resolvedArgs);
     }
 
     private DockSplitPane deserializeSplitPane(ElementData data, String path) throws DockLayoutLoadException {

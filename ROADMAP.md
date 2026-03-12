@@ -1,6 +1,6 @@
 # SnapFX Development Roadmap
 
-**Last Updated**: 2026-03-04
+**Last Updated**: 2026-03-13
 
 This document tracks planned and proposed work for SnapFX.
 This roadmap keeps a high-level progress view plus planned/proposed work; detailed completed/fixed release history is tracked in [CHANGELOG.md](CHANGELOG.md).
@@ -356,6 +356,7 @@ examples of how this can be done.
 **Priority**: 🟢 Medium
 
 - ✅ **Split ratio API**: Configure split pane ratios directly via `SnapFX.setRootSplitRatios(...)` / `setSplitRatios(...)`
+- ✅ **Localization runtime API**: Added locale/provider property APIs, built-in `EN`/`DE`, provider extension SPI, and FX-thread mutation enforcement
 - 🚧 **Pre-`v1.0.0` maintainability refactor track**: Decompose oversized orchestration classes (starting with `SnapFX`), deduplicate DnD/floating interaction policies, and reduce internal coupling while keeping public API behavior stable
 - 📋 **Builder pattern**: Fluent API for layout construction
 - 📋 **Event API**: Listen to layout changes
@@ -387,8 +388,9 @@ examples of how this can be done.
 - ✅ **Tutorial baseline**: Docusaurus now includes a "First Layout" step-by-step tutorial from root setup through save/load.
 - ✅ **Examples baseline**: Docusaurus now includes reusable code examples for common integration patterns (IDE layout, tab grouping, floating, lock mode, shortcuts, themes, save/load).
 - ✅ **GitHub Pages site**: Docusaurus-based documentation portal is now live at `https://snapfx.org/` (guides, architecture, release status) with JavaDoc integrated under `/api`.
+- ✅ **Localization documentation baseline**: Added ADR 0006, architecture updates, and dedicated Docusaurus localization guide (API usage, provider extension, fallback/threading/RTL/formatting notes).
 - ✅ **Changelog release hygiene baseline**: `CHANGELOG.md` now keeps explicit sections per release tag (including backfilled `v0.5.0` and `v0.6.0`), and `Unreleased` is reserved for post-tag work.
-- ✅ **Docs link + status hygiene pass**: docs pages now use clickable links for references (including API links), and release-readiness status content is aligned to the current `v0.6.x` state.
+- ✅ **Docs link + status hygiene pass**: docs pages now use clickable links for references (including API links), and release-readiness status content is aligned to the current `v0.7.x` state.
 - 📋 **Docs versioning (post-`1.0.0`)**: Start Docusaurus multi-version docs and versioned API JavaDoc paths only after the first stable release to keep pre-`1.0.0` maintenance overhead low.
 - 📋 **Video tutorials**: Screen recordings
 - 📋 **Doc consistency guardrails**: Keep markdown consistency tests aligned with documentation scope rules while avoiding brittle content-specific assertions (focus on encoding/format guardrails)

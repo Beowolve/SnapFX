@@ -22,11 +22,20 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
+import java.util.Objects;
+import java.util.function.BiFunction;
+
 /**
  * Visual representation of a DockNode.
  * Renders a header with title and control buttons, plus the content.
  */
 public class DockNodeView extends VBox {
+    private static final BiFunction<String, Object[], String> DEFAULT_TEXT_RESOLVER = (key, args) -> switch (key) {
+        case "dock.node.tooltip.floatWindow" -> "Float window";
+        case "dock.node.tooltip.closePanel" -> "Close panel";
+        default -> key;
+    };
+
     private final DockNode dockNode;
     private final DockGraph dockGraph;  // NOSONAR - needed for button actions, but not exposed publicly
     private final DockDragService dragService;
@@ -39,6 +48,7 @@ public class DockNodeView extends VBox {
     private final ChangeListener<Image> iconListener;
     private final ChangeListener<Node> contentListener;
     private ContextMenu headerContextMenu;
+    private final BiFunction<String, Object[], String> textResolver;
 
     /**
      * Creates a rendered dock-node view bound to model and drag service.
@@ -48,9 +58,27 @@ public class DockNodeView extends VBox {
      * @param dragService drag service used for header drag interactions
      */
     public DockNodeView(DockNode dockNode, DockGraph dockGraph, DockDragService dragService) {
+        this(dockNode, dockGraph, dragService, DEFAULT_TEXT_RESOLVER);
+    }
+
+    /**
+     * Creates a rendered dock-node view bound to model and drag service with an explicit text resolver.
+     *
+     * @param dockNode model node to render
+     * @param dockGraph owning dock graph (used for default close action and lock state)
+     * @param dragService drag service used for header drag interactions
+     * @param textResolver resolver for localized framework chrome strings
+     */
+    public DockNodeView(
+        DockNode dockNode,
+        DockGraph dockGraph,
+        DockDragService dragService,
+        BiFunction<String, Object[], String> textResolver
+    ) {
         this.dockNode = dockNode;
         this.dockGraph = dockGraph;
         this.dragService = dragService;
+        this.textResolver = textResolver == null ? DEFAULT_TEXT_RESOLVER : textResolver;
 
         getStyleClass().add(DockThemeStyleClasses.DOCK_NODE_VIEW);
 
@@ -85,7 +113,7 @@ public class DockNodeView extends VBox {
         floatButton = new Button();
         floatButton.getStyleClass().addAll(DockThemeStyleClasses.DOCK_NODE_CLOSE_BUTTON, DockThemeStyleClasses.DOCK_NODE_FLOAT_BUTTON);
         floatButton.setGraphic(createControlIcon(DockThemeStyleClasses.DOCK_CONTROL_ICON_FLOAT));
-        floatButton.setTooltip(new Tooltip("Float window"));
+        floatButton.setTooltip(new Tooltip(text("dock.node.tooltip.floatWindow")));
         floatButton.setFocusTraversable(false);
         floatButton.setOnAction(e -> { });
         floatButton.visibleProperty().bind(dockGraph.lockedProperty().not());
@@ -94,7 +122,7 @@ public class DockNodeView extends VBox {
         closeButton = new Button();
         closeButton.getStyleClass().add(DockThemeStyleClasses.DOCK_NODE_CLOSE_BUTTON);
         closeButton.setGraphic(createControlIcon(DockThemeStyleClasses.DOCK_CONTROL_ICON_CLOSE));
-        closeButton.setTooltip(new Tooltip("Close panel"));
+        closeButton.setTooltip(new Tooltip(text("dock.node.tooltip.closePanel")));
         closeButton.setFocusTraversable(false);
         closeButton.setOnAction(e -> dockGraph.undock(dockNode));
         closeButton.visibleProperty().bind(
@@ -128,6 +156,11 @@ public class DockNodeView extends VBox {
         header.setOnMouseReleased(this::onHeaderReleased);
 
         getChildren().addAll(header, contentPane);
+    }
+
+    private String text(String key, Object... args) {
+        String resolvedKey = Objects.requireNonNull(key, "key");
+        return textResolver.apply(resolvedKey, args == null ? new Object[0] : args);
     }
 
     private void onHeaderPressed(MouseEvent event) {

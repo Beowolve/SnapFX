@@ -38,6 +38,8 @@ import javafx.event.EventHandler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 
@@ -47,6 +49,11 @@ import java.util.function.Consumer;
  */
 @SuppressWarnings("unused")
 public class DockDragService {
+    private static final BiFunction<String, Object[], String> DEFAULT_TEXT_RESOLVER = (key, args) -> switch (key) {
+        case "dock.drag.placeholder.untitled" -> "Untitled";
+        default -> key;
+    };
+
     private final DockGraph dockGraph;
     private DockDragData currentDrag;
     private DockDropVisualizationMode dropVisualizationMode = DockDropVisualizationMode.DEFAULT;
@@ -72,6 +79,7 @@ public class DockDragService {
     private Consumer<DragHoverEvent> onDragHover;
     private Runnable onDragFinished;
     private BiPredicate<Double, Double> suppressMainDropAtScreenPoint;
+    private BiFunction<String, Object[], String> textResolver = DEFAULT_TEXT_RESOLVER;
     private final EventHandler<KeyEvent> dragCancelKeyHandler = this::handleDragCancelKeyPressed;
     private final List<Scene> dragCancelScenes = new ArrayList<>();
 
@@ -578,6 +586,15 @@ public class DockDragService {
     }
 
     /**
+     * Sets the resolver used for localized framework drag texts.
+     *
+     * @param textResolver localized text resolver; {@code null} restores built-in English defaults
+     */
+    public void setTextResolver(BiFunction<String, Object[], String> textResolver) {
+        this.textResolver = textResolver == null ? DEFAULT_TEXT_RESOLVER : textResolver;
+    }
+
+    /**
      * Sets the callback for unresolved drop requests that should detach to floating windows.
      *
      * @param onFloatDetachRequest detach callback, or {@code null}
@@ -645,10 +662,15 @@ public class DockDragService {
         gc.setFont(Font.font("System", FontWeight.BOLD, 12));
         double textX = 12;
         double textY = h / 2.0 + 4;
-        gc.fillText(title != null ? title : "Untitled", textX, textY);
+        gc.fillText(title != null ? title : text("dock.drag.placeholder.untitled"), textX, textY);
         WritableImage img = new WritableImage(w, h);
         canvas.snapshot(null, img);
         return img;
+    }
+
+    private String text(String key, Object... args) {
+        String resolvedKey = Objects.requireNonNull(key, "key");
+        return textResolver.apply(resolvedKey, args == null ? new Object[0] : args);
     }
 
     /**

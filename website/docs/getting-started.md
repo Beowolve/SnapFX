@@ -15,6 +15,20 @@ Until Maven Central publication is live, use source checkout or GitHub Release d
 ./gradlew run
 ```
 
+## Quick Localization Setup
+
+```java
+SnapFX snapFX = new SnapFX();
+snapFX.setLocale(Locale.GERMAN);
+
+// Optional: provide your own language pack
+snapFX.setLocalizationProvider(
+    new DockResourceBundleLocalizationProvider("com.example.i18n.snapfx")
+);
+```
+
+See the full guide at [Localization](/localization).
+
 ## Build Demo Runtime Image (`jlink`)
 
 ```bash

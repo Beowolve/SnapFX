@@ -1,5 +1,7 @@
 package org.snapfx.debug;
 
+import org.snapfx.localization.DockLocalizationProvider;
+import org.snapfx.localization.internal.DockLocalizationService;
 import org.snapfx.model.DockNode;
 import org.snapfx.theme.DockThemeStyleClasses;
 import org.snapfx.dnd.DockDragData;
@@ -14,6 +16,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 
+import java.util.Locale;
 import java.util.Objects;
 
 /**
@@ -22,6 +25,7 @@ import java.util.Objects;
 public class DockDebugOverlay extends StackPane {
     private final DockDragService dragService;
     private final AnimationTimer refreshTimer;
+    private final DockLocalizationService localizationService;
 
     private final Text hudText;
     private String lastRenderedText;
@@ -36,6 +40,7 @@ public class DockDebugOverlay extends StackPane {
     public DockDebugOverlay(DockGraph dockGraph, DockDragService dragService) {
         Objects.requireNonNull(dockGraph, "dockGraph");
         this.dragService = Objects.requireNonNull(dragService, "dragService");
+        this.localizationService = new DockLocalizationService();
 
         setMouseTransparent(true);
         setPickOnBounds(false);
@@ -75,6 +80,26 @@ public class DockDebugOverlay extends StackPane {
         refreshFromDragService();
     }
 
+    /**
+     * Sets the locale used by the debug overlay.
+     *
+     * @param locale locale to apply, or {@code null} for default
+     */
+    public void setLocale(Locale locale) {
+        localizationService.setLocale(locale);
+        refreshFromDragService();
+    }
+
+    /**
+     * Sets an optional user localization provider used by the debug overlay.
+     *
+     * @param provider provider to apply, or {@code null}
+     */
+    public void setLocalizationProvider(DockLocalizationProvider provider) {
+        localizationService.setUserProvider(provider);
+        refreshFromDragService();
+    }
+
     void refreshFromDragService() {
         updateText(dragService.getCurrentDrag());
     }
@@ -92,8 +117,8 @@ public class DockDebugOverlay extends StackPane {
         DockElement target = data.getDropTarget();
         DockPosition pos = data.getDropPosition();
 
-        String targetText = target == null ? "none" : target.getClass().getSimpleName();
-        String posText = pos == null ? "none" : pos.name();
+        String targetText = target == null ? text("dock.debug.none") : target.getClass().getSimpleName();
+        String posText = pos == null ? text("dock.debug.none") : pos.name();
 
         if (target instanceof DockNode dockNode) {
             targetText = dockNode.getTitle();
@@ -101,7 +126,11 @@ public class DockDebugOverlay extends StackPane {
 
         applyHudState(
             true,
-            "Drag: " + safeTitle(data) + "\nTarget: " + targetText + "\nZone: " + posText
+            text("dock.debug.overlay.dragLine", safeTitle(data))
+                + "\n"
+                + text("dock.debug.overlay.targetLine", targetText)
+                + "\n"
+                + text("dock.debug.overlay.zoneLine", posText)
         );
     }
 
@@ -117,9 +146,13 @@ public class DockDebugOverlay extends StackPane {
 
     private String safeTitle(DockDragData data) {
         if (data == null || data.getDraggedNode() == null) {
-            return "<null>";
+            return text("dock.common.null");
         }
         String title = data.getDraggedNode().getTitle();
-        return title == null || title.isEmpty() ? "<untitled>" : title;
+        return title == null || title.isEmpty() ? text("dock.common.untitled") : title;
+    }
+
+    private String text(String key, Object... args) {
+        return localizationService.text(Objects.requireNonNull(key, "key"), args);
     }
 }

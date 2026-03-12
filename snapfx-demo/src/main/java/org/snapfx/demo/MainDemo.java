@@ -19,6 +19,8 @@ import org.snapfx.floating.DockFloatingPinChangeEvent;
 import org.snapfx.floating.DockFloatingPinLockedBehavior;
 import org.snapfx.floating.DockFloatingSnapTarget;
 import org.snapfx.floating.DockFloatingWindow;
+import org.snapfx.localization.DockLocalizationProvider;
+import org.snapfx.localization.DockResourceBundleLocalizationProvider;
 import org.snapfx.model.DockContainer;
 import org.snapfx.model.DockElement;
 import org.snapfx.model.DockNode;
@@ -48,6 +50,7 @@ import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import javafx.util.StringConverter;
 
 import java.io.File;
 import java.io.IOException;
@@ -57,6 +60,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -81,6 +85,7 @@ public class MainDemo extends Application {
     private static final String DEFAULT_LAYOUT_FILE_NAME = "snapfx-layout.json";
     private static final String DOCUMENTS_DIRECTORY_NAME = "Documents";
     private static final boolean ENABLE_DOCK_DEBUG_HUD = false;
+    private static final Locale EXTENDED_DEMO_LOCALE = Locale.FRENCH;
     private static final List<String> APP_ICON_RESOURCES = List.of(
         "/images/16/snapfx.png",
         "/images/24/snapfx.png",
@@ -121,6 +126,13 @@ public class MainDemo extends Application {
     private Spinner<Double> leftSideBarPanelWidthSpinner;
     private Spinner<Double> rightSideBarPanelWidthSpinner;
     private boolean updatingSideBarSettingsControls;
+    private ComboBox<Locale> localeComboBox;
+    private DockGraphDebugView debugView;
+    private DockDebugOverlay debugOverlay;
+    private final DockLocalizationProvider demoLocalizationProvider = new DockResourceBundleLocalizationProvider(
+        "org.snapfx.demo.i18n.snapfx",
+        MainDemo.class.getModule()
+    );
 
     private static final class EditorDocumentState {
         private String baseTitle;
@@ -184,6 +196,9 @@ public class MainDemo extends Application {
 
         // Install debug panel (right side)
         installDebugPanel();
+
+        // Keep demo localization controls and runtime state synchronized.
+        applyLocalizationSelection();
 
         // Initialize SnapFX AFTER scene is set (needed for ghost overlay)
         snapFX.initialize(stage);
@@ -934,6 +949,70 @@ public class MainDemo extends Application {
         }
     }
 
+    private void onLocaleSelectionChanged(Locale locale) {
+        if (locale == null) {
+            return;
+        }
+        applyLocalizationSelection();
+    }
+
+    private void applyLocalizationSelection() {
+        if (snapFX == null) {
+            return;
+        }
+        Locale selectedLocale = localeComboBox == null || localeComboBox.getValue() == null
+            ? SnapFX.getDefaultLocale()
+            : localeComboBox.getValue();
+        DockLocalizationProvider selectedProvider = selectedLocale != null
+            && EXTENDED_DEMO_LOCALE.getLanguage().equals(selectedLocale.getLanguage())
+            ? demoLocalizationProvider
+            : null;
+
+        snapFX.setLocale(selectedLocale);
+        snapFX.setLocalizationProvider(selectedProvider);
+
+        if (debugView != null) {
+            debugView.setLocale(selectedLocale);
+            debugView.setLocalizationProvider(selectedProvider);
+        }
+        if (debugOverlay != null) {
+            debugOverlay.setLocale(selectedLocale);
+            debugOverlay.setLocalizationProvider(selectedProvider);
+        }
+    }
+
+    private List<Locale> buildDemoLocaleOptions() {
+        List<Locale> locales = new ArrayList<>(SnapFX.getAvailableLocales());
+        if (!locales.contains(EXTENDED_DEMO_LOCALE)) {
+            locales.add(EXTENDED_DEMO_LOCALE);
+        }
+        return locales;
+    }
+
+    private StringConverter<Locale> createLocaleDisplayConverter() {
+        return new StringConverter<>() {
+            @Override
+            public String toString(Locale locale) {
+                if (locale == null) {
+                    return "";
+                }
+                String displayLanguage = locale.getDisplayLanguage(Locale.ENGLISH);
+                if (displayLanguage == null || displayLanguage.isBlank()) {
+                    displayLanguage = locale.toLanguageTag();
+                }
+                return displayLanguage + " (" + locale.toLanguageTag() + ")";
+            }
+
+            @Override
+            public Locale fromString(String value) {
+                if (value == null || value.isBlank()) {
+                    return null;
+                }
+                return localeComboBox == null ? null : localeComboBox.getValue();
+            }
+        };
+    }
+
     static EnumSet<DockFloatingSnapTarget> resolveFloatingWindowSnapTargets(
         boolean screenEnabled,
         boolean mainWindowEnabled,
@@ -1009,7 +1088,7 @@ public class MainDemo extends Application {
             dockLayoutHost.getChildren().setAll(dockLayout);
         }
 
-        DockGraphDebugView debugView = new DockGraphDebugView(snapFX.getDockGraph(), snapFX.getDragService());
+        debugView = new DockGraphDebugView(snapFX.getDockGraph(), snapFX.getDragService());
         debugView.setPrefWidth(420);
 
         // Enable auto-export by default
@@ -1032,12 +1111,13 @@ public class MainDemo extends Application {
 
         if (ENABLE_DOCK_DEBUG_HUD) {
             // Local demo HUD for D&D diagnostics.
-            DockDebugOverlay hud = new DockDebugOverlay(snapFX.getDockGraph(), snapFX.getDragService());
-            StackPane stack = new StackPane(mainSplit, hud);
-            StackPane.setAlignment(hud, Pos.TOP_LEFT);
-            StackPane.setMargin(hud, new Insets(10));
+            debugOverlay = new DockDebugOverlay(snapFX.getDockGraph(), snapFX.getDragService());
+            StackPane stack = new StackPane(mainSplit, debugOverlay);
+            StackPane.setAlignment(debugOverlay, Pos.TOP_LEFT);
+            StackPane.setMargin(debugOverlay, new Insets(10));
             mainLayout.setCenter(stack);
         } else {
+            debugOverlay = null;
             mainLayout.setCenter(mainSplit);
         }
         // Rebuild debug tree when layout is rebuilt
@@ -1168,9 +1248,17 @@ public class MainDemo extends Application {
         themeMode.valueProperty().addListener((obs, oldVal, newVal) -> onThemeChanged(newVal));
         grid.addRow(11, new Label("Theme"), themeMode);
 
+        localeComboBox = new ComboBox<>();
+        localeComboBox.getItems().setAll(buildDemoLocaleOptions());
+        localeComboBox.setConverter(createLocaleDisplayConverter());
+        localeComboBox.setMaxWidth(Double.MAX_VALUE);
+        localeComboBox.setValue(snapFX.getLocale());
+        localeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> onLocaleSelectionChanged(newVal));
+        grid.addRow(12, new Label("Framework Locale"), localeComboBox);
+
         CheckBox promptEditorCloseCheckBox = new CheckBox("Prompt for unsaved editors");
         promptEditorCloseCheckBox.selectedProperty().bindBidirectional(promptOnEditorCloseProperty);
-        grid.addRow(12, new Label("Close Hook"), promptEditorCloseCheckBox);
+        grid.addRow(13, new Label("Close Hook"), promptEditorCloseCheckBox);
 
         VBox sideBarSection = createSideBarSettingsSection();
         Label hint = new Label("Changes apply immediately. Dirty editors are marked with '*'.");

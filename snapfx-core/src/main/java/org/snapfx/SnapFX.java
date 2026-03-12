@@ -8,6 +8,8 @@ import org.snapfx.close.DockCloseSource;
 import org.snapfx.dnd.DockDragData;
 import org.snapfx.dnd.DockDragService;
 import org.snapfx.dnd.DockDropVisualizationMode;
+import org.snapfx.localization.DockLocalizationProvider;
+import org.snapfx.localization.internal.DockLocalizationService;
 import org.snapfx.floating.DockFloatingPinButtonMode;
 import org.snapfx.floating.DockFloatingPinChangeEvent;
 import org.snapfx.floating.DockFloatingPinLockedBehavior;
@@ -33,6 +35,8 @@ import org.snapfx.view.DockLayoutEngine;
 import org.snapfx.view.DockTitleBarMode;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -75,7 +79,9 @@ import java.util.EnumSet;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -110,6 +116,9 @@ public class SnapFX {
     private static final double SIDEBAR_DROP_INSERT_LINE_HORIZONTAL_INSET = 3.0;
     private static final Duration SIDEBAR_TOOLTIP_SHOW_DELAY = Duration.ZERO;
 
+    private final DockLocalizationService localizationService;
+    private final ObjectProperty<Locale> localeProperty;
+    private final ObjectProperty<DockLocalizationProvider> localizationProviderProperty;
     private final DockGraph dockGraph;
     private final DockLayoutEngine layoutEngine;
     private final DockDragService dragService;
@@ -155,10 +164,28 @@ public class SnapFX {
 
     private Pane rootContainer; // Container that holds the buildLayout() result
 
+    private final class FxThreadObjectProperty<T> extends SimpleObjectProperty<T> {
+        private final String propertyName;
+
+        private FxThreadObjectProperty(String propertyName, T initialValue) {
+            super(initialValue);
+            this.propertyName = propertyName;
+        }
+
+        @Override
+        public void set(T newValue) {
+            requireFxThreadMutation(propertyName);
+            super.set(newValue);
+        }
+    }
+
     /**
      * Creates a new SnapFX instance with default services, callbacks, and shortcut/theme configuration.
      */
     public SnapFX() {
+        this.localizationService = new DockLocalizationService();
+        this.localeProperty = new FxThreadObjectProperty<>("locale", DockLocalizationService.DEFAULT_LOCALE);
+        this.localizationProviderProperty = new FxThreadObjectProperty<>("localizationProvider", null);
         this.dockGraph = new DockGraph();
         this.dragService = new DockDragService(dockGraph);
         this.layoutEngine = new DockLayoutEngine(dockGraph, dragService);
@@ -177,6 +204,11 @@ public class SnapFX {
         this.readOnlyFloatingWindows = FXCollections.unmodifiableObservableList(floatingWindows);
         this.renderedSideBarStrips = new EnumMap<>(Side.class);
         this.themeStylesheetManager = new DockThemeStylesheetManager();
+        this.localeProperty.addListener((obs, oldLocale, newLocale) -> onLocaleChanged(newLocale));
+        this.localizationProviderProperty.addListener(
+            (obs, oldProvider, newProvider) -> onLocalizationProviderChanged(newProvider)
+        );
+        applyLocalizationConfiguration();
         resetShortcutsToDefaults();
         this.layoutEngine.setOnNodeCloseRequest(this::handleDockNodeCloseRequest);
         this.layoutEngine.setOnNodeFloatRequest(this::floatNode);
@@ -264,6 +296,88 @@ public class SnapFX {
      */
     public static List<String> getAvailableThemeNames() {
         return DockThemeCatalog.getAvailableThemeNames();
+    }
+
+    /**
+     * Returns the default locale used by SnapFX.
+     *
+     * @return default locale
+     */
+    public static Locale getDefaultLocale() {
+        return DockLocalizationService.DEFAULT_LOCALE;
+    }
+
+    /**
+     * Returns locales that ship with built-in SnapFX translations.
+     *
+     * @return immutable list of built-in locales
+     */
+    public static List<Locale> getAvailableLocales() {
+        return DockLocalizationService.BUILT_IN_LOCALES;
+    }
+
+    /**
+     * Returns the active SnapFX locale property.
+     *
+     * <p>Mutations must happen on the JavaFX Application Thread.</p>
+     *
+     * @return active locale property
+     */
+    public ObjectProperty<Locale> localeProperty() {
+        return localeProperty;
+    }
+
+    /**
+     * Returns the active SnapFX locale.
+     *
+     * @return active locale
+     */
+    public Locale getLocale() {
+        return localeProperty.get();
+    }
+
+    /**
+     * Sets the active SnapFX locale.
+     *
+     * <p>Call this method on the JavaFX Application Thread.</p>
+     *
+     * @param locale new locale, or {@code null} to restore the default locale
+     * @throws IllegalStateException if called outside the JavaFX Application Thread
+     */
+    public void setLocale(Locale locale) {
+        localeProperty.set(locale == null ? DockLocalizationService.DEFAULT_LOCALE : locale);
+    }
+
+    /**
+     * Returns the optional user localization provider property.
+     *
+     * <p>Mutations must happen on the JavaFX Application Thread.</p>
+     *
+     * @return user provider property
+     */
+    public ObjectProperty<DockLocalizationProvider> localizationProviderProperty() {
+        return localizationProviderProperty;
+    }
+
+    /**
+     * Returns the optional user localization provider.
+     *
+     * @return user provider, or {@code null}
+     */
+    public DockLocalizationProvider getLocalizationProvider() {
+        return localizationProviderProperty.get();
+    }
+
+    /**
+     * Sets the optional user localization provider.
+     *
+     * <p>Call this method on the JavaFX Application Thread.</p>
+     *
+     * @param provider user localization provider, or {@code null}
+     * @throws IllegalStateException if called outside the JavaFX Application Thread
+     */
+    public void setLocalizationProvider(DockLocalizationProvider provider) {
+        localizationProviderProperty.set(provider);
     }
 
     /**
@@ -379,6 +493,50 @@ public class SnapFX {
         if (rootContainer != null) {
             Platform.runLater(this::rebuildRootView);
         }
+    }
+
+    private void onLocaleChanged(Locale newLocale) {
+        localizationService.setLocale(newLocale == null ? DockLocalizationService.DEFAULT_LOCALE : newLocale);
+        refreshLocalizationUi();
+    }
+
+    private void onLocalizationProviderChanged(DockLocalizationProvider provider) {
+        localizationService.setUserProvider(provider);
+        refreshLocalizationUi();
+    }
+
+    private void applyLocalizationConfiguration() {
+        localizationService.setLocale(localeProperty.get());
+        localizationService.setUserProvider(localizationProviderProperty.get());
+        layoutEngine.setTextResolver(this::text);
+        dragService.setTextResolver(this::text);
+        serializer.setTextResolver(this::text);
+        for (DockFloatingWindow floatingWindow : floatingWindows) {
+            floatingWindow.setTextResolver(this::text);
+        }
+    }
+
+    private void refreshLocalizationUi() {
+        applyLocalizationConfiguration();
+        if (rootContainer != null) {
+            rebuildRootView();
+        }
+        for (DockFloatingWindow floatingWindow : floatingWindows) {
+            floatingWindow.refreshLocalization();
+        }
+    }
+
+    private String text(String key, Object... args) {
+        return localizationService.text(Objects.requireNonNull(key, "key"), args);
+    }
+
+    private void requireFxThreadMutation(String propertyName) {
+        if (Platform.isFxApplicationThread()) {
+            return;
+        }
+        throw new IllegalStateException(
+            "SnapFX property '" + propertyName + "' must be changed on the JavaFX Application Thread."
+        );
     }
 
     private void rebuildRootContainerContent() {
@@ -586,16 +744,16 @@ public class SnapFX {
     private ContextMenu createSideBarNodeContextMenu(DockNode dockNode) {
         ContextMenu contextMenu = new ContextMenu();
 
-        MenuItem restoreItem = new MenuItem("Restore from Sidebar");
+        MenuItem restoreItem = new MenuItem(text("dock.sidebar.menu.restoreFromSidebar"));
         restoreItem.setOnAction(e -> onSideBarNodeContextRestoreRequested(dockNode));
 
-        MenuItem moveLeftItem = new MenuItem("Move to Left Sidebar");
+        MenuItem moveLeftItem = new MenuItem(text("dock.sidebar.menu.moveToLeftSidebar"));
         moveLeftItem.setOnAction(e -> onSideBarNodeContextMoveRequested(dockNode, Side.LEFT));
 
-        MenuItem moveRightItem = new MenuItem("Move to Right Sidebar");
+        MenuItem moveRightItem = new MenuItem(text("dock.sidebar.menu.moveToRightSidebar"));
         moveRightItem.setOnAction(e -> onSideBarNodeContextMoveRequested(dockNode, Side.RIGHT));
 
-        MenuItem pinPanelItem = new MenuItem("Pin Sidebar Panel");
+        MenuItem pinPanelItem = new MenuItem(text("dock.sidebar.menu.pinPanel"));
         pinPanelItem.setOnAction(e -> onSideBarNodeContextPinPanelToggleRequested(dockNode));
 
         contextMenu.setOnShowing(e -> updateSideBarNodeContextMenuState(
@@ -632,7 +790,7 @@ public class SnapFX {
         moveRightItem.setDisable(!canMutate || pinnedSide == Side.RIGHT);
 
         boolean pinnedOpen = pinnedSide != null && dockGraph.isSideBarPinnedOpen(pinnedSide);
-        pinPanelItem.setText(pinnedOpen ? "Unpin Sidebar Panel" : "Pin Sidebar Panel");
+        pinPanelItem.setText(pinnedOpen ? text("dock.sidebar.menu.unpinPanel") : text("dock.sidebar.menu.pinPanel"));
         pinPanelItem.setDisable(!canMutate);
     }
 
@@ -692,14 +850,14 @@ public class SnapFX {
             pinnedOpen
                 ? DockThemeStyleClasses.DOCK_CONTROL_ICON_PIN_ON
                 : DockThemeStyleClasses.DOCK_CONTROL_ICON_PIN_OFF,
-            pinnedOpen ? "Unpin sidebar panel" : "Pin sidebar panel"
+            pinnedOpen ? text("dock.sidebar.tooltip.unpinPanel") : text("dock.sidebar.tooltip.pinPanel")
         );
         pinButton.setOnAction(e -> onSideBarPanelPinToggled(side, dockNode));
 
         Button restoreButton = createSideBarPanelButton(
             DockThemeStyleClasses.DOCK_SIDEBAR_PANEL_RESTORE_BUTTON,
             DockThemeStyleClasses.DOCK_CONTROL_ICON_RESTORE,
-            "Restore to main layout"
+            text("dock.sidebar.tooltip.restoreToMainLayout")
         );
         restoreButton.setOnAction(e -> onSideBarPanelRestoreRequested(side, dockNode));
 
@@ -1644,6 +1802,7 @@ public class SnapFX {
         }
 
         DockFloatingWindow floatingWindow = new DockFloatingWindow(node, dragService);
+        floatingWindow.setTextResolver(this::text);
         floatingWindow.getDockGraph().setLocked(dockGraph.isLocked());
         floatingController.applyRememberedFloatingBounds(node, floatingWindow);
         if (screenX != null || screenY != null) {
@@ -2110,6 +2269,7 @@ public class SnapFX {
         if (floatingWindow == null) {
             return;
         }
+        floatingWindow.setTextResolver(this::text);
         floatingWindow.setOnAttachRequested(() -> attachFloatingWindow(floatingWindow));
         floatingWindow.setOnCloseRequested(() -> handleFloatingWindowCloseRequested(floatingWindow));
         floatingWindow.setOnWindowClosed(window -> {
@@ -2198,6 +2358,7 @@ public class SnapFX {
         }
 
         DockFloatingWindow floatingWindow = new DockFloatingWindow(node, dragService);
+        floatingWindow.setTextResolver(this::text);
         floatingWindow.getDockGraph().setLocked(dockGraph.isLocked());
         floatingController.applyRememberedFloatingBounds(node, floatingWindow);
         if (screenX != null || screenY != null) {
@@ -3095,6 +3256,7 @@ public class SnapFX {
         }
 
         DockFloatingWindow floatingWindow = new DockFloatingWindow(floatingRoot, dragService);
+        floatingWindow.setTextResolver(this::text);
         floatingWindow.getDockGraph().setLocked(dockGraph.isLocked());
         if (isFinitePositive(snapshot.width()) || isFinitePositive(snapshot.height())) {
             double width = isFinitePositive(snapshot.width())

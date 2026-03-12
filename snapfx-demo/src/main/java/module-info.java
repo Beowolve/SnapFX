@@ -11,4 +11,5 @@ module org.snapfx.demo {
     requires org.snapfx;
 
     exports org.snapfx.demo;
+    opens org.snapfx.demo.i18n to org.snapfx;
 }

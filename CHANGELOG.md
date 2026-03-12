@@ -16,6 +16,29 @@ Changelog categories for `Unreleased` and new release sections (in order, includ
 
 ## Unreleased
 
+## v0.7.0 - 2026-03-13
+
+### Features
+- ✅ Added SnapFX runtime localization API with JavaFX property support: `localeProperty()` / `setLocale(...)` plus `localizationProviderProperty()` / `setLocalizationProvider(...)`.
+- ✅ Added public localization extension package with `DockLocalizationProvider` SPI and `DockResourceBundleLocalizationProvider` adapter so applications can add unsupported languages via custom bundles/providers.
+- ✅ Added built-in SnapFX translations for `EN` and `DE` with deterministic fallback chain (user provider -> active built-in locale -> built-in English -> raw key).
+
+### UI and Interaction
+- ✅ Migrated core/debug/floating user-facing framework texts to localization keys and wired live locale/provider updates for active main/floating/debug UI surfaces.
+- ✅ Extended MainDemo Settings with framework-locale controls and a working demo French locale via provider extension wiring, so runtime locale switching visibly exercises non-built-in localization.
+
+### Refactoring
+- ✅ Introduced internal `DockLocalizationService` to centralize key resolution, `MessageFormat` handling, and deduplicated missing-key DEBUG fallback logging.
+
+### Tests
+- ✅ Added localization-specific coverage for SnapFX API/property synchronization, FX-thread mutation enforcement, provider override/fallback behavior, and live floating-window text updates.
+- ✅ Added dedicated tests for localization internals (`DockLocalizationService`) and ResourceBundle adapter behavior (including UTF-8 bundle content).
+- ✅ Added demo-level regression coverage to enforce full French bundle key coverage (matching framework `EN`) and prevent blank translation values.
+
+### Documentation
+- ✅ Added ADR [docs/adr/0006-localization-provider-and-runtime-locale-switching.md](docs/adr/0006-localization-provider-and-runtime-locale-switching.md) for localization architecture decisions and non-scope boundaries.
+- ✅ Extended architecture/docs portal coverage with localization API and behavior details (`ARCHITECTURE.md`, Docusaurus `localization` page, and related docs navigation updates).
+
 ## v0.6.3 - 2026-03-09
 
 ### UI and Interaction

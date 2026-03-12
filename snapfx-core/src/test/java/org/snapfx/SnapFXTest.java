@@ -11,6 +11,7 @@ import org.snapfx.floating.DockFloatingPinLockedBehavior;
 import org.snapfx.floating.DockFloatingPinSource;
 import org.snapfx.floating.DockFloatingSnapTarget;
 import org.snapfx.floating.DockFloatingWindow;
+import org.snapfx.localization.DockLocalizationProvider;
 import org.snapfx.model.DockContainer;
 import org.snapfx.model.DockElement;
 import org.snapfx.model.DockGraph;
@@ -51,6 +52,7 @@ import org.junit.jupiter.api.Test;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -296,6 +298,132 @@ class SnapFXTest {
         Map<String, String> stylesheets = SnapFX.getAvailableThemeStylesheets();
 
         assertThrows(UnsupportedOperationException.class, () -> stylesheets.put("Custom", "/custom.css"));
+    }
+
+    @Test
+    void testLocalizationDefaultsExposeBuiltInLocales() {
+        assertEquals(Locale.ENGLISH, SnapFX.getDefaultLocale());
+        assertEquals(Locale.ENGLISH, snapFX.getLocale());
+        assertEquals(List.of(Locale.ENGLISH, Locale.GERMAN), SnapFX.getAvailableLocales());
+        assertThrows(UnsupportedOperationException.class, () -> SnapFX.getAvailableLocales().add(Locale.FRENCH));
+    }
+
+    @Test
+    void testLocalePropertyAndSetterStayInSyncOnFxThread() {
+        runOnFxThreadAndWait(() -> {
+            SnapFX framework = new SnapFX();
+            assertEquals(Locale.ENGLISH, framework.getLocale());
+
+            framework.setLocale(Locale.GERMAN);
+            assertEquals(Locale.GERMAN, framework.getLocale());
+            assertEquals(Locale.GERMAN, framework.localeProperty().get());
+
+            framework.localeProperty().set(Locale.ENGLISH);
+            assertEquals(Locale.ENGLISH, framework.getLocale());
+        });
+    }
+
+    @Test
+    void testSetLocaleOutsideFxThreadThrowsIllegalStateException() {
+        IllegalStateException exception = assertThrows(
+            IllegalStateException.class,
+            () -> snapFX.setLocale(Locale.GERMAN)
+        );
+        assertTrue(exception.getMessage().contains("locale"));
+    }
+
+    @Test
+    void testSetLocalizationProviderOutsideFxThreadThrowsIllegalStateException() {
+        DockLocalizationProvider provider = (locale, key) -> null;
+        IllegalStateException exception = assertThrows(
+            IllegalStateException.class,
+            () -> snapFX.setLocalizationProvider(provider)
+        );
+        assertTrue(exception.getMessage().contains("localizationProvider"));
+    }
+
+    @Test
+    void testLocalizationProviderPropertyMutationOutsideFxThreadThrowsIllegalStateException() {
+        DockLocalizationProvider provider = (locale, key) -> null;
+        IllegalStateException exception = assertThrows(
+            IllegalStateException.class,
+            () -> snapFX.localizationProviderProperty().set(provider)
+        );
+        assertTrue(exception.getMessage().contains("localizationProvider"));
+    }
+
+    @Test
+    void testLocaleSwitchUpdatesExistingFloatingWindowTooltips() {
+        runOnFxThreadAndWait(() -> {
+            SnapFX framework = new SnapFX();
+            DockNode nodeMain = new DockNode("nodeMain", new Label("Main"), "Main");
+            DockNode nodeFloat = new DockNode("nodeFloat", new Label("Float"), "Float");
+            framework.dock(nodeMain, null, DockPosition.CENTER);
+            framework.dock(nodeFloat, nodeMain, DockPosition.RIGHT);
+            DockFloatingWindow floatingWindow = framework.floatNode(nodeFloat);
+
+            Stage stage = new Stage();
+            try {
+                Scene scene = new Scene(framework.buildLayout(), 640, 480);
+                stage.setScene(scene);
+                framework.initialize(stage);
+                stage.show();
+                waitForFxEvents();
+
+                assertEquals("Attach to layout", readFloatingTooltipText(floatingWindow, "attachButton"));
+
+                framework.setLocale(Locale.GERMAN);
+                waitForFxEvents();
+
+                assertEquals("An Layout andocken", readFloatingTooltipText(floatingWindow, "attachButton"));
+                assertEquals("Schwebendes Fenster schließen", readFloatingTooltipText(floatingWindow, "closeButton"));
+            } finally {
+                stage.close();
+                closeGhostStage(framework);
+            }
+        });
+    }
+
+    @Test
+    void testLocalizationProviderOverridesAndFallsBackForFloatingWindowTooltips() {
+        runOnFxThreadAndWait(() -> {
+            SnapFX framework = new SnapFX();
+            DockNode nodeMain = new DockNode("nodeMain", new Label("Main"), "Main");
+            DockNode nodeFloat = new DockNode("nodeFloat", new Label("Float"), "Float");
+            framework.dock(nodeMain, null, DockPosition.CENTER);
+            framework.dock(nodeFloat, nodeMain, DockPosition.RIGHT);
+            DockFloatingWindow floatingWindow = framework.floatNode(nodeFloat);
+
+            Stage stage = new Stage();
+            try {
+                Scene scene = new Scene(framework.buildLayout(), 640, 480);
+                stage.setScene(scene);
+                framework.initialize(stage);
+                stage.show();
+                waitForFxEvents();
+
+                DockLocalizationProvider provider = (locale, key) -> {
+                    if ("dock.floating.tooltip.attachToLayout".equals(key)) {
+                        return "Custom Attach";
+                    }
+                    return null;
+                };
+                framework.setLocalizationProvider(provider);
+                waitForFxEvents();
+
+                assertEquals("Custom Attach", readFloatingTooltipText(floatingWindow, "attachButton"));
+                assertEquals("Close floating window", readFloatingTooltipText(floatingWindow, "closeButton"));
+
+                framework.setLocale(Locale.GERMAN);
+                waitForFxEvents();
+
+                assertEquals("Custom Attach", readFloatingTooltipText(floatingWindow, "attachButton"));
+                assertEquals("Schwebendes Fenster schließen", readFloatingTooltipText(floatingWindow, "closeButton"));
+            } finally {
+                stage.close();
+                closeGhostStage(framework);
+            }
+        });
     }
 
     @Test
@@ -2405,6 +2533,34 @@ class SnapFXTest {
         assertFalse(isInGraph(snapFX, detachedNode));
         assertEquals(1, snapFX.getFloatingWindows().size());
         assertSame(layout.sourceWindow(), snapFX.getFloatingWindows().getFirst());
+    }
+
+    private String readFloatingTooltipText(DockFloatingWindow floatingWindow, String buttonFieldName) {
+        try {
+            Field buttonField = DockFloatingWindow.class.getDeclaredField(buttonFieldName);
+            buttonField.setAccessible(true);
+            Button button = (Button) buttonField.get(floatingWindow);
+            assertNotNull(button, "Expected floating window button '" + buttonFieldName + "' to exist");
+            assertNotNull(button.getTooltip(), "Expected floating window button '" + buttonFieldName + "' to have a tooltip");
+            return button.getTooltip().getText();
+        } catch (ReflectiveOperationException exception) {
+            fail("Failed to read floating window tooltip via reflection: " + exception);
+            return "";
+        }
+    }
+
+    private void waitForFxEvents() {
+        if (Platform.isFxApplicationThread()) {
+            return;
+        }
+        CountDownLatch latch = new CountDownLatch(1);
+        Platform.runLater(latch::countDown);
+        try {
+            assertTrue(latch.await(5, TimeUnit.SECONDS), "Timed out waiting for JavaFX events");
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            throw new AssertionError("Interrupted while waiting for JavaFX events", exception);
+        }
     }
 
     private String describeLayout(DockElement element) {

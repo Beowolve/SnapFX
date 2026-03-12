@@ -31,7 +31,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -40,6 +42,21 @@ import java.util.function.Predicate;
  * Keeps model and view in sync.
  */
 public class DockLayoutEngine {
+    private static final BiFunction<String, Object[], String> DEFAULT_TEXT_RESOLVER = (key, args) -> switch (key) {
+        case "dock.layout.title.layout" -> "Layout";
+        case "dock.layout.menu.float" -> "Float";
+        case "dock.layout.menu.moveToLeftSidebar" -> "Move to Left Sidebar";
+        case "dock.layout.menu.moveToRightSidebar" -> "Move to Right Sidebar";
+        case "dock.layout.menu.close" -> "Close";
+        case "dock.layout.menu.closeOthers" -> "Close Others";
+        case "dock.layout.menu.closeAll" -> "Close All";
+        case "dock.layout.menu.resetSplitterRatios" -> "Reset Splitter Ratios";
+        case "dock.layout.tooltip.floatWindow" -> "Float window";
+        case "dock.node.tooltip.floatWindow" -> "Float window";
+        case "dock.node.tooltip.closePanel" -> "Close panel";
+        default -> key;
+    };
+
     private final DockGraph dockGraph;
     private final DockDragService dragService;
     private final Map<String, Node> viewCache;
@@ -62,6 +79,7 @@ public class DockLayoutEngine {
     private Consumer<DockNode> onNodeFloatRequest;
     private BiConsumer<DockNode, Side> onNodePinToSideBarRequest;
     private Predicate<DockNode> canFloatNodePredicate = dockNode -> true;
+    private BiFunction<String, Object[], String> textResolver = DEFAULT_TEXT_RESOLVER;
 
     /**
      * Creates a layout engine for one dock graph.
@@ -141,7 +159,7 @@ public class DockLayoutEngine {
     }
 
     private Node createDockNodeView(DockNode dockNode) {
-        DockNodeView nodeView = new DockNodeView(dockNode, dockGraph, dragService);
+        DockNodeView nodeView = new DockNodeView(dockNode, dockGraph, dragService, textResolver);
 
         // Set close button action
         nodeView.setOnCloseRequest(() -> handleCloseRequest(dockNode, DockCloseSource.TITLE_BAR));
@@ -443,9 +461,9 @@ public class DockLayoutEngine {
     }
 
     private String buildRepresentativeTitle(DockNode representativeNode, int nodeCount) {
-        String baseTitle = representativeNode == null ? "Layout" : representativeNode.getTitle();
+        String baseTitle = representativeNode == null ? text("dock.layout.title.layout") : representativeNode.getTitle();
         if (baseTitle == null || baseTitle.isBlank()) {
-            baseTitle = "Layout";
+            baseTitle = text("dock.layout.title.layout");
         }
         if (nodeCount <= 1) {
             return baseTitle;
@@ -490,17 +508,17 @@ public class DockLayoutEngine {
     private ContextMenu createHeaderContextMenu(DockNode dockNode) {
         ContextMenu contextMenu = new ContextMenu();
 
-        MenuItem floatItem = new MenuItem("Float");
+        MenuItem floatItem = new MenuItem(text("dock.layout.menu.float"));
         floatItem.setGraphic(createControlIcon(DockThemeStyleClasses.DOCK_CONTROL_ICON_FLOAT));
         floatItem.setOnAction(e -> handleFloatRequest(dockNode));
 
-        MenuItem moveLeftSideBarItem = new MenuItem("Move to Left Sidebar");
+        MenuItem moveLeftSideBarItem = new MenuItem(text("dock.layout.menu.moveToLeftSidebar"));
         moveLeftSideBarItem.setOnAction(e -> handlePinToSideBarRequest(dockNode, Side.LEFT));
 
-        MenuItem moveRightSideBarItem = new MenuItem("Move to Right Sidebar");
+        MenuItem moveRightSideBarItem = new MenuItem(text("dock.layout.menu.moveToRightSidebar"));
         moveRightSideBarItem.setOnAction(e -> handlePinToSideBarRequest(dockNode, Side.RIGHT));
 
-        MenuItem closeItem = new MenuItem("Close");
+        MenuItem closeItem = new MenuItem(text("dock.layout.menu.close"));
         closeItem.setGraphic(createControlIcon(DockThemeStyleClasses.DOCK_CONTROL_ICON_CLOSE));
         closeItem.setOnAction(e -> handleCloseRequest(dockNode, DockCloseSource.TITLE_BAR));
 
@@ -538,24 +556,24 @@ public class DockLayoutEngine {
     private ContextMenu createTabContextMenu(DockTabPane ownerTabPane, DockNode dockNode) {
         ContextMenu contextMenu = new ContextMenu();
 
-        MenuItem closeItem = new MenuItem("Close");
+        MenuItem closeItem = new MenuItem(text("dock.layout.menu.close"));
         closeItem.setGraphic(createControlIcon(DockThemeStyleClasses.DOCK_CONTROL_ICON_CLOSE));
         closeItem.setOnAction(e -> handleCloseRequest(dockNode, DockCloseSource.TAB));
 
-        MenuItem closeOthersItem = new MenuItem("Close Others");
+        MenuItem closeOthersItem = new MenuItem(text("dock.layout.menu.closeOthers"));
         closeOthersItem.setOnAction(e -> closeTabNodes(collectSiblingClosableNodes(ownerTabPane, dockNode)));
 
-        MenuItem closeAllItem = new MenuItem("Close All");
+        MenuItem closeAllItem = new MenuItem(text("dock.layout.menu.closeAll"));
         closeAllItem.setOnAction(e -> closeTabNodes(collectClosableNodes(ownerTabPane)));
 
-        MenuItem floatItem = new MenuItem("Float");
+        MenuItem floatItem = new MenuItem(text("dock.layout.menu.float"));
         floatItem.setGraphic(createControlIcon(DockThemeStyleClasses.DOCK_CONTROL_ICON_FLOAT));
         floatItem.setOnAction(e -> handleFloatRequest(dockNode));
 
-        MenuItem moveLeftSideBarItem = new MenuItem("Move to Left Sidebar");
+        MenuItem moveLeftSideBarItem = new MenuItem(text("dock.layout.menu.moveToLeftSidebar"));
         moveLeftSideBarItem.setOnAction(e -> handlePinToSideBarRequest(dockNode, Side.LEFT));
 
-        MenuItem moveRightSideBarItem = new MenuItem("Move to Right Sidebar");
+        MenuItem moveRightSideBarItem = new MenuItem(text("dock.layout.menu.moveToRightSidebar"));
         moveRightSideBarItem.setOnAction(e -> handlePinToSideBarRequest(dockNode, Side.RIGHT));
 
         SeparatorMenuItem separator = new SeparatorMenuItem();
@@ -640,7 +658,7 @@ public class DockLayoutEngine {
 
     private ContextMenu createSplitPaneContextMenu(SplitPane splitPane, DockSplitPane model) {
         ContextMenu contextMenu = new ContextMenu();
-        MenuItem resetItem = new MenuItem("Reset Splitter Ratios");
+        MenuItem resetItem = new MenuItem(text("dock.layout.menu.resetSplitterRatios"));
         resetItem.setOnAction(e -> resetSplitPaneRatios(splitPane, model));
         contextMenu.setOnShowing(e -> updateSplitPaneContextMenuState(resetItem, splitPane));
         contextMenu.getItems().add(resetItem);
@@ -699,7 +717,7 @@ public class DockLayoutEngine {
         Button floatButton = new Button();
         floatButton.getStyleClass().addAll(DockThemeStyleClasses.DOCK_NODE_CLOSE_BUTTON, DockThemeStyleClasses.DOCK_TAB_FLOAT_BUTTON);
         floatButton.setGraphic(createControlIcon(DockThemeStyleClasses.DOCK_CONTROL_ICON_FLOAT));
-        floatButton.setTooltip(new Tooltip("Float window"));
+        floatButton.setTooltip(new Tooltip(text("dock.layout.tooltip.floatWindow")));
         floatButton.setFocusTraversable(false);
         floatButton.visibleProperty().bind(dockGraph.lockedProperty().not());
         floatButton.managedProperty().bind(floatButton.visibleProperty());
@@ -1387,6 +1405,15 @@ public class DockLayoutEngine {
     }
 
     /**
+     * Sets the resolver used for localized framework UI strings.
+     *
+     * @param textResolver localized text resolver; {@code null} restores built-in English defaults
+     */
+    public void setTextResolver(BiFunction<String, Object[], String> textResolver) {
+        this.textResolver = textResolver == null ? DEFAULT_TEXT_RESOLVER : textResolver;
+    }
+
+    /**
      * Returns the active close-button rendering mode.
      *
      * @return close-button mode
@@ -1447,6 +1474,11 @@ public class DockLayoutEngine {
         Node n = getViewForElement(node);
         if (n instanceof DockNodeView dnv) return dnv;
         return null;
+    }
+
+    private String text(String key, Object... args) {
+        String resolvedKey = Objects.requireNonNull(key, "key");
+        return textResolver.apply(resolvedKey, args == null ? new Object[0] : args);
     }
 
     /**

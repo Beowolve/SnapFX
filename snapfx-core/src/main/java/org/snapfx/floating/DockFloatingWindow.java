@@ -58,6 +58,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -76,6 +77,25 @@ import java.util.function.Supplier;
  * }</pre>
  */
 public final class DockFloatingWindow {
+    private static final BiFunction<String, Object[], String> DEFAULT_TEXT_RESOLVER = (key, args) -> switch (key) {
+        case "dock.layout.menu.float" -> "Float";
+        case "dock.layout.menu.moveToLeftSidebar" -> "Move to Left Sidebar";
+        case "dock.layout.menu.moveToRightSidebar" -> "Move to Right Sidebar";
+        case "dock.layout.menu.close" -> "Close";
+        case "dock.node.tooltip.floatWindow" -> "Float window";
+        case "dock.node.tooltip.closePanel" -> "Close panel";
+        case "dock.floating.title.default" -> "Floating Window";
+        case "dock.floating.tooltip.attachToLayout" -> "Attach to layout";
+        case "dock.floating.tooltip.maximizeWindow" -> "Maximize window";
+        case "dock.floating.tooltip.restoreWindow" -> "Restore window";
+        case "dock.floating.tooltip.closeFloatingWindow" -> "Close floating window";
+        case "dock.floating.context.attachToLayout" -> "Attach to Layout";
+        case "dock.floating.context.alwaysOnTop" -> "Always on Top";
+        case "dock.floating.tooltip.enableAlwaysOnTop" -> "Enable always on top";
+        case "dock.floating.tooltip.disableAlwaysOnTop" -> "Disable always on top";
+        default -> key;
+    };
+
     private static final String TITLE_PREFIX = "SnapFX";
 
     private static final double DEFAULT_WIDTH = 640;
@@ -120,11 +140,14 @@ public final class DockFloatingWindow {
 
     private StackPane iconPane;
     private Label titleLabel;
+    private Button attachButton;
+    private Button closeButton;
     private Button maximizeButton;
     private Tooltip maximizeTooltip;
     private Button pinButton;
     private Tooltip pinTooltip;
     private ContextMenu titleBarContextMenu;
+    private BiFunction<String, Object[], String> textResolver = DEFAULT_TEXT_RESOLVER;
 
     private double dragOffsetX;
     private double dragOffsetY;
@@ -224,6 +247,7 @@ public final class DockFloatingWindow {
         this.titlePrefix = (titlePrefix == null || titlePrefix.isBlank()) ? TITLE_PREFIX : titlePrefix;
         this.floatingGraph = new DockGraph();
         this.floatingLayoutEngine = new DockLayoutEngine(floatingGraph, dragService);
+        this.floatingLayoutEngine.setTextResolver(textResolver);
         this.floatingLayoutEngine.setOnNodeCloseRequest(this::handleInnerNodeCloseRequest);
         this.floatingLayoutEngine.setOnNodeFloatRequest(this::handleInnerNodeFloatRequest);
         this.floatingLayoutEngine.setCanFloatNodePredicate(node -> getDockNodes().size() > 1);
@@ -582,6 +606,25 @@ public final class DockFloatingWindow {
         floatingLayoutEngine.setOnNodePinToSideBarRequest(
             onNodePinToSideBarRequest == null ? null : this::handleInnerNodePinToSideBarRequest
         );
+    }
+
+    /**
+     * Sets the resolver used for localized floating-window and inner-layout texts.
+     *
+     * @param textResolver localized text resolver; {@code null} restores built-in English defaults
+     */
+    public void setTextResolver(BiFunction<String, Object[], String> textResolver) {
+        this.textResolver = textResolver == null ? DEFAULT_TEXT_RESOLVER : textResolver;
+        floatingLayoutEngine.setTextResolver(this.textResolver);
+    }
+
+    /**
+     * Refreshes localized texts for this floating window without recreating it.
+     */
+    public void refreshLocalization() {
+        floatingLayoutEngine.setTextResolver(textResolver);
+        rebuildLayout();
+        refreshTitleBarLocalization();
     }
 
     /**
@@ -1000,14 +1043,14 @@ public final class DockFloatingWindow {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Button attachButton = createControlButton(
+        attachButton = createControlButton(
                 DockThemeStyleClasses.DOCK_CONTROL_ICON_ATTACH,
-            "Attach to layout",
+            text("dock.floating.tooltip.attachToLayout"),
             this::requestAttach,
                 DockThemeStyleClasses.DOCK_WINDOW_ATTACH_BUTTON
         );
 
-        maximizeTooltip = new Tooltip("Maximize window");
+        maximizeTooltip = new Tooltip(text("dock.floating.tooltip.maximizeWindow"));
         maximizeButton = createControlButton(
                 DockThemeStyleClasses.DOCK_CONTROL_ICON_MAXIMIZE,
             maximizeTooltip.getText(),
@@ -1018,9 +1061,9 @@ public final class DockFloatingWindow {
 
         pinButton = createPinButton(window);
 
-        Button closeButton = createControlButton(
+        closeButton = createControlButton(
                 DockThemeStyleClasses.DOCK_CONTROL_ICON_CLOSE,
-            "Close floating window",
+            text("dock.floating.tooltip.closeFloatingWindow"),
             this::close,
                 DockThemeStyleClasses.DOCK_WINDOW_CLOSE_BUTTON
         );
@@ -1042,11 +1085,11 @@ public final class DockFloatingWindow {
     }
 
     private ContextMenu createTitleBarContextMenu() {
-        MenuItem attachItem = new MenuItem("Attach to Layout");
+        MenuItem attachItem = new MenuItem(text("dock.floating.context.attachToLayout"));
         attachItem.setGraphic(createControlIcon(DockThemeStyleClasses.DOCK_CONTROL_ICON_ATTACH));
         attachItem.setOnAction(this::onAttachContextMenuAction);
 
-        CheckMenuItem alwaysOnTopItem = new CheckMenuItem("Always on Top");
+        CheckMenuItem alwaysOnTopItem = new CheckMenuItem(text("dock.floating.context.alwaysOnTop"));
         alwaysOnTopItem.setOnAction(event -> onAlwaysOnTopContextMenuAction(alwaysOnTopItem));
         alwaysOnTopItem.setGraphic(createControlIcon(DockThemeStyleClasses.DOCK_CONTROL_ICON_PIN_ON));
 
@@ -1185,7 +1228,9 @@ public final class DockFloatingWindow {
         boolean pinned = isAlwaysOnTop();
         pinButton.setGraphic(createControlIcon(pinned ? DockThemeStyleClasses.DOCK_CONTROL_ICON_PIN_ON : DockThemeStyleClasses.DOCK_CONTROL_ICON_PIN_OFF));
         if (pinTooltip != null) {
-            pinTooltip.setText(pinned ? "Disable always on top" : "Enable always on top");
+            pinTooltip.setText(pinned
+                ? text("dock.floating.tooltip.disableAlwaysOnTop")
+                : text("dock.floating.tooltip.enableAlwaysOnTop"));
         }
     }
 
@@ -1562,14 +1607,39 @@ public final class DockFloatingWindow {
         if (window.isMaximized()) {
             maximizeButton.setGraphic(createControlIcon(DockThemeStyleClasses.DOCK_CONTROL_ICON_RESTORE));
             if (maximizeTooltip != null) {
-                maximizeTooltip.setText("Restore window");
+                maximizeTooltip.setText(text("dock.floating.tooltip.restoreWindow"));
             }
         } else {
             maximizeButton.setGraphic(createControlIcon(DockThemeStyleClasses.DOCK_CONTROL_ICON_MAXIMIZE));
             if (maximizeTooltip != null) {
-                maximizeTooltip.setText("Maximize window");
+                maximizeTooltip.setText(text("dock.floating.tooltip.maximizeWindow"));
             }
         }
+    }
+
+    private void refreshTitleBarLocalization() {
+        if (attachButton != null && attachButton.getTooltip() != null) {
+            attachButton.getTooltip().setText(text("dock.floating.tooltip.attachToLayout"));
+        }
+        if (closeButton != null && closeButton.getTooltip() != null) {
+            closeButton.getTooltip().setText(text("dock.floating.tooltip.closeFloatingWindow"));
+        }
+        if (titleBarContextMenu != null) {
+            MenuItem attachItem = titleBarContextMenu.getItems().isEmpty() ? null : titleBarContextMenu.getItems().getFirst();
+            if (attachItem != null) {
+                attachItem.setText(text("dock.floating.context.attachToLayout"));
+            }
+            for (MenuItem menuItem : titleBarContextMenu.getItems()) {
+                if (menuItem instanceof CheckMenuItem checkMenuItem) {
+                    checkMenuItem.setText(text("dock.floating.context.alwaysOnTop"));
+                    break;
+                }
+            }
+        }
+        if (stage != null) {
+            updateMaximizeButtonState(stage);
+        }
+        updatePinButtonState();
     }
 
     private void setupResizeHandling(BorderPane root, Stage window) {
@@ -1883,16 +1953,21 @@ public final class DockFloatingWindow {
     private String buildWindowTitle(DockNode representativeNode) {
         int nodeCount = getDockNodes().size();
         if (representativeNode == null) {
-            return "Floating Window";
+            return text("dock.floating.title.default");
         }
         String baseTitle = representativeNode.getTitle();
         if (baseTitle == null || baseTitle.isBlank()) {
-            baseTitle = "Floating Window";
+            baseTitle = text("dock.floating.title.default");
         }
         if (nodeCount <= 1) {
             return baseTitle;
         }
         return baseTitle + " +" + (nodeCount - 1);
+    }
+
+    private String text(String key, Object... args) {
+        String resolvedKey = Objects.requireNonNull(key, "key");
+        return textResolver.apply(resolvedKey, args == null ? new Object[0] : args);
     }
 
     private DockNode resolveRepresentativeNode(DockElement element) {
@@ -2263,6 +2338,8 @@ public final class DockFloatingWindow {
             titleBarContextMenu.hide();
             titleBarContextMenu = null;
         }
+        attachButton = null;
+        closeButton = null;
         pinButton = null;
         pinTooltip = null;
         maximizeButton = null;

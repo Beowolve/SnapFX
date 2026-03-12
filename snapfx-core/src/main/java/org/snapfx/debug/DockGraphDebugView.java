@@ -2,6 +2,8 @@ package org.snapfx.debug;
 
 import org.snapfx.dnd.DockDragData;
 import org.snapfx.dnd.DockDragService;
+import org.snapfx.localization.DockLocalizationProvider;
+import org.snapfx.localization.internal.DockLocalizationService;
 import org.snapfx.model.*;
 import org.snapfx.theme.DockThemeStyleClasses;
 import javafx.beans.binding.Bindings;
@@ -29,6 +31,7 @@ import java.nio.file.Files;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 /**
@@ -40,13 +43,16 @@ import java.util.Objects;
 public class DockGraphDebugView extends BorderPane {
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
     private static final int MAX_LOG_ENTRIES = 500;
-    /** Placeholder label for absent drag target/state values. */
-    public static final String NONE = "<none>";
+    private static final String SNAPSHOT_SEPARATOR = "─".repeat(80);
 
     private final DockGraph dockGraph;
     private final DockDragService dragService;
+    private final DockLocalizationService localizationService;
 
     private final TreeTableView<DockElement> treeTable;
+    private TreeTableColumn<DockElement, String> elementColumn;
+    private TreeTableColumn<DockElement, String> idColumn;
+    private TreeTableColumn<DockElement, String> infoColumn;
     private final ListView<DragLogEntry> activityLog;
     private final ObservableList<DragLogEntry> logEntries;
 
@@ -67,6 +73,7 @@ public class DockGraphDebugView extends BorderPane {
     public DockGraphDebugView(DockGraph dockGraph, DockDragService dragService) {
         this.dockGraph = Objects.requireNonNull(dockGraph, "dockGraph");
         this.dragService = Objects.requireNonNull(dragService, "dragService");
+        this.localizationService = new DockLocalizationService();
 
         this.draggedElement = new SimpleObjectProperty<>();
         this.dropTarget = new SimpleObjectProperty<>();
@@ -103,7 +110,7 @@ public class DockGraphDebugView extends BorderPane {
         dockGraph.lockedProperty().addListener((obs, o, n) -> rebuildTree());
         dockGraph.revisionProperty().addListener((obs, o, n) -> {
             rebuildTree();
-            logEntry(DragLogType.LAYOUT_CHANGE, "Layout revision changed to " + n);
+            logEntry(DragLogType.LAYOUT_CHANGE, text("dock.debug.log.layoutRevisionChanged", n));
         });
 
         // Keep D&D state in sync
@@ -111,30 +118,68 @@ public class DockGraphDebugView extends BorderPane {
         onDragDataChanged(null, this.dragService.currentDragProperty().get());
     }
 
+    /**
+     * Sets the locale used by this debug view.
+     *
+     * @param locale locale to apply, or {@code null} for default
+     */
+    public void setLocale(Locale locale) {
+        localizationService.setLocale(locale);
+        refreshLocalizedUi();
+    }
+
+    /**
+     * Sets an optional user localization provider for this debug view.
+     *
+     * @param provider user provider, or {@code null}
+     */
+    public void setLocalizationProvider(DockLocalizationProvider provider) {
+        localizationService.setUserProvider(provider);
+        refreshLocalizedUi();
+    }
+
     private void configureColumns() {
-        TreeTableColumn<DockElement, String> elementCol = new TreeTableColumn<>("Element");
-        elementCol.setPrefWidth(320);
-        elementCol.setCellValueFactory(param -> {
+        elementColumn = new TreeTableColumn<>(text("dock.debug.column.element"));
+        elementColumn.setPrefWidth(320);
+        elementColumn.setCellValueFactory(param -> {
             DockElement el = param.getValue() == null ? null : param.getValue().getValue();
             return new SimpleStringProperty(formatElement(el));
         });
 
-        TreeTableColumn<DockElement, String> idCol = new TreeTableColumn<>("ID");
-        idCol.setPrefWidth(120);
-        idCol.setCellValueFactory(param -> {
+        idColumn = new TreeTableColumn<>(text("dock.debug.column.id"));
+        idColumn.setPrefWidth(120);
+        idColumn.setCellValueFactory(param -> {
             DockElement el = param.getValue() == null ? null : param.getValue().getValue();
             String id = (el == null) ? "" : shortenId(el.getId());
             return new SimpleStringProperty(id);
         });
 
-        TreeTableColumn<DockElement, String> infoCol = new TreeTableColumn<>("Info");
-        infoCol.setPrefWidth(180);
-        infoCol.setCellValueFactory(param -> {
+        infoColumn = new TreeTableColumn<>(text("dock.debug.column.info"));
+        infoColumn.setPrefWidth(180);
+        infoColumn.setCellValueFactory(param -> {
             DockElement el = param.getValue() == null ? null : param.getValue().getValue();
             return new SimpleStringProperty(formatInfo(el));
         });
 
-        treeTable.getColumns().setAll(List.of(elementCol, idCol, infoCol));
+        treeTable.getColumns().setAll(List.of(elementColumn, idColumn, infoColumn));
+    }
+
+    private void refreshLocalizedUi() {
+        if (elementColumn != null) {
+            elementColumn.setText(text("dock.debug.column.element"));
+        }
+        if (idColumn != null) {
+            idColumn.setText(text("dock.debug.column.id"));
+        }
+        if (infoColumn != null) {
+            infoColumn.setText(text("dock.debug.column.info"));
+        }
+        setTop(createHeader());
+        if (getCenter() instanceof SplitPane splitPane && splitPane.getItems().size() >= 2) {
+            splitPane.getItems().set(1, createLogPanel());
+        }
+        rebuildTree();
+        activityLog.refresh();
     }
 
     private void onDragDataChanged(DockDragData oldData, DockDragData newData) {
@@ -147,45 +192,47 @@ public class DockGraphDebugView extends BorderPane {
         if (dragStarted) {
             dragSequenceNumber++;
             logEntry(DragLogType.DRAG_START,
-                "Started dragging '" + safeTitle(newData.getDraggedNode()) + "' (seq#" + dragSequenceNumber + ")");
+                text("dock.debug.log.dragStarted", safeTitle(newData.getDraggedNode()), dragSequenceNumber));
         }
         if (targetChanged) {
-            logEntry(DragLogType.TARGET_CHANGE, "Target changed to " + describeTarget(newData));
+            logEntry(DragLogType.TARGET_CHANGE, text("dock.debug.log.targetChanged", describeTarget(newData)));
         }
         if (positionChanged) {
-            logEntry(DragLogType.POSITION_CHANGE, "Drop position changed to " + describePosition(newData));
+            logEntry(DragLogType.POSITION_CHANGE, text("dock.debug.log.positionChanged", describePosition(newData)));
         }
         if (dragEnded) {
-            logEntry(DragLogType.DROP, buildDropSummary(oldData) + " (seq#" + dragSequenceNumber + ")");
+            String dropSummary = buildDropSummary(oldData);
+            logEntry(DragLogType.DROP, text("dock.debug.log.dropSummaryWithSequence", dropSummary, dragSequenceNumber));
             if (autoExportOnDrop.get()) {
                 copySnapshotToClipboard(buildSnapshot());
             }
         }
         if (dragChanged) {
-            logEntry(DragLogType.DRAG_CANCEL, "Drag changed unexpectedly");
+            logEntry(DragLogType.DRAG_CANCEL, text("dock.debug.log.dragChangedUnexpectedly"));
         }
         updateDragProperties(newData);
         treeTable.refresh();
     }
 
     private String describeTarget(DockDragData data) {
-        if (data.getDropTarget() == null) return "none";
+        if (data.getDropTarget() == null) return text("dock.debug.none");
         String base = data.getDropTarget().getClass().getSimpleName();
         if (data.getDropTarget() instanceof DockNode dn) {
-            base += " '" + safeTitle(dn) + "'";
+            base = text("dock.debug.target.withTitle", base, safeTitle(dn));
         }
         return base;
     }
 
     private String describePosition(DockDragData data) {
-        return data.getDropPosition() == null ? "none" : data.getDropPosition().name();
+        return data.getDropPosition() == null ? text("dock.debug.none") : data.getDropPosition().name();
     }
 
     private String buildDropSummary(DockDragData oldData) {
-        return String.format("Dropped '%s' on %s at position %s",
-                safeTitle(oldData.getDraggedNode()),
-                oldData.getDropTarget() == null ? "none" : oldData.getDropTarget().getClass().getSimpleName(),
-                oldData.getDropPosition() == null ? "none" : oldData.getDropPosition().name()
+        return text(
+            "dock.debug.log.dropSummary",
+            safeTitle(oldData.getDraggedNode()),
+            oldData.getDropTarget() == null ? text("dock.debug.none") : oldData.getDropTarget().getClass().getSimpleName(),
+            oldData.getDropPosition() == null ? text("dock.debug.none") : oldData.getDropPosition().name()
         );
     }
 
@@ -204,13 +251,13 @@ public class DockGraphDebugView extends BorderPane {
     private BorderPane createLogPanel() {
         BorderPane logPanel = new BorderPane();
 
-        Label logTitle = new Label("D&D Activity Log");
+        Label logTitle = new Label(text("dock.debug.activityLogTitle"));
         logTitle.setStyle("-fx-font-weight: bold;");
 
-        Button clearLog = new Button("Clear Log");
+        Button clearLog = new Button(text("dock.debug.clearLog"));
         clearLog.setOnAction(e -> {
             logEntries.clear();
-            logEntry(DragLogType.SYSTEM, "Log cleared");
+            logEntry(DragLogType.SYSTEM, text("dock.debug.logCleared"));
         });
 
         HBox logHeader = new HBox(8, logTitle, new Region(), clearLog);
@@ -244,7 +291,7 @@ public class DockGraphDebugView extends BorderPane {
     }
 
     private HBox createHeader() {
-        Label title = new Label("DockGraph (Debug)");
+        Label title = new Label(text("dock.debug.title"));
         title.setStyle("-fx-font-weight: bold;");
 
         Separator sep = new Separator();
@@ -252,20 +299,20 @@ public class DockGraphDebugView extends BorderPane {
 
         Label locked = new Label();
         locked.textProperty().bind(Bindings.createStringBinding(
-            () -> dockGraph.isLocked() ? "LOCKED" : "UNLOCKED",
+            () -> dockGraph.isLocked() ? text("dock.debug.locked") : text("dock.debug.unlocked"),
             dockGraph.lockedProperty()
         ));
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Button refresh = new Button("Refresh");
+        Button refresh = new Button(text("dock.debug.refresh"));
         refresh.setOnAction(e -> rebuildTree());
 
-        Button export = new Button("Export");
+        Button export = new Button(text("dock.debug.export"));
         export.setOnAction(e -> exportSnapshot());
 
-        CheckBox autoExport = new CheckBox("Auto export on drop");
+        CheckBox autoExport = new CheckBox(text("dock.debug.autoExportOnDrop"));
         autoExport.selectedProperty().bindBidirectional(autoExportOnDrop);
 
         HBox header = new HBox(8, title, sep, locked, spacer, autoExport, refresh, export);
@@ -304,12 +351,12 @@ public class DockGraphDebugView extends BorderPane {
         copySnapshotToClipboard(snapshot);
 
         Alert choice = new Alert(Alert.AlertType.CONFIRMATION);
-        choice.setTitle("Export");
-        choice.setHeaderText("Snapshot was copied to the clipboard.");
-        choice.setContentText("Do you also want to save it to a file?");
+        choice.setTitle(text("dock.debug.export.dialog.title"));
+        choice.setHeaderText(text("dock.debug.export.dialog.header"));
+        choice.setContentText(text("dock.debug.export.dialog.content"));
 
-        ButtonType saveButton = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
-        ButtonType cancelButton = new ButtonType("No", ButtonBar.ButtonData.CANCEL_CLOSE);
+        ButtonType saveButton = new ButtonType(text("dock.debug.export.dialog.save"), ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelButton = new ButtonType(text("dock.debug.export.dialog.no"), ButtonBar.ButtonData.CANCEL_CLOSE);
         choice.getButtonTypes().setAll(saveButton, cancelButton);
 
         choice.showAndWait().ifPresent(bt -> {
@@ -327,9 +374,11 @@ public class DockGraphDebugView extends BorderPane {
 
     private void saveSnapshotToFile(String snapshot) {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Save DockGraph Snapshot");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text files", "*.txt"));
-        fileChooser.setInitialFileName("snapfx-dockgraph-snapshot.txt");
+        fileChooser.setTitle(text("dock.debug.export.fileChooser.title"));
+        fileChooser.getExtensionFilters().add(
+            new FileChooser.ExtensionFilter(text("dock.debug.export.fileChooser.textFiles"), "*.txt")
+        );
+        fileChooser.setInitialFileName(text("dock.debug.export.fileChooser.defaultName"));
 
         File file = fileChooser.showSaveDialog(getScene() != null ? getScene().getWindow() : null);
         if (file == null) {
@@ -340,7 +389,7 @@ public class DockGraphDebugView extends BorderPane {
             Files.writeString(file.toPath(), snapshot, StandardCharsets.UTF_8);
         } catch (Exception ex) {
             Alert err = new Alert(Alert.AlertType.ERROR);
-            err.setTitle("Export failed");
+            err.setTitle(text("dock.debug.export.failed"));
             err.setHeaderText(null);
             err.setContentText(ex.getMessage());
             err.showAndWait();
@@ -352,22 +401,22 @@ public class DockGraphDebugView extends BorderPane {
         appendSnapshotHeader(sb);
         appendDragInfo(sb);
         sb.append('\n');
-        sb.append("Tree:\n");
+        sb.append(text("dock.debug.snapshot.treeHeader")).append('\n');
         appendElement(sb, dockGraph.getRoot(), 0);
         appendActivityLog(sb);
         return sb.toString();
     }
 
     private void appendSnapshotHeader(StringBuilder sb) {
-        sb.append("SnapFX DockGraph Snapshot\n");
-        sb.append("locked=").append(dockGraph.isLocked()).append('\n');
-        sb.append("revision=").append(dockGraph.getRevision()).append('\n');
+        sb.append(text("dock.debug.snapshot.title")).append('\n');
+        sb.append(text("dock.debug.snapshot.locked")).append('=').append(dockGraph.isLocked()).append('\n');
+        sb.append(text("dock.debug.snapshot.revision")).append('=').append(dockGraph.getRevision()).append('\n');
     }
 
     private void appendDragInfo(StringBuilder sb) {
         DockDragData drag = dragService.currentDragProperty().get();
         if (drag == null) {
-            sb.append("drag=<none>\n");
+            sb.append(text("dock.debug.snapshot.drag")).append('=').append(noneValue()).append('\n');
         } else {
             appendDragDetails(sb, drag);
         }
@@ -376,23 +425,28 @@ public class DockGraphDebugView extends BorderPane {
     private void appendDragDetails(StringBuilder sb, DockDragData drag) {
         DockNode dragged = drag.getDraggedNode();
         DockElement target = drag.getDropTarget();
-        sb.append("drag.title=").append(safeTitle(dragged)).append('\n');
-        sb.append("drag.nodeId=").append(nullToEmpty(dragged != null ? dragged.getId() : null)).append('\n');
-        sb.append("drag.path=").append(pathOf(dragged)).append('\n');
-        sb.append("drag.dropTarget=").append(target == null ? NONE : target.getClass().getSimpleName()).append('\n');
-        sb.append("drag.dropTargetId=").append(nullToEmpty(target != null ? target.getId() : null)).append('\n');
-        sb.append("drag.dropTargetPath=").append(pathOf(target)).append('\n');
-        sb.append("drag.dropTargetTitle=").append(target instanceof DockNode tn ? safeTitle(tn) : "").append('\n');
-        sb.append("drag.dropPosition=").append(drag.getDropPosition() == null ? NONE : drag.getDropPosition().name()).append('\n');
-        sb.append("drag.mouseX=").append(drag.getMouseX()).append('\n');
-        sb.append("drag.mouseY=").append(drag.getMouseY()).append('\n');
+        sb.append(text("dock.debug.snapshot.dragTitle")).append('=').append(safeTitle(dragged)).append('\n');
+        sb.append(text("dock.debug.snapshot.dragNodeId")).append('=')
+            .append(nullToEmpty(dragged != null ? dragged.getId() : null)).append('\n');
+        sb.append(text("dock.debug.snapshot.dragPath")).append('=').append(pathOf(dragged)).append('\n');
+        sb.append(text("dock.debug.snapshot.dragDropTarget")).append('=')
+            .append(target == null ? noneValue() : target.getClass().getSimpleName()).append('\n');
+        sb.append(text("dock.debug.snapshot.dragDropTargetId")).append('=')
+            .append(nullToEmpty(target != null ? target.getId() : null)).append('\n');
+        sb.append(text("dock.debug.snapshot.dragDropTargetPath")).append('=').append(pathOf(target)).append('\n');
+        sb.append(text("dock.debug.snapshot.dragDropTargetTitle")).append('=')
+            .append(target instanceof DockNode tn ? safeTitle(tn) : "").append('\n');
+        sb.append(text("dock.debug.snapshot.dragDropPosition")).append('=')
+            .append(drag.getDropPosition() == null ? noneValue() : drag.getDropPosition().name()).append('\n');
+        sb.append(text("dock.debug.snapshot.dragMouseX")).append('=').append(drag.getMouseX()).append('\n');
+        sb.append(text("dock.debug.snapshot.dragMouseY")).append('=').append(drag.getMouseY()).append('\n');
     }
 
     private void appendActivityLog(StringBuilder sb) {
-        sb.append("\n\nD&D Activity Log (").append(logEntries.size()).append(" entries):\n");
-        sb.append("─".repeat(80)).append('\n');
+        sb.append('\n').append('\n').append(text("dock.debug.snapshot.activityLogHeader", logEntries.size())).append('\n');
+        sb.append(SNAPSHOT_SEPARATOR).append('\n');
         if (logEntries.isEmpty()) {
-            sb.append("  <no entries>\n");
+            sb.append("  ").append(text("dock.debug.snapshot.noEntries")).append('\n');
         } else {
             for (DragLogEntry entry : logEntries) {
                 sb.append(entry.timestamp().format(TIME_FORMATTER))
@@ -406,7 +460,7 @@ public class DockGraphDebugView extends BorderPane {
 
     private String pathOf(DockElement el) {
         if (el == null) {
-            return NONE;
+            return noneValue();
         }
         StringBuilder sb = new StringBuilder();
         DockElement current = el;
@@ -425,7 +479,7 @@ public class DockGraphDebugView extends BorderPane {
     private void appendElement(StringBuilder sb, DockElement el, int depth) {
         String indent = "  ".repeat(Math.max(0, depth));
         if (el == null) {
-            sb.append(indent).append("<empty>\n");
+            sb.append(indent).append(text("dock.debug.value.empty")).append('\n');
             return;
         }
 
@@ -435,14 +489,14 @@ public class DockGraphDebugView extends BorderPane {
             .append(" label=").append(formatElement(el));
 
         if (el.equals(draggedElement.get())) {
-            sb.append(" [DRAGGED]");
+            sb.append(' ').append(text("dock.debug.snapshot.marker.dragged"));
         }
         if (el.equals(dropTarget.get())) {
-            sb.append(" [TARGET");
             if (dropPosition.get() != null) {
-                sb.append(" pos=").append(dropPosition.get());
+                sb.append(' ').append(text("dock.debug.snapshot.marker.targetWithPosition", dropPosition.get()));
+            } else {
+                sb.append(' ').append(text("dock.debug.snapshot.marker.target"));
             }
-            sb.append(']');
         }
 
         sb.append('\n');
@@ -456,10 +510,10 @@ public class DockGraphDebugView extends BorderPane {
 
     private String safeTitle(DockNode node) {
         if (node == null) {
-            return "<null>";
+            return text("dock.common.null");
         }
         String title = node.getTitle();
-        return title == null || title.isEmpty() ? "<untitled>" : title;
+        return title == null || title.isEmpty() ? text("dock.common.untitled") : title;
     }
 
     private String nullToEmpty(String s) {
@@ -468,12 +522,20 @@ public class DockGraphDebugView extends BorderPane {
 
     private String formatElement(DockElement el) {
         if (el == null) {
-            return "<empty>";
+            return text("dock.debug.value.empty");
         }
         return switch (el) {
-            case DockNode node -> "DockNode title='" + node.getTitle() + "'";
-            case DockSplitPane split -> "DockSplitPane orientation=" + split.getOrientation() + " children=" + split.getChildren().size();
-            case DockTabPane tab -> "DockTabPane tabs=" + tab.getChildren().size() + " selected=" + tab.getSelectedIndex();
+            case DockNode node -> text("dock.debug.value.dockNodeTitle", safeTitle(node));
+            case DockSplitPane split -> text(
+                "dock.debug.value.dockSplitPane",
+                split.getOrientation(),
+                split.getChildren().size()
+            );
+            case DockTabPane tab -> text(
+                "dock.debug.value.dockTabPane",
+                tab.getChildren().size(),
+                tab.getSelectedIndex()
+            );
             default -> el.getClass().getSimpleName();
         };
     }
@@ -483,8 +545,8 @@ public class DockGraphDebugView extends BorderPane {
             return "";
         }
         return switch (el) {
-            case DockNode node -> "closeable=" + node.isCloseable();
-            case DockContainer container -> "children=" + container.getChildren().size();
+            case DockNode node -> text("dock.debug.value.closeable", node.isCloseable());
+            case DockContainer container -> text("dock.debug.value.children", container.getChildren().size());
             default -> "";
         };
     }
@@ -526,11 +588,19 @@ public class DockGraphDebugView extends BorderPane {
             setStyle(style.toString());
 
             if (isTarget && dropPosition.get() != null) {
-                setTooltip(new Tooltip("Drop: " + dropPosition.get()));
+                setTooltip(new Tooltip(text("dock.debug.target.dropTooltip", dropPosition.get())));
             } else {
                 setTooltip(null);
             }
         }
+    }
+
+    private String noneValue() {
+        return text("dock.common.none");
+    }
+
+    private String text(String key, Object... args) {
+        return localizationService.text(Objects.requireNonNull(key, "key"), args);
     }
 
     /**
@@ -585,7 +655,7 @@ public class DockGraphDebugView extends BorderPane {
     /**
      * Custom cell renderer for the activity log.
      */
-    private static class DragLogCell extends ListCell<DragLogEntry> {
+    private class DragLogCell extends ListCell<DragLogEntry> {
         @Override
         protected void updateItem(DragLogEntry entry, boolean empty) {
             super.updateItem(entry, empty);
@@ -597,13 +667,7 @@ public class DockGraphDebugView extends BorderPane {
             }
 
             String timeStr = entry.timestamp().format(TIME_FORMATTER);
-            String text = String.format("[%s] %s - %s (rev:%d)",
-                timeStr,
-                entry.type().name(),
-                entry.message(),
-                entry.revision()
-            );
-            setText(text);
+            setText(text("dock.debug.log.cellFormat", timeStr, entry.type().name(), entry.message(), entry.revision()));
 
             // Color code by type
             String style = switch (entry.type()) {

@@ -12,6 +12,7 @@ SnapFX is a lightweight JavaFX docking framework with a strict separation betwee
 - **Floating Windows**: Detachable tabs that create new stages
 - **Locked Mode**: Prevents layout modifications in production mode
 - **Persistence**: JSON-based serialization for saving/loading layouts
+- **Localization**: Runtime locale/provider switching with JavaFX property API and fallback chain
 - **Flat Scene Graph**: Minimal wrapper layers for optimal performance
 
 ### Architecture Overview
@@ -432,6 +433,8 @@ SnapFX {
     - layoutEngine: DockLayoutEngine
     - dragService: DockDragService
     - serializer: DockLayoutSerializer
+    - locale: ObjectProperty<Locale>
+    - localizationProvider: ObjectProperty<DockLocalizationProvider>
 
     + initialize(stage)
     + getDefaultThemeName(): String
@@ -439,6 +442,14 @@ SnapFX {
     + getAvailableThemeNames(): List<String>
     + setThemeStylesheet(stylesheetResourcePath)
     + getThemeStylesheetResourcePath(): String
+    + getDefaultLocale(): Locale
+    + getAvailableLocales(): List<Locale>
+    + localeProperty(): ObjectProperty<Locale>
+    + getLocale(): Locale
+    + setLocale(locale)
+    + localizationProviderProperty(): ObjectProperty<DockLocalizationProvider>
+    + getLocalizationProvider(): DockLocalizationProvider
+    + setLocalizationProvider(provider)
     + dock(content, title): DockNode
     + dock(content, title, target, position): DockNode
     + undock(node)
@@ -488,6 +499,33 @@ Theme stylesheet internals are encapsulated in `org.snapfx.theme`:
 
 - `DockThemeCatalog`: built-in named theme map/list (`Light`, `Dark`)
 - `DockThemeStylesheetManager`: path/url resolution and scene stylesheet application
+
+Localization internals are split between public extension API and internal resolver service:
+
+- `org.snapfx.localization.DockLocalizationProvider`: extension SPI for user translations
+- `org.snapfx.localization.DockResourceBundleLocalizationProvider`: `ResourceBundle` adapter
+- `org.snapfx.localization.internal.DockLocalizationService`: runtime resolver + fallback chain + formatting
+
+### Localization Architecture
+
+Runtime localization is coordinated centrally by `SnapFX` and propagated into layout, drag, serializer, floating, and debug surfaces.
+
+Fallback chain for `text(key, args...)` resolution:
+
+1. User provider (`setLocalizationProvider(...)`)
+2. Built-in bundle for active locale (`setLocale(...)`)
+3. Built-in English bundle fallback
+4. Raw key fallback (with deduplicated DEBUG log entry)
+
+Threading contract:
+
+- `setLocale(...)`, `setLocalizationProvider(...)`, and mutation of their exposed properties must run on the JavaFX Application Thread.
+- Violations fail fast with `IllegalStateException`.
+
+Out-of-scope by design:
+
+- Locale persistence (application responsibility; caller restores via `setLocale(...)` during startup)
+- Automatic RTL layout transformation (`NodeOrientation` remains application-specific)
 
 ## 6. Data Flow
 

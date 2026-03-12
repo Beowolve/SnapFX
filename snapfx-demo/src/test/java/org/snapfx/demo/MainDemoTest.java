@@ -47,6 +47,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 
 class MainDemoTest {
@@ -249,6 +250,35 @@ class MainDemoTest {
 
             sideBarModeComboBox.setValue(DockSideBarMode.NEVER);
             assertEquals(DockSideBarMode.NEVER, framework.getSideBarMode());
+        });
+    }
+
+    @Test
+    void testCreateSettingsPanelIncludesLocalizationControlsBoundToSnapFxApi() {
+        runOnFxThreadAndWait(() -> {
+            MainDemo demo = new MainDemo();
+            SnapFX framework = new SnapFX();
+            setPrivateField(demo, "snapFX", framework);
+
+            invokePrivateMethod(demo, "createSettingsPanel");
+
+            ComboBox<Locale> localeComboBox = readPrivateField(demo, "localeComboBox", ComboBox.class);
+            assertNotNull(localeComboBox);
+            assertTrue(localeComboBox.getItems().contains(Locale.ENGLISH));
+            assertTrue(localeComboBox.getItems().contains(Locale.GERMAN));
+            assertTrue(localeComboBox.getItems().contains(Locale.FRENCH));
+
+            localeComboBox.setValue(Locale.GERMAN);
+            assertEquals(Locale.GERMAN, framework.getLocale());
+            assertNull(framework.getLocalizationProvider());
+
+            localeComboBox.setValue(Locale.FRENCH);
+            assertEquals(Locale.FRENCH, framework.getLocale());
+            assertNotNull(framework.getLocalizationProvider());
+
+            localeComboBox.setValue(Locale.ENGLISH);
+            assertEquals(Locale.ENGLISH, framework.getLocale());
+            assertNull(framework.getLocalizationProvider());
         });
     }
 

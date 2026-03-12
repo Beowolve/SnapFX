@@ -5,6 +5,7 @@ const sidebars = {
   docsSidebar: [
     "intro",
     "getting-started",
+    "localization",
     "user-guide",
     "tutorial-first-layout",
     "examples",
