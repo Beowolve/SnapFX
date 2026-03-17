@@ -33,6 +33,7 @@ import com.google.gson.JsonArray;
 import org.snapfx.view.DockCloseButtonMode;
 import org.snapfx.view.DockLayoutEngine;
 import org.snapfx.view.DockTitleBarMode;
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
@@ -115,6 +116,7 @@ public class SnapFX {
     private static final double SIDEBAR_DROP_INSERT_LINE_THICKNESS = 3.0;
     private static final double SIDEBAR_DROP_INSERT_LINE_HORIZONTAL_INSET = 3.0;
     private static final Duration SIDEBAR_TOOLTIP_SHOW_DELAY = Duration.ZERO;
+    private static final Duration THEME_STYLESHEET_APPLY_DELAY = Duration.millis(80);
 
     private final DockLocalizationService localizationService;
     private final ObjectProperty<Locale> localeProperty;
@@ -161,6 +163,8 @@ public class SnapFX {
     );
     private Consumer<DockFloatingPinChangeEvent> onFloatingPinChanged;
     private final DockThemeStylesheetManager themeStylesheetManager;
+    private PauseTransition pendingThemeStylesheetApplyTransition;
+    private String pendingThemeStylesheetPreviousUrl;
 
     private Pane rootContainer; // Container that holds the buildLayout() result
 
@@ -254,6 +258,7 @@ public class SnapFX {
         }
         dragService.initialize(stage);
         dragService.setLayoutEngine(layoutEngine);
+        cancelPendingManagedThemeStylesheetApply();
         applyManagedThemeStylesheetToManagedScenes(null);
         for (DockFloatingWindow floatingWindow : floatingWindows) {
             floatingWindow.show(primaryStage);
@@ -392,9 +397,10 @@ public class SnapFX {
     }
 
     /**
-     * Sets the stylesheet used by SnapFX and applies it immediately to the primary and floating window scenes.
+     * Sets the stylesheet used by SnapFX and applies it to managed scenes after a short debounce delay.
      *
      * <p>Passing {@code null} or blank restores the default stylesheet ({@code /snapfx.css}).</p>
+     * <p>The short delay avoids transient CSS warnings while popup controls (for example theme ComboBoxes) are closing.</p>
      *
      * @param stylesheetResourcePath classpath resource path (for example {@code /snapfx-dark.css})
      *                              or an absolute stylesheet URL
@@ -402,7 +408,7 @@ public class SnapFX {
      */
     public void setThemeStylesheet(String stylesheetResourcePath) {
         String previousStylesheetUrl = themeStylesheetManager.setStylesheetResourcePath(stylesheetResourcePath);
-        applyManagedThemeStylesheetToManagedScenes(previousStylesheetUrl);
+        scheduleManagedThemeStylesheetApply(previousStylesheetUrl);
     }
 
     /**
@@ -1308,6 +1314,35 @@ public class SnapFX {
 
     private void applyManagedThemeStylesheet(Scene scene, String previousStylesheetUrl) {
         themeStylesheetManager.applyToScene(scene, previousStylesheetUrl);
+    }
+
+    private void scheduleManagedThemeStylesheetApply(String previousStylesheetUrl) {
+        if (!Platform.isFxApplicationThread()) {
+            Platform.runLater(() -> scheduleManagedThemeStylesheetApply(previousStylesheetUrl));
+            return;
+        }
+        if (pendingThemeStylesheetApplyTransition != null) {
+            pendingThemeStylesheetApplyTransition.stop();
+        }
+        if (pendingThemeStylesheetPreviousUrl == null) {
+            pendingThemeStylesheetPreviousUrl = previousStylesheetUrl;
+        }
+        pendingThemeStylesheetApplyTransition = new PauseTransition(THEME_STYLESHEET_APPLY_DELAY);
+        pendingThemeStylesheetApplyTransition.setOnFinished(event -> {
+            String initialPreviousStylesheetUrl = pendingThemeStylesheetPreviousUrl;
+            pendingThemeStylesheetPreviousUrl = null;
+            pendingThemeStylesheetApplyTransition = null;
+            applyManagedThemeStylesheetToManagedScenes(initialPreviousStylesheetUrl);
+        });
+        pendingThemeStylesheetApplyTransition.playFromStart();
+    }
+
+    private void cancelPendingManagedThemeStylesheetApply() {
+        if (pendingThemeStylesheetApplyTransition != null) {
+            pendingThemeStylesheetApplyTransition.stop();
+            pendingThemeStylesheetApplyTransition = null;
+        }
+        pendingThemeStylesheetPreviousUrl = null;
     }
 
     private void handleShortcutKeyPressed(KeyEvent event) {

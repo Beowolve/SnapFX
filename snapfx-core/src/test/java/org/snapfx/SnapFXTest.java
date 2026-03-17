@@ -26,6 +26,7 @@ import org.snapfx.theme.DockThemeStyleClasses;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import javafx.animation.PauseTransition;
 import javafx.event.Event;
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
@@ -45,6 +46,7 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -452,73 +454,115 @@ class SnapFXTest {
 
     @Test
     void testSetThemeStylesheetUpdatesPrimaryAndFloatingScenes() {
-        runOnFxThreadAndWait(() -> {
-            SnapFX framework = new SnapFX();
-            DockNode nodeMain = new DockNode("nodeMain", new Label("Main"), "Main");
-            DockNode nodeFloat = new DockNode("nodeFloat", new Label("Float"), "Float");
+        AtomicReference<SnapFX> frameworkRef = new AtomicReference<>();
+        AtomicReference<Scene> sceneRef = new AtomicReference<>();
+        AtomicReference<DockFloatingWindow> floatingWindowRef = new AtomicReference<>();
+        AtomicReference<Stage> stageRef = new AtomicReference<>();
+        String defaultStylesheetUrl = SnapFX.class
+            .getResource(SnapFX.getDefaultThemeStylesheetResourcePath())
+            .toExternalForm();
+        String darkStylesheetUrl = SnapFX.class
+            .getResource("/snapfx-dark.css")
+            .toExternalForm();
 
-            framework.dock(nodeMain, null, DockPosition.CENTER);
-            framework.dock(nodeFloat, nodeMain, DockPosition.RIGHT);
-            DockFloatingWindow floatingWindow = framework.floatNode(nodeFloat);
+        try {
+            runOnFxThreadAndWait(() -> {
+                SnapFX framework = new SnapFX();
+                DockNode nodeMain = new DockNode("nodeMain", new Label("Main"), "Main");
+                DockNode nodeFloat = new DockNode("nodeFloat", new Label("Float"), "Float");
+                framework.dock(nodeMain, null, DockPosition.CENTER);
+                framework.dock(nodeFloat, nodeMain, DockPosition.RIGHT);
+                DockFloatingWindow floatingWindow = framework.floatNode(nodeFloat);
 
-            Stage stage = new Stage();
-            try {
+                Stage stage = new Stage();
                 Scene scene = new Scene(framework.buildLayout(), 640, 480);
                 stage.setScene(scene);
                 framework.initialize(stage);
 
-                String defaultStylesheetUrl = SnapFX.class
-                    .getResource(SnapFX.getDefaultThemeStylesheetResourcePath())
-                    .toExternalForm();
-                String darkStylesheetUrl = SnapFX.class
-                    .getResource("/snapfx-dark.css")
-                    .toExternalForm();
+                frameworkRef.set(framework);
+                sceneRef.set(scene);
+                floatingWindowRef.set(floatingWindow);
+                stageRef.set(stage);
 
                 framework.setThemeStylesheet("/snapfx-dark.css");
+            });
 
+            waitForFxDelay(220);
+
+            runOnFxThreadAndWait(() -> {
+                Scene scene = sceneRef.get();
+                DockFloatingWindow floatingWindow = floatingWindowRef.get();
+                assertNotNull(scene);
+                assertNotNull(floatingWindow);
                 assertTrue(scene.getStylesheets().contains(darkStylesheetUrl));
                 assertFalse(scene.getStylesheets().contains(defaultStylesheetUrl));
                 assertNotNull(floatingWindow.getScene());
                 assertTrue(floatingWindow.getScene().getStylesheets().contains(darkStylesheetUrl));
                 assertFalse(floatingWindow.getScene().getStylesheets().contains(defaultStylesheetUrl));
-                framework.closeFloatingWindows(false);
-            } finally {
-                stage.close();
+            });
+        } finally {
+            runOnFxThreadAndWait(() -> {
+                SnapFX framework = frameworkRef.get();
+                Stage stage = stageRef.get();
+                if (framework != null) {
+                    framework.closeFloatingWindows(false);
+                }
+                if (stage != null) {
+                    stage.close();
+                }
                 closeGhostStage(framework);
-            }
-        });
+            });
+        }
     }
 
     @Test
     void testSetThemeStylesheetBlankResetsToDefault() {
-        runOnFxThreadAndWait(() -> {
-            SnapFX framework = new SnapFX();
-            DockNode node = new DockNode("node", new Label("Node"), "Node");
-            framework.dock(node, null, DockPosition.CENTER);
+        AtomicReference<SnapFX> frameworkRef = new AtomicReference<>();
+        AtomicReference<Scene> sceneRef = new AtomicReference<>();
+        AtomicReference<Stage> stageRef = new AtomicReference<>();
+        String defaultStylesheetUrl = SnapFX.class
+            .getResource(SnapFX.getDefaultThemeStylesheetResourcePath())
+            .toExternalForm();
+        String darkStylesheetUrl = SnapFX.class
+            .getResource("/snapfx-dark.css")
+            .toExternalForm();
 
-            Stage stage = new Stage();
-            try {
+        try {
+            runOnFxThreadAndWait(() -> {
+                SnapFX framework = new SnapFX();
+                DockNode node = new DockNode("node", new Label("Node"), "Node");
+                framework.dock(node, null, DockPosition.CENTER);
+
+                Stage stage = new Stage();
                 Scene scene = new Scene(framework.buildLayout(), 640, 480);
                 stage.setScene(scene);
                 framework.initialize(stage);
 
-                String defaultStylesheetUrl = SnapFX.class
-                    .getResource(SnapFX.getDefaultThemeStylesheetResourcePath())
-                    .toExternalForm();
-                String darkStylesheetUrl = SnapFX.class
-                    .getResource("/snapfx-dark.css")
-                    .toExternalForm();
+                frameworkRef.set(framework);
+                sceneRef.set(scene);
+                stageRef.set(stage);
 
                 framework.setThemeStylesheet("/snapfx-dark.css");
                 framework.setThemeStylesheet(" ");
+            });
 
+            waitForFxDelay(220);
+
+            runOnFxThreadAndWait(() -> {
+                Scene scene = sceneRef.get();
+                assertNotNull(scene);
                 assertTrue(scene.getStylesheets().contains(defaultStylesheetUrl));
                 assertFalse(scene.getStylesheets().contains(darkStylesheetUrl));
-            } finally {
-                stage.close();
-                closeGhostStage(framework);
-            }
-        });
+            });
+        } finally {
+            runOnFxThreadAndWait(() -> {
+                Stage stage = stageRef.get();
+                if (stage != null) {
+                    stage.close();
+                }
+                closeGhostStage(frameworkRef.get());
+            });
+        }
     }
 
     @Test
@@ -529,6 +573,58 @@ class SnapFXTest {
         );
 
         assertTrue(exception.getMessage().contains("/missing-theme.css"));
+    }
+
+    @Test
+    void testSetThemeStylesheetDebouncesRapidChangesAndKeepsManagedStylesheetsClean() {
+        AtomicReference<SnapFX> frameworkRef = new AtomicReference<>();
+        AtomicReference<Scene> sceneRef = new AtomicReference<>();
+        AtomicReference<Stage> stageRef = new AtomicReference<>();
+        String defaultStylesheetUrl = SnapFX.class
+            .getResource(SnapFX.getDefaultThemeStylesheetResourcePath())
+            .toExternalForm();
+        String darkStylesheetUrl = SnapFX.class
+            .getResource("/snapfx-dark.css")
+            .toExternalForm();
+
+        try {
+            runOnFxThreadAndWait(() -> {
+                SnapFX framework = new SnapFX();
+                DockNode node = new DockNode("node", new Label("Node"), "Node");
+                framework.dock(node, null, DockPosition.CENTER);
+
+                Stage stage = new Stage();
+                Scene scene = new Scene(framework.buildLayout(), 640, 480);
+                stage.setScene(scene);
+                framework.initialize(stage);
+
+                frameworkRef.set(framework);
+                sceneRef.set(scene);
+                stageRef.set(stage);
+
+                framework.setThemeStylesheet("/snapfx-dark.css");
+                framework.setThemeStylesheet(" ");
+                framework.setThemeStylesheet("/snapfx-dark.css");
+            });
+
+            waitForFxDelay(220);
+
+            runOnFxThreadAndWait(() -> {
+                Scene scene = sceneRef.get();
+                assertNotNull(scene);
+                assertTrue(scene.getStylesheets().contains(darkStylesheetUrl));
+                assertFalse(scene.getStylesheets().contains(defaultStylesheetUrl));
+                assertEquals(1, scene.getStylesheets().stream().filter(darkStylesheetUrl::equals).count());
+            });
+        } finally {
+            runOnFxThreadAndWait(() -> {
+                Stage stage = stageRef.get();
+                if (stage != null) {
+                    stage.close();
+                }
+                closeGhostStage(frameworkRef.get());
+            });
+        }
     }
 
     /**
@@ -2560,6 +2656,24 @@ class SnapFXTest {
         } catch (InterruptedException exception) {
             Thread.currentThread().interrupt();
             throw new AssertionError("Interrupted while waiting for JavaFX events", exception);
+        }
+    }
+
+    private void waitForFxDelay(long millis) {
+        if (Platform.isFxApplicationThread()) {
+            throw new AssertionError("waitForFxDelay must be called from a non-FX test thread");
+        }
+        CountDownLatch latch = new CountDownLatch(1);
+        Platform.runLater(() -> {
+            PauseTransition delay = new PauseTransition(Duration.millis(millis));
+            delay.setOnFinished(event -> latch.countDown());
+            delay.playFromStart();
+        });
+        try {
+            assertTrue(latch.await(5, TimeUnit.SECONDS), "Timed out waiting for delayed JavaFX events");
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            throw new AssertionError("Interrupted while waiting for delayed JavaFX events", exception);
         }
     }
 

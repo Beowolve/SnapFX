@@ -16,6 +16,9 @@ Changelog categories for `Unreleased` and new release sections (in order, includ
 
 ## Unreleased
 
+### Fixes
+- ✅ Delayed `SnapFX` managed theme stylesheet application with a short debounced JavaFX timer so theme changes triggered from open picker popups no longer emit transient JavaFX `list-cell` CSS lookup warnings.
+
 ### UI and Interaction
 - ✅ Extended floating-window snapping so edge/corner resize now uses the same snapping settings/targets as title-bar drag, with active-edge-only snapping and minimum-size-safe clamping.
 - ✅ Updated MainDemo floating-snapping settings text to reflect drag + resize behavior.

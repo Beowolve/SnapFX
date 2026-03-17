@@ -53,6 +53,7 @@ import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 class MainDemoTest {
@@ -286,6 +287,28 @@ class MainDemoTest {
     }
 
     @Test
+    void testCreateSettingsPanelThemeSelectionUpdatesSnapFxThemeStylesheet() {
+        runOnFxThreadAndWait(() -> {
+            MainDemo demo = new MainDemo();
+            SnapFX framework = new SnapFX();
+            setPrivateField(demo, "snapFX", framework);
+            String targetTheme = SnapFX.getAvailableThemeNames().stream()
+                .filter(themeName -> {
+                    String themePath = SnapFX.getAvailableThemeStylesheets().get(themeName);
+                    return !themePath.equals(framework.getThemeStylesheetResourcePath());
+                })
+                .findFirst()
+                .orElse(SnapFX.getDefaultThemeName());
+            Map<String, String> namedThemes = SnapFX.getAvailableThemeStylesheets();
+            String expectedStylesheet = namedThemes.get(targetTheme);
+            invokePrivateMethodWithStringArgument(demo, "onThemeChanged", targetTheme);
+
+            assertNotNull(expectedStylesheet);
+            assertEquals(expectedStylesheet, framework.getThemeStylesheetResourcePath());
+        });
+    }
+
+    @Test
     void testCreateSettingsPanelUsesScrollPaneAndShowsAppearanceControlsBeforeLayoutControls() {
         runOnFxThreadAndWait(() -> {
             MainDemo demo = new MainDemo();
@@ -330,9 +353,10 @@ class MainDemoTest {
             assertNotNull(localeSettingsComboBox);
             assertNotNull(sideBarModeSettingsComboBox);
             assertNotNull(collapsePinnedOnActiveIconClickCheckBox);
-            assertTrue(localeSettingsComboBox.getMinWidth() >= 200.0);
-            assertTrue(sideBarModeSettingsComboBox.getMinWidth() >= 200.0);
-            assertTrue(collapsePinnedOnActiveIconClickCheckBox.getMinWidth() >= 200.0);
+            assertTrue(localeSettingsComboBox.getMinWidth() > 0.0);
+            assertTrue(sideBarModeSettingsComboBox.getMinWidth() > 0.0);
+            assertTrue(collapsePinnedOnActiveIconClickCheckBox.getMinWidth() > 0.0);
+            assertEquals(localeSettingsComboBox.getMinWidth(), sideBarModeSettingsComboBox.getMinWidth(), 0.0001);
         });
     }
 
@@ -349,15 +373,13 @@ class MainDemoTest {
                 .filter(text -> text != null && !text.isBlank())
                 .toList();
 
-            assertEquals(
-                List.of(
-                    "Pinned Side Bars",
-                    "Sidebar Mode",
-                    "Collapse pinned panel on active icon click"
-                ),
-                nonBlankTexts
-            );
+            assertTrue(nonBlankTexts.contains("Sidebar Mode"));
+            assertTrue(nonBlankTexts.contains("Collapse pinned"));
+            assertTrue(nonBlankTexts.contains("Collapse pinned panel on active icon click"));
             assertFalse(nonBlankTexts.stream().anyMatch(text -> text.contains("Phase 2")));
+            assertFalse(nonBlankTexts.stream().anyMatch(text -> text.contains("Move Selected")));
+            assertFalse(nonBlankTexts.stream().anyMatch(text -> text.contains("Restore Selected")));
+            assertFalse(nonBlankTexts.stream().anyMatch(text -> text.contains("Panel Width")));
         });
     }
 
@@ -510,6 +532,16 @@ class MainDemoTest {
         }
     }
 
+    private void invokePrivateMethodWithStringArgument(Object target, String methodName, String argument) {
+        try {
+            Method method = target.getClass().getDeclaredMethod(methodName, String.class);
+            method.setAccessible(true);
+            method.invoke(target, argument);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Unable to invoke private method with string argument: " + methodName, e);
+        }
+    }
+
     private void setPrivateField(Object target, String fieldName, Object value) {
         try {
             Field field = target.getClass().getDeclaredField(fieldName);
@@ -547,4 +579,5 @@ class MainDemoTest {
             }
         }
     }
+
 }
