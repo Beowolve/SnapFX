@@ -1193,7 +1193,7 @@ public class MainDemo extends Application {
         pinLockedBehavior.valueProperty().addListener((obs, oldVal, newVal) -> onFloatingPinLockedBehaviorChanged(newVal));
         grid.addRow(7, new Label("Pin in Lock Mode"), pinLockedBehavior);
 
-        CheckBox floatingSnappingCheckBox = new CheckBox("Enable snapping while dragging title bars");
+        CheckBox floatingSnappingCheckBox = new CheckBox("Enable snapping while dragging or resizing floating windows");
         floatingSnappingCheckBox.setSelected(snapFX.isFloatingWindowSnappingEnabled());
         floatingSnappingCheckBox.selectedProperty().addListener((obs, oldVal, newVal) ->
             onFloatingWindowSnappingEnabledChanged(newVal)

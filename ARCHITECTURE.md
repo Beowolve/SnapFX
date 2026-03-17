@@ -591,6 +591,18 @@ SnapFX uses host-aware placement memory to restore nodes after floating-window a
 - Hidden/closed floating windows are never treated as valid restore hosts.
 - No user dialogs are shown when restore anchors are invalid; attach always resolves via fallback.
 
+### Floating Drag/Resize Snapping
+
+Floating-window snapping is handled in `DockFloatingWindow` with candidate-scoring helpers in `DockFloatingSnapEngine`.
+
+- The same runtime settings (`enabled`, `distance`, `targets`) apply to both title-bar drag and edge/corner resize.
+- Supported snap targets stay identical for drag and resize: `SCREEN`, `MAIN_WINDOW`, `FLOATING_WINDOWS`.
+- `MAIN_WINDOW` and `FLOATING_WINDOWS` keep overlap-aware candidate filtering:
+  - horizontal snap candidates require vertical overlap
+  - vertical snap candidates require horizontal overlap
+- During resize, only the actively dragged edge(s) are snapped; the opposite edge remains fixed.
+- After resize snapping, minimum width/height constraints are re-applied while preserving that fixed-opposite-edge behavior.
+
 ### Sidebar Overlay and Pinned Panel Rendering
 
 Phase-C side bars split state across model and view layers on purpose:

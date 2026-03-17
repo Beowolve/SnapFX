@@ -1,6 +1,6 @@
 # Project Status
 
-**Last Updated**: 2026-03-13
+**Last Updated**: 2026-03-17
 
 ## Current Snapshot
 
@@ -14,7 +14,7 @@
 ## Current Capability Baseline
 
 - ✅ **Core Docking**: Stable model/view separation with drag-and-drop, hide/restore, and lock mode
-- ✅ **Floating Windows**: Detach/attach, snapping, persistence, and always-on-top behavior
+- ✅ **Floating Windows**: Detach/attach, drag+resize snapping, persistence, and always-on-top behavior
 - ✅ **Side Bars**: Current scope completed (DnD strip baseline, built-in move/restore/pin actions, resize + persistence, visibility modes)
 - ✅ **Theming**: Default stylesheet auto-apply plus runtime theme switching (`Light` / `Dark`)
 - ✅ **Localization Runtime**: Built-in `EN`/`DE` locale switching, provider extension API, and FX-thread mutation enforcement are in place

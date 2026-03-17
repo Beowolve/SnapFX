@@ -628,7 +628,7 @@ public final class DockFloatingWindow {
     }
 
     /**
-     * Enables or disables snapping while dragging the floating window title bar.
+     * Enables or disables snapping while dragging the floating window or resizing it from edges/corners.
      *
      * @param enabled {@code true} to enable snapping
      */
@@ -637,7 +637,7 @@ public final class DockFloatingWindow {
     }
 
     /**
-     * Returns whether drag snapping is enabled.
+     * Returns whether floating drag/resize snapping is enabled.
      *
      * @return {@code true} when snapping is enabled
      */
@@ -666,7 +666,7 @@ public final class DockFloatingWindow {
     }
 
     /**
-     * Configures which snap targets are considered during drag.
+     * Configures which snap targets are considered during floating drag and resize.
      *
      * @param targets configured snap targets, {@code null} clears all targets
      */
@@ -1781,10 +1781,176 @@ public final class DockFloatingWindow {
             height = Math.max(minHeight, resizeStartWindowHeight + deltaY);
         }
 
-        window.setX(x);
-        window.setY(y);
-        window.setWidth(width);
-        window.setHeight(height);
+        ResizeBounds resizeBounds = resolveSnappedResizeBounds(
+            window,
+            x,
+            y,
+            width,
+            height,
+            event.getScreenX(),
+            event.getScreenY(),
+            minWidth,
+            minHeight
+        );
+
+        window.setX(resizeBounds.x());
+        window.setY(resizeBounds.y());
+        window.setWidth(resizeBounds.width());
+        window.setHeight(resizeBounds.height());
+    }
+
+    private ResizeBounds resolveSnappedResizeBounds(
+        Stage window,
+        double requestedX,
+        double requestedY,
+        double requestedWidth,
+        double requestedHeight,
+        double pointerScreenX,
+        double pointerScreenY,
+        double minWidth,
+        double minHeight
+    ) {
+        if (!isResizeSnappingActive(window)
+            || !Double.isFinite(requestedX)
+            || !Double.isFinite(requestedY)
+            || !Double.isFinite(requestedWidth)
+            || !Double.isFinite(requestedHeight)
+            || requestedWidth <= 0.0
+            || requestedHeight <= 0.0
+            || !Double.isFinite(minWidth)
+            || !Double.isFinite(minHeight)
+            || minWidth <= 0.0
+            || minHeight <= 0.0) {
+            return new ResizeBounds(requestedX, requestedY, requestedWidth, requestedHeight);
+        }
+
+        List<Double> leftEdgeCandidates = new ArrayList<>();
+        List<Double> rightEdgeCandidates = new ArrayList<>();
+        List<Double> topEdgeCandidates = new ArrayList<>();
+        List<Double> bottomEdgeCandidates = new ArrayList<>();
+        collectResizeSnapEdgeCandidates(
+            window,
+            requestedX,
+            requestedY,
+            requestedWidth,
+            requestedHeight,
+            pointerScreenX,
+            pointerScreenY,
+            leftEdgeCandidates,
+            rightEdgeCandidates,
+            topEdgeCandidates,
+            bottomEdgeCandidates
+        );
+
+        double left = requestedX;
+        double right = requestedX + requestedWidth;
+        double top = requestedY;
+        double bottom = requestedY + requestedHeight;
+
+        if ((activeResizeMask & RESIZE_LEFT) != 0) {
+            left = snapEngine.snapAxis(left, snapDistance, leftEdgeCandidates);
+            if (right - left < minWidth) {
+                left = right - minWidth;
+            }
+        } else if ((activeResizeMask & RESIZE_RIGHT) != 0) {
+            right = snapEngine.snapAxis(right, snapDistance, rightEdgeCandidates);
+            if (right - left < minWidth) {
+                right = left + minWidth;
+            }
+        }
+
+        if ((activeResizeMask & RESIZE_TOP) != 0) {
+            top = snapEngine.snapAxis(top, snapDistance, topEdgeCandidates);
+            if (bottom - top < minHeight) {
+                top = bottom - minHeight;
+            }
+        } else if ((activeResizeMask & RESIZE_BOTTOM) != 0) {
+            bottom = snapEngine.snapAxis(bottom, snapDistance, bottomEdgeCandidates);
+            if (bottom - top < minHeight) {
+                bottom = top + minHeight;
+            }
+        }
+
+        return new ResizeBounds(left, top, right - left, bottom - top);
+    }
+
+    private boolean isResizeSnappingActive(Stage window) {
+        return window != null
+            && snappingEnabled
+            && snapDistance > 0.0
+            && !snapTargets.isEmpty();
+    }
+
+    private void collectResizeSnapEdgeCandidates(
+        Stage window,
+        double requestedX,
+        double requestedY,
+        double requestedWidth,
+        double requestedHeight,
+        double pointerScreenX,
+        double pointerScreenY,
+        List<Double> leftEdgeCandidates,
+        List<Double> rightEdgeCandidates,
+        List<Double> topEdgeCandidates,
+        List<Double> bottomEdgeCandidates
+    ) {
+        if (window == null
+            || leftEdgeCandidates == null
+            || rightEdgeCandidates == null
+            || topEdgeCandidates == null
+            || bottomEdgeCandidates == null
+            || requestedWidth <= 0.0
+            || requestedHeight <= 0.0) {
+            return;
+        }
+
+        if (snapTargets.contains(DockFloatingSnapTarget.SCREEN)) {
+            snapEngine.addEdgeCandidates(
+                resolveScreenSnapBounds(
+                    requestedX,
+                    requestedY,
+                    pointerScreenX,
+                    pointerScreenY,
+                    requestedWidth,
+                    requestedHeight
+                ),
+                leftEdgeCandidates,
+                rightEdgeCandidates,
+                topEdgeCandidates,
+                bottomEdgeCandidates
+            );
+        }
+        if (snapTargets.contains(DockFloatingSnapTarget.MAIN_WINDOW)) {
+            Rectangle2D mainWindowBounds = resolveMainWindowSnapBounds(window);
+            if (mainWindowBounds != null) {
+                snapEngine.addOverlapAwareEdgeCandidates(
+                    List.of(mainWindowBounds),
+                    requestedX,
+                    requestedY,
+                    requestedWidth,
+                    requestedHeight,
+                    snapDistance,
+                    leftEdgeCandidates,
+                    rightEdgeCandidates,
+                    topEdgeCandidates,
+                    bottomEdgeCandidates
+                );
+            }
+        }
+        if (snapTargets.contains(DockFloatingSnapTarget.FLOATING_WINDOWS)) {
+            snapEngine.addOverlapAwareEdgeCandidates(
+                resolvePeerFloatingSnapBounds(window),
+                requestedX,
+                requestedY,
+                requestedWidth,
+                requestedHeight,
+                snapDistance,
+                leftEdgeCandidates,
+                rightEdgeCandidates,
+                topEdgeCandidates,
+                bottomEdgeCandidates
+            );
+        }
     }
 
     private double resolveMinimumWindowWidth(Stage window) {
@@ -1857,6 +2023,9 @@ public final class DockFloatingWindow {
             case RESIZE_RIGHT | RESIZE_BOTTOM -> Cursor.SE_RESIZE;
             default -> Cursor.DEFAULT;
         };
+    }
+
+    private record ResizeBounds(double x, double y, double width, double height) {
     }
 
     private void rebuildLayout() {

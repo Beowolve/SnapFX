@@ -20,9 +20,19 @@ final class DockFloatingSnapEngine {
             || snapDistance < 0.0) {
             return new Point2D(requestedX, requestedY);
         }
-        SnapAxisResult snappedX = resolveAxis(requestedX, snapDistance, xCandidates);
-        SnapAxisResult snappedY = resolveAxis(requestedY, snapDistance, yCandidates);
-        return new Point2D(snappedX.value(), snappedY.value());
+        return new Point2D(
+            snapAxis(requestedX, snapDistance, xCandidates),
+            snapAxis(requestedY, snapDistance, yCandidates)
+        );
+    }
+
+    double snapAxis(double requestedValue, double snapDistance, List<Double> candidates) {
+        if (!Double.isFinite(requestedValue)
+            || !Double.isFinite(snapDistance)
+            || snapDistance < 0.0) {
+            return requestedValue;
+        }
+        return resolveAxis(requestedValue, snapDistance, candidates).value();
     }
 
     void addAlignmentCandidates(
@@ -44,6 +54,32 @@ final class DockFloatingSnapEngine {
         }
         for (Rectangle2D bounds : targetBounds) {
             addEdgeAlignmentCandidates(bounds, windowWidth, windowHeight, xCandidates, yCandidates);
+        }
+    }
+
+    void addEdgeCandidates(
+        List<Rectangle2D> targetBounds,
+        List<Double> leftEdgeCandidates,
+        List<Double> rightEdgeCandidates,
+        List<Double> topEdgeCandidates,
+        List<Double> bottomEdgeCandidates
+    ) {
+        if (targetBounds == null
+            || targetBounds.isEmpty()
+            || leftEdgeCandidates == null
+            || rightEdgeCandidates == null
+            || topEdgeCandidates == null
+            || bottomEdgeCandidates == null) {
+            return;
+        }
+        for (Rectangle2D bounds : targetBounds) {
+            if (bounds == null) {
+                continue;
+            }
+            leftEdgeCandidates.add(bounds.getMinX());
+            rightEdgeCandidates.add(bounds.getMaxX());
+            topEdgeCandidates.add(bounds.getMinY());
+            bottomEdgeCandidates.add(bounds.getMaxY());
         }
     }
 
@@ -107,6 +143,74 @@ final class DockFloatingSnapEngine {
                 yCandidates.add(targetMaxY - windowHeight);
                 yCandidates.add(targetMinY - windowHeight);
                 yCandidates.add(targetMaxY);
+            }
+        }
+    }
+
+    void addOverlapAwareEdgeCandidates(
+        List<Rectangle2D> targetBounds,
+        double requestedX,
+        double requestedY,
+        double windowWidth,
+        double windowHeight,
+        double tolerance,
+        List<Double> leftEdgeCandidates,
+        List<Double> rightEdgeCandidates,
+        List<Double> topEdgeCandidates,
+        List<Double> bottomEdgeCandidates
+    ) {
+        if (targetBounds == null
+            || targetBounds.isEmpty()
+            || !Double.isFinite(requestedX)
+            || !Double.isFinite(requestedY)
+            || !Double.isFinite(windowWidth)
+            || !Double.isFinite(windowHeight)
+            || windowWidth <= 0.0
+            || windowHeight <= 0.0
+            || !Double.isFinite(tolerance)
+            || tolerance < 0.0
+            || leftEdgeCandidates == null
+            || rightEdgeCandidates == null
+            || topEdgeCandidates == null
+            || bottomEdgeCandidates == null) {
+            return;
+        }
+
+        for (Rectangle2D bounds : targetBounds) {
+            if (bounds == null) {
+                continue;
+            }
+            double targetMinX = bounds.getMinX();
+            double targetMaxX = bounds.getMaxX();
+            double targetMinY = bounds.getMinY();
+            double targetMaxY = bounds.getMaxY();
+
+            boolean verticalOverlap = rangesOverlap(
+                requestedY,
+                requestedY + windowHeight,
+                targetMinY,
+                targetMaxY,
+                tolerance
+            );
+            if (verticalOverlap) {
+                leftEdgeCandidates.add(targetMinX);
+                leftEdgeCandidates.add(targetMaxX);
+                rightEdgeCandidates.add(targetMinX);
+                rightEdgeCandidates.add(targetMaxX);
+            }
+
+            boolean horizontalOverlap = rangesOverlap(
+                requestedX,
+                requestedX + windowWidth,
+                targetMinX,
+                targetMaxX,
+                tolerance
+            );
+            if (horizontalOverlap) {
+                topEdgeCandidates.add(targetMinY);
+                topEdgeCandidates.add(targetMaxY);
+                bottomEdgeCandidates.add(targetMinY);
+                bottomEdgeCandidates.add(targetMaxY);
             }
         }
     }

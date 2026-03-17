@@ -746,6 +746,277 @@ class DockFloatingWindowTest {
     }
 
     @Test
+    void testResizeSnapRightEdgeToPeerFloatingWindowEdge() {
+        runOnFxThreadAndWait(() -> {
+            DockFloatingWindow floatingWindow = new DockFloatingWindow(new DockNode(new Label("Node"), "Node"));
+            DockFloatingWindow peerWindow = new DockFloatingWindow(new DockNode(new Label("Peer"), "Peer"));
+            Stage peerStage = new Stage();
+            peerStage.setX(415);
+            peerStage.setY(80);
+            peerStage.setWidth(240);
+            peerStage.setHeight(220);
+            writeStage(peerWindow, peerStage);
+
+            floatingWindow.setSnappingEnabled(true);
+            floatingWindow.setSnapDistance(10.0);
+            floatingWindow.setSnapTargets(EnumSet.of(DockFloatingSnapTarget.FLOATING_WINDOWS));
+            floatingWindow.setSnapPeerWindowsSupplier(() -> List.of(peerWindow));
+
+            Stage stage = new Stage();
+            stage.setX(100);
+            stage.setY(80);
+            stage.setWidth(300);
+            stage.setHeight(200);
+
+            HBox titleBar = new HBox();
+            MouseEvent beginEvent = createMouseEvent(
+                MouseEvent.MOUSE_PRESSED,
+                400,
+                180,
+                300,
+                100,
+                titleBar,
+                titleBar,
+                MouseButton.PRIMARY,
+                1
+            );
+            invokeBeginResize(floatingWindow, beginEvent, stage, 2);
+
+            MouseEvent resizeEvent = createMouseEvent(
+                MouseEvent.MOUSE_DRAGGED,
+                409,
+                180,
+                309,
+                100,
+                titleBar,
+                titleBar,
+                MouseButton.PRIMARY,
+                1
+            );
+            invokePerformResize(floatingWindow, resizeEvent, stage);
+
+            assertEquals(100.0, stage.getX(), 0.0001);
+            assertEquals(315.0, stage.getWidth(), 0.0001);
+        });
+    }
+
+    @Test
+    void testResizeSnapLeftEdgeToMainWindowEdge() {
+        runOnFxThreadAndWait(() -> {
+            DockFloatingWindow floatingWindow = new DockFloatingWindow(new DockNode(new Label("Node"), "Node"));
+            floatingWindow.setSnappingEnabled(true);
+            floatingWindow.setSnapDistance(10.0);
+            floatingWindow.setSnapTargets(EnumSet.of(DockFloatingSnapTarget.MAIN_WINDOW));
+
+            Stage ownerStage = new Stage();
+            ownerStage.setX(200);
+            ownerStage.setY(80);
+            ownerStage.setWidth(400);
+            ownerStage.setHeight(300);
+
+            Stage stage = new Stage();
+            stage.initOwner(ownerStage);
+            stage.setX(450);
+            stage.setY(100);
+            stage.setWidth(500);
+            stage.setHeight(220);
+
+            HBox titleBar = new HBox();
+            MouseEvent beginEvent = createMouseEvent(
+                MouseEvent.MOUSE_PRESSED,
+                450,
+                180,
+                0,
+                80,
+                titleBar,
+                titleBar,
+                MouseButton.PRIMARY,
+                1
+            );
+            invokeBeginResize(floatingWindow, beginEvent, stage, 1);
+
+            MouseEvent resizeEvent = createMouseEvent(
+                MouseEvent.MOUSE_DRAGGED,
+                607,
+                180,
+                157,
+                80,
+                titleBar,
+                titleBar,
+                MouseButton.PRIMARY,
+                1
+            );
+            invokePerformResize(floatingWindow, resizeEvent, stage);
+
+            assertEquals(600.0, stage.getX(), 0.0001);
+            assertEquals(350.0, stage.getWidth(), 0.0001);
+        });
+    }
+
+    @Test
+    void testCornerResizeSnapAppliesToBothActiveAxes() {
+        runOnFxThreadAndWait(() -> {
+            DockFloatingWindow floatingWindow = new DockFloatingWindow(new DockNode(new Label("Node"), "Node"));
+            floatingWindow.setSnappingEnabled(true);
+            floatingWindow.setSnapDistance(10.0);
+            floatingWindow.setSnapTargets(EnumSet.of(DockFloatingSnapTarget.MAIN_WINDOW));
+
+            Stage ownerStage = new Stage();
+            ownerStage.setX(500);
+            ownerStage.setY(380);
+            ownerStage.setWidth(600);
+            ownerStage.setHeight(400);
+
+            Stage stage = new Stage();
+            stage.initOwner(ownerStage);
+            stage.setX(100);
+            stage.setY(100);
+            stage.setWidth(300);
+            stage.setHeight(200);
+
+            HBox titleBar = new HBox();
+            MouseEvent beginEvent = createMouseEvent(
+                MouseEvent.MOUSE_PRESSED,
+                400,
+                300,
+                300,
+                200,
+                titleBar,
+                titleBar,
+                MouseButton.PRIMARY,
+                1
+            );
+            invokeBeginResize(floatingWindow, beginEvent, stage, 10);
+
+            MouseEvent resizeEvent = createMouseEvent(
+                MouseEvent.MOUSE_DRAGGED,
+                495,
+                375,
+                395,
+                275,
+                titleBar,
+                titleBar,
+                MouseButton.PRIMARY,
+                1
+            );
+            invokePerformResize(floatingWindow, resizeEvent, stage);
+
+            assertEquals(100.0, stage.getX(), 0.0001);
+            assertEquals(100.0, stage.getY(), 0.0001);
+            assertEquals(400.0, stage.getWidth(), 0.0001);
+            assertEquals(280.0, stage.getHeight(), 0.0001);
+        });
+    }
+
+    @Test
+    void testResizeDoesNotSnapWithoutPerpendicularOverlap() {
+        runOnFxThreadAndWait(() -> {
+            DockFloatingWindow floatingWindow = new DockFloatingWindow(new DockNode(new Label("Node"), "Node"));
+            DockFloatingWindow peerWindow = new DockFloatingWindow(new DockNode(new Label("Peer"), "Peer"));
+            Stage peerStage = new Stage();
+            peerStage.setX(415);
+            peerStage.setY(500);
+            peerStage.setWidth(240);
+            peerStage.setHeight(220);
+            writeStage(peerWindow, peerStage);
+
+            floatingWindow.setSnappingEnabled(true);
+            floatingWindow.setSnapDistance(10.0);
+            floatingWindow.setSnapTargets(EnumSet.of(DockFloatingSnapTarget.FLOATING_WINDOWS));
+            floatingWindow.setSnapPeerWindowsSupplier(() -> List.of(peerWindow));
+
+            Stage stage = new Stage();
+            stage.setX(100);
+            stage.setY(80);
+            stage.setWidth(300);
+            stage.setHeight(200);
+
+            HBox titleBar = new HBox();
+            MouseEvent beginEvent = createMouseEvent(
+                MouseEvent.MOUSE_PRESSED,
+                400,
+                180,
+                300,
+                100,
+                titleBar,
+                titleBar,
+                MouseButton.PRIMARY,
+                1
+            );
+            invokeBeginResize(floatingWindow, beginEvent, stage, 2);
+
+            MouseEvent resizeEvent = createMouseEvent(
+                MouseEvent.MOUSE_DRAGGED,
+                409,
+                180,
+                309,
+                100,
+                titleBar,
+                titleBar,
+                MouseButton.PRIMARY,
+                1
+            );
+            invokePerformResize(floatingWindow, resizeEvent, stage);
+
+            assertEquals(309.0, stage.getWidth(), 0.0001);
+        });
+    }
+
+    @Test
+    void testResizeDoesNotSnapWhenSnappingIsDisabled() {
+        runOnFxThreadAndWait(() -> {
+            DockFloatingWindow floatingWindow = new DockFloatingWindow(new DockNode(new Label("Node"), "Node"));
+            DockFloatingWindow peerWindow = new DockFloatingWindow(new DockNode(new Label("Peer"), "Peer"));
+            Stage peerStage = new Stage();
+            peerStage.setX(415);
+            peerStage.setY(80);
+            peerStage.setWidth(240);
+            peerStage.setHeight(220);
+            writeStage(peerWindow, peerStage);
+
+            floatingWindow.setSnappingEnabled(false);
+            floatingWindow.setSnapDistance(10.0);
+            floatingWindow.setSnapTargets(EnumSet.of(DockFloatingSnapTarget.FLOATING_WINDOWS));
+            floatingWindow.setSnapPeerWindowsSupplier(() -> List.of(peerWindow));
+
+            Stage stage = new Stage();
+            stage.setX(100);
+            stage.setY(80);
+            stage.setWidth(300);
+            stage.setHeight(200);
+
+            HBox titleBar = new HBox();
+            MouseEvent beginEvent = createMouseEvent(
+                MouseEvent.MOUSE_PRESSED,
+                400,
+                180,
+                300,
+                100,
+                titleBar,
+                titleBar,
+                MouseButton.PRIMARY,
+                1
+            );
+            invokeBeginResize(floatingWindow, beginEvent, stage, 2);
+
+            MouseEvent resizeEvent = createMouseEvent(
+                MouseEvent.MOUSE_DRAGGED,
+                409,
+                180,
+                309,
+                100,
+                titleBar,
+                titleBar,
+                MouseButton.PRIMARY,
+                1
+            );
+            invokePerformResize(floatingWindow, resizeEvent, stage);
+
+            assertEquals(309.0, stage.getWidth(), 0.0001);
+        });
+    }
+
+    @Test
     void testResizeCursorIsAppliedToInteractiveContentTargetNearRightEdge() {
         runOnFxThreadAndWait(() -> {
             DockFloatingWindow floatingWindow = new DockFloatingWindow(new DockNode(new Label("Node"), "Node"));

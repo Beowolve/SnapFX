@@ -2735,7 +2735,7 @@ public class SnapFX {
     }
 
     /**
-     * Enables or disables floating-window snapping while title bars are dragged.
+     * Enables or disables floating-window snapping during window drag and edge/corner resize.
      *
      * @param enabled {@code true} to enable snapping
      */
@@ -2762,7 +2762,7 @@ public class SnapFX {
     }
 
     /**
-     * Sets the snap distance in pixels used for floating-window drag snapping.
+     * Sets the snap distance in pixels used for floating-window drag/resize snapping.
      *
      * @param pixels snap tolerance in pixels
      */

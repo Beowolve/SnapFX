@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DockFloatingSnapEngineTest {
 
@@ -142,5 +143,77 @@ class DockFloatingSnapEngineTest {
         assertEquals(5.0, engine.inferShadowInset(6.0, 6.0, 6.0), 0.0001);
         assertEquals(0.0, engine.inferShadowInset(1.0, 1.0, 1.0), 0.0001);
         assertEquals(0.0, engine.inferShadowInset(Double.NaN, 6.0, 6.0), 0.0001);
+    }
+
+    @Test
+    void testSnapAxisReturnsNearestCandidateWithinDistance() {
+        DockFloatingSnapEngine engine = new DockFloatingSnapEngine();
+
+        double snapped = engine.snapAxis(109.0, 10.0, List.of(100.0, 120.0, 112.0));
+
+        assertEquals(112.0, snapped, 0.0001);
+    }
+
+    @Test
+    void testSnapAxisReturnsRequestedValueWhenNoCandidateIsWithinDistance() {
+        DockFloatingSnapEngine engine = new DockFloatingSnapEngine();
+
+        double snapped = engine.snapAxis(109.0, 2.0, List.of(100.0, 120.0, 112.0));
+
+        assertEquals(109.0, snapped, 0.0001);
+    }
+
+    @Test
+    void testAddOverlapAwareEdgeCandidatesAddsEdgesForOverlappingTargets() {
+        DockFloatingSnapEngine engine = new DockFloatingSnapEngine();
+        List<Double> leftEdgeCandidates = new ArrayList<>();
+        List<Double> rightEdgeCandidates = new ArrayList<>();
+        List<Double> topEdgeCandidates = new ArrayList<>();
+        List<Double> bottomEdgeCandidates = new ArrayList<>();
+
+        engine.addOverlapAwareEdgeCandidates(
+            List.of(new Rectangle2D(300.0, 80.0, 640.0, 420.0)),
+            289.0,
+            100.0,
+            640.0,
+            420.0,
+            15.0,
+            leftEdgeCandidates,
+            rightEdgeCandidates,
+            topEdgeCandidates,
+            bottomEdgeCandidates
+        );
+
+        assertEquals(List.of(300.0, 940.0), leftEdgeCandidates);
+        assertEquals(List.of(300.0, 940.0), rightEdgeCandidates);
+        assertEquals(List.of(80.0, 500.0), topEdgeCandidates);
+        assertEquals(List.of(80.0, 500.0), bottomEdgeCandidates);
+    }
+
+    @Test
+    void testAddOverlapAwareEdgeCandidatesSkipsHorizontalAxisWithoutVerticalOverlap() {
+        DockFloatingSnapEngine engine = new DockFloatingSnapEngine();
+        List<Double> leftEdgeCandidates = new ArrayList<>();
+        List<Double> rightEdgeCandidates = new ArrayList<>();
+        List<Double> topEdgeCandidates = new ArrayList<>();
+        List<Double> bottomEdgeCandidates = new ArrayList<>();
+
+        engine.addOverlapAwareEdgeCandidates(
+            List.of(new Rectangle2D(300.0, 80.0, 640.0, 420.0)),
+            289.0,
+            800.0,
+            640.0,
+            420.0,
+            15.0,
+            leftEdgeCandidates,
+            rightEdgeCandidates,
+            topEdgeCandidates,
+            bottomEdgeCandidates
+        );
+
+        assertTrue(leftEdgeCandidates.isEmpty());
+        assertTrue(rightEdgeCandidates.isEmpty());
+        assertEquals(List.of(80.0, 500.0), topEdgeCandidates);
+        assertEquals(List.of(80.0, 500.0), bottomEdgeCandidates);
     }
 }

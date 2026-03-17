@@ -1,11 +1,11 @@
 # SnapFX Framework - Completed Milestones
 
-**Last Updated**: 2026-03-13
+**Last Updated**: 2026-03-17
 
 ## Product Baseline
 
 - ✅ **Core Docking Delivered**: Stable docking model/view architecture with drag-and-drop, hide/restore, and lock mode
-- ✅ **Floating Workflows Delivered**: Detach/attach, title-bar actions, always-on-top, snapping, and persistence
+- ✅ **Floating Workflows Delivered**: Detach/attach, title-bar actions, always-on-top, drag+resize snapping, and persistence
 - ✅ **Sidebar Interaction Scope Delivered**: Strip DnD baseline, framework/sidebar move/restore/pin actions, resize + persistence, and visibility modes
 - ✅ **Persistence and Recovery Delivered**: Save/load pipeline with typed load errors and unknown-node fallback recovery
 - ✅ **Theme Runtime Delivered**: Default stylesheet auto-apply plus runtime theme switching (`Light` / `Dark`)

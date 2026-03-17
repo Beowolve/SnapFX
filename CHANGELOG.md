@@ -16,6 +16,18 @@ Changelog categories for `Unreleased` and new release sections (in order, includ
 
 ## Unreleased
 
+### UI and Interaction
+- ✅ Extended floating-window snapping so edge/corner resize now uses the same snapping settings/targets as title-bar drag, with active-edge-only snapping and minimum-size-safe clamping.
+- ✅ Updated MainDemo floating-snapping settings text to reflect drag + resize behavior.
+
+### Tests
+- ✅ Added `DockFloatingWindowTest` regression coverage for resize snapping against peer/main targets, corner resize dual-axis snapping, overlap-guard behavior, and disabled-snapping behavior.
+- ✅ Added `DockFloatingSnapEngineTest` coverage for axis/edge helper methods used by resize snapping.
+
+### Documentation
+- ✅ Added ADR [docs/adr/0007-floating-drag-resize-snapping-policy.md](docs/adr/0007-floating-drag-resize-snapping-policy.md) for the unified drag+resize snapping policy decision.
+- ✅ Updated [ARCHITECTURE.md](ARCHITECTURE.md), [STATUS.md](STATUS.md), [DONE.md](DONE.md), and [ROADMAP.md](ROADMAP.md) to reflect floating resize-snapping behavior.
+
 ## v0.7.0 - 2026-03-13
 
 ### Features
