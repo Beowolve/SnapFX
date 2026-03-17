@@ -16,6 +16,8 @@ Changelog categories for `Unreleased` and new release sections (in order, includ
 
 ## Unreleased
 
+## v0.7.1 - 2026-03-17
+
 ### Fixes
 - ✅ Delayed `SnapFX` managed theme stylesheet application with a short debounced JavaFX timer so theme changes triggered from open picker popups no longer emit transient JavaFX `list-cell` CSS lookup warnings.
 
