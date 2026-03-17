@@ -10,6 +10,7 @@ import javafx.geometry.Side;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeAll;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -26,11 +27,14 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.Spinner;
+import javafx.scene.control.Labeled;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SplitPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -39,6 +43,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -205,7 +210,7 @@ class MainDemoTest {
     }
 
     @Test
-    void testSideBarSettingsSectionIncludesPanelWidthControlsBoundToSnapFxApi() {
+    void testSideBarSettingsSectionIncludesCollapsePinnedOnActiveIconClickControlBoundToSnapFxApi() {
         runOnFxThreadAndWait(() -> {
             MainDemo demo = new MainDemo();
             SnapFX framework = new SnapFX();
@@ -213,21 +218,19 @@ class MainDemoTest {
 
             invokePrivateMethod(demo, "createSideBarSettingsSection");
 
-            Spinner<Double> leftSpinner = readPrivateField(demo, "leftSideBarPanelWidthSpinner", Spinner.class);
-            Spinner<Double> rightSpinner = readPrivateField(demo, "rightSideBarPanelWidthSpinner", Spinner.class);
-            assertNotNull(leftSpinner);
-            assertNotNull(rightSpinner);
-            assertNotNull(leftSpinner.getValueFactory());
-            assertNotNull(rightSpinner.getValueFactory());
+            CheckBox collapsePinnedOnActiveIconClickCheckBox =
+                readPrivateField(demo, "collapsePinnedOnActiveIconClickCheckBox", CheckBox.class);
+            assertNotNull(collapsePinnedOnActiveIconClickCheckBox);
+            assertEquals(
+                framework.isCollapsePinnedSideBarOnActiveIconClick(),
+                collapsePinnedOnActiveIconClickCheckBox.isSelected()
+            );
 
-            assertEquals(framework.getSideBarPanelWidth(Side.LEFT), leftSpinner.getValueFactory().getValue(), 0.0001);
-            assertEquals(framework.getSideBarPanelWidth(Side.RIGHT), rightSpinner.getValueFactory().getValue(), 0.0001);
+            collapsePinnedOnActiveIconClickCheckBox.setSelected(false);
+            assertFalse(framework.isCollapsePinnedSideBarOnActiveIconClick());
 
-            leftSpinner.getValueFactory().setValue(360.0);
-            rightSpinner.getValueFactory().setValue(290.0);
-
-            assertEquals(360.0, framework.getSideBarPanelWidth(Side.LEFT), 0.0001);
-            assertEquals(290.0, framework.getSideBarPanelWidth(Side.RIGHT), 0.0001);
+            collapsePinnedOnActiveIconClickCheckBox.setSelected(true);
+            assertTrue(framework.isCollapsePinnedSideBarOnActiveIconClick());
         });
     }
 
@@ -279,6 +282,82 @@ class MainDemoTest {
             localeComboBox.setValue(Locale.ENGLISH);
             assertEquals(Locale.ENGLISH, framework.getLocale());
             assertNull(framework.getLocalizationProvider());
+        });
+    }
+
+    @Test
+    void testCreateSettingsPanelUsesScrollPaneAndShowsAppearanceControlsBeforeLayoutControls() {
+        runOnFxThreadAndWait(() -> {
+            MainDemo demo = new MainDemo();
+            SnapFX framework = new SnapFX();
+            setPrivateField(demo, "snapFX", framework);
+
+            Parent settingsPanel = invokePrivateMethodWithResult(demo, "createSettingsPanel", Parent.class);
+
+            ScrollPane scrollPane = assertInstanceOf(ScrollPane.class, settingsPanel);
+            assertTrue(scrollPane.isFitToWidth());
+            assertNotNull(scrollPane.getContent());
+            VBox panelContent = assertInstanceOf(VBox.class, scrollPane.getContent());
+
+            List<String> labeledTexts = collectLabeledTexts(panelContent);
+            int themeIndex = labeledTexts.indexOf("Theme");
+            int localeIndex = labeledTexts.indexOf("Framework Locale");
+            int titleBarModeIndex = labeledTexts.indexOf("Title Bar Mode");
+
+            assertTrue(themeIndex >= 0, "Theme setting label not found");
+            assertTrue(localeIndex >= 0, "Framework locale setting label not found");
+            assertTrue(titleBarModeIndex >= 0, "Title bar mode setting label not found");
+            assertTrue(themeIndex < titleBarModeIndex, "Theme setting should be placed before layout settings");
+            assertTrue(localeIndex < titleBarModeIndex, "Framework locale setting should be placed before layout settings");
+        });
+    }
+
+    @Test
+    void testCreateSettingsPanelAppliesMinimumControlWidthsForReadability() {
+        runOnFxThreadAndWait(() -> {
+            MainDemo demo = new MainDemo();
+            SnapFX framework = new SnapFX();
+            setPrivateField(demo, "snapFX", framework);
+
+            invokePrivateMethod(demo, "createSettingsPanel");
+
+            ComboBox<Locale> localeSettingsComboBox = readPrivateField(demo, "localeComboBox", ComboBox.class);
+            ComboBox<DockSideBarMode> sideBarModeSettingsComboBox =
+                readPrivateField(demo, "sideBarModeComboBox", ComboBox.class);
+            CheckBox collapsePinnedOnActiveIconClickCheckBox =
+                readPrivateField(demo, "collapsePinnedOnActiveIconClickCheckBox", CheckBox.class);
+
+            assertNotNull(localeSettingsComboBox);
+            assertNotNull(sideBarModeSettingsComboBox);
+            assertNotNull(collapsePinnedOnActiveIconClickCheckBox);
+            assertTrue(localeSettingsComboBox.getMinWidth() >= 200.0);
+            assertTrue(sideBarModeSettingsComboBox.getMinWidth() >= 200.0);
+            assertTrue(collapsePinnedOnActiveIconClickCheckBox.getMinWidth() >= 200.0);
+        });
+    }
+
+    @Test
+    void testSideBarSettingsSectionContainsOnlyModeAndCollapseSettings() {
+        runOnFxThreadAndWait(() -> {
+            MainDemo demo = new MainDemo();
+            SnapFX framework = new SnapFX();
+            setPrivateField(demo, "snapFX", framework);
+
+            VBox sideBarSection = invokePrivateMethodWithResult(demo, "createSideBarSettingsSection", VBox.class);
+            List<String> labeledTexts = collectLabeledTexts(sideBarSection);
+            List<String> nonBlankTexts = labeledTexts.stream()
+                .filter(text -> text != null && !text.isBlank())
+                .toList();
+
+            assertEquals(
+                List.of(
+                    "Pinned Side Bars",
+                    "Sidebar Mode",
+                    "Collapse pinned panel on active icon click"
+                ),
+                nonBlankTexts
+            );
+            assertFalse(nonBlankTexts.stream().anyMatch(text -> text.contains("Phase 2")));
         });
     }
 
@@ -420,6 +499,17 @@ class MainDemoTest {
         }
     }
 
+    private <T> T invokePrivateMethodWithResult(Object target, String methodName, Class<T> type) {
+        try {
+            Method method = target.getClass().getDeclaredMethod(methodName);
+            method.setAccessible(true);
+            Object result = method.invoke(target);
+            return type.cast(result);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError("Unable to invoke private method with result: " + methodName, e);
+        }
+    }
+
     private void setPrivateField(Object target, String fieldName, Object value) {
         try {
             Field field = target.getClass().getDeclaredField(fieldName);
@@ -438,6 +528,23 @@ class MainDemoTest {
             return type.cast(value);
         } catch (ReflectiveOperationException e) {
             throw new AssertionError("Unable to read private field: " + fieldName, e);
+        }
+    }
+
+    private List<String> collectLabeledTexts(Node root) {
+        List<String> texts = new ArrayList<>();
+        collectLabeledTexts(root, texts);
+        return texts;
+    }
+
+    private void collectLabeledTexts(Node node, List<String> collector) {
+        if (node instanceof Labeled labeled) {
+            collector.add(labeled.getText());
+        }
+        if (node instanceof Parent parent) {
+            for (Node child : parent.getChildrenUnmodifiable()) {
+                collectLabeledTexts(child, collector);
+            }
         }
     }
 }

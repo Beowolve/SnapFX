@@ -85,6 +85,9 @@ public class MainDemo extends Application {
     private static final String DEFAULT_LAYOUT_FILE_NAME = "snapfx-layout.json";
     private static final String DOCUMENTS_DIRECTORY_NAME = "Documents";
     private static final boolean ENABLE_DOCK_DEBUG_HUD = false;
+    private static final double SETTINGS_LABEL_MIN_WIDTH = 120.0;
+    private static final double SETTINGS_CONTROL_MIN_WIDTH = 120.0;
+    private static final double SETTINGS_SECTION_MIN_WIDTH = 250.0;
     private static final Locale EXTENDED_DEMO_LOCALE = Locale.FRENCH;
     private static final List<String> APP_ICON_RESOURCES = List.of(
         "/images/16/snapfx.png",
@@ -117,14 +120,8 @@ public class MainDemo extends Application {
     private final BooleanProperty promptOnEditorCloseProperty = new SimpleBooleanProperty(true);
     private final Map<DockNode, EditorDocumentState> editorDocumentStates = new HashMap<>();
     private EditorCloseDecisionPolicy editorCloseDecisionPolicy;
-    private ListView<DockNode> sideBarDockedNodesListView;
-    private ListView<DockNode> leftSideBarNodesListView;
-    private ListView<DockNode> rightSideBarNodesListView;
-    private CheckBox leftSideBarPinnedOpenCheckBox;
-    private CheckBox rightSideBarPinnedOpenCheckBox;
     private ComboBox<DockSideBarMode> sideBarModeComboBox;
-    private Spinner<Double> leftSideBarPanelWidthSpinner;
-    private Spinner<Double> rightSideBarPanelWidthSpinner;
+    private CheckBox collapsePinnedOnActiveIconClickCheckBox;
     private boolean updatingSideBarSettingsControls;
     private ComboBox<Locale> localeComboBox;
     private DockGraphDebugView debugView;
@@ -158,7 +155,7 @@ public class MainDemo extends Application {
         mainLayout.setTop(topContainer);
 
         stage.setTitle("SnapFX Demo - Docking Framework");
-        stage.setScene(new Scene(mainLayout, 1200, 800));
+        stage.setScene(new Scene(mainLayout, 1400, 900));
         configureDemoShortcuts(stage.getScene(), this::toggleFullscreen);
         applyApplicationIcons(stage);
 
@@ -561,110 +558,21 @@ public class MainDemo extends Application {
     }
 
     private void refreshSideBarSettingsViews() {
-        if (sideBarDockedNodesListView == null || leftSideBarNodesListView == null || rightSideBarNodesListView == null) {
+        if (sideBarModeComboBox == null && collapsePinnedOnActiveIconClickCheckBox == null) {
             return;
         }
 
-        replaceListItemsPreservingSelection(sideBarDockedNodesListView, collectDockedNodesInMainLayout());
-        replaceListItemsPreservingSelection(leftSideBarNodesListView, List.copyOf(snapFX.getSideBarNodes(Side.LEFT)));
-        replaceListItemsPreservingSelection(rightSideBarNodesListView, List.copyOf(snapFX.getSideBarNodes(Side.RIGHT)));
-
         updatingSideBarSettingsControls = true;
         try {
-            if (leftSideBarPinnedOpenCheckBox != null) {
-                leftSideBarPinnedOpenCheckBox.setSelected(snapFX.isSideBarPinnedOpen(Side.LEFT));
-            }
-            if (rightSideBarPinnedOpenCheckBox != null) {
-                rightSideBarPinnedOpenCheckBox.setSelected(snapFX.isSideBarPinnedOpen(Side.RIGHT));
-            }
             if (sideBarModeComboBox != null) {
                 sideBarModeComboBox.setValue(snapFX.getSideBarMode());
             }
-            if (leftSideBarPanelWidthSpinner != null && leftSideBarPanelWidthSpinner.getValueFactory() != null) {
-                leftSideBarPanelWidthSpinner.getValueFactory().setValue(snapFX.getSideBarPanelWidth(Side.LEFT));
-            }
-            if (rightSideBarPanelWidthSpinner != null && rightSideBarPanelWidthSpinner.getValueFactory() != null) {
-                rightSideBarPanelWidthSpinner.getValueFactory().setValue(snapFX.getSideBarPanelWidth(Side.RIGHT));
+            if (collapsePinnedOnActiveIconClickCheckBox != null) {
+                collapsePinnedOnActiveIconClickCheckBox.setSelected(snapFX.isCollapsePinnedSideBarOnActiveIconClick());
             }
         } finally {
             updatingSideBarSettingsControls = false;
         }
-    }
-
-    private void replaceListItemsPreservingSelection(ListView<DockNode> listView, List<DockNode> nodes) {
-        if (listView == null) {
-            return;
-        }
-        DockNode selected = listView.getSelectionModel().getSelectedItem();
-        String selectedId = selected == null ? null : selected.getId();
-        listView.getItems().setAll(nodes == null ? List.of() : nodes);
-        if (selectedId == null || listView.getItems().isEmpty()) {
-            return;
-        }
-        for (DockNode node : listView.getItems()) {
-            if (selectedId.equals(node.getId())) {
-                listView.getSelectionModel().select(node);
-                break;
-            }
-        }
-    }
-
-    private ListView<DockNode> createDockNodeListView() {
-        ListView<DockNode> listView = new ListView<>();
-        listView.setPrefHeight(120);
-        listView.setCellFactory(ignored -> new ListCell<>() {
-            @Override
-            protected void updateItem(DockNode item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty ? null : formatDockNodeListLabel(item));
-                setGraphic(null);
-            }
-        });
-        return listView;
-    }
-
-    private void onSideBarPinnedOpenCheckBoxChanged(Side side, Boolean pinnedOpen) {
-        if (side == null || pinnedOpen == null || updatingSideBarSettingsControls) {
-            return;
-        }
-        if (Boolean.TRUE.equals(pinnedOpen)) {
-            snapFX.pinOpenSideBar(side);
-        } else {
-            snapFX.collapsePinnedSideBar(side);
-        }
-    }
-
-    private void onSideBarPanelWidthChanged(Side side, Double width) {
-        if (side == null || width == null || updatingSideBarSettingsControls) {
-            return;
-        }
-        snapFX.setSideBarPanelWidth(side, width);
-        refreshSideBarSettingsViews();
-    }
-
-    private void pinSelectedDockedNodeToSideBar(Side side) {
-        if (sideBarDockedNodesListView == null) {
-            return;
-        }
-        pinNodeToSideBar(sideBarDockedNodesListView.getSelectionModel().getSelectedItem(), side);
-    }
-
-    private void restoreSelectedSideBarNode(Side side) {
-        ListView<DockNode> sideBarList = getSideBarListView(side);
-        if (sideBarList == null) {
-            return;
-        }
-        restorePinnedNodeFromSideBar(sideBarList.getSelectionModel().getSelectedItem());
-    }
-
-    private ListView<DockNode> getSideBarListView(Side side) {
-        if (side == Side.LEFT) {
-            return leftSideBarNodesListView;
-        }
-        if (side == Side.RIGHT) {
-            return rightSideBarNodesListView;
-        }
-        return null;
     }
 
     private void updateFloatingMenus() {
@@ -1102,7 +1010,7 @@ public class MainDemo extends Application {
         debugTab.setGraphic(IconUtil.loadIcon("bug.png"));
         Tab settingsTab = new Tab("Settings", createSettingsPanel());
         settingsTab.setGraphic(IconUtil.loadIcon("hammer-screwdriver.png"));
-        debugTabs.getTabs().addAll(debugTab, settingsTab);
+        debugTabs.getTabs().addAll(settingsTab, debugTab);
 
         // Create split pane with dock layout on left and debug view on right
         mainSplit = new SplitPane();
@@ -1128,90 +1036,104 @@ public class MainDemo extends Application {
     }
 
     private Parent createSettingsPanel() {
-        Label header = new Label("Layout Settings");
-        header.setStyle(FX_FONT_WEIGHT_BOLD);
+        GridPane appearanceGrid = createSettingsGrid();
+        ComboBox<String> themeMode = new ComboBox<>();
+        themeMode.getItems().setAll(SnapFX.getAvailableThemeNames());
+        configureSettingsValueNode(themeMode);
+        themeMode.setValue(resolveThemeNameByStylesheetPath(snapFX.getThemeStylesheetResourcePath()));
+        themeMode.valueProperty().addListener((obs, oldVal, newVal) -> onThemeChanged(newVal));
+        addSettingsRow(appearanceGrid, 0, "Theme", themeMode);
 
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(8);
-        ColumnConstraints labelColumn = new ColumnConstraints();
-        ColumnConstraints controlColumn = new ColumnConstraints();
-        controlColumn.setHgrow(Priority.ALWAYS);
-        grid.getColumnConstraints().addAll(labelColumn, controlColumn);
+        localeComboBox = new ComboBox<>();
+        localeComboBox.getItems().setAll(buildDemoLocaleOptions());
+        localeComboBox.setConverter(createLocaleDisplayConverter());
+        configureSettingsValueNode(localeComboBox);
+        localeComboBox.setValue(snapFX.getLocale());
+        localeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> onLocaleSelectionChanged(newVal));
+        addSettingsRow(appearanceGrid, 1, "Framework Locale", localeComboBox);
+        VBox appearanceSection = createSettingsSection("Appearance and Localization", appearanceGrid);
 
-        // Add future demo settings here as new options become available.
+        GridPane layoutGrid = createSettingsGrid();
         ComboBox<DockTitleBarMode> titleBarMode = new ComboBox<>();
         titleBarMode.getItems().setAll(DockTitleBarMode.values());
-        titleBarMode.setMaxWidth(Double.MAX_VALUE);
+        configureSettingsValueNode(titleBarMode);
         titleBarMode.setValue(snapFX.getTitleBarMode());
         titleBarMode.valueProperty().addListener((obs, oldVal, newVal) -> onTitleBarModeChanged(newVal));
-        grid.addRow(0, new Label("Title Bar Mode"), titleBarMode);
+        addSettingsRow(layoutGrid, 0, "Title Bar Mode", titleBarMode);
 
         ComboBox<DockCloseButtonMode> closeButtonMode = new ComboBox<>();
         closeButtonMode.getItems().setAll(DockCloseButtonMode.values());
-        closeButtonMode.setMaxWidth(Double.MAX_VALUE);
+        configureSettingsValueNode(closeButtonMode);
         closeButtonMode.setValue(snapFX.getCloseButtonMode());
         closeButtonMode.valueProperty().addListener((obs, oldVal, newVal) -> onCloseButtonModeChanged(newVal));
-        grid.addRow(1, new Label("Close Button Mode"), closeButtonMode);
+        addSettingsRow(layoutGrid, 1, "Close Button Mode", closeButtonMode);
 
         ComboBox<DockDropVisualizationMode> dropMode = new ComboBox<>();
         dropMode.getItems().setAll(DockDropVisualizationMode.values());
-        dropMode.setMaxWidth(Double.MAX_VALUE);
+        configureSettingsValueNode(dropMode);
         dropMode.setValue(snapFX.getDropVisualizationMode());
         dropMode.valueProperty().addListener((obs, oldVal, newVal) -> onDropVisualizationModeChanged(newVal));
-        grid.addRow(2, new Label("Drop Visualization"), dropMode);
+        addSettingsRow(layoutGrid, 2, "Drop Visualization", dropMode);
 
         CheckBox lockCheckBox = new CheckBox("Locked");
+        configureSettingsValueNode(lockCheckBox);
         lockCheckBox.selectedProperty().bindBidirectional(lockLayoutProperty);
-        grid.addRow(3, new Label("Layout Lock"), lockCheckBox);
+        addSettingsRow(layoutGrid, 3, "Layout Lock", lockCheckBox);
+        VBox layoutSection = createSettingsSection("Layout", layoutGrid);
 
+        GridPane floatingGrid = createSettingsGrid();
         ComboBox<DockFloatingPinButtonMode> pinButtonMode = new ComboBox<>();
         pinButtonMode.getItems().setAll(DockFloatingPinButtonMode.values());
-        pinButtonMode.setMaxWidth(Double.MAX_VALUE);
+        configureSettingsValueNode(pinButtonMode);
         pinButtonMode.setValue(snapFX.getFloatingPinButtonMode());
         pinButtonMode.valueProperty().addListener((obs, oldVal, newVal) -> onFloatingPinButtonModeChanged(newVal));
-        grid.addRow(4, new Label("Floating Pin Button"), pinButtonMode);
+        addSettingsRow(floatingGrid, 0, "Floating Pin Button", pinButtonMode);
 
         CheckBox allowPinToggleCheckBox = new CheckBox("Allow pin toggle in title bar");
+        configureSettingsValueNode(allowPinToggleCheckBox);
         allowPinToggleCheckBox.setSelected(snapFX.isAllowFloatingPinToggle());
         allowPinToggleCheckBox.selectedProperty().addListener((obs, oldVal, newVal) ->
             snapFX.setAllowFloatingPinToggle(Boolean.TRUE.equals(newVal))
         );
-        grid.addRow(5, new Label("Floating Pin Toggle"), allowPinToggleCheckBox);
+        addSettingsRow(floatingGrid, 1, "Floating Pin Toggle", allowPinToggleCheckBox);
 
         CheckBox defaultPinnedCheckBox = new CheckBox("New floating windows start pinned");
+        configureSettingsValueNode(defaultPinnedCheckBox);
         defaultPinnedCheckBox.setSelected(snapFX.isDefaultFloatingAlwaysOnTop());
         defaultPinnedCheckBox.selectedProperty().addListener((obs, oldVal, newVal) ->
             snapFX.setDefaultFloatingAlwaysOnTop(Boolean.TRUE.equals(newVal))
         );
-        grid.addRow(6, new Label("Default Pinned"), defaultPinnedCheckBox);
+        addSettingsRow(floatingGrid, 2, "Default Pinned", defaultPinnedCheckBox);
 
         ComboBox<DockFloatingPinLockedBehavior> pinLockedBehavior = new ComboBox<>();
         pinLockedBehavior.getItems().setAll(DockFloatingPinLockedBehavior.values());
-        pinLockedBehavior.setMaxWidth(Double.MAX_VALUE);
+        configureSettingsValueNode(pinLockedBehavior);
         pinLockedBehavior.setValue(snapFX.getFloatingPinLockedBehavior());
         pinLockedBehavior.valueProperty().addListener((obs, oldVal, newVal) -> onFloatingPinLockedBehaviorChanged(newVal));
-        grid.addRow(7, new Label("Pin in Lock Mode"), pinLockedBehavior);
+        addSettingsRow(floatingGrid, 3, "Pin in Lock Mode", pinLockedBehavior);
 
         CheckBox floatingSnappingCheckBox = new CheckBox("Enable snapping while dragging or resizing floating windows");
+        configureSettingsValueNode(floatingSnappingCheckBox);
         floatingSnappingCheckBox.setSelected(snapFX.isFloatingWindowSnappingEnabled());
         floatingSnappingCheckBox.selectedProperty().addListener((obs, oldVal, newVal) ->
             onFloatingWindowSnappingEnabledChanged(newVal)
         );
-        grid.addRow(8, new Label("Floating Snapping"), floatingSnappingCheckBox);
+        addSettingsRow(floatingGrid, 4, "Floating Snapping", floatingSnappingCheckBox);
 
         Spinner<Double> snapDistanceSpinner = new Spinner<>();
         snapDistanceSpinner.setValueFactory(
             new SpinnerValueFactory.DoubleSpinnerValueFactory(0.0, 64.0, snapFX.getFloatingWindowSnapDistance(), 1.0)
         );
         snapDistanceSpinner.setEditable(true);
-        snapDistanceSpinner.setMaxWidth(Double.MAX_VALUE);
+        configureSettingsValueNode(snapDistanceSpinner);
         snapDistanceSpinner.valueProperty().addListener((obs, oldVal, newVal) -> onFloatingWindowSnapDistanceChanged(newVal));
-        grid.addRow(9, new Label("Snap Distance (px)"), snapDistanceSpinner);
+        addSettingsRow(floatingGrid, 5, "Snap Distance (px)", snapDistanceSpinner);
 
         CheckBox screenSnapTargetCheckBox = new CheckBox("Screen");
         CheckBox mainWindowSnapTargetCheckBox = new CheckBox("Main Window");
-        CheckBox floatingWindowsSnapTargetCheckBox = new CheckBox("Floating Windows");
+        CheckBox floatingWindowsSnapTargetCheckBox = new CheckBox("Floating");
+        floatingWindowsSnapTargetCheckBox.setTooltip(new Tooltip("Snap to floating windows"));
+
         var configuredSnapTargets = snapFX.getFloatingWindowSnapTargets();
         screenSnapTargetCheckBox.setSelected(configuredSnapTargets.contains(DockFloatingSnapTarget.SCREEN));
         mainWindowSnapTargetCheckBox.setSelected(configuredSnapTargets.contains(DockFloatingSnapTarget.MAIN_WINDOW));
@@ -1239,160 +1161,96 @@ public class MainDemo extends Application {
         );
         HBox snapTargetsBox = new HBox(8, screenSnapTargetCheckBox, mainWindowSnapTargetCheckBox, floatingWindowsSnapTargetCheckBox);
         snapTargetsBox.setAlignment(Pos.CENTER_LEFT);
-        grid.addRow(10, new Label("Snap Targets"), snapTargetsBox);
+        configureSettingsValueNode(snapTargetsBox);
+        addSettingsRow(floatingGrid, 6, "Snap Targets", snapTargetsBox);
+        VBox floatingSection = createSettingsSection("Floating Windows", floatingGrid);
 
-        ComboBox<String> themeMode = new ComboBox<>();
-        themeMode.getItems().setAll(SnapFX.getAvailableThemeNames());
-        themeMode.setMaxWidth(Double.MAX_VALUE);
-        themeMode.setValue(resolveThemeNameByStylesheetPath(snapFX.getThemeStylesheetResourcePath()));
-        themeMode.valueProperty().addListener((obs, oldVal, newVal) -> onThemeChanged(newVal));
-        grid.addRow(11, new Label("Theme"), themeMode);
-
-        localeComboBox = new ComboBox<>();
-        localeComboBox.getItems().setAll(buildDemoLocaleOptions());
-        localeComboBox.setConverter(createLocaleDisplayConverter());
-        localeComboBox.setMaxWidth(Double.MAX_VALUE);
-        localeComboBox.setValue(snapFX.getLocale());
-        localeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> onLocaleSelectionChanged(newVal));
-        grid.addRow(12, new Label("Framework Locale"), localeComboBox);
-
+        GridPane editorGrid = createSettingsGrid();
         CheckBox promptEditorCloseCheckBox = new CheckBox("Prompt for unsaved editors");
+        configureSettingsValueNode(promptEditorCloseCheckBox);
         promptEditorCloseCheckBox.selectedProperty().bindBidirectional(promptOnEditorCloseProperty);
-        grid.addRow(13, new Label("Close Hook"), promptEditorCloseCheckBox);
+        addSettingsRow(editorGrid, 0, "Close Hook", promptEditorCloseCheckBox);
+        VBox editorSection = createSettingsSection("Editors", editorGrid);
 
         VBox sideBarSection = createSideBarSettingsSection();
         Label hint = new Label("Changes apply immediately. Dirty editors are marked with '*'.");
+        hint.setWrapText(true);
 
-        VBox panel = new VBox(12, header, grid, sideBarSection, hint);
-        panel.setPadding(new Insets(10));
-        return panel;
+        VBox panelContent = new VBox(12,  appearanceSection, layoutSection, floatingSection, sideBarSection, editorSection, hint);
+        panelContent.setPadding(new Insets(10));
+        panelContent.setFillWidth(true);
+        panelContent.setMinWidth(SETTINGS_SECTION_MIN_WIDTH);
+
+        ScrollPane settingsScrollPane = new ScrollPane(panelContent);
+        settingsScrollPane.setFitToWidth(true);
+        settingsScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        settingsScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        return settingsScrollPane;
+    }
+
+    private VBox createSettingsSection(String sectionTitle, Node sectionContent) {
+        Label sectionHeader = new Label(sectionTitle);
+        sectionHeader.setStyle(FX_FONT_WEIGHT_BOLD);
+        VBox section = new VBox(8, sectionHeader, sectionContent);
+        section.setMinWidth(SETTINGS_SECTION_MIN_WIDTH);
+        return section;
+    }
+
+    private GridPane createSettingsGrid() {
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(8);
+        ColumnConstraints labelColumn = new ColumnConstraints();
+        labelColumn.setMinWidth(SETTINGS_LABEL_MIN_WIDTH);
+        ColumnConstraints controlColumn = new ColumnConstraints();
+        controlColumn.setMinWidth(SETTINGS_CONTROL_MIN_WIDTH);
+        controlColumn.setHgrow(Priority.ALWAYS);
+        grid.getColumnConstraints().addAll(labelColumn, controlColumn);
+        grid.setMinWidth(SETTINGS_SECTION_MIN_WIDTH);
+        return grid;
+    }
+
+    private void addSettingsRow(GridPane grid, int rowIndex, String labelText, Node valueNode) {
+        Label label = new Label(labelText);
+        label.setWrapText(true);
+        label.setMinWidth(SETTINGS_LABEL_MIN_WIDTH);
+        grid.addRow(rowIndex, label, valueNode);
+        if (valueNode instanceof Region region) {
+            GridPane.setHgrow(region, Priority.ALWAYS);
+        }
+    }
+
+    private void configureSettingsValueNode(Region valueNode) {
+        valueNode.setMinWidth(SETTINGS_CONTROL_MIN_WIDTH);
+        valueNode.setMaxWidth(Double.MAX_VALUE);
     }
 
     private VBox createSideBarSettingsSection() {
-        Label sectionHeader = new Label("Pinned Side Bars (Phase 2)");
-        sectionHeader.setStyle(FX_FONT_WEIGHT_BOLD);
+
+        GridPane sideBarGrid = createSettingsGrid();
 
         sideBarModeComboBox = new ComboBox<>();
         sideBarModeComboBox.getItems().setAll(DockSideBarMode.values());
         sideBarModeComboBox.setValue(snapFX.getSideBarMode());
-        sideBarModeComboBox.setMaxWidth(Double.MAX_VALUE);
+        configureSettingsValueNode(sideBarModeComboBox);
         sideBarModeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> onSideBarModeChanged(newVal));
-        HBox sideBarModeRow = new HBox(6, new Label("Sidebar Mode"), sideBarModeComboBox);
-        sideBarModeRow.setAlignment(Pos.CENTER_LEFT);
-        HBox.setHgrow(sideBarModeComboBox, Priority.ALWAYS);
 
-        sideBarDockedNodesListView = createDockNodeListView();
-        leftSideBarNodesListView = createDockNodeListView();
-        rightSideBarNodesListView = createDockNodeListView();
+        addSettingsRow(sideBarGrid, 0, "Sidebar Mode", sideBarModeComboBox);
 
-        Label dockedNodesLabel = new Label("Docked Nodes (select a node to move)");
-        Button pinLeftButton = new Button("Move Selected -> Left");
-        pinLeftButton.setOnAction(e -> pinSelectedDockedNodeToSideBar(Side.LEFT));
-        pinLeftButton.disableProperty().bind(lockLayoutProperty);
-
-        Button pinRightButton = new Button("Move Selected -> Right");
-        pinRightButton.setOnAction(e -> pinSelectedDockedNodeToSideBar(Side.RIGHT));
-        pinRightButton.disableProperty().bind(lockLayoutProperty);
-
-        HBox pinButtons = new HBox(8, pinLeftButton, pinRightButton);
-        pinButtons.setAlignment(Pos.CENTER_LEFT);
-
-        VBox sourceBox = new VBox(6, dockedNodesLabel, sideBarDockedNodesListView, pinButtons);
-
-        VBox leftBox = createSideBarSettingsColumn("Left Sidebar", Side.LEFT);
-        VBox rightBox = createSideBarSettingsColumn("Right Sidebar", Side.RIGHT);
-
-        HBox sideBarsBox = new HBox(12, leftBox, rightBox);
-        sideBarsBox.setAlignment(Pos.TOP_LEFT);
-        HBox.setHgrow(leftBox, Priority.ALWAYS);
-        HBox.setHgrow(rightBox, Priority.ALWAYS);
-
-        CheckBox collapsePinnedOnActiveIconClickCheckBox = new CheckBox("Collapse pinned panel on active icon click");
+        collapsePinnedOnActiveIconClickCheckBox = new CheckBox("Collapse pinned panel on active icon click");
+        configureSettingsValueNode(collapsePinnedOnActiveIconClickCheckBox);
         collapsePinnedOnActiveIconClickCheckBox.setSelected(snapFX.isCollapsePinnedSideBarOnActiveIconClick());
-        collapsePinnedOnActiveIconClickCheckBox.selectedProperty().addListener((obs, oldVal, newVal) ->
-            snapFX.setCollapsePinnedSideBarOnActiveIconClick(Boolean.TRUE.equals(newVal))
-        );
+        collapsePinnedOnActiveIconClickCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            if (updatingSideBarSettingsControls || newVal == null) {
+                return;
+            }
+            snapFX.setCollapsePinnedSideBarOnActiveIconClick(Boolean.TRUE.equals(newVal));
+        });
 
-        Label note = new Label(
-            "Phase 2 test controls: framework side bars now support DnD/context-menu parity and per-side panel widths (resizable at runtime, persisted in layouts)."
-        );
-        note.setWrapText(true);
+        addSettingsRow(sideBarGrid, 1, "Collapse pinned", collapsePinnedOnActiveIconClickCheckBox);
 
-        VBox section = new VBox(
-            8,
-            sectionHeader,
-            sideBarModeRow,
-            sourceBox,
-            sideBarsBox,
-            collapsePinnedOnActiveIconClickCheckBox,
-            note
-        );
         refreshSideBarSettingsViews();
-        return section;
-    }
-
-    private VBox createSideBarSettingsColumn(String title, Side side) {
-        Label header = new Label(title);
-        header.setStyle(FX_FONT_WEIGHT_BOLD);
-
-        CheckBox pinnedOpenCheckBox = new CheckBox("Pinned Open");
-        pinnedOpenCheckBox.selectedProperty().addListener((obs, oldVal, newVal) ->
-            onSideBarPinnedOpenCheckBoxChanged(side, newVal)
-        );
-        pinnedOpenCheckBox.disableProperty().bind(lockLayoutProperty);
-
-        if (side == Side.LEFT) {
-            leftSideBarPinnedOpenCheckBox = pinnedOpenCheckBox;
-        } else if (side == Side.RIGHT) {
-            rightSideBarPinnedOpenCheckBox = pinnedOpenCheckBox;
-        }
-
-        Spinner<Double> panelWidthSpinner = new Spinner<>();
-        panelWidthSpinner.setValueFactory(new SpinnerValueFactory.DoubleSpinnerValueFactory(
-            180.0,
-            800.0,
-            snapFX.getSideBarPanelWidth(side),
-            10.0
-        ));
-        panelWidthSpinner.setEditable(true);
-        panelWidthSpinner.setMaxWidth(Double.MAX_VALUE);
-        panelWidthSpinner.valueProperty().addListener((obs, oldVal, newVal) -> onSideBarPanelWidthChanged(side, newVal));
-        if (side == Side.LEFT) {
-            leftSideBarPanelWidthSpinner = panelWidthSpinner;
-        } else if (side == Side.RIGHT) {
-            rightSideBarPanelWidthSpinner = panelWidthSpinner;
-        }
-
-        ListView<DockNode> listView = getSideBarListView(side);
-
-        Button restoreSelectedButton = new Button("Restore Selected");
-        restoreSelectedButton.setOnAction(e -> restoreSelectedSideBarNode(side));
-        restoreSelectedButton.disableProperty().bind(lockLayoutProperty);
-
-        Button restoreAllButton = new Button("Restore All");
-        restoreAllButton.setOnAction(e -> restoreAllPinnedNodesFromSideBar(side));
-        restoreAllButton.disableProperty().bind(lockLayoutProperty);
-
-        Button pinOpenButton = new Button("Pin Open");
-        pinOpenButton.setOnAction(e -> snapFX.pinOpenSideBar(side));
-        pinOpenButton.disableProperty().bind(lockLayoutProperty);
-
-        Button collapseButton = new Button("Collapse");
-        collapseButton.setOnAction(e -> snapFX.collapsePinnedSideBar(side));
-        collapseButton.disableProperty().bind(lockLayoutProperty);
-
-        HBox actionRow = new HBox(6, restoreSelectedButton, restoreAllButton);
-        actionRow.setAlignment(Pos.CENTER_LEFT);
-        HBox pinnedOpenRow = new HBox(6, pinnedOpenCheckBox, pinOpenButton, collapseButton);
-        pinnedOpenRow.setAlignment(Pos.CENTER_LEFT);
-        HBox widthRow = new HBox(6, new Label("Panel Width"), panelWidthSpinner);
-        widthRow.setAlignment(Pos.CENTER_LEFT);
-        HBox.setHgrow(panelWidthSpinner, Priority.ALWAYS);
-
-        VBox column = new VBox(6, header, pinnedOpenRow, widthRow, listView, actionRow);
-        VBox.setVgrow(listView, Priority.ALWAYS);
-        column.setPrefWidth(0);
-        return column;
+        return createSettingsSection("Layout", sideBarGrid);
     }
 
     private void updateDockLayout() {
