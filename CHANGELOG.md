@@ -16,6 +16,9 @@ Changelog categories for `Unreleased` and new release sections (in order, includ
 
 ## Unreleased
 
+### Build and Tooling
+- ✅ Updated the GitHub Pages docs workflow to fetch full Git history and tags for `gradle-jgitver`, and added a JavaDoc version guard that fails if fallback version `0.0.0-0` is resolved.
+
 ## v0.7.1 - 2026-03-17
 
 ### Fixes

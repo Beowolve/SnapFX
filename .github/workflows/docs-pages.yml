@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -33,6 +35,24 @@ jobs:
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
+
+      - name: Fetch tags for jgitver
+        run: git fetch --force --tags
+
+      - name: Validate resolved version for JavaDoc
+        shell: bash
+        run: |
+          version="$(./gradlew --no-daemon -q :snapfx-core:properties | awk -F': ' '/^version:/ {print $2; exit}')"
+          if [ -z "${version}" ]; then
+            echo "::error::Could not resolve project version from Gradle properties."
+            exit 1
+          fi
+
+          echo "Resolved version: ${version}"
+          if [ "${version}" = "0.0.0-0" ]; then
+            echo "::error::Resolved fallback version 0.0.0-0. Ensure full git history and tags are available for gradle-jgitver."
+            exit 1
+          fi
 
       - name: Generate API JavaDoc
         run: ./gradlew --no-daemon :snapfx-core:javadoc
