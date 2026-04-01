@@ -1,6 +1,6 @@
 # Project Status
 
-**Last Updated**: 2026-03-17
+**Last Updated**: 2026-04-01
 
 ## Current Snapshot
 
@@ -17,7 +17,7 @@
 - ✅ **Floating Windows**: Detach/attach, drag+resize snapping, persistence, and always-on-top behavior
 - ✅ **Side Bars**: Current scope completed (DnD strip baseline, built-in move/restore/pin actions, resize + persistence, visibility modes)
 - ✅ **Theming**: Default stylesheet auto-apply plus runtime theme switching (`Light` / `Dark`)
-- ✅ **Localization Runtime**: Built-in `EN`/`DE` locale switching, provider extension API, and FX-thread mutation enforcement are in place
+- ✅ **Localization Runtime**: Built-in `EN`/`DE` locale switching, provider extension API, FX-thread mutation enforcement, and a fully localized MainDemo showcase (`EN` / `DE` / `FR`) are in place
 - ✅ **Manual Verification**: MainDemo settings keep API-to-settings parity for framework features
 
 ## Open Items

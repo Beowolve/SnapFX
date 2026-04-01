@@ -16,6 +16,14 @@ Changelog categories for `Unreleased` and new release sections (in order, includ
 
 ## Unreleased
 
+## v0.7.2 - 2026-04-01
+
+### UI and Interaction
+- ✅ Localized the visible MainDemo experience end-to-end so runtime locale changes now immediately update demo chrome, settings, dialogs, dock-node titles, and demo content instead of only framework context menus.
+
+### Tests
+- ✅ Added regression coverage for immediately visible demo locale switching, localized demo-node title/content updates, and complete non-blank `EN`/`DE`/`FR` demo text bundles.
+
 ### Build and Tooling
 - ✅ Updated the GitHub Pages docs workflow to fetch full Git history and tags for `gradle-jgitver`, and added a JavaDoc version guard that fails if fallback version `0.0.0-0` is resolved.
 

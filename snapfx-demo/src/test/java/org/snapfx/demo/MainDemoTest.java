@@ -36,6 +36,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SplitPane;
+import javafx.scene.control.ToolBar;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
@@ -332,6 +333,45 @@ class MainDemoTest {
             assertTrue(titleBarModeIndex >= 0, "Title bar mode setting label not found");
             assertTrue(themeIndex < titleBarModeIndex, "Theme setting should be placed before layout settings");
             assertTrue(localeIndex < titleBarModeIndex, "Framework locale setting should be placed before layout settings");
+        });
+    }
+
+    @Test
+    void testLocaleSwitchUpdatesVisibleDemoTextsOutsideFrameworkContextMenus() {
+        runOnFxThreadAndWait(() -> {
+            MainDemo demo = new MainDemo();
+            SnapFX framework = new SnapFX();
+            setPrivateField(demo, "snapFX", framework);
+
+            Parent settingsPanel = invokePrivateMethodWithResult(demo, "createSettingsPanel", Parent.class);
+            ToolBar toolbar = invokePrivateMethodWithResult(demo, "createToolbar", ToolBar.class);
+
+            ComboBox<Locale> localeSelector = readPrivateField(demo, "localeComboBox", ComboBox.class);
+            assertNotNull(localeSelector);
+
+            localeSelector.setValue(Locale.GERMAN);
+
+            ScrollPane settingsScrollPane = assertInstanceOf(ScrollPane.class, settingsPanel);
+            VBox settingsContent = assertInstanceOf(VBox.class, settingsScrollPane.getContent());
+            List<String> settingsTexts = collectLabeledTexts(settingsContent);
+            List<String> toolbarTexts = toolbar.getItems().stream()
+                .filter(Labeled.class::isInstance)
+                .map(Labeled.class::cast)
+                .map(Labeled::getText)
+                .toList();
+
+            assertTrue(
+                settingsTexts.contains("Darstellung und Lokalisierung"),
+                "Localized appearance section title should be visible immediately after locale change"
+            );
+            assertTrue(
+                toolbarTexts.contains("Hinzufügen:"),
+                "Localized toolbar label should be visible immediately after locale change"
+            );
+            assertTrue(
+                toolbarTexts.contains("+ Eigenschaften"),
+                "Localized demo node action should be visible immediately after locale change"
+            );
         });
     }
 

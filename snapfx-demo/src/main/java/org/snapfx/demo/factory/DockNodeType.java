@@ -2,7 +2,7 @@ package org.snapfx.demo.factory;
 
 /**
  * Enum defining all available DockNode types in the demo application.
- * Each type has a unique ID, icon name, and display name.
+ * Each type has a unique ID, icon name, and default display name.
  * This centralizes the management of all node properties.
  */
 public enum DockNodeType {
@@ -62,6 +62,25 @@ public enum DockNodeType {
      */
     public String getDefaultTitle() {
         return defaultTitle;
+    }
+
+    /**
+     * Returns the localization key for the default display title of this node type.
+     *
+     * @return localization key for the default title
+     */
+    public String getDefaultTitleKey() {
+        return switch (this) {
+            case PROJECT_EXPLORER -> "demo.node.projectExplorer.title";
+            case MAIN_EDITOR -> null;
+            case PROPERTIES -> "demo.node.properties.title";
+            case CONSOLE -> "demo.node.console.title";
+            case TASKS -> "demo.node.tasks.title";
+            case EDITOR -> null;
+            case PROPERTIES_PANEL -> "demo.node.propertiesPanel.title";
+            case CONSOLE_PANEL -> "demo.node.consolePanel.title";
+            case GENERIC_PANEL -> "demo.node.genericPanel.title";
+        };
     }
 
     /**

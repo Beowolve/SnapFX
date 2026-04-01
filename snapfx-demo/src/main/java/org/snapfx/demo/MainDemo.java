@@ -12,6 +12,7 @@ import org.snapfx.demo.editor.EditorCloseDecisionPolicy;
 import org.snapfx.demo.editor.SerializableEditor;
 import org.snapfx.demo.factory.DemoNodeFactory;
 import org.snapfx.demo.factory.DockNodeType;
+import org.snapfx.demo.i18n.DemoLocalizationService;
 import org.snapfx.demo.util.IconUtil;
 import org.snapfx.dnd.DockDropVisualizationMode;
 import org.snapfx.floating.DockFloatingPinButtonMode;
@@ -126,6 +127,7 @@ public class MainDemo extends Application {
     private ComboBox<Locale> localeComboBox;
     private DockGraphDebugView debugView;
     private DockDebugOverlay debugOverlay;
+    private final DemoLocalizationService demoTextLocalization = new DemoLocalizationService(MainDemo.class.getModule());
     private final DockLocalizationProvider demoLocalizationProvider = new DockResourceBundleLocalizationProvider(
         "org.snapfx.demo.i18n.snapfx",
         MainDemo.class.getModule()
@@ -136,6 +138,7 @@ public class MainDemo extends Application {
         private Path filePath;
         private boolean dirty;
         private boolean suppressDirtyTracking;
+        private boolean usesGeneratedUntitledTitle;
         private ChangeListener<String> textListener;
     }
 
@@ -154,13 +157,13 @@ public class MainDemo extends Application {
         topContainer.getChildren().addAll(menuBar, toolbar);
         mainLayout.setTop(topContainer);
 
-        stage.setTitle("SnapFX Demo - Docking Framework");
         stage.setScene(new Scene(mainLayout, 1400, 900));
+        demoTextLocalization.bind(stage, "demo.stage.title");
         configureDemoShortcuts(stage.getScene(), this::toggleFullscreen);
         applyApplicationIcons(stage);
 
         // Create demo node factory
-        demoNodeFactory = new DemoNodeFactory();
+        demoNodeFactory = new DemoNodeFactory(demoTextLocalization);
         editorCloseDecisionPolicy = createEditorCloseDecisionPolicy();
 
         // Setup node factory for proper save/load across sessions
@@ -276,37 +279,47 @@ public class MainDemo extends Application {
         }
     }
 
+    private String tr(String key, Object... args) {
+        return demoTextLocalization.text(key, args);
+    }
+
     private MenuBar createMenuBar() {
         MenuBar menuBar = new MenuBar();
 
-        // File Menu
-        Menu fileMenu = new Menu("File");
+        Menu fileMenu = new Menu();
+        demoTextLocalization.bind(fileMenu, "demo.menu.file");
 
-        MenuItem openEditorItem = new MenuItem("Open Text File...");
+        MenuItem openEditorItem = new MenuItem();
+        demoTextLocalization.bind(openEditorItem, "demo.menu.file.openTextFile");
         openEditorItem.setGraphic(IconUtil.loadIcon("folder-open-document-text.png"));
         openEditorItem.setOnAction(e -> openTextFileInEditor());
 
-        MenuItem saveEditorItem = new MenuItem("Save Active Editor");
+        MenuItem saveEditorItem = new MenuItem();
+        demoTextLocalization.bind(saveEditorItem, "demo.menu.file.saveActiveEditor");
         saveEditorItem.setGraphic(IconUtil.loadIcon("disk.png"));
         saveEditorItem.setOnAction(e -> saveActiveEditor(false));
 
-        MenuItem saveEditorAsItem = new MenuItem("Save Active Editor As...");
+        MenuItem saveEditorAsItem = new MenuItem();
+        demoTextLocalization.bind(saveEditorAsItem, "demo.menu.file.saveActiveEditorAs");
         saveEditorAsItem.setGraphic(IconUtil.loadIcon("disk--pencil.png"));
         saveEditorAsItem.setOnAction(e -> saveActiveEditor(true));
 
         SeparatorMenuItem separatorEditor = new SeparatorMenuItem();
 
-        MenuItem saveLayoutItem = new MenuItem("Save Layout...");
+        MenuItem saveLayoutItem = new MenuItem();
+        demoTextLocalization.bind(saveLayoutItem, "demo.menu.file.saveLayout");
         saveLayoutItem.setGraphic(IconUtil.loadIcon("disk-black.png"));
         saveLayoutItem.setOnAction(e -> saveLayout());
 
-        MenuItem loadLayoutItem = new MenuItem("Load Layout...");
+        MenuItem loadLayoutItem = new MenuItem();
+        demoTextLocalization.bind(loadLayoutItem, "demo.menu.file.loadLayout");
         loadLayoutItem.setGraphic(IconUtil.loadIcon("folder-open-document.png"));
         loadLayoutItem.setOnAction(e -> loadLayout());
 
         SeparatorMenuItem separator1 = new SeparatorMenuItem();
 
-        MenuItem exitItem = new MenuItem("Exit");
+        MenuItem exitItem = new MenuItem();
+        demoTextLocalization.bind(exitItem, "demo.menu.file.exit");
         exitItem.setGraphic(IconUtil.loadIcon("logout.png"));
         exitItem.setOnAction(e -> Platform.exit());
 
@@ -321,14 +334,16 @@ public class MainDemo extends Application {
             exitItem
         );
 
-        // Layout Menu
-        Menu layoutMenu = new Menu("Layout");
+        Menu layoutMenu = new Menu();
+        demoTextLocalization.bind(layoutMenu, "demo.menu.layout");
 
-        MenuItem resetItem = new MenuItem("Reset to Default");
+        MenuItem resetItem = new MenuItem();
+        demoTextLocalization.bind(resetItem, "demo.menu.layout.resetToDefault");
         resetItem.setGraphic(IconUtil.loadIcon("arrow-circle.png"));
         resetItem.setOnAction(e -> resetLayoutToDefault());
 
-        CheckMenuItem lockItem = new CheckMenuItem("Lock Layout");
+        CheckMenuItem lockItem = new CheckMenuItem();
+        demoTextLocalization.bind(lockItem, "demo.menu.layout.lock");
         lockItem.setGraphic(IconUtil.loadIcon("lock.png"));
         lockItem.selectedProperty().bindBidirectional(lockLayoutProperty);
         lockItem.selectedProperty().addListener((obs, oldVal, newVal) ->
@@ -338,17 +353,22 @@ public class MainDemo extends Application {
 
         SeparatorMenuItem sep2 = new SeparatorMenuItem();
 
-        hiddenWindowsMenu = new Menu("Hidden Windows");
+        hiddenWindowsMenu = new Menu();
+        demoTextLocalization.bind(hiddenWindowsMenu, "demo.menu.layout.hiddenWindows");
         updateHiddenWindowsMenu();
 
-        pinLeftSideBarMenu = new Menu("Move to Left Sidebar");
-        pinRightSideBarMenu = new Menu("Move to Right Sidebar");
-        leftSideBarMenu = new Menu("Left Sidebar");
-        rightSideBarMenu = new Menu("Right Sidebar");
+        pinLeftSideBarMenu = new Menu();
+        demoTextLocalization.bind(pinLeftSideBarMenu, "demo.menu.layout.moveToLeftSidebar");
+        pinRightSideBarMenu = new Menu();
+        demoTextLocalization.bind(pinRightSideBarMenu, "demo.menu.layout.moveToRightSidebar");
+        leftSideBarMenu = new Menu();
+        rightSideBarMenu = new Menu();
         updateSideBarMenus();
 
-        floatNodeMenu = new Menu("Float Node");
-        floatingWindowsMenu = new Menu("Floating Windows");
+        floatNodeMenu = new Menu();
+        demoTextLocalization.bind(floatNodeMenu, "demo.menu.layout.floatNode");
+        floatingWindowsMenu = new Menu();
+        demoTextLocalization.bind(floatingWindowsMenu, "demo.menu.layout.floatingWindows");
         updateFloatingMenus();
 
         // Listen to hidden nodes changes
@@ -378,12 +398,13 @@ public class MainDemo extends Application {
             floatingWindowsMenu
         );
 
-        // Help Menu
-        Menu helpMenu = new Menu("Help");
+        Menu helpMenu = new Menu();
+        demoTextLocalization.bind(helpMenu, "demo.menu.help");
 
-        MenuItem aboutItem = new MenuItem("About...");
+        MenuItem aboutItem = new MenuItem();
+        demoTextLocalization.bind(aboutItem, "demo.menu.help.about");
         aboutItem.setGraphic(IconUtil.loadIcon("question.png"));
-        aboutItem.setOnAction(e -> AboutDialog.show(primaryStage, getHostServices()::showDocument));
+        aboutItem.setOnAction(e -> AboutDialog.show(primaryStage, getHostServices()::showDocument, demoTextLocalization));
 
         helpMenu.getItems().add(aboutItem);
 
@@ -396,7 +417,7 @@ public class MainDemo extends Application {
         hiddenWindowsMenu.getItems().clear();
 
         if (snapFX.getHiddenNodes().isEmpty()) {
-            MenuItem emptyItem = new MenuItem("(no hidden windows)");
+            MenuItem emptyItem = new MenuItem(tr("demo.menu.layout.emptyHiddenWindows"));
             emptyItem.setDisable(true);
             hiddenWindowsMenu.getItems().add(emptyItem);
         } else {
@@ -439,7 +460,7 @@ public class MainDemo extends Application {
 
         List<DockNode> dockedNodes = collectDockedNodesInMainLayout();
         if (dockedNodes.isEmpty()) {
-            MenuItem emptyItem = new MenuItem("(no docked nodes)");
+            MenuItem emptyItem = new MenuItem(tr("demo.menu.layout.emptyDockedNodes"));
             emptyItem.setDisable(true);
             menu.getItems().add(emptyItem);
             return;
@@ -461,10 +482,10 @@ public class MainDemo extends Application {
 
         List<DockNode> pinnedNodes = new ArrayList<>(snapFX.getSideBarNodes(side));
         boolean pinnedOpen = snapFX.isSideBarPinnedOpen(side);
-        menu.setText(buildSideBarMenuTitle(side, pinnedNodes.size(), pinnedOpen));
+        menu.setText(buildLocalizedSideBarMenuTitle(side, pinnedNodes.size(), pinnedOpen));
         menu.getItems().clear();
 
-        CheckMenuItem pinnedOpenItem = new CheckMenuItem("Pinned Open");
+        CheckMenuItem pinnedOpenItem = new CheckMenuItem(tr("demo.menu.layout.pinnedOpen"));
         pinnedOpenItem.setSelected(pinnedOpen);
         pinnedOpenItem.setDisable(lockLayoutProperty.get());
         pinnedOpenItem.setOnAction(e -> onSideBarPinnedOpenMenuToggled(side, pinnedOpenItem.isSelected()));
@@ -472,13 +493,13 @@ public class MainDemo extends Application {
 
         if (pinnedNodes.isEmpty()) {
             menu.getItems().add(new SeparatorMenuItem());
-            MenuItem emptyItem = new MenuItem("(no pinned nodes)");
+            MenuItem emptyItem = new MenuItem(tr("demo.menu.layout.emptyPinnedNodes"));
             emptyItem.setDisable(true);
             menu.getItems().add(emptyItem);
             return;
         }
 
-        MenuItem restoreAllItem = new MenuItem("Restore All");
+        MenuItem restoreAllItem = new MenuItem(tr("demo.menu.layout.restoreAll"));
         restoreAllItem.setDisable(lockLayoutProperty.get());
         restoreAllItem.setOnAction(e -> restoreAllPinnedNodesFromSideBar(side));
         menu.getItems().add(restoreAllItem);
@@ -505,6 +526,19 @@ public class MainDemo extends Application {
         };
         String state = pinnedOpen ? "pinned" : "collapsed";
         return sideLabel + " Sidebar (" + pinnedCount + ", " + state + ")";
+    }
+
+    private String buildLocalizedSideBarMenuTitle(Side side, int pinnedCount, boolean pinnedOpen) {
+        if (side == null) {
+            return tr("demo.settings.label.sidebarMode");
+        }
+        String state = pinnedOpen ? tr("demo.sidebar.state.pinned") : tr("demo.sidebar.state.collapsed");
+        return switch (side) {
+            case LEFT -> tr("demo.sidebar.title.left", pinnedCount, state);
+            case RIGHT -> tr("demo.sidebar.title.right", pinnedCount, state);
+            case TOP -> tr("demo.sidebar.title.top", pinnedCount, state);
+            case BOTTOM -> tr("demo.sidebar.title.bottom", pinnedCount, state);
+        };
     }
 
     static String formatDockNodeListLabel(DockNode node) {
@@ -586,7 +620,7 @@ public class MainDemo extends Application {
         collectDockNodes(snapFX.getDockGraph().getRoot(), nodes);
 
         if (nodes.isEmpty()) {
-            MenuItem emptyItem = new MenuItem("(no docked nodes)");
+            MenuItem emptyItem = new MenuItem(tr("demo.menu.layout.emptyDockedNodes"));
             emptyItem.setDisable(true);
             floatNodeMenu.getItems().add(emptyItem);
             return;
@@ -604,13 +638,13 @@ public class MainDemo extends Application {
         floatingWindowsMenu.getItems().clear();
 
         if (snapFX.getFloatingWindows().isEmpty()) {
-            MenuItem emptyItem = new MenuItem("(no floating windows)");
+            MenuItem emptyItem = new MenuItem(tr("demo.menu.layout.emptyFloatingWindows"));
             emptyItem.setDisable(true);
             floatingWindowsMenu.getItems().add(emptyItem);
             return;
         }
 
-        MenuItem attachAllItem = new MenuItem("Attach All");
+        MenuItem attachAllItem = new MenuItem(tr("demo.menu.layout.attachAll"));
         attachAllItem.setOnAction(e -> attachAllFloatingWindows());
         floatingWindowsMenu.getItems().add(attachAllItem);
         floatingWindowsMenu.getItems().add(new SeparatorMenuItem());
@@ -619,11 +653,11 @@ public class MainDemo extends Application {
             List<DockNode> nodes = window.getDockNodes();
             String label;
             if (nodes.isEmpty()) {
-                label = "Attach: Floating Window";
+                label = tr("demo.menu.layout.attachFloatingWindow");
             } else if (nodes.size() == 1) {
-                label = "Attach: " + nodes.getFirst().getTitle();
+                label = tr("demo.menu.layout.attachSingle", nodes.getFirst().getTitle());
             } else {
-                label = "Attach: " + nodes.getFirst().getTitle() + " +" + (nodes.size() - 1);
+                label = tr("demo.menu.layout.attachMultiple", nodes.getFirst().getTitle(), nodes.size() - 1);
             }
             MenuItem attachItem = new MenuItem(label);
             if (!nodes.isEmpty()) {
@@ -683,34 +717,77 @@ public class MainDemo extends Application {
         }
     }
 
+    private void refreshLocalizedNodeTitles() {
+        List<DockNode> nodes = collectAllDemoNodes();
+        for (DockNode node : nodes) {
+            refreshLocalizedNodeTitle(node);
+        }
+    }
+
+    private List<DockNode> collectAllDemoNodes() {
+        List<DockNode> nodes = new ArrayList<>();
+        collectDockNodes(snapFX.getDockGraph().getRoot(), nodes);
+        for (DockFloatingWindow floatingWindow : snapFX.getFloatingWindows()) {
+            nodes.addAll(floatingWindow.getDockNodes());
+        }
+        nodes.addAll(snapFX.getHiddenNodes());
+        nodes.addAll(snapFX.getSideBarNodes(Side.LEFT));
+        nodes.addAll(snapFX.getSideBarNodes(Side.RIGHT));
+        return nodes;
+    }
+
+    private void refreshLocalizedNodeTitle(DockNode node) {
+        if (node == null) {
+            return;
+        }
+        DockNodeType type = DockNodeType.fromId(node.getDockNodeId());
+        if (type == null) {
+            return;
+        }
+        String titleKey = type.getDefaultTitleKey();
+        if (titleKey == null || titleKey.isBlank()) {
+            return;
+        }
+        if (type == DockNodeType.GENERIC_PANEL
+            && !demoTextLocalization.matchesInSupportedLocales(titleKey, stripDirtySuffix(node.getTitle()))) {
+            return;
+        }
+        node.setTitle(tr(titleKey));
+    }
+
     /**
      * Creates the toolbar with lock toggle and add-node buttons.
      */
     private ToolBar createToolbar() {
         ToolBar toolbar = new ToolBar();
 
-        // Lock toggle
-        CheckBox lockCheckBox = new CheckBox("Lock");
+        CheckBox lockCheckBox = new CheckBox();
+        demoTextLocalization.bind(lockCheckBox, "demo.toolbar.lock");
         lockCheckBox.selectedProperty().bindBidirectional(lockLayoutProperty);
 
         Separator sep1 = new Separator();
 
-        Label addLabel = new Label("Add:");
+        Label addLabel = new Label();
+        demoTextLocalization.bind(addLabel, "demo.toolbar.add");
         addLabel.setStyle(FX_FONT_WEIGHT_BOLD);
 
-        Button addEditorBtn = new Button("+ Editor");
+        Button addEditorBtn = new Button();
+        demoTextLocalization.bind(addEditorBtn, "demo.toolbar.addEditor");
         addEditorBtn.setGraphic(IconUtil.loadIcon("document--pencil.png"));
         addEditorBtn.setOnAction(e -> addNewEditorNode());
 
-        Button addPropsBtn = new Button("+ Properties");
+        Button addPropsBtn = new Button();
+        demoTextLocalization.bind(addPropsBtn, "demo.toolbar.addProperties");
         addPropsBtn.setGraphic(IconUtil.loadIcon("property.png"));
         addPropsBtn.setOnAction(e -> addNewPropertiesNode());
 
-        Button addConsoleBtn = new Button("+ Console");
+        Button addConsoleBtn = new Button();
+        demoTextLocalization.bind(addConsoleBtn, "demo.toolbar.addConsole");
         addConsoleBtn.setGraphic(IconUtil.loadIcon("terminal.png"));
         addConsoleBtn.setOnAction(e -> addNewConsoleNode());
 
-        Button addGenericBtn = new Button("+ Panel");
+        Button addGenericBtn = new Button();
+        demoTextLocalization.bind(addGenericBtn, "demo.toolbar.addPanel");
         addGenericBtn.setGraphic(IconUtil.loadIcon("plus.png"));
         addGenericBtn.setOnAction(e -> addNewGenericPanelNode());
 
@@ -731,7 +808,7 @@ public class MainDemo extends Application {
      * Adds a DockNode to the right side of the current layout.
      */
     private void addNewEditorNode() {
-        DockNode node = demoNodeFactory.createEditorNode("Untitled");
+        DockNode node = demoNodeFactory.createUntitledEditorNode();
         addDockNode(node);
     }
 
@@ -755,7 +832,7 @@ public class MainDemo extends Application {
      * Adds a new generic panel node with an auto-generated name to the right side of the current layout.
      */
     private void addNewGenericPanelNode() {
-        String name = "Panel_" + (snapFX.getDockNodeCount(DockNodeType.GENERIC_PANEL.getId()) + 1);
+        String name = tr("demo.node.genericPanel.title") + "_" + (snapFX.getDockNodeCount(DockNodeType.GENERIC_PANEL.getId()) + 1);
         DockNode node = demoNodeFactory.createGenericPanelNode(name);
         addDockNode(node);
     }
@@ -876,6 +953,7 @@ public class MainDemo extends Application {
             ? demoLocalizationProvider
             : null;
 
+        demoTextLocalization.setLocale(selectedLocale);
         snapFX.setLocale(selectedLocale);
         snapFX.setLocalizationProvider(selectedProvider);
 
@@ -887,6 +965,7 @@ public class MainDemo extends Application {
             debugOverlay.setLocale(selectedLocale);
             debugOverlay.setLocalizationProvider(selectedProvider);
         }
+        refreshDemoLocalization();
     }
 
     private List<Locale> buildDemoLocaleOptions() {
@@ -904,7 +983,7 @@ public class MainDemo extends Application {
                 if (locale == null) {
                     return "";
                 }
-                String displayLanguage = locale.getDisplayLanguage(Locale.ENGLISH);
+                String displayLanguage = locale.getDisplayLanguage(locale);
                 if (displayLanguage == null || displayLanguage.isBlank()) {
                     displayLanguage = locale.toLanguageTag();
                 }
@@ -919,6 +998,20 @@ public class MainDemo extends Application {
                 return localeComboBox == null ? null : localeComboBox.getValue();
             }
         };
+    }
+
+    private void refreshDemoLocalization() {
+        refreshLocalizedNodeTitles();
+        updateUntitledEditorTitles();
+        if (hiddenWindowsMenu != null) {
+            updateHiddenWindowsMenu();
+        }
+        if (pinLeftSideBarMenu != null || pinRightSideBarMenu != null || leftSideBarMenu != null || rightSideBarMenu != null) {
+            updateSideBarMenus();
+        }
+        if (floatNodeMenu != null && floatingWindowsMenu != null) {
+            updateFloatingMenus();
+        }
     }
 
     static EnumSet<DockFloatingSnapTarget> resolveFloatingWindowSnapTargets(
@@ -1006,9 +1099,11 @@ public class MainDemo extends Application {
         debugTabs.setPrefWidth(420);
         debugTabs.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 
-        Tab debugTab = new Tab("Debug", debugView);
+        Tab debugTab = new Tab(null, debugView);
+        demoTextLocalization.bind(debugTab, "demo.tab.debug");
         debugTab.setGraphic(IconUtil.loadIcon("bug.png"));
-        Tab settingsTab = new Tab("Settings", createSettingsPanel());
+        Tab settingsTab = new Tab(null, createSettingsPanel());
+        demoTextLocalization.bind(settingsTab, "demo.tab.settings");
         settingsTab.setGraphic(IconUtil.loadIcon("hammer-screwdriver.png"));
         debugTabs.getTabs().addAll(settingsTab, debugTab);
 
@@ -1042,7 +1137,7 @@ public class MainDemo extends Application {
         configureSettingsValueNode(themeMode);
         themeMode.setValue(resolveThemeNameByStylesheetPath(snapFX.getThemeStylesheetResourcePath()));
         themeMode.valueProperty().addListener((obs, oldVal, newVal) -> onThemeChanged(newVal));
-        addSettingsRow(appearanceGrid, 0, "Theme", themeMode);
+        addLocalizedSettingsRow(appearanceGrid, 0, "demo.settings.label.theme", themeMode);
 
         localeComboBox = new ComboBox<>();
         localeComboBox.getItems().setAll(buildDemoLocaleOptions());
@@ -1050,8 +1145,8 @@ public class MainDemo extends Application {
         configureSettingsValueNode(localeComboBox);
         localeComboBox.setValue(snapFX.getLocale());
         localeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> onLocaleSelectionChanged(newVal));
-        addSettingsRow(appearanceGrid, 1, "Framework Locale", localeComboBox);
-        VBox appearanceSection = createSettingsSection("Appearance and Localization", appearanceGrid);
+        addLocalizedSettingsRow(appearanceGrid, 1, "demo.settings.label.frameworkLocale", localeComboBox);
+        VBox appearanceSection = createLocalizedSettingsSection("demo.settings.section.appearance", appearanceGrid);
 
         GridPane layoutGrid = createSettingsGrid();
         ComboBox<DockTitleBarMode> titleBarMode = new ComboBox<>();
@@ -1059,27 +1154,28 @@ public class MainDemo extends Application {
         configureSettingsValueNode(titleBarMode);
         titleBarMode.setValue(snapFX.getTitleBarMode());
         titleBarMode.valueProperty().addListener((obs, oldVal, newVal) -> onTitleBarModeChanged(newVal));
-        addSettingsRow(layoutGrid, 0, "Title Bar Mode", titleBarMode);
+        addLocalizedSettingsRow(layoutGrid, 0, "demo.settings.label.titleBarMode", titleBarMode);
 
         ComboBox<DockCloseButtonMode> closeButtonMode = new ComboBox<>();
         closeButtonMode.getItems().setAll(DockCloseButtonMode.values());
         configureSettingsValueNode(closeButtonMode);
         closeButtonMode.setValue(snapFX.getCloseButtonMode());
         closeButtonMode.valueProperty().addListener((obs, oldVal, newVal) -> onCloseButtonModeChanged(newVal));
-        addSettingsRow(layoutGrid, 1, "Close Button Mode", closeButtonMode);
+        addLocalizedSettingsRow(layoutGrid, 1, "demo.settings.label.closeButtonMode", closeButtonMode);
 
         ComboBox<DockDropVisualizationMode> dropMode = new ComboBox<>();
         dropMode.getItems().setAll(DockDropVisualizationMode.values());
         configureSettingsValueNode(dropMode);
         dropMode.setValue(snapFX.getDropVisualizationMode());
         dropMode.valueProperty().addListener((obs, oldVal, newVal) -> onDropVisualizationModeChanged(newVal));
-        addSettingsRow(layoutGrid, 2, "Drop Visualization", dropMode);
+        addLocalizedSettingsRow(layoutGrid, 2, "demo.settings.label.dropVisualization", dropMode);
 
-        CheckBox lockCheckBox = new CheckBox("Locked");
+        CheckBox lockCheckBox = new CheckBox();
+        demoTextLocalization.bind(lockCheckBox, "demo.settings.value.locked");
         configureSettingsValueNode(lockCheckBox);
         lockCheckBox.selectedProperty().bindBidirectional(lockLayoutProperty);
-        addSettingsRow(layoutGrid, 3, "Layout Lock", lockCheckBox);
-        VBox layoutSection = createSettingsSection("Layout", layoutGrid);
+        addLocalizedSettingsRow(layoutGrid, 3, "demo.settings.label.layoutLock", lockCheckBox);
+        VBox layoutSection = createLocalizedSettingsSection("demo.settings.section.layout", layoutGrid);
 
         GridPane floatingGrid = createSettingsGrid();
         ComboBox<DockFloatingPinButtonMode> pinButtonMode = new ComboBox<>();
@@ -1087,38 +1183,41 @@ public class MainDemo extends Application {
         configureSettingsValueNode(pinButtonMode);
         pinButtonMode.setValue(snapFX.getFloatingPinButtonMode());
         pinButtonMode.valueProperty().addListener((obs, oldVal, newVal) -> onFloatingPinButtonModeChanged(newVal));
-        addSettingsRow(floatingGrid, 0, "Floating Pin Button", pinButtonMode);
+        addLocalizedSettingsRow(floatingGrid, 0, "demo.settings.label.floatingPinButton", pinButtonMode);
 
-        CheckBox allowPinToggleCheckBox = new CheckBox("Allow pin toggle in title bar");
+        CheckBox allowPinToggleCheckBox = new CheckBox();
+        demoTextLocalization.bind(allowPinToggleCheckBox, "demo.settings.value.allowPinToggle");
         configureSettingsValueNode(allowPinToggleCheckBox);
         allowPinToggleCheckBox.setSelected(snapFX.isAllowFloatingPinToggle());
         allowPinToggleCheckBox.selectedProperty().addListener((obs, oldVal, newVal) ->
             snapFX.setAllowFloatingPinToggle(Boolean.TRUE.equals(newVal))
         );
-        addSettingsRow(floatingGrid, 1, "Floating Pin Toggle", allowPinToggleCheckBox);
+        addLocalizedSettingsRow(floatingGrid, 1, "demo.settings.label.floatingPinToggle", allowPinToggleCheckBox);
 
-        CheckBox defaultPinnedCheckBox = new CheckBox("New floating windows start pinned");
+        CheckBox defaultPinnedCheckBox = new CheckBox();
+        demoTextLocalization.bind(defaultPinnedCheckBox, "demo.settings.value.defaultPinned");
         configureSettingsValueNode(defaultPinnedCheckBox);
         defaultPinnedCheckBox.setSelected(snapFX.isDefaultFloatingAlwaysOnTop());
         defaultPinnedCheckBox.selectedProperty().addListener((obs, oldVal, newVal) ->
             snapFX.setDefaultFloatingAlwaysOnTop(Boolean.TRUE.equals(newVal))
         );
-        addSettingsRow(floatingGrid, 2, "Default Pinned", defaultPinnedCheckBox);
+        addLocalizedSettingsRow(floatingGrid, 2, "demo.settings.label.defaultPinned", defaultPinnedCheckBox);
 
         ComboBox<DockFloatingPinLockedBehavior> pinLockedBehavior = new ComboBox<>();
         pinLockedBehavior.getItems().setAll(DockFloatingPinLockedBehavior.values());
         configureSettingsValueNode(pinLockedBehavior);
         pinLockedBehavior.setValue(snapFX.getFloatingPinLockedBehavior());
         pinLockedBehavior.valueProperty().addListener((obs, oldVal, newVal) -> onFloatingPinLockedBehaviorChanged(newVal));
-        addSettingsRow(floatingGrid, 3, "Pin in Lock Mode", pinLockedBehavior);
+        addLocalizedSettingsRow(floatingGrid, 3, "demo.settings.label.pinInLockMode", pinLockedBehavior);
 
-        CheckBox floatingSnappingCheckBox = new CheckBox("Enable snapping while dragging or resizing floating windows");
+        CheckBox floatingSnappingCheckBox = new CheckBox();
+        demoTextLocalization.bind(floatingSnappingCheckBox, "demo.settings.value.enableFloatingSnapping");
         configureSettingsValueNode(floatingSnappingCheckBox);
         floatingSnappingCheckBox.setSelected(snapFX.isFloatingWindowSnappingEnabled());
         floatingSnappingCheckBox.selectedProperty().addListener((obs, oldVal, newVal) ->
             onFloatingWindowSnappingEnabledChanged(newVal)
         );
-        addSettingsRow(floatingGrid, 4, "Floating Snapping", floatingSnappingCheckBox);
+        addLocalizedSettingsRow(floatingGrid, 4, "demo.settings.label.floatingSnapping", floatingSnappingCheckBox);
 
         Spinner<Double> snapDistanceSpinner = new Spinner<>();
         snapDistanceSpinner.setValueFactory(
@@ -1127,12 +1226,17 @@ public class MainDemo extends Application {
         snapDistanceSpinner.setEditable(true);
         configureSettingsValueNode(snapDistanceSpinner);
         snapDistanceSpinner.valueProperty().addListener((obs, oldVal, newVal) -> onFloatingWindowSnapDistanceChanged(newVal));
-        addSettingsRow(floatingGrid, 5, "Snap Distance (px)", snapDistanceSpinner);
+        addLocalizedSettingsRow(floatingGrid, 5, "demo.settings.label.snapDistance", snapDistanceSpinner);
 
-        CheckBox screenSnapTargetCheckBox = new CheckBox("Screen");
-        CheckBox mainWindowSnapTargetCheckBox = new CheckBox("Main Window");
-        CheckBox floatingWindowsSnapTargetCheckBox = new CheckBox("Floating");
-        floatingWindowsSnapTargetCheckBox.setTooltip(new Tooltip("Snap to floating windows"));
+        CheckBox screenSnapTargetCheckBox = new CheckBox();
+        demoTextLocalization.bind(screenSnapTargetCheckBox, "demo.settings.value.snapTargetScreen");
+        CheckBox mainWindowSnapTargetCheckBox = new CheckBox();
+        demoTextLocalization.bind(mainWindowSnapTargetCheckBox, "demo.settings.value.snapTargetMainWindow");
+        CheckBox floatingWindowsSnapTargetCheckBox = new CheckBox();
+        demoTextLocalization.bind(floatingWindowsSnapTargetCheckBox, "demo.settings.value.snapTargetFloating");
+        Tooltip floatingWindowsTooltip = new Tooltip();
+        demoTextLocalization.bind(floatingWindowsTooltip, "demo.settings.tooltip.snapTargetFloating");
+        floatingWindowsSnapTargetCheckBox.setTooltip(floatingWindowsTooltip);
 
         var configuredSnapTargets = snapFX.getFloatingWindowSnapTargets();
         screenSnapTargetCheckBox.setSelected(configuredSnapTargets.contains(DockFloatingSnapTarget.SCREEN));
@@ -1162,18 +1266,20 @@ public class MainDemo extends Application {
         HBox snapTargetsBox = new HBox(8, screenSnapTargetCheckBox, mainWindowSnapTargetCheckBox, floatingWindowsSnapTargetCheckBox);
         snapTargetsBox.setAlignment(Pos.CENTER_LEFT);
         configureSettingsValueNode(snapTargetsBox);
-        addSettingsRow(floatingGrid, 6, "Snap Targets", snapTargetsBox);
-        VBox floatingSection = createSettingsSection("Floating Windows", floatingGrid);
+        addLocalizedSettingsRow(floatingGrid, 6, "demo.settings.label.snapTargets", snapTargetsBox);
+        VBox floatingSection = createLocalizedSettingsSection("demo.settings.section.floating", floatingGrid);
 
         GridPane editorGrid = createSettingsGrid();
-        CheckBox promptEditorCloseCheckBox = new CheckBox("Prompt for unsaved editors");
+        CheckBox promptEditorCloseCheckBox = new CheckBox();
+        demoTextLocalization.bind(promptEditorCloseCheckBox, "demo.settings.value.promptUnsavedEditors");
         configureSettingsValueNode(promptEditorCloseCheckBox);
         promptEditorCloseCheckBox.selectedProperty().bindBidirectional(promptOnEditorCloseProperty);
-        addSettingsRow(editorGrid, 0, "Close Hook", promptEditorCloseCheckBox);
-        VBox editorSection = createSettingsSection("Editors", editorGrid);
+        addLocalizedSettingsRow(editorGrid, 0, "demo.settings.label.closeHook", promptEditorCloseCheckBox);
+        VBox editorSection = createLocalizedSettingsSection("demo.settings.section.editors", editorGrid);
 
         VBox sideBarSection = createSideBarSettingsSection();
-        Label hint = new Label("Changes apply immediately. Dirty editors are marked with '*'.");
+        Label hint = new Label();
+        demoTextLocalization.bind(hint, "demo.settings.hint");
         hint.setWrapText(true);
 
         VBox panelContent = new VBox(12,  appearanceSection, layoutSection, floatingSection, sideBarSection, editorSection, hint);
@@ -1190,6 +1296,15 @@ public class MainDemo extends Application {
 
     private VBox createSettingsSection(String sectionTitle, Node sectionContent) {
         Label sectionHeader = new Label(sectionTitle);
+        sectionHeader.setStyle(FX_FONT_WEIGHT_BOLD);
+        VBox section = new VBox(8, sectionHeader, sectionContent);
+        section.setMinWidth(SETTINGS_SECTION_MIN_WIDTH);
+        return section;
+    }
+
+    private VBox createLocalizedSettingsSection(String sectionTitleKey, Node sectionContent) {
+        Label sectionHeader = new Label();
+        demoTextLocalization.bind(sectionHeader, sectionTitleKey);
         sectionHeader.setStyle(FX_FONT_WEIGHT_BOLD);
         VBox section = new VBox(8, sectionHeader, sectionContent);
         section.setMinWidth(SETTINGS_SECTION_MIN_WIDTH);
@@ -1220,6 +1335,17 @@ public class MainDemo extends Application {
         }
     }
 
+    private void addLocalizedSettingsRow(GridPane grid, int rowIndex, String labelKey, Node valueNode) {
+        Label label = new Label();
+        demoTextLocalization.bind(label, labelKey);
+        label.setWrapText(true);
+        label.setMinWidth(SETTINGS_LABEL_MIN_WIDTH);
+        grid.addRow(rowIndex, label, valueNode);
+        if (valueNode instanceof Region region) {
+            GridPane.setHgrow(region, Priority.ALWAYS);
+        }
+    }
+
     private void configureSettingsValueNode(Region valueNode) {
         valueNode.setMinWidth(SETTINGS_CONTROL_MIN_WIDTH);
         valueNode.setMaxWidth(Double.MAX_VALUE);
@@ -1235,9 +1361,10 @@ public class MainDemo extends Application {
         configureSettingsValueNode(sideBarModeComboBox);
         sideBarModeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> onSideBarModeChanged(newVal));
 
-        addSettingsRow(sideBarGrid, 0, "Sidebar Mode", sideBarModeComboBox);
+        addLocalizedSettingsRow(sideBarGrid, 0, "demo.settings.label.sidebarMode", sideBarModeComboBox);
 
-        collapsePinnedOnActiveIconClickCheckBox = new CheckBox("Collapse pinned panel on active icon click");
+        collapsePinnedOnActiveIconClickCheckBox = new CheckBox();
+        demoTextLocalization.bind(collapsePinnedOnActiveIconClickCheckBox, "demo.settings.value.collapsePinned");
         configureSettingsValueNode(collapsePinnedOnActiveIconClickCheckBox);
         collapsePinnedOnActiveIconClickCheckBox.setSelected(snapFX.isCollapsePinnedSideBarOnActiveIconClick());
         collapsePinnedOnActiveIconClickCheckBox.selectedProperty().addListener((obs, oldVal, newVal) -> {
@@ -1247,10 +1374,10 @@ public class MainDemo extends Application {
             snapFX.setCollapsePinnedSideBarOnActiveIconClick(Boolean.TRUE.equals(newVal));
         });
 
-        addSettingsRow(sideBarGrid, 1, "Collapse pinned", collapsePinnedOnActiveIconClickCheckBox);
+        addLocalizedSettingsRow(sideBarGrid, 1, "demo.settings.label.collapsePinned", collapsePinnedOnActiveIconClickCheckBox);
 
         refreshSideBarSettingsViews();
-        return createSettingsSection("Layout", sideBarGrid);
+        return createLocalizedSettingsSection("demo.settings.section.sideBars", sideBarGrid);
     }
 
     private void updateDockLayout() {
@@ -1281,7 +1408,7 @@ public class MainDemo extends Application {
                 Files.writeString(file.toPath(), json);
                 // Success - no popup needed for better UX
             } catch (IOException e) {
-                showError("Error while saving:\n" + e.getMessage());
+                showError(tr("demo.error.saveFile", e.getMessage()));
             }
         }
     }
@@ -1296,6 +1423,7 @@ public class MainDemo extends Application {
                 snapFX.loadLayout(json);
                 updateDockLayout();
                 rebuildEditorRegistryFromCurrentLayout();
+                refreshDemoLocalization();
 
                 // Synchronize lock state from loaded layout
                 lockLayoutProperty.set(snapFX.isLocked());
@@ -1309,9 +1437,9 @@ public class MainDemo extends Application {
                     "Layout load failed: {0}",
                     e.toDisplayMessage()
                 );
-                showError(buildLayoutLoadErrorMessage(e));
+                showError(buildLocalizedLayoutLoadErrorMessage(e));
             } catch (IOException e) {
-                showError("Error while loading:\n" + e.getMessage());
+                showError(tr("demo.dialog.layoutLoadError", e.getMessage()));
             }
         }
     }
@@ -1367,12 +1495,12 @@ public class MainDemo extends Application {
     private EditorCloseDecisionPolicy.SavePromptResult promptSaveBeforeClose(DockNode node) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.initOwner(primaryStage);
-        alert.setTitle("Unsaved Changes");
-        alert.setHeaderText("Save changes before closing \"" + node.getTitle().replace(DIRTY_TITLE_SUFFIX, "") + "\"?");
-        alert.setContentText("Your changes will be lost if you choose \"Don't Save\".");
+        alert.setTitle(tr("demo.dialog.unsaved.title"));
+        alert.setHeaderText(tr("demo.dialog.unsaved.header", node.getTitle().replace(DIRTY_TITLE_SUFFIX, "")));
+        alert.setContentText(tr("demo.dialog.unsaved.content"));
 
-        ButtonType saveButton = new ButtonType("Save");
-        ButtonType discardButton = new ButtonType("Don't Save");
+        ButtonType saveButton = new ButtonType(tr("demo.dialog.unsaved.save"));
+        ButtonType discardButton = new ButtonType(tr("demo.dialog.unsaved.discard"));
         ButtonType cancelButton = ButtonType.CANCEL;
         alert.getButtonTypes().setAll(saveButton, discardButton, cancelButton);
 
@@ -1406,14 +1534,14 @@ public class MainDemo extends Application {
             markEditorDirty(editorNode, false);
             addDockNode(editorNode);
         } catch (IOException e) {
-            showError("Error while opening file:\n" + e.getMessage());
+            showError(tr("demo.error.openFile", e.getMessage()));
         }
     }
 
     private void saveActiveEditor(boolean forceSaveAs) {
         DockNode activeEditorNode = findActiveEditorNode();
         if (activeEditorNode == null) {
-            showError("No active editor available.");
+            showError(tr("demo.error.noActiveEditor"));
             return;
         }
 
@@ -1442,7 +1570,7 @@ public class MainDemo extends Application {
             markEditorDirty(node, false);
             return true;
         } catch (IOException e) {
-            showError("Error while saving file:\n" + e.getMessage());
+            showError(tr("demo.error.saveFile", e.getMessage()));
             return false;
         }
     }
@@ -1482,8 +1610,8 @@ public class MainDemo extends Application {
 
     private FileChooser createLayoutSaveFileChooser() {
         FileChooser fileChooser = createFileChooser(
-            SAVE_LAYOUT_CHOOSER_TITLE,
-            List.of(createJsonFileExtensionFilter())
+            tr("demo.fileChooser.saveLayout"),
+            List.of(new FileChooser.ExtensionFilter(tr("demo.fileChooser.filter.json"), JSON_FILE_GLOB))
         );
         fileChooser.setInitialFileName(DEFAULT_LAYOUT_FILE_NAME);
         applyDocumentsInitialDirectory(fileChooser);
@@ -1492,19 +1620,19 @@ public class MainDemo extends Application {
 
     private FileChooser createLayoutLoadFileChooser() {
         FileChooser fileChooser = createFileChooser(
-            LOAD_LAYOUT_CHOOSER_TITLE,
-            List.of(createJsonFileExtensionFilter())
+            tr("demo.fileChooser.loadLayout"),
+            List.of(new FileChooser.ExtensionFilter(tr("demo.fileChooser.filter.json"), JSON_FILE_GLOB))
         );
         applyDocumentsInitialDirectory(fileChooser);
         return fileChooser;
     }
 
     private FileChooser createEditorOpenFileChooser() {
-        return createFileChooser(OPEN_TEXT_FILE_CHOOSER_TITLE, createEditorFileExtensionFilters());
+        return createFileChooser(tr("demo.fileChooser.openTextFile"), createLocalizedEditorFileExtensionFilters());
     }
 
     private FileChooser createEditorSaveFileChooser(EditorDocumentState state) {
-        FileChooser fileChooser = createFileChooser(SAVE_EDITOR_CHOOSER_TITLE, createEditorFileExtensionFilters());
+        FileChooser fileChooser = createFileChooser(tr("demo.fileChooser.saveEditor"), createLocalizedEditorFileExtensionFilters());
         Path currentFilePath = state == null ? null : state.filePath;
         String baseTitle = state == null ? null : state.baseTitle;
         applyEditorSaveChooserDefaults(fileChooser, currentFilePath, baseTitle);
@@ -1528,6 +1656,13 @@ public class MainDemo extends Application {
         return List.of(
             new FileChooser.ExtensionFilter(TEXT_FILES_FILTER_LABEL, TEXT_FILES_GLOBS),
             new FileChooser.ExtensionFilter(ALL_FILES_FILTER_LABEL, ALL_FILES_GLOB)
+        );
+    }
+
+    private List<FileChooser.ExtensionFilter> createLocalizedEditorFileExtensionFilters() {
+        return List.of(
+            new FileChooser.ExtensionFilter(tr("demo.fileChooser.filter.text"), TEXT_FILES_GLOBS),
+            new FileChooser.ExtensionFilter(tr("demo.fileChooser.filter.all"), ALL_FILES_GLOB)
         );
     }
 
@@ -1580,6 +1715,10 @@ public class MainDemo extends Application {
         state.filePath = null;
         state.dirty = false;
         state.suppressDirtyTracking = false;
+        state.usesGeneratedUntitledTitle = demoTextLocalization.matchesInSupportedLocales(
+            "demo.node.editor.untitled",
+            state.baseTitle
+        );
         state.textListener = (obs, oldVal, newVal) -> {
             if (!state.suppressDirtyTracking) {
                 markEditorDirty(node, true);
@@ -1639,6 +1778,7 @@ public class MainDemo extends Application {
         state.filePath = filePath;
         if (filePath != null && filePath.getFileName() != null) {
             state.baseTitle = filePath.getFileName().toString();
+            state.usesGeneratedUntitledTitle = false;
         }
         updateEditorTitle(node, state);
     }
@@ -1676,9 +1816,20 @@ public class MainDemo extends Application {
         node.setTitle(state.dirty ? baseTitle + DIRTY_TITLE_SUFFIX : baseTitle);
     }
 
+    private void updateUntitledEditorTitles() {
+        for (Map.Entry<DockNode, EditorDocumentState> entry : editorDocumentStates.entrySet()) {
+            EditorDocumentState state = entry.getValue();
+            if (state == null || !state.usesGeneratedUntitledTitle || state.filePath != null) {
+                continue;
+            }
+            state.baseTitle = tr("demo.node.editor.untitled");
+            updateEditorTitle(entry.getKey(), state);
+        }
+    }
+
     private String stripDirtySuffix(String title) {
         if (title == null || title.isBlank()) {
-            return "Untitled";
+            return tr("demo.node.editor.untitled");
         }
         if (title.endsWith(DIRTY_TITLE_SUFFIX)) {
             return title.substring(0, title.length() - DIRTY_TITLE_SUFFIX.length());
@@ -1694,6 +1845,13 @@ public class MainDemo extends Application {
         return "Error while loading:\n" + exception.toDisplayMessage();
     }
 
+    private String buildLocalizedLayoutLoadErrorMessage(DockLayoutLoadException exception) {
+        String details = exception == null
+            ? tr("demo.dialog.layoutLoadErrorUnknown")
+            : exception.toDisplayMessage();
+        return tr("demo.dialog.layoutLoadError", details);
+    }
+
     static Alert createErrorAlert(String message, Window owner) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Error");
@@ -1706,8 +1864,14 @@ public class MainDemo extends Application {
     }
 
     private void showError(String message) {
-        Alert alert = createErrorAlert(message, primaryStage);
+        Alert alert = createErrorAlert(tr("demo.dialog.error.title"), message, primaryStage);
         alert.showAndWait();
+    }
+
+    private static Alert createErrorAlert(String title, String message, Window owner) {
+        Alert alert = createErrorAlert(message, owner);
+        alert.setTitle(title);
+        return alert;
     }
 
     /**

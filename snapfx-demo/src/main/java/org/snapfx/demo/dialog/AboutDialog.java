@@ -2,6 +2,7 @@ package org.snapfx.demo.dialog;
 
 import org.snapfx.BuildInfo;
 import org.snapfx.demo.MainDemo;
+import org.snapfx.demo.i18n.DemoLocalizationService;
 import javafx.animation.FadeTransition;
 import javafx.animation.Interpolator;
 import javafx.animation.ParallelTransition;
@@ -54,20 +55,32 @@ public final class AboutDialog {
      * @param linkOpener callback used for opening external links
      */
     public static void show(Window owner, Consumer<String> linkOpener) {
+        show(owner, linkOpener, new DemoLocalizationService(AboutDialog.class.getModule()));
+    }
+
+    /**
+     * Shows the About dialog.
+     *
+     * @param owner owner window for modality; can be {@code null}
+     * @param linkOpener callback used for opening external links
+     * @param localizationService localization service used for demo strings
+     */
+    public static void show(Window owner, Consumer<String> linkOpener, DemoLocalizationService localizationService) {
         Objects.requireNonNull(linkOpener, "linkOpener");
+        Objects.requireNonNull(localizationService, "localizationService");
 
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         if (owner != null) {
             alert.initOwner(owner);
         }
 
-        alert.setTitle("About SnapFX");
+        alert.setTitle(localizationService.text("demo.about.title"));
         alert.setHeaderText(null);
 
         DialogPane dialogPane = alert.getDialogPane();
         dialogPane.setGraphic(null);
         dialogPane.setPrefWidth(620);
-        dialogPane.setContent(createContent(linkOpener));
+        dialogPane.setContent(createContent(linkOpener, localizationService));
 
         applyDialogIcon(alert);
         alert.showAndWait();
@@ -93,27 +106,28 @@ public final class AboutDialog {
         return YUSUKE_LICENSE_URL;
     }
 
-    private static VBox createContent(Consumer<String> linkOpener) {
-        Label titleLabel = new Label("SnapFX Docking Framework");
+    private static VBox createContent(Consumer<String> linkOpener, DemoLocalizationService localizationService) {
+        Label titleLabel = new Label();
+        localizationService.bind(titleLabel, "demo.about.header.title");
         titleLabel.setStyle(MainDemo.FX_FONT_WEIGHT_BOLD + "-fx-font-size: 18px;");
 
-        Label versionLabel = new Label("Version " + BuildInfo.getVersion());
+        Label versionLabel = new Label();
+        localizationService.bind(versionLabel, "demo.about.version", BuildInfo.getVersion());
         versionLabel.setStyle(MainDemo.FX_FONT_WEIGHT_BOLD);
 
-        Label descriptionLabel = new Label(
-            "A high-performance, lightweight JavaFX docking framework\n" +
-            "designed for professional IDE-like applications."
-        );
+        Label descriptionLabel = new Label();
+        localizationService.bind(descriptionLabel, "demo.about.description");
         descriptionLabel.setWrapText(true);
 
-        Label easterEggLabel = new Label("Easter egg unlocked: docking energy is now at 100%.");
+        Label easterEggLabel = new Label();
+        localizationService.bind(easterEggLabel, "demo.about.easterEgg");
         easterEggLabel.setWrapText(true);
         easterEggLabel.setVisible(false);
         easterEggLabel.setManaged(false);
         easterEggLabel.setOpacity(0.0);
         easterEggLabel.setStyle("-fx-text-fill: #2873b8; -fx-font-style: italic;");
 
-        Node logoNode = createLogoNode();
+        Node logoNode = createLogoNode(localizationService);
         if (logoNode instanceof ImageView logoView) {
             installEasterEggAnimation(logoView, easterEggLabel);
         }
@@ -125,20 +139,25 @@ public final class AboutDialog {
         HBox header = new HBox(16, logoNode, headerText);
         header.setAlignment(Pos.CENTER_LEFT);
 
-        Label licenseTitle = new Label("Icon Credits");
+        Label licenseTitle = new Label();
+        localizationService.bind(licenseTitle, "demo.about.iconCredits");
         licenseTitle.setStyle(MainDemo.FX_FONT_WEIGHT_BOLD);
 
         FlowPane yusukeCredits = new FlowPane(5, 5);
+        Label someIconsByLabel = new Label();
+        localizationService.bind(someIconsByLabel, "demo.about.someIconsBy");
+        Label licensedUnderLabel = new Label();
+        localizationService.bind(licensedUnderLabel, "demo.about.licensedUnder");
         yusukeCredits.getChildren().addAll(
-            new Label("Some icons by"),
+            someIconsByLabel,
             createHyperlink("Yusuke Kamiyamane", YUSUKE_AUTHOR_URL, linkOpener),
-            new Label("licensed under"),
+            licensedUnderLabel,
             createHyperlink("Creative Commons Attribution 3.0", YUSUKE_LICENSE_URL, linkOpener),
             new Label(".")
         );
 
         Hyperlink flaticonCredits = createHyperlink(
-            "Logout icons created by Pixel perfect - Flaticon",
+            localizationService.text("demo.about.flaticonCredit"),
             FLATICON_CREDIT_URL,
             linkOpener
         );
@@ -156,13 +175,13 @@ public final class AboutDialog {
         return content;
     }
 
-    private static Node createLogoNode() {
+    private static Node createLogoNode(DemoLocalizationService localizationService) {
         ImageView logoView = createImageView(CONTENT_LOGO_RESOURCE, 110);
         if (logoView != null) {
             return logoView;
         }
 
-        Label fallback = new Label("SnapFX");
+        Label fallback = new Label(localizationService.text("demo.about.logoFallback"));
         fallback.setStyle(MainDemo.FX_FONT_WEIGHT_BOLD + "-fx-font-size: 28px;");
         return fallback;
     }

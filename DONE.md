@@ -1,6 +1,6 @@
 # SnapFX Framework - Completed Milestones
 
-**Last Updated**: 2026-03-17
+**Last Updated**: 2026-04-01
 
 ## Product Baseline
 
@@ -9,7 +9,7 @@
 - ✅ **Sidebar Interaction Scope Delivered**: Strip DnD baseline, framework/sidebar move/restore/pin actions, resize + persistence, and visibility modes
 - ✅ **Persistence and Recovery Delivered**: Save/load pipeline with typed load errors and unknown-node fallback recovery
 - ✅ **Theme Runtime Delivered**: Default stylesheet auto-apply plus runtime theme switching (`Light` / `Dark`)
-- ✅ **Localization Runtime Delivered**: Built-in `EN`/`DE` locale support, runtime locale/provider API, provider fallback chain, and ResourceBundle adapter extensibility
+- ✅ **Localization Runtime Delivered**: Built-in `EN`/`DE` locale support, runtime locale/provider API, provider fallback chain, ResourceBundle adapter extensibility, and a fully localized MainDemo showcase with demo-specific `EN`/`DE`/`FR` content
 
 ## Engineering Baseline
 

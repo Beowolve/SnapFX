@@ -1,16 +1,24 @@
 package org.snapfx.demo.factory;
 
+import org.snapfx.demo.editor.SerializableEditor;
+import org.snapfx.demo.i18n.DemoLocalizationService;
+import org.snapfx.demo.util.IconUtil;
 import org.snapfx.model.DockNode;
 import org.snapfx.persistence.DockNodeFactory;
-import org.snapfx.demo.editor.SerializableEditor;
-import org.snapfx.demo.util.IconUtil;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
+import javafx.scene.control.Separator;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -19,11 +27,10 @@ import java.util.Optional;
  * All node definitions are managed centrally via the DockNodeType enum.
  */
 public final class DemoNodeFactory implements DockNodeFactory {
-
     private static final String MAIN_JAVA = "Main.java";
-    private static final String PROPERTIES = "Properties";
-    private static final String UNAVAILABLE_NODE = "Unavailable Node";
+
     private final boolean useFrameworkUnknownNodePlaceholder;
+    private final DemoLocalizationService localizationService;
 
     /**
      * Creates a new DemoNodeFactory.
@@ -33,25 +40,49 @@ public final class DemoNodeFactory implements DockNodeFactory {
     }
 
     /**
+     * Creates a new DemoNodeFactory with localized resources.
+     *
+     * @param localizationService localization service used for demo strings
+     */
+    public DemoNodeFactory(DemoLocalizationService localizationService) {
+        this(true, localizationService);
+    }
+
+    /**
      * Creates a new DemoNodeFactory with configurable unknown-node fallback behavior.
      *
      * @param useFrameworkUnknownNodePlaceholder {@code true} to use SnapFX built-in placeholders,
      *                                           {@code false} to return demo-specific fallback nodes
      */
     public DemoNodeFactory(boolean useFrameworkUnknownNodePlaceholder) {
+        this(useFrameworkUnknownNodePlaceholder, new DemoLocalizationService(DemoNodeFactory.class.getModule()));
+    }
+
+    /**
+     * Creates a new DemoNodeFactory with configurable unknown-node fallback behavior and localization service.
+     *
+     * @param useFrameworkUnknownNodePlaceholder {@code true} to use SnapFX built-in placeholders,
+     *                                           {@code false} to return demo-specific fallback nodes
+     * @param localizationService localization service used for demo strings
+     */
+    public DemoNodeFactory(boolean useFrameworkUnknownNodePlaceholder, DemoLocalizationService localizationService) {
         this.useFrameworkUnknownNodePlaceholder = useFrameworkUnknownNodePlaceholder;
+        this.localizationService = Objects.requireNonNull(localizationService, "localizationService");
     }
 
     /**
      * Creates a DockNode based on the given DockNode-ID (type-based).
      * The framework ensures unique layout IDs and calls the factory with the DockNode-ID.
+     *
      * @param dockNodeId the DockNode type ID
      * @return DockNode instance or null if not found
      */
     @Override
     public DockNode createNode(String dockNodeId) {
         Optional<DockNodeType> typeOpt = fromIdOptional(dockNodeId);
-        if (typeOpt.isEmpty()) return null;
+        if (typeOpt.isEmpty()) {
+            return null;
+        }
         DockNodeType type = typeOpt.get();
         return switch (type) {
             case PROJECT_EXPLORER -> createProjectExplorerNode();
@@ -59,10 +90,10 @@ public final class DemoNodeFactory implements DockNodeFactory {
             case PROPERTIES -> createPropertiesNode();
             case CONSOLE -> createConsoleNode();
             case TASKS -> createTasksNode();
-            case EDITOR -> createEditorNode("Untitled");
+            case EDITOR -> createUntitledEditorNode();
             case PROPERTIES_PANEL -> createPropertiesPanelNode();
             case CONSOLE_PANEL -> createConsolePanelNode();
-            case GENERIC_PANEL -> createGenericPanelNode("Panel");
+            case GENERIC_PANEL -> createGenericPanelNode(localizationService.text("demo.node.genericPanel.title"));
         };
     }
 
@@ -75,19 +106,22 @@ public final class DemoNodeFactory implements DockNodeFactory {
             ? "unknown"
             : context.dockNodeId();
         String resolvedTitle = context.title() == null || context.title().isBlank()
-            ? UNAVAILABLE_NODE
+            ? localizationService.text("demo.node.unavailable")
             : context.title();
         Label content = new Label(
-            "Demo fallback node\n"
-                + "Saved type: " + context.elementType() + "\n"
-                + "Node ID: " + resolvedDockNodeId + "\n"
-                + "JSON path: " + context.jsonPath()
+            localizationService.text(
+                "demo.node.unknown.content",
+                context.elementType(),
+                resolvedDockNodeId,
+                context.jsonPath()
+            )
         );
         return new DockNode(resolvedDockNodeId, content, resolvedTitle);
     }
 
     /**
      * Returns an Optional of DockNodeType for the given id.
+     *
      * @param id DockNodeType id
      * @return Optional of DockNodeType
      */
@@ -103,18 +137,28 @@ public final class DemoNodeFactory implements DockNodeFactory {
     /**
      * Helper method to create a DockNode with the given type and content.
      * This centralizes the creation logic and ensures consistent properties.
+     *
      * @param type DockNodeType
      * @param content JavaFX Node content
      * @return DockNode instance
      */
     private DockNode createDockNode(DockNodeType type, Node content) {
-        DockNode node = new DockNode(type.getId(), content, type.getDefaultTitle());
+        String titleKey = type.getDefaultTitleKey();
+        DockNode node = new DockNode(
+            type.getId(),
+            content,
+            titleKey == null ? type.getDefaultTitle() : localizationService.text(titleKey)
+        );
+        if (titleKey != null) {
+            registerLocalizedNodeTitle(node, titleKey);
+        }
         node.setIcon(IconUtil.loadImage(type.getIconName()));
         return node;
     }
 
     /**
      * Creates the Project Explorer node with fixed ID from enum.
+     *
      * @return DockNode instance
      */
     public DockNode createProjectExplorerNode() {
@@ -142,6 +186,7 @@ public final class DemoNodeFactory implements DockNodeFactory {
     /**
      * Creates the Main Editor node with fixed ID "mainEditor".
      * Uses SerializableEditor to demonstrate content persistence.
+     *
      * @return DockNode instance
      */
     public DockNode createMainEditorNode() {
@@ -149,9 +194,9 @@ public final class DemoNodeFactory implements DockNodeFactory {
             """
             public class Main {
                 public static void main(String[] args) {
-                    System.out.println("SnapFX Demo");
+                    System.out.println(\"SnapFX Demo\");
 
-                    // SnapFX.dock(myNode, "Title");
+                    // SnapFX.dock(myNode, \"Title\");
                     // Simple API for docking!
                 }
             }
@@ -163,52 +208,22 @@ public final class DemoNodeFactory implements DockNodeFactory {
 
     /**
      * Creates the Properties node with fixed ID "properties".
+     *
      * @return DockNode instance
      */
     public DockNode createPropertiesNode() {
-        VBox propertiesContent = new VBox(10);
-        propertiesContent.setPadding(new Insets(10));
-
-        Label propLabel = new Label(PROPERTIES);
-        propLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
-
-        GridPane propsGrid = new GridPane();
-        propsGrid.setHgap(10);
-        propsGrid.setVgap(5);
-
-        propsGrid.add(new Label("Name:"), 0, 0);
-        propsGrid.add(new TextField(MAIN_JAVA), 1, 0);
-
-        propsGrid.add(new Label("Type:"), 0, 1);
-        propsGrid.add(new Label("Java file"), 1, 1);
-
-        propsGrid.add(new Label("Size:"), 0, 2);
-        propsGrid.add(new Label("1.2 KB"), 1, 2);
-
-        propertiesContent.getChildren().addAll(propLabel, new Separator(), propsGrid);
-
-        return createDockNode(DockNodeType.PROPERTIES, propertiesContent);
+        return createDockNode(DockNodeType.PROPERTIES, createPropertiesContent());
     }
 
     /**
      * Creates the Console node with fixed ID "console".
+     *
      * @return DockNode instance
      */
     public DockNode createConsoleNode() {
         TextArea console = new TextArea();
         console.setEditable(false);
-        console.setText(
-            """
-            SnapFX Framework v1.0
-            ====================================
-            [INFO] Docking system initialized
-            [INFO] Layout loaded
-            [INFO] Ready for drag & drop
-
-            Drag & drop is fully functional.
-            Save/Load works across sessions using fixed node IDs.
-            """
-        );
+        console.textProperty().bind(localizationService.createBinding("demo.node.console.text"));
         console.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px;");
 
         return createDockNode(DockNodeType.CONSOLE, console);
@@ -216,25 +231,30 @@ public final class DemoNodeFactory implements DockNodeFactory {
 
     /**
      * Creates the Tasks node with fixed ID "tasks".
+     *
      * @return DockNode instance
      */
     public DockNode createTasksNode() {
         ListView<String> tasksList = new ListView<>();
-        tasksList.getItems().addAll(
-            "TODO: Implement full drag & drop",
-            "TODO: Floating windows",
-            "TODO: Advanced zone detection",
-            "DONE: Base architecture",
-            "DONE: Layout engine",
-            "DONE: Persistence with fixed IDs"
-        );
+        updateTaskItems(tasksList);
+        localizationService.localeProperty().addListener((obs, oldLocale, newLocale) -> updateTaskItems(tasksList));
 
         return createDockNode(DockNodeType.TASKS, tasksList);
     }
 
     /**
+     * Creates a new untitled Editor node using the current locale.
+     *
+     * @return DockNode instance
+     */
+    public DockNode createUntitledEditorNode() {
+        return createEditorNode(localizationService.text("demo.node.editor.untitled"));
+    }
+
+    /**
      * Creates a new Editor node with a unique ID for dynamic addition.
      * This demonstrates how to create dynamic nodes with unique IDs.
+     *
      * @param title the title for the editor
      * @return DockNode instance
      */
@@ -248,47 +268,30 @@ public final class DemoNodeFactory implements DockNodeFactory {
     /**
      * Creates a Properties panel node with the same content as the main Properties.
      * This demonstrates how to create dynamic nodes with unique IDs.
+     *
      * @return DockNode instance
      */
     public DockNode createPropertiesPanelNode() {
-        VBox propertiesContent = new VBox(10);
-        propertiesContent.setPadding(new Insets(10));
-        Label propLabel = new Label(PROPERTIES);
-        propLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
-        GridPane propsGrid = new GridPane();
-        propsGrid.setHgap(10);
-        propsGrid.setVgap(5);
-        propsGrid.add(new Label("Name:"), 0, 0);
-        propsGrid.add(new TextField(MAIN_JAVA), 1, 0);
-        propsGrid.add(new Label("Type:"), 0, 1);
-        propsGrid.add(new Label("Java file"), 1, 1);
-        propsGrid.add(new Label("Size:"), 0, 2);
-        propsGrid.add(new Label("1.2 KB"), 1, 2);
-        propertiesContent.getChildren().addAll(propLabel, new Separator(), propsGrid);
-        DockNode node = new DockNode(DockNodeType.PROPERTIES_PANEL.getId(), propertiesContent, PROPERTIES);
-        node.setIcon(IconUtil.loadImage(DockNodeType.PROPERTIES_PANEL.getIconName()));
-        return node;
+        return createDockNode(DockNodeType.PROPERTIES_PANEL, createPropertiesContent());
     }
 
     /**
      * Creates a Console panel node with the same content as the main Console.
      * This demonstrates how to create dynamic nodes with unique IDs.
+     *
      * @return DockNode instance
      */
     public DockNode createConsolePanelNode() {
         TextArea console = new TextArea();
         console.setEditable(false);
-        console.setText(
-            """
-            SnapFX Framework v1.0
-            ====================================
-            [INFO] Docking system initialized
-            [INFO] Layout loaded
-            [INFO] Ready for drag & drop
-            """
-        );
+        console.textProperty().bind(localizationService.createBinding("demo.node.consolePanel.text"));
         console.setStyle("-fx-font-family: 'Consolas', 'Monaco', monospace; -fx-font-size: 12px;");
-        DockNode node = new DockNode(DockNodeType.CONSOLE_PANEL.getId(), console, "Console");
+        DockNode node = new DockNode(
+            DockNodeType.CONSOLE_PANEL.getId(),
+            console,
+            localizationService.text(DockNodeType.CONSOLE_PANEL.getDefaultTitleKey())
+        );
+        registerLocalizedNodeTitle(node, DockNodeType.CONSOLE_PANEL.getDefaultTitleKey());
         node.setIcon(IconUtil.loadImage(DockNodeType.CONSOLE_PANEL.getIconName()));
         return node;
     }
@@ -296,19 +299,78 @@ public final class DemoNodeFactory implements DockNodeFactory {
     /**
      * Creates a generic panel node with the given title.
      * This demonstrates how to create dynamic nodes with unique IDs.
+     *
      * @param title the title for the panel
      * @return DockNode instance
      */
     public DockNode createGenericPanelNode(String title) {
         VBox content = new VBox(10);
         content.setPadding(new Insets(20));
-        Label label = new Label("This is: " + title);
+        Label label = new Label(localizationService.text("demo.node.generic.header", title));
         label.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
-        TextArea text = new TextArea("Content for " + title + "\n\nYou can add any JavaFX node here.");
+        TextArea text = new TextArea(localizationService.text("demo.node.generic.content", title));
         text.setPrefRowCount(10);
         content.getChildren().addAll(label, text);
         DockNode node = new DockNode(DockNodeType.GENERIC_PANEL.getId(), content, title);
+        if (localizationService.matchesInSupportedLocales("demo.node.genericPanel.title", title)) {
+            registerLocalizedNodeTitle(node, DockNodeType.GENERIC_PANEL.getDefaultTitleKey());
+        }
         node.setIcon(IconUtil.loadImage(DockNodeType.GENERIC_PANEL.getIconName()));
         return node;
+    }
+
+    private VBox createPropertiesContent() {
+        VBox propertiesContent = new VBox(10);
+        propertiesContent.setPadding(new Insets(10));
+
+        Label headerLabel = new Label();
+        localizationService.bind(headerLabel, "demo.node.properties.header");
+        headerLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+
+        GridPane propsGrid = new GridPane();
+        propsGrid.setHgap(10);
+        propsGrid.setVgap(5);
+
+        Label nameLabel = new Label();
+        localizationService.bind(nameLabel, "demo.node.properties.name");
+        Label typeLabel = new Label();
+        localizationService.bind(typeLabel, "demo.node.properties.type");
+        Label sizeLabel = new Label();
+        localizationService.bind(sizeLabel, "demo.node.properties.size");
+        Label javaFileLabel = new Label();
+        localizationService.bind(javaFileLabel, "demo.node.properties.javaFile");
+        Label sizeValueLabel = new Label();
+        localizationService.bind(sizeValueLabel, "demo.node.properties.sizeValue");
+        TextField fileNameField = new TextField(localizationService.text("demo.node.properties.mainJava"));
+
+        propsGrid.add(nameLabel, 0, 0);
+        propsGrid.add(fileNameField, 1, 0);
+        propsGrid.add(typeLabel, 0, 1);
+        propsGrid.add(javaFileLabel, 1, 1);
+        propsGrid.add(sizeLabel, 0, 2);
+        propsGrid.add(sizeValueLabel, 1, 2);
+
+        propertiesContent.getChildren().addAll(headerLabel, new Separator(), propsGrid);
+        return propertiesContent;
+    }
+
+    private void updateTaskItems(ListView<String> tasksList) {
+        tasksList.getItems().setAll(
+            localizationService.text("demo.node.tasks.todoDnd"),
+            localizationService.text("demo.node.tasks.todoFloating"),
+            localizationService.text("demo.node.tasks.todoZones"),
+            localizationService.text("demo.node.tasks.doneArchitecture"),
+            localizationService.text("demo.node.tasks.doneLayout"),
+            localizationService.text("demo.node.tasks.donePersistence")
+        );
+    }
+
+    private void registerLocalizedNodeTitle(DockNode node, String titleKey) {
+        if (node == null || titleKey == null || titleKey.isBlank()) {
+            return;
+        }
+        localizationService.localeProperty().addListener((obs, oldLocale, newLocale) ->
+            node.setTitle(localizationService.text(titleKey))
+        );
     }
 }
