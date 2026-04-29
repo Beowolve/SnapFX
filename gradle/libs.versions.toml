@@ -6,6 +6,7 @@ gson = "2.10.1"
 junit-bom = "5.10.0"
 testfx = "4.0.18"
 hamcrest = "2.2"
+atlantafx = "2.0.1"
 
 [libraries]
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
@@ -15,6 +16,7 @@ junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher
 testfx-core = { module = "org.testfx:testfx-core", version.ref = "testfx" }
 testfx-junit5 = { module = "org.testfx:testfx-junit5", version.ref = "testfx" }
 hamcrest = { module = "org.hamcrest:hamcrest", version.ref = "hamcrest" }
+atlantafx-base = { module = "io.github.mkpaz:atlantafx-base", version.ref = "atlantafx" }
 
 [plugins]
 jgitver = { id = "fr.brouillard.oss.gradle.jgitver", version.ref = "jgitver" }

@@ -27,6 +27,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import javafx.animation.PauseTransition;
+import javafx.application.Application;
 import javafx.event.Event;
 import javafx.application.Platform;
 import javafx.geometry.Bounds;
@@ -51,6 +52,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.nio.charset.StandardCharsets;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -300,6 +302,145 @@ class SnapFXTest {
         Map<String, String> stylesheets = SnapFX.getAvailableThemeStylesheets();
 
         assertThrows(UnsupportedOperationException.class, () -> stylesheets.put("Custom", "/custom.css"));
+    }
+
+    @Test
+    void testUserAgentThemeModeDefaultsToAutoAndNullFallsBackToAuto() {
+        assertEquals(DockUserAgentThemeMode.AUTO, snapFX.getUserAgentThemeMode());
+
+        snapFX.setUserAgentThemeMode(DockUserAgentThemeMode.MODENA);
+        assertEquals(DockUserAgentThemeMode.MODENA, snapFX.getUserAgentThemeMode());
+
+        snapFX.setUserAgentThemeMode(null);
+        assertEquals(DockUserAgentThemeMode.AUTO, snapFX.getUserAgentThemeMode());
+    }
+
+    @Test
+    void testRefreshUserAgentThemeIntegrationAutoDetectsAtlantaFxAndThenRemovesCompatForModena() {
+        runOnFxThreadAndWait(() -> {
+            String previousUserAgentStylesheet = Application.getUserAgentStylesheet();
+            SnapFX framework = null;
+            Stage stage = null;
+            try {
+                Application.setUserAgentStylesheet("data:text/css,/*atlantafx*/.root{-fx-base:white;}");
+                framework = new SnapFX();
+                DockNode nodeMain = new DockNode("nodeMain", new Label("Main"), "Main");
+                DockNode nodeFloat = new DockNode("nodeFloat", new Label("Float"), "Float");
+                framework.dock(nodeMain, null, DockPosition.CENTER);
+                framework.dock(nodeFloat, nodeMain, DockPosition.RIGHT);
+                DockFloatingWindow floatingWindow = framework.floatNode(nodeFloat);
+
+                stage = new Stage();
+                Scene scene = new Scene(framework.buildLayout(), 640, 480);
+                stage.setScene(scene);
+                framework.initialize(stage);
+
+                String compatStylesheetUrl = SnapFX.class.getResource("/snapfx-atlantafx-compat.css").toExternalForm();
+                assertTrue(scene.getStylesheets().contains(compatStylesheetUrl));
+                assertNotNull(floatingWindow.getScene());
+                assertTrue(floatingWindow.getScene().getStylesheets().contains(compatStylesheetUrl));
+
+                Application.setUserAgentStylesheet(Application.STYLESHEET_MODENA);
+                framework.refreshUserAgentThemeIntegration();
+
+                assertFalse(scene.getStylesheets().contains(compatStylesheetUrl));
+                assertFalse(floatingWindow.getScene().getStylesheets().contains(compatStylesheetUrl));
+            } finally {
+                Application.setUserAgentStylesheet(previousUserAgentStylesheet);
+                if (framework != null) {
+                    framework.closeFloatingWindows(false);
+                }
+                if (stage != null) {
+                    stage.close();
+                }
+                closeGhostStage(framework);
+            }
+        });
+    }
+
+    @Test
+    void testUserAgentThemeModeOverrideRespectsModenaAndAtlantaFxCompat() {
+        runOnFxThreadAndWait(() -> {
+            String previousUserAgentStylesheet = Application.getUserAgentStylesheet();
+            SnapFX framework = null;
+            Stage stage = null;
+            try {
+                Application.setUserAgentStylesheet(Application.STYLESHEET_MODENA);
+                framework = new SnapFX();
+                DockNode node = new DockNode("node", new Label("Node"), "Node");
+                framework.dock(node, null, DockPosition.CENTER);
+
+                stage = new Stage();
+                Scene scene = new Scene(framework.buildLayout(), 640, 480);
+                stage.setScene(scene);
+                framework.initialize(stage);
+
+                String compatStylesheetUrl = SnapFX.class.getResource("/snapfx-atlantafx-compat.css").toExternalForm();
+                framework.setUserAgentThemeMode(DockUserAgentThemeMode.MODENA);
+                assertFalse(scene.getStylesheets().contains(compatStylesheetUrl));
+
+                framework.setUserAgentThemeMode(DockUserAgentThemeMode.ATLANTAFX_COMPAT);
+                assertTrue(scene.getStylesheets().contains(compatStylesheetUrl));
+
+                framework.setUserAgentThemeMode(DockUserAgentThemeMode.MODENA);
+                assertFalse(scene.getStylesheets().contains(compatStylesheetUrl));
+            } finally {
+                Application.setUserAgentStylesheet(previousUserAgentStylesheet);
+                if (stage != null) {
+                    stage.close();
+                }
+                closeGhostStage(framework);
+            }
+        });
+    }
+
+    @Test
+    void testRefreshUserAgentThemeIntegrationDoesNotDuplicateCompatStylesheet() {
+        runOnFxThreadAndWait(() -> {
+            String previousUserAgentStylesheet = Application.getUserAgentStylesheet();
+            SnapFX framework = null;
+            Stage stage = null;
+            try {
+                Application.setUserAgentStylesheet(Application.STYLESHEET_MODENA);
+                framework = new SnapFX();
+                DockNode node = new DockNode("node", new Label("Node"), "Node");
+                framework.dock(node, null, DockPosition.CENTER);
+
+                stage = new Stage();
+                Scene scene = new Scene(framework.buildLayout(), 640, 480);
+                stage.setScene(scene);
+                framework.initialize(stage);
+                framework.setUserAgentThemeMode(DockUserAgentThemeMode.ATLANTAFX_COMPAT);
+                framework.refreshUserAgentThemeIntegration();
+                framework.refreshUserAgentThemeIntegration();
+                framework.refreshUserAgentThemeIntegration();
+
+                String compatStylesheetUrl = SnapFX.class.getResource("/snapfx-atlantafx-compat.css").toExternalForm();
+                long occurrences = scene.getStylesheets().stream().filter(compatStylesheetUrl::equals).count();
+                assertEquals(1, occurrences);
+            } finally {
+                Application.setUserAgentStylesheet(previousUserAgentStylesheet);
+                if (stage != null) {
+                    stage.close();
+                }
+                closeGhostStage(framework);
+            }
+        });
+    }
+
+    @Test
+    void testAtlantaFxCompatStylesheetKeepsTitleTextAndCloseGlyphVisible() throws Exception {
+        try (var stream = SnapFX.class.getResourceAsStream("/snapfx-atlantafx-compat.css")) {
+            assertNotNull(stream, "Expected AtlantaFX compatibility stylesheet resource");
+            String css = new String(stream.readAllBytes(), StandardCharsets.UTF_8).replace("\r\n", "\n");
+
+            assertTrue(css.contains(".dock-tab-pane .tab .tab-label"));
+            assertTrue(css.contains(".dock-tab-pane .tab .tab-close-button"));
+            assertFalse(
+                css.contains(".dock-node-title-label,\n.dock-sidebar-panel-title-label,\n.dock-control-icon"),
+                "Title labels must not share icon background-color styling"
+            );
+        }
     }
 
     @Test

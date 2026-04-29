@@ -442,6 +442,9 @@ SnapFX {
     + getAvailableThemeNames(): List<String>
     + setThemeStylesheet(stylesheetResourcePath)
     + getThemeStylesheetResourcePath(): String
+    + getUserAgentThemeMode(): DockUserAgentThemeMode
+    + setUserAgentThemeMode(mode)
+    + refreshUserAgentThemeIntegration()
     + getDefaultLocale(): Locale
     + getAvailableLocales(): List<Locale>
     + localeProperty(): ObjectProperty<Locale>
@@ -467,6 +470,8 @@ snapFX.initialize(stage); // applies default /snapfx.css automatically
 snapFX.setThemeStylesheet(
     SnapFX.getAvailableThemeStylesheets().get("Dark")
 ); // optional runtime theme switch
+snapFX.setUserAgentThemeMode(DockUserAgentThemeMode.AUTO); // default, can be overridden
+snapFX.refreshUserAgentThemeIntegration(); // call after runtime user-agent stylesheet changes
 
 // Simple docking
 DockNode editor = snapFX.dock(new TextArea(), "Editor");
@@ -499,6 +504,15 @@ Theme stylesheet internals are encapsulated in `org.snapfx.theme`:
 
 - `DockThemeCatalog`: built-in named theme map/list (`Light`, `Dark`)
 - `DockThemeStylesheetManager`: path/url resolution and scene stylesheet application
+
+User-agent theme compatibility behavior is coordinated by `SnapFX`:
+
+- `DockUserAgentThemeMode`: mode enum (`AUTO`, `MODENA`, `ATLANTAFX_COMPAT`)
+- `AUTO`: inspects `Application.getUserAgentStylesheet()` and enables compatibility heuristically for AtlantaFX user-agent stylesheets
+- `MODENA`: forces compatibility layer off
+- `ATLANTAFX_COMPAT`: forces compatibility layer on
+- `refreshUserAgentThemeIntegration()`: reapplies compatibility state to primary/floating managed scenes (for runtime user-agent stylesheet changes)
+- Compatibility styling is additive (`/snapfx-atlantafx-compat.css`) and keeps `snapfx-core` free of hard AtlantaFX module dependencies
 
 Localization internals are split between public extension API and internal resolver service:
 

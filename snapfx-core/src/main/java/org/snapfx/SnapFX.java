@@ -34,6 +34,7 @@ import org.snapfx.view.DockCloseButtonMode;
 import org.snapfx.view.DockLayoutEngine;
 import org.snapfx.view.DockTitleBarMode;
 import javafx.animation.PauseTransition;
+import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
@@ -74,6 +75,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -108,6 +110,8 @@ import java.util.function.Function;
 public class SnapFX {
     private static final String SIDEBAR_CHROME_MARKER_KEY = "snapfx.sidebarChrome";
     private static final String SIDEBAR_NODE_CONTEXT_MENU_PROPERTY_KEY = "snapfx.sideBarNodeContextMenu";
+    private static final String ATLANTAFX_COMPAT_STYLESHEET_RESOURCE_PATH = "/snapfx-atlantafx-compat.css";
+    private static final String ATLANTAFX_USER_AGENT_MARKER = "atlantafx";
     private static final double SIDEBAR_STRIP_WIDTH = 36.0;
     private static final double SIDEBAR_PANEL_MIN_WIDTH = 180.0;
     private static final double SIDEBAR_PANEL_MAX_WIDTH = 520.0;
@@ -163,8 +167,10 @@ public class SnapFX {
     );
     private Consumer<DockFloatingPinChangeEvent> onFloatingPinChanged;
     private final DockThemeStylesheetManager themeStylesheetManager;
+    private final String userAgentThemeCompatStylesheetUrl;
     private PauseTransition pendingThemeStylesheetApplyTransition;
     private String pendingThemeStylesheetPreviousUrl;
+    private DockUserAgentThemeMode userAgentThemeMode = DockUserAgentThemeMode.AUTO;
 
     private Pane rootContainer; // Container that holds the buildLayout() result
 
@@ -208,6 +214,7 @@ public class SnapFX {
         this.readOnlyFloatingWindows = FXCollections.unmodifiableObservableList(floatingWindows);
         this.renderedSideBarStrips = new EnumMap<>(Side.class);
         this.themeStylesheetManager = new DockThemeStylesheetManager();
+        this.userAgentThemeCompatStylesheetUrl = resolveOptionalStylesheetUrl(ATLANTAFX_COMPAT_STYLESHEET_RESOURCE_PATH);
         this.localeProperty.addListener((obs, oldLocale, newLocale) -> onLocaleChanged(newLocale));
         this.localizationProviderProperty.addListener(
             (obs, oldProvider, newProvider) -> onLocalizationProviderChanged(newProvider)
@@ -409,6 +416,41 @@ public class SnapFX {
     public void setThemeStylesheet(String stylesheetResourcePath) {
         String previousStylesheetUrl = themeStylesheetManager.setStylesheetResourcePath(stylesheetResourcePath);
         scheduleManagedThemeStylesheetApply(previousStylesheetUrl);
+    }
+
+    /**
+     * Returns how SnapFX handles optional compatibility adjustments for external user-agent themes.
+     *
+     * @return active user-agent theme mode
+     */
+    public DockUserAgentThemeMode getUserAgentThemeMode() {
+        return userAgentThemeMode;
+    }
+
+    /**
+     * Sets how SnapFX handles optional compatibility adjustments for external user-agent themes.
+     *
+     * <p>Passing {@code null} falls back to {@link DockUserAgentThemeMode#AUTO}.</p>
+     *
+     * @param mode target user-agent theme mode
+     */
+    public void setUserAgentThemeMode(DockUserAgentThemeMode mode) {
+        userAgentThemeMode = mode == null ? DockUserAgentThemeMode.AUTO : mode;
+        refreshUserAgentThemeIntegration();
+    }
+
+    /**
+     * Re-evaluates user-agent-theme compatibility and reapplies managed stylesheets to all managed scenes.
+     *
+     * <p>This method is useful after changing the global JavaFX user-agent stylesheet
+     * via {@link Application#setUserAgentStylesheet(String)} at runtime.</p>
+     */
+    public void refreshUserAgentThemeIntegration() {
+        if (!Platform.isFxApplicationThread()) {
+            Platform.runLater(this::refreshUserAgentThemeIntegration);
+            return;
+        }
+        applyManagedThemeStylesheetToManagedScenes(null);
     }
 
     /**
@@ -1314,6 +1356,41 @@ public class SnapFX {
 
     private void applyManagedThemeStylesheet(Scene scene, String previousStylesheetUrl) {
         themeStylesheetManager.applyToScene(scene, previousStylesheetUrl);
+        applyUserAgentThemeCompatibilityStylesheet(scene);
+    }
+
+    private void applyUserAgentThemeCompatibilityStylesheet(Scene scene) {
+        if (scene == null || userAgentThemeCompatStylesheetUrl == null) {
+            return;
+        }
+        ObservableList<String> stylesheets = scene.getStylesheets();
+        stylesheets.removeIf(userAgentThemeCompatStylesheetUrl::equals);
+        if (shouldApplyUserAgentThemeCompatibilityStylesheet()) {
+            stylesheets.add(userAgentThemeCompatStylesheetUrl);
+        }
+    }
+
+    private boolean shouldApplyUserAgentThemeCompatibilityStylesheet() {
+        return switch (userAgentThemeMode) {
+            case AUTO -> isAtlantaFxUserAgentStylesheet(Application.getUserAgentStylesheet());
+            case MODENA -> false;
+            case ATLANTAFX_COMPAT -> true;
+        };
+    }
+
+    private boolean isAtlantaFxUserAgentStylesheet(String userAgentStylesheet) {
+        if (userAgentStylesheet == null || userAgentStylesheet.isBlank()) {
+            return false;
+        }
+        return userAgentStylesheet.toLowerCase(Locale.ROOT).contains(ATLANTAFX_USER_AGENT_MARKER);
+    }
+
+    private String resolveOptionalStylesheetUrl(String stylesheetResourcePath) {
+        if (stylesheetResourcePath == null || stylesheetResourcePath.isBlank()) {
+            return null;
+        }
+        URL resourceUrl = SnapFX.class.getResource(stylesheetResourcePath);
+        return resourceUrl == null ? null : resourceUrl.toExternalForm();
     }
 
     private void scheduleManagedThemeStylesheetApply(String previousStylesheetUrl) {
@@ -1854,6 +1931,7 @@ public class SnapFX {
         floatingWindows.add(floatingWindow);
         if (primaryStage != null) {
             floatingWindow.show(primaryStage);
+            applyManagedThemeStylesheet(floatingWindow.getScene(), null);
             shortcutController.bindFloatingShortcutScene(floatingWindow, shortcutKeyEventFilter);
         }
         floatingController.setActiveFloatingWindow(floatingWindow);
@@ -2414,6 +2492,7 @@ public class SnapFX {
         floatingWindows.add(floatingWindow);
         if (primaryStage != null) {
             floatingWindow.show(primaryStage);
+            applyManagedThemeStylesheet(floatingWindow.getScene(), null);
             shortcutController.bindFloatingShortcutScene(floatingWindow, shortcutKeyEventFilter);
         }
         floatingController.setActiveFloatingWindow(floatingWindow);
@@ -3315,6 +3394,7 @@ public class SnapFX {
         floatingWindows.add(floatingWindow);
         if (primaryStage != null) {
             floatingWindow.show(primaryStage);
+            applyManagedThemeStylesheet(floatingWindow.getScene(), null);
             shortcutController.bindFloatingShortcutScene(floatingWindow, shortcutKeyEventFilter);
         }
     }

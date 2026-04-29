@@ -1,6 +1,6 @@
 # SnapFX Development Roadmap
 
-**Last Updated**: 2026-03-17
+**Last Updated**: 2026-04-29
 
 This document tracks planned and proposed work for SnapFX.
 This roadmap keeps a high-level progress view plus planned/proposed work; detailed completed/fixed release history is tracked in [CHANGELOG.md](CHANGELOG.md).
@@ -16,7 +16,7 @@ Planned items stay high-level in this file; granular test-count tracking and cha
 | Phase 2: Floating Windows | ✅ Completed | 100%       |
 | Phase 3: User Experience | 🚧 In Progress | 75%        |
 | Phase 4: Advanced Features | 🚧 In Progress | 35%        |
-| Phase 5: Themes & Customization | 🚧 In Progress | 60%        |
+| Phase 5: Themes & Customization | 🚧 In Progress | 70%        |
 | Phase 6: Performance & Polish | 📋 Planned | 0%         |
 | Phase 7: Developer Experience | 🚧 In Progress | 50%        |
 | Phase 8: Production Readiness | 🚧 In Progress | 40%        |
@@ -287,6 +287,7 @@ and can be implemented in a way that is not too difficult and fits the current d
 - ✅ **Custom theme API**: Runtime stylesheet switching supports classpath resources and absolute stylesheet URLs
 - ✅ **Theme switcher**: Runtime theme changes are wired through API and exposed in MainDemo Settings
 - ✅ **Named theme discovery**: Built-in themes are exposed as ordered name/path metadata (`Light`, `Dark`) for UI pickers
+- ✅ **User-agent theme integration baseline**: SnapFX now supports `AUTO`/`MODENA`/`ATLANTAFX_COMPAT` mode control with runtime refresh and optional AtlantaFX compatibility (no hard dependency in `snapfx-core`), and MainDemo verifies this via a simplified `Theme Source` (`Internal` / `AtlantaFX`) selection flow
 
 **Estimated Time**: Completed
 
@@ -450,8 +451,8 @@ examples of how this can be done.
 - ✅ **`0.5.x` Documentation baseline**: Public API JavaDoc is now warning-free for `snapfx-core` (`./gradlew :snapfx-core:javadoc --rerun-tasks`), and AGENTS workflow rules now enforce immediate complete JavaDoc updates for API changes.
 - ✅ **`0.6.x` Public docs + domain baseline**: GitHub Pages now publishes a Docusaurus documentation portal at `https://snapfx.org/` and generated JavaDoc at `https://snapfx.org/api/`, with `CNAME`-based domain routing and release docs covering setup/validation flow.
 - ✅ **`0.7.x` Packaging hardening**: Cross-platform demo packaging baseline, smoke-check policy, and release-asset checksum flow are in place.
-- 🚧 **`0.8.x` Publishing readiness**: Active: Adding more features and fixes. Maven Central CI/signing/checklist baseline is complete, including stable-tag publish policy gating (`>= v1.0.0`)
-- 🚧 **`0.9.x` Release rehearsal + freeze**: Run end-to-end RC drills (`v0.9.x-rc.y`), close final blockers, and freeze public API for `1.0.0`.
+- ✅ **`0.8.x` Publishing readiness**: Prepared in `v0.8.0`; Maven Central CI/signing/checklist baseline is complete, including stable-tag publish policy gating (`>= v1.0.0`)
+- 🚧 **`0.9.x` Release rehearsal + freeze**: Active: run end-to-end RC drills (`v0.9.x-rc.y`), close final blockers, and freeze public API for `1.0.0`.
 - 📋 **`1.0.0` stable cut**: Tag and publish the first stable public release once all release-readiness gates are green.
 - 📋 **Scope guard**: Keep optional backlog items (for example video tutorials, layout designer, major UX expansions) out of the `1.0.0` critical path unless explicitly promoted.
 

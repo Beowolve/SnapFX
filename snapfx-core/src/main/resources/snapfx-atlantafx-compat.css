@@ -1,0 +1,41 @@
+/* SnapFX optional compatibility layer for AtlantaFX user-agent themes.
+   The stylesheet is additive and intentionally minimal so SnapFX can stay
+   dependency-free while adapting common chrome contrasts. */
+
+.dock-node-header,
+.dock-floating-title-bar,
+.dock-sidebar-panel-header {
+    -fx-background-color: -color-bg-subtle;
+    -fx-border-color: -color-border-default;
+}
+
+.dock-node-view,
+.dock-floating-window,
+.dock-sidebar-panel,
+.dock-tab-pane .tab-header-area {
+    -fx-background-color: -color-bg-default;
+}
+
+.dock-node-title-label,
+.dock-sidebar-panel-title-label,
+.dock-tab-pane .tab .tab-label {
+    -fx-text-fill: -color-fg-default;
+}
+
+.dock-control-icon,
+.dock-tab-pane .tab .tab-close-button,
+.dock-control-icon-close {
+    -fx-background-color: -color-fg-default;
+    -fx-opacity: 1;
+}
+
+.dock-node-close-button:hover,
+.dock-tab-pane .tab-close-button:hover,
+.dock-sidebar-icon-button:hover {
+    -fx-background-color: -color-neutral-emphasis;
+}
+
+.dock-drop-indicator {
+    -fx-background-color: -color-accent-emphasis;
+    -fx-border-color: -color-accent-emphasis;
+}

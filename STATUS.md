@@ -1,6 +1,6 @@
 # Project Status
 
-**Last Updated**: 2026-04-01
+**Last Updated**: 2026-04-29
 
 ## Current Snapshot
 
@@ -8,7 +8,7 @@
 - ✅ **Test Health**: Full `./gradlew test` suite is green (detailed counts stay in CI output, not in this file)
 - ✅ **Runtime Baseline**: Java 21 + JavaFX 21 + JPMS are in place
 - ✅ **Delivery Baseline**: Demo app, CI workflows, tag-based releases, and release checksums are operational
-- ✅ **Release Readiness Focus**: `0.8.x` readiness is complete; active focus is `0.9.x` rehearsal/freeze before `v1.0.0`
+- ✅ **Release Readiness Focus**: `v0.8.0` is prepared; active focus moves to `0.9.x` rehearsal/freeze before `v1.0.0`
 - 🚧 **Maintainability Refactor Track**: `WS-1` is active and focused on decomposing oversized `SnapFX` internals into thematic `Dock...` controllers while keeping public API behavior stable
 
 ## Current Capability Baseline
@@ -16,7 +16,7 @@
 - ✅ **Core Docking**: Stable model/view separation with drag-and-drop, hide/restore, and lock mode
 - ✅ **Floating Windows**: Detach/attach, drag+resize snapping, persistence, and always-on-top behavior
 - ✅ **Side Bars**: Current scope completed (DnD strip baseline, built-in move/restore/pin actions, resize + persistence, visibility modes)
-- ✅ **Theming**: Default stylesheet auto-apply plus runtime theme switching (`Light` / `Dark`)
+- ✅ **Theming**: Default stylesheet auto-apply, runtime theme switching (`Light` / `Dark`), and user-agent theme integration (`AUTO` / `MODENA` / `ATLANTAFX_COMPAT`) are in place
 - ✅ **Localization Runtime**: Built-in `EN`/`DE` locale switching, provider extension API, FX-thread mutation enforcement, and a fully localized MainDemo showcase (`EN` / `DE` / `FR`) are in place
 - ✅ **Manual Verification**: MainDemo settings keep API-to-settings parity for framework features
 

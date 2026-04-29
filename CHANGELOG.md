@@ -16,6 +16,24 @@ Changelog categories for `Unreleased` and new release sections (in order, includ
 
 ## Unreleased
 
+## v0.8.0 - 2026-04-29
+
+### Features
+- ✅ Added user-agent theme integration APIs to `SnapFX`: `DockUserAgentThemeMode` (`AUTO`, `MODENA`, `ATLANTAFX_COMPAT`), `setUserAgentThemeMode(...)`, `getUserAgentThemeMode()`, and `refreshUserAgentThemeIntegration()`.
+- ✅ Added optional AtlantaFX compatibility layering in `snapfx-core` via additive stylesheet handling, without introducing a hard AtlantaFX dependency.
+
+### UI and Interaction
+- ✅ Simplified MainDemo appearance settings to a two-step theme flow: `Theme Source` (`Internal` / `AtlantaFX`) plus source-specific theme selection.
+- ✅ MainDemo now bundles AtlantaFX directly and applies selected AtlantaFX themes as global user-agent stylesheets while forcing SnapFX compatibility mode.
+
+### Tests
+- ✅ Added `SnapFXTest` coverage for user-agent mode defaults, `AUTO` AtlantaFX detection, explicit `MODENA`/`ATLANTAFX_COMPAT` behavior, refresh-based apply/remove behavior, and duplicate-prevention.
+- ✅ Added `MainDemoTest` coverage for bundled AtlantaFX theme exposure plus `Theme Source`-driven internal/AtlantaFX application behavior in settings.
+
+### Documentation
+- ✅ Added ADR [docs/adr/0008-user-agent-theme-integration-and-atlantafx-compatibility.md](docs/adr/0008-user-agent-theme-integration-and-atlantafx-compatibility.md) for the user-agent integration strategy and dependency policy.
+- ✅ Updated [ARCHITECTURE.md](ARCHITECTURE.md) with the new user-agent theme API and compatibility-layer behavior.
+
 ## v0.7.2 - 2026-04-01
 
 ### UI and Interaction

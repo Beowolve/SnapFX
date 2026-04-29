@@ -1,6 +1,15 @@
 package org.snapfx.demo;
 
+import atlantafx.base.theme.CupertinoDark;
+import atlantafx.base.theme.CupertinoLight;
+import atlantafx.base.theme.Dracula;
+import atlantafx.base.theme.NordDark;
+import atlantafx.base.theme.NordLight;
+import atlantafx.base.theme.PrimerDark;
+import atlantafx.base.theme.PrimerLight;
+import atlantafx.base.theme.Theme;
 import org.snapfx.SnapFX;
+import org.snapfx.DockUserAgentThemeMode;
 import org.snapfx.close.DockCloseBehavior;
 import org.snapfx.close.DockCloseDecision;
 import org.snapfx.close.DockCloseRequest;
@@ -58,8 +67,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -89,6 +100,7 @@ public class MainDemo extends Application {
     private static final double SETTINGS_LABEL_MIN_WIDTH = 120.0;
     private static final double SETTINGS_CONTROL_MIN_WIDTH = 120.0;
     private static final double SETTINGS_SECTION_MIN_WIDTH = 250.0;
+    private static final Map<String, Theme> ATLANTAFX_THEMES = createAtlantaFxThemes();
     private static final Locale EXTENDED_DEMO_LOCALE = Locale.FRENCH;
     private static final List<String> APP_ICON_RESOURCES = List.of(
         "/images/16/snapfx.png",
@@ -122,6 +134,9 @@ public class MainDemo extends Application {
     private final Map<DockNode, EditorDocumentState> editorDocumentStates = new HashMap<>();
     private EditorCloseDecisionPolicy editorCloseDecisionPolicy;
     private ComboBox<DockSideBarMode> sideBarModeComboBox;
+    private ComboBox<DemoThemeSource> themeSourceComboBox;
+    private ComboBox<String> themeComboBox;
+    private boolean updatingThemeSettingsControls;
     private CheckBox collapsePinnedOnActiveIconClickCheckBox;
     private boolean updatingSideBarSettingsControls;
     private ComboBox<Locale> localeComboBox;
@@ -140,6 +155,11 @@ public class MainDemo extends Application {
         private boolean suppressDirtyTracking;
         private boolean usesGeneratedUntitledTitle;
         private ChangeListener<String> textListener;
+    }
+
+    private enum DemoThemeSource {
+        INTERNAL,
+        ATLANTAFX
     }
 
     @Override
@@ -257,6 +277,40 @@ public class MainDemo extends Application {
             }
         }
         return SnapFX.getDefaultThemeName();
+    }
+
+    static Map<String, String> getAtlantaFxThemeStylesheets() {
+        LinkedHashMap<String, String> stylesheets = new LinkedHashMap<>();
+        ATLANTAFX_THEMES.forEach((name, theme) -> stylesheets.put(name, theme.getUserAgentStylesheet()));
+        return Collections.unmodifiableMap(stylesheets);
+    }
+
+    private static Map<String, Theme> createAtlantaFxThemes() {
+        LinkedHashMap<String, Theme> themes = new LinkedHashMap<>();
+        for (Theme theme : List.of(
+            new PrimerLight(),
+            new PrimerDark(),
+            new CupertinoLight(),
+            new CupertinoDark(),
+            new NordLight(),
+            new NordDark(),
+            new Dracula()
+        )) {
+            themes.put(theme.getName(), theme);
+        }
+        return Collections.unmodifiableMap(themes);
+    }
+
+    private static String resolveAtlantaFxThemeNameByUserAgentStylesheet(String userAgentStylesheet) {
+        if (userAgentStylesheet == null || userAgentStylesheet.isBlank()) {
+            return null;
+        }
+        for (Map.Entry<String, Theme> entry : ATLANTAFX_THEMES.entrySet()) {
+            if (userAgentStylesheet.equals(entry.getValue().getUserAgentStylesheet())) {
+                return entry.getKey();
+            }
+        }
+        return null;
     }
 
     static void configureDemoShortcuts(Scene scene, Runnable toggleFullscreenAction) {
@@ -925,13 +979,141 @@ public class MainDemo extends Application {
     }
 
     private void onThemeChanged(String themeName) {
-        if (themeName == null || themeName.isBlank()) {
+        if (themeName == null || themeName.isBlank() || updatingThemeSettingsControls) {
             return;
         }
-        String stylesheetPath = getNamedThemeStylesheets().get(themeName);
-        if (stylesheetPath != null) {
-            snapFX.setThemeStylesheet(stylesheetPath);
+        applyThemeSelection();
+    }
+
+    private void onThemeSourceChanged(DemoThemeSource source) {
+        if (source == null || themeComboBox == null || updatingThemeSettingsControls) {
+            return;
         }
+        updatingThemeSettingsControls = true;
+        try {
+            if (source == DemoThemeSource.INTERNAL) {
+                themeComboBox.getItems().setAll(SnapFX.getAvailableThemeNames());
+                themeComboBox.setValue(resolveInternalThemeSelection());
+            } else {
+                themeComboBox.getItems().setAll(getAtlantaFxThemeStylesheets().keySet());
+                themeComboBox.setValue(resolveAtlantaFxThemeSelection());
+            }
+        } finally {
+            updatingThemeSettingsControls = false;
+        }
+        applyThemeSelection();
+    }
+
+    private void applyThemeSelection() {
+        if (snapFX == null || themeSourceComboBox == null || themeComboBox == null) {
+            return;
+        }
+        DemoThemeSource source = themeSourceComboBox.getValue();
+        String selectedTheme = themeComboBox.getValue();
+        if (source == null || selectedTheme == null || selectedTheme.isBlank()) {
+            return;
+        }
+        if (source == DemoThemeSource.INTERNAL) {
+            String stylesheetPath = getNamedThemeStylesheets().get(selectedTheme);
+            if (stylesheetPath == null || stylesheetPath.isBlank()) {
+                return;
+            }
+            snapFX.setThemeStylesheet(stylesheetPath);
+            Application.setUserAgentStylesheet(Application.STYLESHEET_MODENA);
+            snapFX.setUserAgentThemeMode(DockUserAgentThemeMode.MODENA);
+            snapFX.refreshUserAgentThemeIntegration();
+            return;
+        }
+        Theme atlantaFxTheme = ATLANTAFX_THEMES.get(selectedTheme);
+        if (atlantaFxTheme == null) {
+            return;
+        }
+        String defaultThemeStylesheet = getNamedThemeStylesheets().get(SnapFX.getDefaultThemeName());
+        if (defaultThemeStylesheet != null && !defaultThemeStylesheet.isBlank()) {
+            snapFX.setThemeStylesheet(defaultThemeStylesheet);
+        }
+        Application.setUserAgentStylesheet(atlantaFxTheme.getUserAgentStylesheet());
+        snapFX.setUserAgentThemeMode(DockUserAgentThemeMode.ATLANTAFX_COMPAT);
+        snapFX.refreshUserAgentThemeIntegration();
+    }
+
+    private String resolveInternalThemeSelection() {
+        String resolvedThemeName = resolveThemeNameByStylesheetPath(snapFX.getThemeStylesheetResourcePath());
+        if (SnapFX.getAvailableThemeNames().contains(resolvedThemeName)) {
+            return resolvedThemeName;
+        }
+        if (SnapFX.getAvailableThemeNames().isEmpty()) {
+            return null;
+        }
+        return SnapFX.getAvailableThemeNames().getFirst();
+    }
+
+    private String resolveAtlantaFxThemeSelection() {
+        String resolvedThemeName = resolveAtlantaFxThemeNameByUserAgentStylesheet(Application.getUserAgentStylesheet());
+        if (resolvedThemeName != null && ATLANTAFX_THEMES.containsKey(resolvedThemeName)) {
+            return resolvedThemeName;
+        }
+        if (ATLANTAFX_THEMES.isEmpty()) {
+            return null;
+        }
+        return ATLANTAFX_THEMES.keySet().stream().findFirst().orElse(null);
+    }
+
+    private DemoThemeSource resolveThemeSourceFromRuntime() {
+        return resolveAtlantaFxThemeNameByUserAgentStylesheet(Application.getUserAgentStylesheet()) == null
+            ? DemoThemeSource.INTERNAL
+            : DemoThemeSource.ATLANTAFX;
+    }
+
+    private void syncThemeSettingsControlsFromRuntime() {
+        if (themeSourceComboBox == null || themeComboBox == null) {
+            return;
+        }
+        updatingThemeSettingsControls = true;
+        try {
+            DemoThemeSource source = resolveThemeSourceFromRuntime();
+            themeSourceComboBox.setValue(source);
+            if (source == DemoThemeSource.INTERNAL) {
+                themeComboBox.getItems().setAll(SnapFX.getAvailableThemeNames());
+                themeComboBox.setValue(resolveInternalThemeSelection());
+                return;
+            }
+            themeComboBox.getItems().setAll(getAtlantaFxThemeStylesheets().keySet());
+            themeComboBox.setValue(resolveAtlantaFxThemeSelection());
+        } finally {
+            updatingThemeSettingsControls = false;
+        }
+    }
+
+    private StringConverter<DemoThemeSource> createThemeSourceDisplayConverter() {
+        return new StringConverter<>() {
+            @Override
+            public String toString(DemoThemeSource source) {
+                if (source == null) {
+                    return "";
+                }
+                return switch (source) {
+                    case INTERNAL -> tr("demo.settings.value.themeSourceInternal");
+                    case ATLANTAFX -> tr("demo.settings.value.themeSourceAtlantaFx");
+                };
+            }
+
+            @Override
+            public DemoThemeSource fromString(String value) {
+                if (value == null || value.isBlank()) {
+                    return null;
+                }
+                String internalLabel = tr("demo.settings.value.themeSourceInternal");
+                if (internalLabel.equals(value)) {
+                    return DemoThemeSource.INTERNAL;
+                }
+                String atlantaFxLabel = tr("demo.settings.value.themeSourceAtlantaFx");
+                if (atlantaFxLabel.equals(value)) {
+                    return DemoThemeSource.ATLANTAFX;
+                }
+                return themeSourceComboBox == null ? null : themeSourceComboBox.getValue();
+            }
+        };
     }
 
     private void onLocaleSelectionChanged(Locale locale) {
@@ -1001,6 +1183,19 @@ public class MainDemo extends Application {
     }
 
     private void refreshDemoLocalization() {
+        if (themeSourceComboBox != null) {
+            boolean previousUpdatingThemeSettingsControls = updatingThemeSettingsControls;
+            updatingThemeSettingsControls = true;
+            try {
+                DemoThemeSource selectedThemeSource = themeSourceComboBox.getValue();
+                themeSourceComboBox.setConverter(createThemeSourceDisplayConverter());
+                if (selectedThemeSource != null) {
+                    themeSourceComboBox.getSelectionModel().select(selectedThemeSource);
+                }
+            } finally {
+                updatingThemeSettingsControls = previousUpdatingThemeSettingsControls;
+            }
+        }
         refreshLocalizedNodeTitles();
         updateUntitledEditorTitles();
         if (hiddenWindowsMenu != null) {
@@ -1132,12 +1327,17 @@ public class MainDemo extends Application {
 
     private Parent createSettingsPanel() {
         GridPane appearanceGrid = createSettingsGrid();
-        ComboBox<String> themeMode = new ComboBox<>();
-        themeMode.getItems().setAll(SnapFX.getAvailableThemeNames());
-        configureSettingsValueNode(themeMode);
-        themeMode.setValue(resolveThemeNameByStylesheetPath(snapFX.getThemeStylesheetResourcePath()));
-        themeMode.valueProperty().addListener((obs, oldVal, newVal) -> onThemeChanged(newVal));
-        addLocalizedSettingsRow(appearanceGrid, 0, "demo.settings.label.theme", themeMode);
+        themeSourceComboBox = new ComboBox<>();
+        themeSourceComboBox.getItems().setAll(DemoThemeSource.values());
+        themeSourceComboBox.setConverter(createThemeSourceDisplayConverter());
+        configureSettingsValueNode(themeSourceComboBox);
+        themeSourceComboBox.valueProperty().addListener((obs, oldVal, newVal) -> onThemeSourceChanged(newVal));
+        addLocalizedSettingsRow(appearanceGrid, 0, "demo.settings.label.themeSource", themeSourceComboBox);
+
+        themeComboBox = new ComboBox<>();
+        configureSettingsValueNode(themeComboBox);
+        themeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> onThemeChanged(newVal));
+        addLocalizedSettingsRow(appearanceGrid, 1, "demo.settings.label.theme", themeComboBox);
 
         localeComboBox = new ComboBox<>();
         localeComboBox.getItems().setAll(buildDemoLocaleOptions());
@@ -1145,7 +1345,8 @@ public class MainDemo extends Application {
         configureSettingsValueNode(localeComboBox);
         localeComboBox.setValue(snapFX.getLocale());
         localeComboBox.valueProperty().addListener((obs, oldVal, newVal) -> onLocaleSelectionChanged(newVal));
-        addLocalizedSettingsRow(appearanceGrid, 1, "demo.settings.label.frameworkLocale", localeComboBox);
+        addLocalizedSettingsRow(appearanceGrid, 2, "demo.settings.label.frameworkLocale", localeComboBox);
+        syncThemeSettingsControlsFromRuntime();
         VBox appearanceSection = createLocalizedSettingsSection("demo.settings.section.appearance", appearanceGrid);
 
         GridPane layoutGrid = createSettingsGrid();

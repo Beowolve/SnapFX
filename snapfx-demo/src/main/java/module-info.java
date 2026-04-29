@@ -7,6 +7,7 @@ module org.snapfx.demo {
     requires javafx.base;
     requires java.desktop;
     requires com.google.gson;
+    requires atlantafx.base;
 
     requires org.snapfx;
 

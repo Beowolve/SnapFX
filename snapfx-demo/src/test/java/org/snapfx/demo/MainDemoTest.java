@@ -1,10 +1,13 @@
 package org.snapfx.demo;
 
 import org.snapfx.SnapFX;
+import org.snapfx.DockUserAgentThemeMode;
+import org.snapfx.dnd.DockDragService;
 import org.snapfx.floating.DockFloatingSnapTarget;
 import org.snapfx.model.DockNode;
 import org.snapfx.persistence.DockLayoutLoadException;
 import org.snapfx.sidebar.DockSideBarMode;
+import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Side;
 import org.junit.jupiter.api.Test;
@@ -104,6 +107,17 @@ class MainDemoTest {
         assertEquals("Dark", MainDemo.resolveThemeNameByStylesheetPath("/snapfx-dark.css"));
         assertEquals(SnapFX.getDefaultThemeName(), MainDemo.resolveThemeNameByStylesheetPath("/unknown-theme.css"));
         assertEquals(SnapFX.getDefaultThemeName(), MainDemo.resolveThemeNameByStylesheetPath(" "));
+    }
+
+    @Test
+    void testAtlantaFxThemeStylesheetsAreExposed() {
+        Map<String, String> atlantaFxThemeStylesheets = MainDemo.getAtlantaFxThemeStylesheets();
+        assertFalse(atlantaFxThemeStylesheets.isEmpty());
+        assertTrue(atlantaFxThemeStylesheets.containsKey("Primer Light"));
+        assertTrue(
+            atlantaFxThemeStylesheets.values().stream().allMatch(stylesheet -> stylesheet != null && stylesheet.contains("atlantafx")),
+            "Expected all AtlantaFX stylesheets to point to AtlantaFX resources"
+        );
     }
 
     @Test
@@ -288,24 +302,81 @@ class MainDemoTest {
     }
 
     @Test
-    void testCreateSettingsPanelThemeSelectionUpdatesSnapFxThemeStylesheet() {
+    void testCreateSettingsPanelInternalThemeSelectionUpdatesSnapFxThemeStylesheet() {
         runOnFxThreadAndWait(() -> {
+            String previousUserAgentStylesheet = Application.getUserAgentStylesheet();
             MainDemo demo = new MainDemo();
             SnapFX framework = new SnapFX();
-            setPrivateField(demo, "snapFX", framework);
-            String targetTheme = SnapFX.getAvailableThemeNames().stream()
-                .filter(themeName -> {
-                    String themePath = SnapFX.getAvailableThemeStylesheets().get(themeName);
-                    return !themePath.equals(framework.getThemeStylesheetResourcePath());
-                })
-                .findFirst()
-                .orElse(SnapFX.getDefaultThemeName());
-            Map<String, String> namedThemes = SnapFX.getAvailableThemeStylesheets();
-            String expectedStylesheet = namedThemes.get(targetTheme);
-            invokePrivateMethodWithStringArgument(demo, "onThemeChanged", targetTheme);
+            try {
+                setPrivateField(demo, "snapFX", framework);
+                invokePrivateMethod(demo, "createSettingsPanel");
 
-            assertNotNull(expectedStylesheet);
-            assertEquals(expectedStylesheet, framework.getThemeStylesheetResourcePath());
+                ComboBox<?> themeSourceComboBox = readPrivateField(demo, "themeSourceComboBox", ComboBox.class);
+                ComboBox<String> themeComboBox = readPrivateField(demo, "themeComboBox", ComboBox.class);
+                assertNotNull(themeSourceComboBox);
+                assertNotNull(themeComboBox);
+                themeSourceComboBox.getSelectionModel().selectFirst();
+
+                String targetTheme = SnapFX.getAvailableThemeNames().stream()
+                    .filter(themeName -> {
+                        String themePath = SnapFX.getAvailableThemeStylesheets().get(themeName);
+                        return !themePath.equals(framework.getThemeStylesheetResourcePath());
+                    })
+                    .findFirst()
+                    .orElse(SnapFX.getDefaultThemeName());
+                Map<String, String> namedThemes = SnapFX.getAvailableThemeStylesheets();
+                String expectedStylesheet = namedThemes.get(targetTheme);
+                themeComboBox.setValue(targetTheme);
+
+                assertNotNull(expectedStylesheet);
+                assertEquals(expectedStylesheet, framework.getThemeStylesheetResourcePath());
+                assertEquals(Application.STYLESHEET_MODENA, Application.getUserAgentStylesheet());
+                assertEquals(DockUserAgentThemeMode.MODENA, framework.getUserAgentThemeMode());
+            } finally {
+                Application.setUserAgentStylesheet(previousUserAgentStylesheet);
+            }
+        });
+    }
+
+    @Test
+    void testCreateSettingsPanelAtlantaFxSelectionUpdatesUserAgentAndCompatMode() {
+        runOnFxThreadAndWait(() -> {
+            String previousUserAgentStylesheet = Application.getUserAgentStylesheet();
+            MainDemo demo = new MainDemo();
+            SnapFX framework = new SnapFX();
+            Stage stage = new Stage();
+            try {
+                DockNode node = new DockNode("node", new Label("Node"), "Node");
+                framework.dock(node, null, org.snapfx.model.DockPosition.CENTER);
+                Scene scene = new Scene(framework.buildLayout(), 640, 480);
+                stage.setScene(scene);
+                framework.initialize(stage);
+
+                setPrivateField(demo, "snapFX", framework);
+                invokePrivateMethod(demo, "createSettingsPanel");
+
+                ComboBox<?> themeSourceComboBox = readPrivateField(demo, "themeSourceComboBox", ComboBox.class);
+                ComboBox<String> themeComboBox = readPrivateField(demo, "themeComboBox", ComboBox.class);
+                assertNotNull(themeSourceComboBox);
+                assertNotNull(themeComboBox);
+                themeSourceComboBox.getSelectionModel().select(1);
+                themeComboBox.getSelectionModel().selectFirst();
+                assertNotNull(Application.getUserAgentStylesheet());
+                assertTrue(Application.getUserAgentStylesheet().contains("atlantafx"));
+                assertEquals(DockUserAgentThemeMode.ATLANTAFX_COMPAT, framework.getUserAgentThemeMode());
+
+                String compatStylesheetUrl = SnapFX.class.getResource("/snapfx-atlantafx-compat.css").toExternalForm();
+                assertTrue(scene.getStylesheets().contains(compatStylesheetUrl));
+
+                themeSourceComboBox.getSelectionModel().selectFirst();
+                assertEquals(Application.STYLESHEET_MODENA, Application.getUserAgentStylesheet());
+                assertEquals(DockUserAgentThemeMode.MODENA, framework.getUserAgentThemeMode());
+                assertFalse(scene.getStylesheets().contains(compatStylesheetUrl));
+            } finally {
+                Application.setUserAgentStylesheet(previousUserAgentStylesheet);
+                stage.close();
+                closeGhostStage(framework);
+            }
         });
     }
 
@@ -572,16 +643,6 @@ class MainDemoTest {
         }
     }
 
-    private void invokePrivateMethodWithStringArgument(Object target, String methodName, String argument) {
-        try {
-            Method method = target.getClass().getDeclaredMethod(methodName, String.class);
-            method.setAccessible(true);
-            method.invoke(target, argument);
-        } catch (ReflectiveOperationException e) {
-            throw new AssertionError("Unable to invoke private method with string argument: " + methodName, e);
-        }
-    }
-
     private void setPrivateField(Object target, String fieldName, Object value) {
         try {
             Field field = target.getClass().getDeclaredField(fieldName);
@@ -600,6 +661,28 @@ class MainDemoTest {
             return type.cast(value);
         } catch (ReflectiveOperationException e) {
             throw new AssertionError("Unable to read private field: " + fieldName, e);
+        }
+    }
+
+    private void closeGhostStage(SnapFX framework) {
+        if (framework == null) {
+            return;
+        }
+        try {
+            Field dragServiceField = SnapFX.class.getDeclaredField("dragService");
+            dragServiceField.setAccessible(true);
+            Object dragService = dragServiceField.get(framework);
+            if (dragService == null) {
+                return;
+            }
+            Field ghostStageField = DockDragService.class.getDeclaredField("ghostStage");
+            ghostStageField.setAccessible(true);
+            Object ghostStage = ghostStageField.get(dragService);
+            if (ghostStage instanceof Stage ghostStageInstance) {
+                ghostStageInstance.close();
+            }
+        } catch (ReflectiveOperationException ignored) {
+            // Best-effort cleanup for JavaFX drag ghost stage.
         }
     }
 

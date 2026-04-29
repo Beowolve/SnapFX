@@ -39,6 +39,7 @@ javafx {
 dependencies {
     implementation(project(":snapfx-core"))
     implementation(libs.gson)
+    implementation(libs.atlantafx.base)
 
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
