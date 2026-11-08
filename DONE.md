@@ -5,7 +5,7 @@
 ## Product Baseline
 
 - ✅ **Core Docking Delivered**: Stable docking model/view architecture with drag-and-drop, hide/restore, and lock mode
-- ✅ **Floating Workflows Delivered**: Detach/attach, title-bar actions, always-on-top, drag+resize snapping, and persistence
+- ✅ **Floating Workflows Delivered**: Detach/attach, title-bar actions, per-node float gating, always-on-top, drag+resize snapping, and persistence
 - ✅ **Sidebar Interaction Scope Delivered**: Strip DnD baseline, framework/sidebar move/restore/pin actions, resize + persistence, and visibility modes
 - ✅ **Persistence and Recovery Delivered**: Save/load pipeline with typed load errors and unknown-node fallback recovery
 - ✅ **Theme Runtime Delivered**: Default stylesheet auto-apply, runtime theme switching (`Light` / `Dark`), plus user-agent integration controls (`AUTO` / `MODENA` / `ATLANTAFX_COMPAT`) with optional AtlantaFX compatibility and no hard core dependency

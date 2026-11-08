@@ -116,7 +116,10 @@ public class DockNodeView extends VBox {
         floatButton.setTooltip(new Tooltip(text("dock.node.tooltip.floatWindow")));
         floatButton.setFocusTraversable(false);
         floatButton.setOnAction(e -> { });
-        floatButton.visibleProperty().bind(dockGraph.lockedProperty().not());
+        floatButton.visibleProperty().bind(
+            dockNode.floatableProperty()
+                .and(dockGraph.lockedProperty().not())
+        );
         floatButton.managedProperty().bind(floatButton.visibleProperty());
 
         closeButton = new Button();

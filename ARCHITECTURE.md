@@ -197,6 +197,7 @@ DockNode {
     - title: StringProperty
     - content: ObjectProperty<Node>
     - closeable: BooleanProperty
+    - floatable: BooleanProperty
     - parent: DockContainer
 }
 ```
@@ -312,7 +313,8 @@ DockNodeView extends VBox {
 ```
 
 **Behavior**:
-- Header with title and close button
+- Header with title, float button, and close button
+- Float button reacts to `floatable` and `locked`
 - Close button reacts to `closeable` and `locked`
 - Content is bound from DockNode
 
@@ -407,7 +409,8 @@ DockLayoutSerializer {
         "id": "uuid-456",
         "type": "DockNode",
         "title": "Editor",
-        "closeable": true
+        "closeable": true,
+        "floatable": true
       },
       {
         "id": "uuid-789",

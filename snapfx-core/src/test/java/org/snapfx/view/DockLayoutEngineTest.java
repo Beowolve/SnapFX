@@ -411,6 +411,103 @@ class DockLayoutEngineTest extends ApplicationTest {
     }
 
     @Test
+    void testTitleFloatButtonFollowsFloatableProperty() {
+        DockNode node = new DockNode(new Label("Test"), "Node 1");
+        dockGraph.setRoot(node);
+
+        DockNodeView nodeView = assertInstanceOf(DockNodeView.class, layoutEngine.buildSceneGraph());
+        Button floatButton = nodeView.getHeader().getChildren().stream()
+            .filter(Button.class::isInstance)
+            .map(Button.class::cast)
+            .filter(button -> button.getStyleClass().contains(DockThemeStyleClasses.DOCK_NODE_FLOAT_BUTTON))
+            .findFirst()
+            .orElseThrow();
+
+        assertTrue(floatButton.isVisible());
+        assertTrue(floatButton.isManaged());
+
+        node.setFloatable(false);
+
+        assertFalse(floatButton.isVisible());
+        assertFalse(floatButton.isManaged());
+
+        node.setFloatable(true);
+
+        assertTrue(floatButton.isVisible());
+        assertTrue(floatButton.isManaged());
+    }
+
+    @Test
+    void testTabFloatButtonFollowsFloatableProperty() {
+        DockNode node1 = new DockNode(new Label("Test1"), "Node 1");
+        DockNode node2 = new DockNode(new Label("Test2"), "Node 2");
+        node1.setFloatable(false);
+
+        dockGraph.dock(node1, null, DockPosition.CENTER);
+        dockGraph.dock(node2, node1, DockPosition.CENTER);
+
+        TabPane tabPane = assertInstanceOf(TabPane.class, layoutEngine.buildSceneGraph());
+        Node tabHeader = tabPane.getTabs().getFirst().getGraphic();
+        Button floatButton = ((HBox) tabHeader).getChildren().stream()
+            .filter(Button.class::isInstance)
+            .map(Button.class::cast)
+            .filter(button -> button.getStyleClass().contains(DockThemeStyleClasses.DOCK_TAB_FLOAT_BUTTON))
+            .findFirst()
+            .orElseThrow();
+
+        assertFalse(floatButton.isVisible());
+        assertFalse(floatButton.isManaged());
+    }
+
+    @Test
+    void testHeaderContextMenuHidesFloatWhenNodeNotFloatable() {
+        DockNode node = new DockNode(new Label("Test"), "Node 1");
+        node.setFloatable(false);
+        dockGraph.setRoot(node);
+
+        DockNodeView nodeView = assertInstanceOf(DockNodeView.class, layoutEngine.buildSceneGraph());
+        ContextMenu headerContextMenu = nodeView.getHeaderContextMenu();
+        assertNotNull(headerContextMenu);
+
+        MenuItem floatItem = headerContextMenu.getItems().stream()
+            .filter(item -> "Float".equals(item.getText()))
+            .findFirst()
+            .orElseThrow();
+        invokeContextMenuOnShowing(headerContextMenu);
+
+        assertFalse(floatItem.isVisible());
+        assertTrue(floatItem.isDisable());
+    }
+
+    @Test
+    void testTabContextMenuHidesFloatWhenNodeNotFloatable() {
+        DockNode node1 = new DockNode(new Label("Test1"), "Node 1");
+        DockNode node2 = new DockNode(new Label("Test2"), "Node 2");
+        node1.setFloatable(false);
+        dockGraph.dock(node1, null, DockPosition.CENTER);
+        dockGraph.dock(node2, node1, DockPosition.CENTER);
+
+        TabPane tabPane = assertInstanceOf(TabPane.class, layoutEngine.buildSceneGraph());
+        ContextMenu contextMenu = tabPane.getTabs().getFirst().getContextMenu();
+        assertNotNull(contextMenu);
+        MenuItem floatItem = contextMenu.getItems().stream()
+            .filter(item -> "Float".equals(item.getText()))
+            .findFirst()
+            .orElseThrow();
+        SeparatorMenuItem separator = contextMenu.getItems().stream()
+            .filter(SeparatorMenuItem.class::isInstance)
+            .map(SeparatorMenuItem.class::cast)
+            .findFirst()
+            .orElseThrow();
+
+        invokeContextMenuOnShowing(contextMenu);
+
+        assertFalse(floatItem.isVisible());
+        assertTrue(floatItem.isDisable());
+        assertFalse(separator.isVisible());
+    }
+
+    @Test
     void testTitleBarModeAutoHidesHeaderInTabPane() {
         DockNode node1 = new DockNode(new Label("Test1"), "Node 1");
         DockNode node2 = new DockNode(new Label("Test2"), "Node 2");

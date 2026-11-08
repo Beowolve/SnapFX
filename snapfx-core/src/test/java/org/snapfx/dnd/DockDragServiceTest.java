@@ -187,6 +187,17 @@ class DockDragServiceTest {
     }
 
     @Test
+    void testRequestFloatDetachReturnsFalseForNonFloatableNode() {
+        DockNode dragged = new DockNode(new Label("Dragged"), "Dragged");
+        dragged.setFloatable(false);
+        AtomicReference<DockDragService.FloatDetachRequest> requestRef = new AtomicReference<>();
+        dragService.setOnFloatDetachRequest(requestRef::set);
+
+        assertFalse(dragService.requestFloatDetach(dragged, 10.0, 20.0));
+        assertNull(requestRef.get());
+    }
+
+    @Test
     void testMainDropSuppressionPredicateIsEvaluated() {
         assertFalse(dragService.shouldSuppressMainDropAt(120.0, 80.0));
 

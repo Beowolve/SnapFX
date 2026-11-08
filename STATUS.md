@@ -14,7 +14,7 @@
 ## Current Capability Baseline
 
 - ✅ **Core Docking**: Stable model/view separation with drag-and-drop, hide/restore, and lock mode
-- ✅ **Floating Windows**: Detach/attach, drag+resize snapping, persistence, and always-on-top behavior
+- ✅ **Floating Windows**: Detach/attach, per-node float gating, drag+resize snapping, persistence, and always-on-top behavior
 - ✅ **Side Bars**: Current scope completed (DnD strip baseline, built-in move/restore/pin actions, resize + persistence, visibility modes)
 - ✅ **Theming**: Default stylesheet auto-apply, runtime theme switching (`Light` / `Dark`), and user-agent theme integration (`AUTO` / `MODENA` / `ATLANTAFX_COMPAT`) are in place
 - ✅ **Localization Runtime**: Built-in `EN`/`DE` locale switching, provider extension API, FX-thread mutation enforcement, and a fully localized MainDemo showcase (`EN` / `DE` / `FR`) are in place
