@@ -837,6 +837,9 @@ public final class DockFloatingWindow {
     /**
      * Routes an inner-node float request through the floating-window callback flow.
      *
+     * <p>Requests are ignored when the node is {@code null}, not floatable, locked, or the only
+     * node in this floating layout.</p>
+     *
      * @param node node that requested floating
      */
     public void requestFloatForNode(DockNode node) {
@@ -2449,7 +2452,7 @@ public final class DockFloatingWindow {
     }
 
     private void handleInnerNodeFloatRequest(DockNode node) {
-        if (node == null || floatingGraph.isLocked() || getDockNodes().size() <= 1) {
+        if (node == null || !node.isFloatable() || floatingGraph.isLocked() || getDockNodes().size() <= 1) {
             return;
         }
         if (onNodeFloatRequest != null) {

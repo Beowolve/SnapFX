@@ -719,7 +719,10 @@ public class DockLayoutEngine {
         floatButton.setGraphic(createControlIcon(DockThemeStyleClasses.DOCK_CONTROL_ICON_FLOAT));
         floatButton.setTooltip(new Tooltip(text("dock.layout.tooltip.floatWindow")));
         floatButton.setFocusTraversable(false);
-        floatButton.visibleProperty().bind(dockGraph.lockedProperty().not());
+        floatButton.visibleProperty().bind(
+            dockNode.floatableProperty()
+                .and(dockGraph.lockedProperty().not())
+        );
         floatButton.managedProperty().bind(floatButton.visibleProperty());
         floatButton.setOnAction(e -> {
             handleFloatRequest(dockNode);
@@ -870,7 +873,7 @@ public class DockLayoutEngine {
     }
 
     private boolean canFloatNode(DockNode dockNode) {
-        if (dockNode == null) {
+        if (dockNode == null || !dockNode.isFloatable()) {
             return false;
         }
         return canFloatNodePredicate != null && canFloatNodePredicate.test(dockNode);

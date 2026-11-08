@@ -115,6 +115,76 @@ class DockLayoutSerializerTest {
     }
 
     @Test
+    void testRoundTripFloatableState() throws DockLayoutLoadException {
+        DockNode node = new DockNode("testNode1", new Label("Test"), "Test Node");
+        node.setFloatable(false);
+        dockGraph.setRoot(node);
+
+        String json = serializer.serialize();
+        assertTrue(json.contains("\"floatable\": false"));
+
+        DockGraph newGraph = new DockGraph();
+        DockLayoutSerializer newSerializer = new DockLayoutSerializer(newGraph);
+        newSerializer.setNodeFactory(nodeId ->
+            "testNode1".equals(nodeId) ? new DockNode(nodeId, new Label("Test"), "Test Node") : null
+        );
+
+        newSerializer.deserialize(json);
+
+        DockNode deserializedNode = assertInstanceOf(DockNode.class, newGraph.getRoot());
+        assertFalse(deserializedNode.isFloatable());
+    }
+
+    @Test
+    void testDeserializeMissingFloatableDefaultsToTrue() throws DockLayoutLoadException {
+        String json = """
+            {
+              "locked": false,
+              "layoutIdCounter": 1,
+              "root": {
+                "id": "layout-node-1",
+                "dockNodeId": "node1",
+                "type": "DockNode",
+                "title": "One",
+                "closeable": true
+              }
+            }
+            """;
+
+        serializer.deserialize(json);
+
+        DockNode node = assertInstanceOf(DockNode.class, dockGraph.getRoot());
+        assertTrue(node.isFloatable());
+    }
+
+    @Test
+    void testDeserializeMissingFloatablePreservesFactoryValue() throws DockLayoutLoadException {
+        String json = """
+            {
+              "locked": false,
+              "layoutIdCounter": 1,
+              "root": {
+                "id": "layout-node-1",
+                "dockNodeId": "node1",
+                "type": "DockNode",
+                "title": "One",
+                "closeable": true
+              }
+            }
+            """;
+
+        serializer.setNodeFactory(nodeId -> {
+            DockNode node = new DockNode(nodeId, new Label("Test"), "One");
+            node.setFloatable(false);
+            return node;
+        });
+        serializer.deserialize(json);
+
+        DockNode node = assertInstanceOf(DockNode.class, dockGraph.getRoot());
+        assertFalse(node.isFloatable());
+    }
+
+    @Test
     void testRoundTripComplexStructure() throws DockLayoutLoadException {
         DockNode node1 = new DockNode("node1", new Label("Test1"), "Node 1");
         DockNode node2 = new DockNode("node2", new Label("Test2"), "Node 2");

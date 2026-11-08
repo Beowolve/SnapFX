@@ -1041,7 +1041,7 @@ public class DockDragService {
     }
 
     boolean requestFloatDetach(DockNode draggedNode, double screenX, double screenY) {
-        if (draggedNode == null || onFloatDetachRequest == null) {
+        if (draggedNode == null || !draggedNode.isFloatable() || onFloatDetachRequest == null) {
             return false;
         }
         onFloatDetachRequest.accept(new FloatDetachRequest(draggedNode, screenX, screenY));

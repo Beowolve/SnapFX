@@ -208,6 +208,7 @@ public class DockLayoutSerializer {
 
                 data.title = node.getTitle();
                 data.closeable = node.isCloseable();
+                data.floatable = node.isFloatable();
 
                 // Check if content implements DockNodeContentSerializer
                 if (node.getContent() instanceof DockNodeContentSerializer serializer) {
@@ -439,7 +440,7 @@ public class DockLayoutSerializer {
         if (!isBlank(data.id)) {
             node = nodeRegistry.get(data.id);
             if (node != null) {
-                applyRestoredNodeState(node, resolvedLayoutId, resolvedTitle, data.closeable);
+                applyRestoredNodeState(node, resolvedLayoutId, resolvedTitle, data.closeable, data.floatable);
                 return node;
             }
         }
@@ -448,7 +449,7 @@ public class DockLayoutSerializer {
             buildPlaceholderMessage(unsupportedType, resolvedDockNodeId, resolvedLayoutId, typePath)
         );
         node = new DockNode(resolvedDockNodeId, placeholder, resolvedTitle);
-        applyRestoredNodeState(node, resolvedLayoutId, resolvedTitle, data.closeable);
+        applyRestoredNodeState(node, resolvedLayoutId, resolvedTitle, data.closeable, data.floatable);
         return node;
     }
 
@@ -484,12 +485,12 @@ public class DockLayoutSerializer {
             return null;
         }
 
-        applyRestoredNodeState(node, resolvedLayoutId, resolvedTitle, data.closeable);
+        applyRestoredNodeState(node, resolvedLayoutId, resolvedTitle, data.closeable, data.floatable);
         restoreNodeContentData(node, data.contentData, path);
         return node;
     }
 
-    private void applyRestoredNodeState(DockNode node, String layoutId, String title, boolean closeable) {
+    private void applyRestoredNodeState(DockNode node, String layoutId, String title, boolean closeable, Boolean floatable) {
         if (node == null) {
             return;
         }
@@ -500,6 +501,9 @@ public class DockLayoutSerializer {
             node.setTitle(title);
         }
         node.setCloseable(closeable);
+        if (floatable != null) {
+            node.setFloatable(floatable);
+        }
     }
 
     private void restoreNodeContentData(DockNode node, JsonObject contentData, String path) throws DockLayoutLoadException {
@@ -701,6 +705,7 @@ public class DockLayoutSerializer {
         String type;
         String title;
         boolean closeable;
+        Boolean floatable;
         String orientation;
         int selectedIndex;
         ElementData[] children;

@@ -170,7 +170,7 @@ try {
 - **Floating Windows**: Custom undecorated floating windows with attach/maximize/restore/close controls
 - **Snapping**: Floating windows snap to edges and corners (configurable)
 - **Cross-Window D&D**: Dock nodes between main layout and floating windows, including split/tab targets
-- **Quick Float Actions**: Float buttons in title bars and tab headers
+- **Quick Float Actions**: Float buttons in title bars and tab headers, individually disabled via `DockNode.setFloatable(false)`
 - **Context Menus**: Right-click actions for tabs, splitters, dock headers, and floating title bars (`Attach to Layout`, always-on-top toggle)
 - **Resizable Floating Windows**: Resize from edges and corners (undecorated behavior)
 - **Locked Mode**: Lock the layout; no D&D; no close buttons

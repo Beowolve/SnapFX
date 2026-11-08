@@ -33,6 +33,7 @@ public class DockNode implements DockElement {
     private final ObjectProperty<Node> content;
     private final ObjectProperty<Image> icon;
     private final BooleanProperty closeable;
+    private final BooleanProperty floatable;
     private DockContainer parent;
 
     // Store last known position for restore
@@ -74,6 +75,7 @@ public class DockNode implements DockElement {
         this.title = new SimpleStringProperty(title);
         this.icon = new SimpleObjectProperty<>(null);
         this.closeable = new SimpleBooleanProperty(true);
+        this.floatable = new SimpleBooleanProperty(true);
     }
 
     // Getters
@@ -156,6 +158,34 @@ public class DockNode implements DockElement {
 
     public void setIcon(Image icon) {
         this.icon.set(icon);
+    }
+
+    /**
+     * Returns whether this node may be moved into a floating window.
+     * Nodes are floatable by default.
+     *
+     * @return {@code true} when this node can be floated
+     */
+    public boolean isFloatable() {
+        return floatable.get();
+    }
+
+    /**
+     * Returns the observable floatable property.
+     *
+     * @return floatable property
+     */
+    public BooleanProperty floatableProperty() {
+        return floatable;
+    }
+
+    /**
+     * Controls whether this node may be moved into a floating window.
+     *
+     * @param floatable {@code true} when this node can be floated
+     */
+    public void setFloatable(boolean floatable) {
+        this.floatable.set(floatable);
     }
 
     public boolean isCloseable() {

@@ -16,6 +16,13 @@ Changelog categories for `Unreleased` and new release sections (in order, includ
 
 ## Unreleased
 
+### Features
+- Added per-node `DockNode.setFloatable(...)` control. Non-floatable nodes hide float buttons in title bars and tab headers, omit float context-menu actions, and reject user float drag-detach.
+- Persisted `floatable` state in dock layouts while preserving the factory/default value when loading older layouts that omit the field.
+
+### Tests
+- Added coverage for the `floatable` default/setter, title/tab float-button visibility, float context-menu visibility, drag-detach rejection, API rejection, and persistence round-trip/backward compatibility.
+
 ## v0.8.0 - 2026-04-29
 
 ### Features

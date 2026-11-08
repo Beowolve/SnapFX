@@ -126,6 +126,7 @@ Planned items stay high-level in this file; granular test-count tracking and cha
 - ✅ **Window decorations**: Custom title bar styling and controls
 - ✅ **Resizable undecorated windows**: Edge/corner resize behavior for floating stages
 - ✅ **Tab-level float action**: Float button available in tab headers
+- ✅ **Per-node float gating**: `DockNode.setFloatable(false)` hides float buttons and context-menu float actions, blocks drag detach, and is persisted in layouts
 - ✅ **Floating title-bar icon reliability**: Title-bar icons now stay visible across dock/header/tab views and track active tab selection
 - ✅ **Floating title-bar context-menu dismiss behavior**: Context menu now hides immediately when clicking the title bar outside the menu
 - ✅ **Maximized restore drag threshold**: Restore-on-drag from maximized requires deliberate pointer movement
